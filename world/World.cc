@@ -554,7 +554,7 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
 }
 
 void 
-World::add_car (Car* car, Driver* driver, const Road& road)
+World::add_car (Car* car, Driver* driver, const Road& road, bool controlled)
 {
   if (driver != 0)
     driver->set_cars (&m_cars);
@@ -562,6 +562,10 @@ World::add_car (Car* car, Driver* driver, const Road& road)
   m_cars.push_back (Car_Information (car, driver));
 
   place_car (car, car->chassis ().position (), road);
+
+  set_focused_car (m_cars.size () - 1);
+  if (controlled)
+    set_controlled_car (m_cars.size () - 1);
 }
 
 void 

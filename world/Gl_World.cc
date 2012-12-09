@@ -247,10 +247,11 @@ Gl_World::set_attributes ()
 void 
 Gl_World::add_car (Vamos_Body::Car* car, 
                    Driver* driver,
-                   const Vamos_Track::Road& road)
+                   const Vamos_Track::Road& road,
+                   bool controlled)
 {
   if (car == 0) return;
-  World::add_car (car, driver, road);
+  World::add_car (car, driver, road, controlled);
   m_view = BODY_VIEW;
 }
 

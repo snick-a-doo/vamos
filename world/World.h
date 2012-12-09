@@ -163,9 +163,9 @@ namespace Vamos_World
     double get_gravity () const { return m_gravity; }
     virtual void add_car (Vamos_Body::Car* car,
                           Driver* driver,
-                          const Vamos_Track::Road& road);
+                          const Vamos_Track::Road& road,
+                          bool controlled = false);
     virtual void set_focused_car (size_t car_index);
-    virtual void set_controlled_car (size_t car_index);
     void focus_other_car (int delta);
     void cars_can_interact (bool can) { m_cars_can_interact = can; }
     void propagate_cars (double time_step);
@@ -190,6 +190,7 @@ namespace Vamos_World
     void place_car (Vamos_Body::Car* car, 
                     const Vamos_Geometry::Three_Vector& pos,
                     const Vamos_Track::Road& Road);
+    void set_controlled_car (size_t car_index);
 
     size_t m_focused_car_index;
     bool m_cars_can_interact;

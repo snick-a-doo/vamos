@@ -194,7 +194,8 @@ namespace Vamos_World
 
     virtual void add_car (Vamos_Body::Car* car,
                           Driver* driver,
-                          const Vamos_Track::Road& road);
+                          const Vamos_Track::Road& road,
+                          bool fcontrolled = false);
 
 	// Read the world definition file.
 	void read (std::string data_dir = "", 
