@@ -111,11 +111,7 @@ AC_CHECK_HEADER(png.h,,
 	AC_MSG_ERROR([libpng is required.]))
 
 dnl Boost
-AC_LANG_CPLUSPLUS
-AC_CHECK_HEADER([boost/test/unit_test.hpp],,
-  test x$unit_tests = xtrue && AC_MSG_NOTICE(
-    [Boost.test not found; tests will not be built])
-  unit_tests=false)
+AX_BOOST_BASE([1.46.0],, AC_MSG_ERROR([Boost >= v1.46.0 is required.]))
 
 AM_CONDITIONAL(DO_UNIT_TESTS, test x$unit_tests = xtrue)
 
