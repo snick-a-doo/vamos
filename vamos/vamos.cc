@@ -20,6 +20,8 @@
 
 #include <GL/glut.h>
 
+#include <boost/filesystem.hpp>
+
 #include "../body/Gl_Car.h"
 #include "../geometry/Parameter.h"
 #include "../media/Texture_Image.h"
@@ -40,7 +42,6 @@ bool get_options (int argc, char* argv [],
                   std::string& world_file,
                   std::string& controls_file,
                   size_t& number_of_opponents,
-                  size_t& focused_car,
                   double& volume,
                   bool& map_mode,
                   bool& full_screen,
@@ -56,7 +57,6 @@ bool get_options (int argc, char* argv [],
   world_file = "default-world";
   controls_file = "default-controls";
   number_of_opponents = 0;
-  focused_car = 0;
   map_mode = false;
   full_screen = false;
   no_interaction = false;
@@ -75,7 +75,6 @@ bool get_options (int argc, char* argv [],
           { "world", required_argument, 0, 'w' },
           { "controls", required_argument, 0, 'a' },
           { "opponents", required_argument, 0, 'o' },
-          { "focused-car", required_argument, 0, 'i' },
           { "volume", required_argument, 0, 's' },
           { "show-line", optional_argument, 0, 'l' },
           { "map", no_argument, 0, 'm' },
@@ -88,7 +87,7 @@ bool get_options (int argc, char* argv [],
         };
 
       int option_index = 0;
-      int c = getopt_long (argc, argv, "c:t:w:a:o:i:s:l::mdfnrv", 
+      int c = getopt_long (argc, argv, "c:t:w:a:o:s:l::mdfnrv", 
                            long_options, &option_index);
       if (c == -1)
         break;
@@ -111,9 +110,6 @@ bool get_options (int argc, char* argv [],
           break;
         case 'o':
           number_of_opponents = atoi (optarg);
-          break;
-        case 'i':
-          focused_car = atoi (optarg);
           break;
         case 's':
           volume = atoi (optarg) / 100.0;
@@ -149,19 +145,23 @@ bool get_options (int argc, char* argv [],
   for (int index = optind; index < argc; index++)
     parameter.push_back (atof (argv [index]));
 
+  if (demo)
+    number_of_opponents = std::max (size_t (1), number_of_opponents);
+
   return error;
 }
 
 std::string
-get_path (std::string file, std::string section)
+get_path (std::string file, std::string section, bool extend = true)
 {
-  std::string path = "../data/" + section + "/" + file + ".xml";
+  std::string path = "../data/" + section + "/" + file + (extend ? ".xml" : "");
+
   {
     std::ifstream check (path.c_str ());
     if (check)
       return path;
   }
-  path = DATADIR "/" + section + "/" + file + ".xml";
+  path = DATADIR "/" + section + "/" + file + (extend ? ".xml" : "");
   {
     std::ifstream check (path.c_str ());
     if (check)
@@ -171,6 +171,36 @@ get_path (std::string file, std::string section)
   return file;
 }
 
+std::vector <std::string>
+get_car_files (const std::string& car_file)
+{
+  using namespace boost::filesystem;
+
+  std::vector <std::string> car_files;
+
+  path car_path (get_path (car_file, "cars", false));
+  std::cerr << "path=" << car_path.native () << std::endl;
+  if (is_directory (car_path))
+    {
+      std::cerr << "dir\n";
+      for (directory_iterator it = directory_iterator (car_path);
+           it != directory_iterator ();
+           it++)
+        {
+          if (it->path ().extension () == ".xml")
+            car_files.push_back (it->path ().native ());
+        }
+      std::sort (car_files.begin (), car_files.end ());
+    }
+  else
+    {
+      std::cerr << "file\n";
+      car_files.push_back (get_path (car_file, "cars"));
+    }
+
+  return car_files;
+}
+
 int main (int argc, char* argv [])
 {
   std::string car_file;
@@ -178,7 +208,6 @@ int main (int argc, char* argv [])
   std::string world_file;
   std::string controls_file;
   size_t number_of_opponents;
-  size_t focused_car;
   double volume = 1.0;
   bool map_mode;
   bool full_screen;
@@ -192,7 +221,6 @@ int main (int argc, char* argv [])
                             car_file, track_file, 
                             world_file, controls_file,
                             number_of_opponents,
-                            focused_car,
                             volume,
                             map_mode,
                             full_screen,
@@ -211,7 +239,6 @@ int main (int argc, char* argv [])
                 << "[[-w|--world=] WORLD_FILE] "
                 << "[[-a|--controls=] CONTROLS_FILE] "
                 << "[[-o|--opponents=] NUMBER_OF_OPPONENTS] "
-                << "[[-i|--focused-car=] FOCUSED_CAR_INDEX] "
                 << "[[-s|--volume=] VOLUME_PERCENT] "
                 << "[-f|--full-screen] "
                 << "[-n|--no-interaction] "
@@ -278,58 +305,46 @@ int main (int argc, char* argv [])
     }
   track.show_racing_line (show_line);
 
+  std::vector <std::string> car_files = get_car_files (car_file);
+  for (std::vector <std::string>::const_iterator it = car_files.begin ();
+       it != car_files.end ();
+       it++)
+    std::cerr << *it << std::endl;
+
   Vamos_Body::Gl_Car* car = 0;
   if (!map_mode)
     {
       try
         {
-          Three_Vector position (18.0, 3.0, 0.0);
+          Three_Vector position (0.0, 3.0, 0.0);
           Three_Matrix orientation;
           const double grid_interval = 8.0;
           const Vamos_Track::Road& road = track.get_road (0);
 
-          if (!demo)
-            {
-              car = new Vamos_Body::Gl_Car (position, orientation);
-              car->read (data_dir, get_path (car_file, "cars"));
-              car->start_engine ();
-              world.add_car (car, new Interactive_Driver (car), road);
-              world.set_controlled_car (0);
-
-              position.x += grid_interval;
-              position.y *= -1.0;
-            }
-          else
-            number_of_opponents = std::max (size_t (1), number_of_opponents);
-
           for (size_t i = 0; i < number_of_opponents; i++)
             {
               car = new Vamos_Body::Gl_Car (position, orientation);
-              car->read (data_dir, get_path (car_file, "cars"));
-              car->adjust_robot_parameters (-0.05*i, -0.05*i, -0.05*i);
+              car->read (data_dir, car_files [std::min (car_files.size () - 1, i + 1)]);
               car->start_engine ();
               Robot_Driver* driver = new Robot_Driver (car, &track, world.get_gravity ());
               driver->interact (!no_interaction);
               driver->show_steering_target (show_line);
               world.add_car (car, driver, road);
 
-              position.x += grid_interval;
+              position.x -= grid_interval;
               position.y *= -1.0;
             }
 
-          if (car != 0)
+          if (!demo)
             {
-              track.build_racing_line (number_of_opponents >= 1);
-              if (focused_car > world.number_of_cars () - 1)
-                {
-                  std::cerr << argv [0] 
-                            << ": focused car (-n) must be less than " 
-                            << "the total number of cars" 
-                            << std::endl;
-                  std::exit (EXIT_FAILURE);
-                }
-              world.set_focused_car (focused_car);
+              car = new Vamos_Body::Gl_Car (position, orientation);
+              car->read (data_dir, car_files [0]);
+              car->start_engine ();
+              world.add_car (car, new Interactive_Driver (car), road, true);
             }
+
+          if (car != 0)
+            track.build_racing_line (number_of_opponents >= 1);
         }
       catch (XML_Exception& error)
         {
@@ -342,8 +357,8 @@ int main (int argc, char* argv [])
           std::exit (EXIT_FAILURE);
         }
     }
-  else
-    track.build_racing_line (0.0);
+
+  track.build_racing_line (!map_mode && (number_of_opponents > 0));
 
   try
     {

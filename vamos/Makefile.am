@@ -10,7 +10,7 @@ vamos_LDADD = \
 	$(top_srcdir)/media/libvamos-media.la
 
 LIBS = \
-	`pkg-config --libs sdl freealut libpng` \
+	`pkg-config --libs sdl freealut libpng` -lboost_system -lboost_filesystem \
 	@LIBS@
 
 AM_CXXFLAGS = -Wall -pedantic -O2 -g -DDATADIR=\"$(pkgdatadir)\" \
