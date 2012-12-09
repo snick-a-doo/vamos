@@ -1,0 +1,14 @@
+BROWSE
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+Makefile
+autom4te.cache
+config.log
+config.status
+cscope.files
+cscope.out
+libtool
+caelum
+vamos
