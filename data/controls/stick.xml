@@ -1,0 +1,215 @@
+<?xml version="1.0"?>
+
+<controls name="Keyboard and Joystick">
+  <!-- Put the car at the start -->
+  <bind><function>restart car</function><key>a</key></bind>
+  <!-- Put the car on the road -->
+  <bind><function>reset car</function><key>r</key></bind>
+  <!-- Reload the car file -->
+  <bind><function>read car</function><key>c</key></bind>
+  <!-- Reload the track file -->
+  <bind><function>read track</function><key>t</key></bind>
+
+  <bind><function>start engine</function><key>s</key></bind>
+  <bind><function>start engine</function><button>4</button></bind>
+  <bind><function>fill tank</function><key>f</key></bind>
+  <bind><function>cycle view</function><key>F9</key></bind>
+  <bind><function>pause</function><key>p</key></bind>
+  <bind><function>quit</function><key>q</key></bind>
+  <bind><function>quit</function><key>Escape</key></bind>
+
+  <!-- Change the Focused Car -->
+  <bind><function>focus previous car</function><key>F3</key></bind>
+  <bind><function>focus next car</function><key>F4</key></bind>
+
+  <!-- Pan -->
+  <bind>
+    <function>pan left</function>
+	<key>,</key><down/>
+	<time>0.25</time>
+  </bind>
+  <bind>
+    <function>pan left</function>
+	<key>,</key><up/>
+	<time>0.25</time>
+  </bind>
+  <bind>
+    <function>pan right</function>
+	<key>.</key><down/>
+	<time>0.25</time>
+  </bind>
+  <bind>
+    <function>pan right</function>
+	<key>.</key><up/>
+	<time>0.25</time>
+  </bind>
+
+  <!-- Shift Up -->
+  <bind>
+    <function>initial shift up disengage</function>
+	<button>1</button><down/>
+	<time>0.2</time>
+  </bind>
+  <bind>
+    <function>initial engage clutch</function>
+	<button>1</button><up/>
+	<time>1.5</time>
+  </bind>
+  <bind>
+    <function>shift up disengage</function>
+	<button>1</button><down/>
+	<time>0.2</time>
+  </bind>
+  <bind>
+    <function>engage clutch</function>
+	<button>1</button><up/>
+	<time>0.2</time>
+  </bind>
+
+  <bind>
+    <function>initial shift up disengage</function>
+	<key>Insert</key><down/>
+	<time>0.2</time>
+  </bind>
+  <bind>
+    <function>initial engage clutch</function>
+	<key>Insert</key><up/>
+	<time>1.5</time>
+  </bind>
+  <bind>
+    <function>shift up disengage</function>
+	<key>Insert</key><down/>
+	<time>0.2</time>
+  </bind>
+  <bind>
+    <function>engage clutch</function>
+	<key>Insert</key><up/>
+	<time>0.2</time>
+  </bind>
+
+  <!-- Shift Down -->
+  <bind>
+    <function>initial shift down disengage</function>
+	<button>3</button><down/>
+	<time>0.2</time>
+  </bind>
+  <bind>
+    <function>initial engage clutch</function>
+	<button>3</button><up/>
+	<time>1.5</time>
+  </bind>
+  <bind>
+    <function>shift down disengage</function>
+	<button>3</button><down/>
+	<time>0.2</time>
+  </bind>
+  <bind>
+    <function>engage clutch</function>
+	<button>3</button><up/>
+	<time>0.2</time>
+  </bind>
+
+  <bind>
+    <function>initial shift down disengage</function>
+	<key>Delete</key><down/>
+	<time>0.2</time>
+  </bind>
+  <bind>
+    <function>initial engage clutch</function>
+	<key>Delete</key><up/>
+	<time>1.5</time>
+  </bind>
+  <bind>
+    <function>shift down disengage</function>
+	<key>Delete</key><down/>
+	<time>0.2</time>
+  </bind>
+  <bind>
+    <function>engage clutch</function>
+	<key>Delete</key><up/>
+	<time>0.2</time>
+  </bind>
+
+
+  <!-- Steer -->
+  <bind>
+    <!-- left or right on the stick -->
+    <function>steer</function>
+    <axis>0</axis>
+	<factor>1.0</factor>
+  </bind>
+  <bind>
+    <function>steer left</function>
+	<key>Left</key><down/>
+	<time>0.1</time>
+  </bind>
+  <bind>
+    <function>steer left</function>
+	<key>Left</key><up/>
+	<time>0.05</time>
+  </bind>
+  <bind>
+    <function>steer right</function>
+	<key>Right</key><down/>
+	<time>0.1</time>
+  </bind>
+  <bind>
+    <function>steer right</function>
+	<key>Right</key><up/>
+	<time>0.05</time>
+  </bind>
+
+  <!-- Gas -->
+  <bind>
+    <!-- forward on the stick -->
+    <function>gas</function>
+    <axis>1</axis><forward/>
+	<factor>1.0</factor>
+  </bind>
+  <bind>
+    <function>gas</function>
+	<key>Up</key><down/>
+	<time>0.5</time>
+  </bind>
+  <bind>
+    <function>gas</function>
+	<key>Up</key><up/>
+	<time>0.5</time>
+  </bind>
+
+  <!-- Brake -->
+  <bind>
+    <!-- backwards on the stick -->
+    <function>brake</function>
+    <axis>1</axis><backward/>
+	<factor>-1.0</factor>
+  </bind>
+  <bind>
+    <function>brake</function>
+	<key>Down</key><down/>
+	<time>0.5</time>
+  </bind>
+  <bind>
+    <function>brake</function>
+	<key>Down</key><up/>
+	<time>0.5</time>
+  </bind>
+
+  <!-- Clutch -->
+  <bind>
+    <function>disengage clutch</function>
+	<button>3</button><down/>
+  </bind>
+  <bind>
+    <function>engage clutch</function>
+	<button>3</button><up/>
+  </bind>
+  <bind>
+    <function>disengage clutch</function>
+	<key>Home</key><down/>
+  </bind>
+  <bind>
+    <function>engage clutch</function>
+	<key>Home</key><up/>
+  </bind>
+</controls>

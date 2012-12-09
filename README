@@ -1,0 +1,116 @@
+-*-text-*-
+
+SYNOPSYS
+
+    vamos [-m|--map] 
+          [[-t|--track=] TRACK_FILE] [[-c|--car=] CAR_FILE]
+	      [[-w|--world=] WORLD_FILE] [[-a|--controls=] CONTROLS_FILE]
+	      [[-o|--opponents=] NUMBER_OF_OPPONENTS] [-d|--demo] 
+          [[-i|--focused-car=] FOCUSED_CAR_INDEX] 
+          [[-s|--volume=] VOLUME_PERCENT] 
+          [-f|--full-screen]
+	      [-n|--no-interaction] 
+          [-l|--show-line[=ARG]]
+
+Vamos is an automotive simulation framework with an emphasis on
+thorough physical modeling and good C++ design. Vamos includes a
+real-time, first-person, 3D driving application.
+
+What You Need
+* SDL
+* OpenGL
+* OpenAL
+* An accelerated video card.
+* A joystick is highly recommended.
+
+Build with the usual ./configure; make sequence.  You can run the sim
+from the vamos directory without installing.
+
+Executing vamos with no arugments will put you in the default care on the
+default track.  Use the joystick buttons for shifting.  Give it some gas when
+shifting out of neutral or you'll stall and you'll have to press the `S' key to
+re-start the engine.
+
+Here are some important key bindings
+* a  Place the car back at the starting line.
+* r  Place the car back on the road.
+* ,  Pan the view left.
+* .  Pan the view right.
+* s  Start the engine after a stall.
+* f  Fill the fuel tank.
+* p  Pause the application.
+* q  Exit the application.
+* F9 Cycle through the views.
+
+Here are the bindings for driving by keyboard
+* Up     Throttle.
+* Down   Brake.
+* Left	 Turn left.
+* Right  Turn right.
+* Insert Shift up.
+* Delete Shift down.
+* Home   Clutch.
+
+You can choose a particular car with the `-c <car>' or `--car=<car>'
+option, where <car> is one of
+* `default-car' (same as `GT')
+* `F1'
+* `F1-1967',
+* `front-drive'
+* `GT'
+* `trainer'
+
+The track may be chosen with the `-t <track>'
+or `--track=<track>' option, where <track> is one of 
+* `default-track' (same as `Peanut')
+* Albert_Park
+* Bahrain
+* Catalunya
+* Curl
+* default-track
+* drag
+* D
+* Fuji
+* Hockenheimring
+* Hungaroring
+* Imola
+* Indianapolis
+* Interlagos
+* Istanbul
+* Jerez
+* jump
+* Korea
+* Kyalami
+* Laguna_Seca
+* Le_Mans
+* Magny-Cours
+* Monaco
+* Monza
+* Monza-1967
+* Monza-Bank
+* Mosport
+* Nurburgring
+* Peanut
+* Road_Atlanta
+* Sepang
+* Shanghai
+* Silverstone
+* Silverstone-2011
+* Singapore
+* skid_pad
+* Spa
+* Suzuka
+* Valencia
+* Villeneuve
+* Watkins_Glen
+* Yas_Marina
+
+See the Texinfo documentation for more details.
+
+I've tried Vamos on GNU/Linux and Win32+CygWin.  The simulation is
+slow and textures are wrong on Win32.  I don't know where the problem
+is.
+
+Please let me know how it works for you.
+
+Sam Varner <snick-a-doo@comcast.net>

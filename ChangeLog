@@ -1,0 +1,3300 @@
+-- 0.7.0 --
+2012-01-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc:
+	Fix error when entering pits with robot cars on track.
+
+	Don't update the robot's road index when detecting collisions with other cars.
+
+	* track/Gl_Road_Segment.cc:
+	Fix drawing of segments where pit in/out is close to the end.
+
+	* vamos/vamos.cc, world/Gl_World.cc, world/Gl_World.h, world/World.cc, world/World.h, track/Strip_Track.cc:
+	Improved placement of car on start and on reset.
+
+	Car is oriented to match the slope and bank of the track.
+
+	* body/Rigid_Body.cc, body/Tire.cc, body/Wheel.cc, body/Wheel.h:
+	Avoid division by zero in tire friction calculations.  This avoid the occasional
+	black screen on startup.
+
+	* geometry/Spline.cc:
+	Calculate the slope when falling back to linear interpolation.
+
+2011-12-31  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc:
+	Fixed occasional problem determining if the car is on the pit lane merge.
+
+	* track/Strip_Track.cc: Fixed automatic joining of pit lane to track.
+
+2011-12-25  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track_Reader.cc:
+	Fixed kerb rendering.
+
+2011-12-24  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc: Improved gear selection and braking.
+
+2011-12-04  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h, track/Strip_Track.cc, track/Strip_Track.h:
+	Account for slope during braking
+
+	The deceleration calculation includes the component of gravity in, or opposite
+	to the direction of travel.  This results in earlier braking downhill and later
+	braking uphill.
+
+2011-12-03  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/F1.xml, data/cars/default-car.xml, world/Robot_Driver.cc, world/Robot_Driver.h, body/Aerodynamic_Device.cc, body/Aerodynamic_Device.h, body/Car.cc, body/Car.h, body/Car_Reader.cc, body/Rigid_Body.cc, body/Rigid_Body.h:
+	Improved robot speed control
+
+	Automatically account for downforce in braking and cornering speed
+	calculations.  Slip, deceleration, and lateral acceleration parameters in car
+	definition files are now doubles instead of 2-element arrays.
+
+	Account for elevation changes and banking in braking and cornering speed
+	calculations.
+
+2011-11-23  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h, world/World.cc, world/World.h, track/Strip_Track.cc, track/Strip_Track.h:
+	Account for hills and dips when calculating the maximum speed for robots.
+	Lateral acceleration is now expressed in g's.
+
+2011-09-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	Improved robot speed control.
+
+	- Renamed slip_control traction_control.
+	- Use anti-lock braking as a fallback.
+	- Keep revs in check when the clutch is not fully engaged.
+	- Extracted set_speed() method.
+	- Robots follow better (but don't attempt to pass)
+	- Braking control takes slipstream into account.
+
+2011-08-28  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.cc:
+	Load every other racing line point to avoid closely spaced points at sharp
+	corners.
+
+2011-08-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc:
+	Ensure that the robot driver's target is ahead of the car regardless of
+	orientation.  This prevents the robot from going backwards after a spin.
+
+2011-08-12  Sam Varner  <snick-a-doo@comcast.net>
+
+	* scripts/random_track.py:
+	Made randomly generated tracks swoopier.  Added braking markers and cameras.
+
+2011-07-17  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc:
+	Use periodic splines for elevation and racing line.  Remove slope setting for
+	elevation.
+
+	* track/Gl_Road_Segment.cc, track/Gl_Road_Segment.h, track/Road_Segment.cc, track/Road_Segment.h, track/test_Strip_Track.cc:
+	Banking was only ever calculated with two points.  Remove interface that assumes
+	an arbitrary number of points.
+
+	* geometry/Spline.cc, geometry/Spline.h, geometry/test_Spline.cc:
+	Added periodic spline calculation for closed curves like track elevation.
+
+2011-06-24  Sam Varner  <snick-a-doo@comcast.net>
+
+	* vamos/vamos.cc:
+	Added option --show-line=ARG for showing/hiding the racing line.  Overrides
+	value in track file.
+
+	* body/Gl_Car.cc: Fixed gear output in on-screen text.
+
+	* track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc:
+	Added "resolution" racing line tag.
+
+2011-06-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* doc/robot-cars/demo.xml, track/Strip_Track_Reader.cc:
+	Made the option to render the racing line an attribute of the <racing-line>
+	tag.  <racing-line show="1"> causes the line to be drawn.
+
+	* doc/robot-cars/demo.xml, track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Simplified racing line generation.
+
+	Removed track distance to racing line distance interpolator since the racing
+	line nodes are forced to keep their positions along the track.
+
+	Added "damping" and "iterations" tags to the reader.
+
+2011-06-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.h, track/Strip_Track.cc:
+	Improved racing line calculation by constraining nodes to move across the track.
+
+2011-05-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	Compensate for cornering forces under braking.
+
+2011-04-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	Use separate controllers for setting the throttle according to slip ratio and
+	maximum speed.
+
+2011-04-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/F1.xml, data/cars/GT.xml, data/cars/default-car.xml, data/cars/front-drive.xml, data/cars/trainer.xml, body/Aerodynamic_Device.cc, body/Aerodynamic_Device.h, body/Car_Reader.cc, body/Rigid_Body.cc:
+	Changed calculation of drag force for wings.
+
+	Now, the actual lift coefficient is the specified value times the efficiency.
+	The wing's drag coefficient is the specified lift coefficient times
+	(1-efficiency).  Removed drag-coefficient parameter.  Updated car definition
+	files.
+
+2011-03-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc, body/Gl_Car.h:
+	Refactored code for drawing text on screen.  Added bar graphs for throttle and brake.
+
+2011-01-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Gl_Road_Segment.cc, track/Gl_Road_Segment.h, track/Makefile.am, track/Makefile.in, track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc, track/Strip_Track.h, track/test_Strip_Track.cc:
+	Re-wrote closing code.  Added Doxygen markup.  Small improvements.
+
+2010-12-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	Implemented short-shifting for robots.
+
+2010-10-31  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Gl_World.cc, world/Gl_World.h, world/World.cc, world/World.h, data/controls/default-controls.xml:
+	First cut at replay.
+
+2010-10-30  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Korea.xml: Added Korea International Circuit F1 layout.
+
+2010-10-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Istanbul.xml: Reconciled with satellite image.
+
+2010-08-29  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/wheel-1967.ac: Added narrow wheels for the 1967 F1 car.
+
+	* vamos/vamos.cc, world/Gl_World.cc, world/Gl_World.h:
+	Added an option to disable the mirror views for performance reasons.
+
+	* world/World.cc:
+	Use exponential instead of linear air density in the slipstream.
+
+2010-08-28  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/F1-1967.xml:
+	Rebuild the 1967 F1 car.  Not quite undriveable anymore.
+
+	* Doxyfile: Added Doxygen config file
+
+	* body/Documentation.h, geometry/Documentation.h, media/Documentation.h, track/Documentation.h, world/Documentation.h:
+	Added dummy header files to document the namespaces for Doxygen.
+
+	* data/textures/1967-steering-wheel.png, data/textures/1967-steering-wheel.xcf:
+	Better 1967 Lotus steering wheel.
+
+	* data/tracks/Makefile.am, data/tracks/Silverstone-2010.xml:
+	Added 2010 layout (2011 layout with 2009 starting line)
+
+2010-07-06  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Makefile.am, data/tracks/Makefile.in:
+	Added new Silverstone layout.
+
+	* data/sounds/kerb.wav:
+	Kerb sound file had servral samples with different waveforms and pitches.
+	Trimmed to one wavelength of one waveform.
+
+2010-06-30  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Gl_Road_Segment.cc, track/Road_Segment.cc, track/Road_Segment.h:
+	Add flag for using or ignoring the kerb when calculating normal vectors.  It's
+	useful to ignore the kerb to get the correct normal for rendering the track and
+	shoulders.  For the pysics, the kerb should not be ignored.
+
+2010-05-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Makefile.in, geometry/Numeric.h, geometry/Rectangle.cc, geometry/Rectangle.h, geometry/test_Numeric.cc, geometry/test_Rectangle.cc, track/Gl_Road_Segment.cc, track/Strip_Track.cc, world/Gl_World.cc, world/Gl_World.h, geometry/Makefile.am:
+	Added simple zooming to map view.
+
+-- 0.6.3 --
+2010-05-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Makefile.in, geometry/Numeric.h, geometry/Rectangle.cc, geometry/Rectangle.h, geometry/test_Numeric.cc, geometry/test_Rectangle.cc, track/Gl_Road_Segment.cc, track/Strip_Track.cc, world/Gl_World.cc, world/Gl_World.h, geometry/Makefile.am:
+	Added simple zooming to map view.
+
+2010-05-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Silverstone-2011.xml: Added new Silverstone layout.
+
+2010-04-01  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc: Make robots less eager to shift into 1st gear.
+
+	* world/Gl_World.cc, world/Makefile.am, world/Makefile.in:
+	Don't include directory in SDL include.  Use pkg-config to put the directory in
+	the include path.
+
+	* track/Road_Segment.cc: Include the x track normal vector component.
+
+	* geometry/Material.cc: Handle bump wavelengths of zero.
+
+2010-02-04  Sam Varner  <snick-a-doo@comcast.net>
+
+	* doc/vamos.texi, doc/vamos.info: Updated dependencies
+
+2010-02-03  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/worlds/night.xml: Added night-light world
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	First crack at another attempt at collision avoidance.
+
+	* data/tracks/Bahrain.xml, data/tracks/Monza.xml, data/tracks/Shanghai.xml, data/tracks/default-track.xml:
+	Bumpiness and tweaks.
+
+2009-12-24  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.cc:
+	Use distance from the start of the segment to calculate track width
+	when testing for contact.
+
+	* geometry/Calculations.cc, geometry/Calculations.h, geometry/Constants.h, geometry/Makefile.am, geometry/Makefile.in, geometry/test_Calculations.cc:
+	Added a file for useful calculations involving the classes in
+	Vamos_Geometry.  Added unit tests.
+
+	Added constant for 1/sqrt(2).
+
+	* data/tracks/skid_pad.xml:
+	Avoid phantom wall not automatically closing the track.
+
+2009-12-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Three_Vector.cc, geometry/Three_Vector.h, body/test_Car.cc:
+	Refixed stream operators for Boost test cases.  Now the usual
+	operators can be used inside test cases.
+
+2009-12-17  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/worlds/default-world.xml, data/worlds/earth.xml, data/worlds/moon.xml, world/Gl_World.cc, world/Gl_World.h, world/World.cc, world/World.h:
+	Re-wrote the Timer class to calculate intervals from total elapsed
+	clock time.  This prevents systematic clock drift.
+
+	Removed maximum time step and lower limit on frame rate.
+
+	Changed Timing_Info to work with total elapsed simulation time.
+
+2009-12-12  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/textures/night-sky.png: Night sky texture.
+
+	* data/tracks/Jerez.xml: Added Jerez track.
+
+2009-12-06  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Particle.h, body/Rigid_Body.cc, body/Wheel.h:
+	Restore single-contact logic.
+
+2009-12-01  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc:
+	Fix the normal vector passed from the 2-argument Road_Segment::normal().
+
+2009-11-23  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.cc: Fixed bump discontinuity at segment boundaries.
+
+	* track/Gl_Road_Segment.cc: Fixed rendering of kerb ends.
+
+2009-11-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Car.h, world/World.cc: Improved resetting.
+
+	* geometry/Two_Vector.cc, geometry/Two_Vector.h, geometry/test_Two_Vector.cc:
+	Added magnitude() and unit() methods.  Use const references for
+	arguments where possible.  Added Boost-friendly stream operators.
+
+	* geometry/Three_Vector.cc, geometry/Three_Vector.h, geometry/test_Three_Vector.cc:
+	Added static ZERO vector.  Added non-const rotate() method.
+
+	* world/Gl_World.cc, world/Sounds.cc, vamos/vamos.cc:
+	Add default time step.
+
+	Initialize volume in Sounds object, not Gl_World.  Added volume
+	command-line argument.
+
+	* geometry/Material.cc, geometry/Material.h, track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc, track/Track.h:
+	Allow bumpitness to affect the x and y components of the normal
+	vector.  The bump-amplitude tag of in track definition files can be a
+	scalar as before, or a vector of vertical and transverse bump
+	amplitudes.
+
+	Bump function now depends on the track y-position.
+
+	* media/Texture_Image.cc:
+	Check the return value of fread() when reading in an image file.
+
+	* geometry/Linear_Interpolator.cc, geometry/Makefile.am, geometry/Makefile.in, geometry/test_Linear_Interpolator.cc, geometry/Interpolator.cc:
+	Changed interpolator endpoints.  The high point, not the low, is now
+	part of the interval so that adding a an interval does not affect the
+	previous.
+
+	Added tests for linear interpolation.
+
+2009-11-10  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/textures/night-sky-sides.png, data/tracks/Singapore.xml:
+	Added Singapore street circuit.
+
+2009-11-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/textures/Makefile.am, data/textures/Makefile.in, data/textures/blue-wall.png, data/textures/orange-yellow-kerb.png, data/tracks/Makefile.am, data/tracks/Makefile.in, data/tracks/Valencia.xml, data/tracks/Yas_Marina.xml, data/sounds/Makefile.in, data/textures/100-vertical.png, data/textures/150-vertical.png, data/textures/50-vertical.png:
+	Added Valencia track.
+
+	* data/sounds/Makefile.am, data/sounds/Makefile.in, data/sounds/f1-v8.wav:
+	Added V8 Formula 1 engine sample.
+
+	* body/Suspension.cc, body/Suspension.h:
+	The suspension now moves in an arc centered on the hinge regardless of
+	where the hinge is placed.  Previously, a hing position directly ahead
+	of or behind the wheel was assumed.
+
+	* track/Road_Segment.cc, track/Strip_Track.cc, geometry/Three_Vector.cc, geometry/Three_Vector.h, geometry/test_Three_Vector.cc, body/Gl_Car.cc, body/test_Car.cc:
+	Changed Three_Vector::rotate() to take a Three_Vector argument instead
+	of three doubles.
+
+2009-10-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/sounds/default-sounds.xml, data/sounds/kerb.wav, data/tracks/Albert_Park.xml, data/tracks/Bahrain.xml, data/tracks/Catalunya.xml, data/tracks/Curl.xml, data/tracks/D.xml, data/tracks/Fuji.xml, data/tracks/Hockenheimring.xml, data/tracks/Hungaroring.xml, data/tracks/Imola.xml, data/tracks/Indianapolis.xml, data/tracks/Interlagos.xml, data/tracks/Istanbul.xml, data/tracks/Kyalami.xml, data/tracks/Laguna_Seca.xml, data/tracks/Le_Mans.xml, data/tracks/Magny-Cours.xml, data/tracks/Makefile.am, data/tracks/Makefile.in, data/tracks/Monaco.xml, data/tracks/Monza-1967.xml, data/tracks/Monza-Bank.xml, data/tracks/Monza.xml, data/tracks/Mosport.xml, data/tracks/Nurburgring.xml, data/tracks/Peanut.xml, data/tracks/Road_Atlanta.xml, data/tracks/Sepang.xml, data/tracks/Shanghai.xml, data/tracks/Silverstone.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/Villeneuve.xml, data/tracks/Watkins_Glen.xml, data/tracks/Yas_Marina.xml, data/tracks/default-track.xml, data/tracks/drag.xml, data/tracks/jump.xml, data/tracks/pit.xml, geometry/Material.h, track/Strip_Track_Reader.cc, world/Gl_World.cc, world/Sounds.cc, world/Sounds.h:
+	Added sound when riding the curbs.
+
+2009-10-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Yas_Marina.xml: Added Yas Marina (Abu Dhabi) circuit.
+
+	* data/textures/concrete.png: Added concrete texture file.
+
+	* data/tracks/Monza-Bank.xml: Added Monza track with banking.
+
+2009-10-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h: Fixed left lane shift.
+
+2009-10-08  Sam Varner  <snick-a-doo@comcast.net>
+
+	* doc/how-to-profile.org: Added document telling how to profile
+
+	* data/controls/default-controls.xml, world/Gl_World.cc, world/Gl_World.h:
+	Allow turning off graphics to let the simulation run at high speed.
+
+	* track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc:
+	Allow specifying a maximum distance for the racing line adjustment.
+
+2009-09-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* scripts/random_track.py:
+	Add racing line parameters to generated tracks.
+
+2009-09-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Gl_World.cc, world/Robot_Driver.cc, world/Robot_Driver.h, world/World.cc, world/World.h, track/Strip_Track.cc, track/Strip_Track.h, vamos/vamos.cc:
+	Add option to turn off car-to-car interactions.
+
+	Adjust robot speed when driving off the racing line.
+
+2009-07-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc: Improved crash avoidance.
+
+	* world/World.cc:
+	Don't check for collisions between cars that are far apart.  This
+	speeds things up a little.
+
+	* vamos/vamos.cc, track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc:
+	Set the racing line margin (minimum distance from edge of track) in
+	the track file.  Provide access to margin position for robots.
+
+2009-07-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Driver.h, world/Robot_Driver.cc, world/Robot_Driver.h, world/World.cc, world/World.h:
+	Compensate for loss of downforce in computer-controlled cars.
+
+2009-07-10  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	Better braking for collision avoidance.
+
+	Removed Crash_Car_Info structure.  It was made unnecessary by
+	reorganizing the code a little.
+
+2009-07-05  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/World.cc:
+	Remove the distinction between single- and multiple-contact points.
+
+	* world/Gl_World.cc, world/Sounds.cc, world/Sounds.h:
+	Added master volume control.
+
+	* vamos/vamos.cc:
+	Put cars initially in a staggered starting grid formation.
+
+	* track/Strip_Track.cc:
+	Handle track-to-world conversion for points off the ends of open tracks.
+
+	* body/Particle.h, body/Rigid_Body.cc, body/Rigid_Body.h, body/Wheel.h:
+	Remove the distinction between single- and multiple-contact points.
+
+	Allow multiple temporary contact points.
+
+	* body/Gl_Car.cc: Handle cars with no engine sample
+
+2009-06-28  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Gl_World.cc, world/World.cc: Allow cars without drivers.
+
+	* geometry/Interpolator.cc, geometry/Interpolator.h, geometry/Linear_Interpolator.cc, geometry/Linear_Interpolator.h, geometry/Makefile.am, geometry/Makefile.in, geometry/Spline.cc, geometry/Spline.h, geometry/Three_Matrix.cc, geometry/Three_Matrix.h, geometry/Three_Vector.cc, geometry/Three_Vector.h:
+	Optimizations.  Inlined vector math.  Cache indices for interpolators.
+
+	* data/sounds/default-sounds.xml: Adjusted volumes
+
+	* data/cars/F1-stator.ac:
+	Made new stator AC3D file.  The old one had an error that degraded
+	performance for the F1 car.
+
+2009-06-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Numeric.h: Fixed range for wrap().
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h, world/World.h:
+	Added preliminary support for robots driving off the racing line.
+
+	* track/Strip_Track.cc:
+	Require good segment index guesses for world-to-track coordinate
+	transformation.
+
+2009-06-21  Sam Varner  <snick-a-doo@comcast.net>
+
+	* vamos/vamos.cc:
+	Use getopt to parse options.  Show file name when a file can't be found.
+
+2009-06-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	Brake to avoid running into the back of another car.
+
+	* body/Car.h, body/Gl_Car.cc, body/Gl_Car.h, media/Sample.cc, world/Gl_World.cc, world/Sounds.cc, world/Sounds.h, world/World.cc:
+	Play all cars' engine sounds all the time.  Use inverse distance
+	attenuation model.
+
+2009-06-13  Sam Varner  <snick-a-doo@comcast.net>
+
+	* vamos/vamos.cc, world/World.cc, world/World.h:
+	Added demo flag for showing robots without a player.
+
+-- 0.6.2 --
+2009-06-13  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Gl_World.cc, world/Gl_World.h: Added chase view.
+
+2009-06-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	Use racing line distance to set the braking offset.
+
+2009-06-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.cc, track/Strip_Track.h, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Minor racing line fixes to get the curvature right on shortened tracks.
+
+2009-06-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.cc, track/Strip_Track.h:
+	Made splines join smoothly at the start/finish line.
+
+	Use linear interpolation for distance.
+
+	* geometry/Interpolator.h, geometry/Linear_Interpolator.h, geometry/Numeric.h, geometry/Spline.cc, geometry/Spline.h, geometry/test_Spline.cc:
+	Added two-argument (x, y) load functions for interpolators.
+
+	Added wrap() for constraining a number to an interval.
+
+2009-06-05  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.h, track/Strip_Track_Reader.cc, world/Robot_Driver.cc, world/Robot_Driver.h, track/Strip_Track.cc:
+	Factored Racing_Line class out of Road.
+
+	Use same calculation for drawing the driver's target as for the
+	sterring calculation.
+
+2009-06-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Robot_Driver.cc:
+	Include the current speed and racing line speed when setting the throttle.
+
+2009-06-01  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/F1.xml, data/tracks/Albert_Park.xml, data/tracks/Bahrain.xml, data/tracks/Catalunya.xml, data/tracks/Imola.xml, data/tracks/Interlagos.xml, data/tracks/Magny-Cours.xml, data/tracks/Monaco.xml, data/tracks/Monza.xml, data/tracks/Nurburgring.xml, data/tracks/Sepang.xml, data/tracks/Shanghai.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/default-track.xml:
+	Adjusted for racing line.
+
+	* body/Car.cc, body/Car.h, body/Tire.h, body/Wheel.h, geometry/Numeric.h, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Account for front/rear weight balance when calculating maximum speed
+	from curvature.
+
+2009-05-26  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.cc, track/Strip_Track.h:
+	Fixed redering of the racing line nodes.
+
+2009-05-25  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc, track/Strip_Track_Reader.cc:
+	Added "racing line curvature" factor for road segments.
+
+	* body/Car.cc, body/Car.h, geometry/PID.cc, geometry/PID.h, track/Strip_Track.cc, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Provide direct steering (no non-linearity or speed-sensitivity) for
+	robot drivers
+
+	Added method for getting the latest PID value.
+
+	Make the parameter for the racing line parametric spline correspond to
+	distance along the track, not distance along the curve.  This is so
+	that we can interpolate to a track coordinate.
+
+	Added Braking and Racing_Line classes to Robot_Driver.
+	Fixed transformations for determining the steering angle.
+	Fixed oscillation near sharp turns.
+	Use traction control during start.
+	Use direct steering.
+	Added margin for braking and acceleration.
+
+2009-05-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Gl_Road_Segment.cc, track/Makefile.am, track/Makefile.in, track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc:
+	Add racing line adjustments.
+
+	* world/Makefile.am, world/Makefile.in, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Improved robot performance under braking.
+
+	* vamos/vamos.cc, media/Ac3d.cc, media/Makefile.am, media/Makefile.in:
+	Fix compile errors for GCC 4.3.
+
+	* geometry/Makefile.am, geometry/Makefile.in, geometry/Numeric.h:
+	Added abs_min() numeric function.
+
+	* data/tracks/Albert_Park.xml, data/tracks/Bahrain.xml, data/tracks/Catalunya.xml, data/tracks/Hungaroring.xml, data/tracks/Imola.xml, data/tracks/Monza.xml, data/tracks/Sepang.xml, data/tracks/Shanghai.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/default-track.xml:
+	Add racing line adjustments.
+
+	* data/cars/F1.xml, data/cars/default-car.xml: Update for Robot_Driver.
+
+	* caelum/Sky.cc: Fix compile errors for GCC 4.3.
+
+	* body/Aerodynamic_Device.cc, body/Aerodynamic_Device.h, body/Car.h, body/Car_Reader.cc, body/Contact_Point.h, body/Makefile.am, body/Makefile.in, body/Particle.h, body/Rigid_Body.cc, body/Rigid_Body.h:
+	Make aerodynamic forces available to Robot_Driver.
+
+	Fix compile errors for GCC 4.3.
+
+2009-05-04  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Catalunya.xml, data/tracks/Interlagos.xml:
+	Updated Catalunya track with new chicane.
+
+	* body/Car.cc, body/Car.h, body/Engine.cc, body/Engine.h, body/Rigid_Body.cc, body/Rigid_Body.h, geometry/Circular_Buffer.lo, geometry/Numeric.h, world/Driver.h, world/Interactive_Driver.cc, world/Robot_Driver.cc, world/Robot_Driver.h, world/World.cc, world/World.h:
+	Ignore shifts to the current gear.  In particular, don't reset the
+	delay timer.
+
+	Added 2-arg and 4-are abs_max to numerics.
+
+	Improved robot performance
+	1. Shift based on power, not torque.
+	2. Consider transverse slip for acceleration and downshifting.
+
+	Added some grounwork for collision detection.
+
+2008-10-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/World.cc, world/World.h:
+	Allow the slipstream to cross the start/finish line.
+
+	* body/Car.cc, body/Car.h, body/Gl_Car.cc, body/Rigid_Body.h:
+	Show air density with the "dashbord extra" parameters.
+
+	* ChangeLog: Correct e-mail address.
+
+	* data/cars/F1-1967.xml, data/cars/F1.xml, data/cars/GT.xml, data/cars/default-car.xml, data/sounds/default-sounds.xml:
+	Use lower volumes for sounds.
+
+2008-10-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Circular_Buffer.h, geometry/Circular_Buffer.lo, geometry/Makefile.am, geometry/Makefile.in:
+	Added circular buffer class to support slipstream.
+
+	* track/Strip_Track.cc:
+	Prevent the last control point in the racing line from being too close
+	to the first.  This fixes instability in racing line on some tracks.
+
+	* body/Car.h, body/Gl_Car.cc, body/Rigid_Body.cc, body/Rigid_Body.h, world/Gl_World.cc, world/Gl_World.h, world/World.cc, world/World.h:
+	Added slipstream.  Aerodynamic drag (and lift) decreases when
+	following another car.
+
+2008-09-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/body.vcproj, geometry/geometry.vcproj, track/track.vcproj, vamos/vamos.vcproj, world/world.vcproj:
+	Removed out-of-date VC project files.
+
+-- 0.6.1 --
+2008-09-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc:
+	Fixed handling of off-the-end points in the world-to-track coordinates
+	conversion.
+
+2008-09-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.cc, track/Strip_Track.h, vamos/vamos.cc:
+	Don't calculate the racing line if it's not shown or used by
+	computer-controlled cars.
+
+2008-09-17  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Le_Mans.xml: Added the Le Mans track.
+
+	* world/Robot_Driver.cc, world/Robot_Driver.h:
+	Provide a mechanism for getting the tires' transverse slip ratios.
+
+	* vamos/vamos.cc: Require a -P option to pass optional parameters.
+
+	* track/Strip_Track.cc:
+	Calculate the racing line interval from the track width.
+
+	Allow tracks to be joined with no adjustment with <circuit segments="0"/>.
+
+	* data/tracks/Peanut.xml, data/tracks/Albert_Park.xml, data/tracks/Bahrain.xml, data/tracks/Hungaroring.xml, data/tracks/Magny-Cours.xml, data/tracks/Suzuka.xml, data/tracks/drag.xml, data/tracks/skid_pad.xml:
+	Show racing line on some tracks.
+
+	* data/cars/F1-1967.xml, data/cars/F1.xml, data/cars/GT.xml, data/cars/default-car.xml:
+	Updated robot parameters.
+
+2008-09-15  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc, body/Tire.cc, body/Tire.h, body/Wheel.cc, body/Wheel.h, data/cars/F1.xml, data/cars/default-car.xml, geometry/Spline.cc, geometry/Spline.h, track/Strip_Track.cc, track/Strip_Track.h, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Get both longitudinal and transverse slip ratios from
+	Tire_Friction to Robot_Drver.
+
+	Updated performance parameters for the default and F1 cars.
+
+	Added slope arguments to Parametric_Spline.
+
+	Fixed problems with closed-circuit racing line calculation.
+
+	Avoid updating the PID object twice in one time step.
+
+2008-09-13  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Spline.cc, geometry/Spline.h, track/Gl_Road_Segment.cc, track/Strip_Track.cc, track/Strip_Track.h, vamos/vamos.cc, world/Robot_Driver.cc:
+	Added 2-d parametric spline class.  Used it to interpolate the racing
+	line.
+
+2008-09-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/default-car.xml, track/Strip_Track.cc, track/Strip_Track.h, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Robot drivers now use the curvature of the racing line to determine
+	cornering speed.
+
+2008-09-04  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Gl_Road_Segment.cc, track/Road_Segment.cc, track/Strip_Track.cc, track/Strip_Track.h:
+	Implement skewed transformation from track to world in class
+	Road_Segement.  Use this transformation in Gl_Road_Segment for
+	rendering the track.
+
+	Allow variable intervals for points on the racing line.
+
+2008-08-25  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.h, data/cars/default-car.xml, scripts/random_track.py, track/Strip_Track.cc, track/Strip_Track.h, vamos/vamos.cc, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Use flexible strip modeling to determine the racing line.
+
+	Improved the robot driver's ability to recover after going off the
+	track.
+
+	Improved the random-track script to avoid very tight turns and to make
+	elevation changes more random.
+
+2008-05-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Driver.h, world/Gl_World.cc, world/Robot_Driver.cc, world/Robot_Driver.h, world/World.cc:
+	Impoved driver and collisions.
+
+	* track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc:
+	Tweaked racing line calculation.
+
+	* media/Texture_Image.cc: Unbind textures after drawing.
+
+	* geometry/Spline.cc:
+	Handle loading of the first point of a spline path.
+
+	* body/Car.cc, body/Car.h, body/Dashboard.cc, body/Gl_Car.cc, body/Makefile.am, body/Makefile.in, body/Rigid_Body.cc, body/test_Car.cc:
+	Stabilized car-car collisions.
+
+2008-04-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Car.h, body/Car_Reader.cc, data/cars/F1.xml, data/cars/default-car.xml, data/tracks/default-track.xml, geometry/Interpolator.h, geometry/Linear_Interpolator.cc, geometry/Linear_Interpolator.h, geometry/Spline.cc, geometry/Spline.h, geometry/test_Spline.cc, track/Strip_Track.cc, track/Strip_Track.h, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Implemented piecewise spline racing line for robots.  Added
+	<racing-line/> tag to draw the line.  Put robot performance parameters
+	in the car definition file.
+
+2008-04-14  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Interpolator.h, geometry/Linear_Interpolator.cc, geometry/Linear_Interpolator.h, geometry/Numeric.h, geometry/Spline.cc, geometry/Spline.h, geometry/test_Numeric.cc, geometry/test_Spline.cc, track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Moved racing line from Robot_Driver class to Strip_Track class.  Added
+	<racing-line/> tag to track file reader.
+
+2008-04-08  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.h, body/Engine.h, body/Transmission.h, geometry/Numeric.h, track/Strip_Track.h, world/Gl_World.cc, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Robot car improvements.  Cars accelerate, brake, and shift.  Steering
+	is now stable.
+
+2008-03-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Makefile.am, geometry/Makefile.in, geometry/PID.cc, geometry/PID.h, world/Gl_World.cc, world/Gl_World.h, world/Interactive_Driver.cc, world/Interactive_Driver.h, world/Robot_Driver.cc, world/Robot_Driver.h:
+	Added PID controller.  Added copyright notices to the driver files.
+
+2008-03-03  Sam Varner  <snick-a-doo@comcast.net>
+
+	* vamos/vamos.cc, world/Controls.cc, world/Controls.h, world/Driver.h, world/Gl_World.cc, world/Gl_World.h, world/Interactive_Driver.cc, world/Interactive_Driver.h, world/Makefile.am, world/Makefile.in, world/Robot_Driver.cc, world/Robot_Driver.h, world/World.cc, world/World.h, world/test_Controls.cc:
+	Implemented driver classes: Interactive_Driver for real-time control,
+	Robot_Driver for computer control.  Implemented rudimentary algorithm
+	for Robot_Driver.
+
+	* track/Strip_Track.cc, track/Strip_Track.h, track/Track.h:
+	Removed distance method; expose track_coordinates instead.
+
+	* data/tracks/Albert_Park.xml: Added pit lane to Albert Park.
+
+	* body/Car.cc: Clip the steering angle to the maximum.
+
+-- 0.6.0 --
+2008-02-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* Makefile.am, Makefile.in:
+	Make build order of the modules mach the dependency order so that
+	tests can be built.
+
+	* track/Gl_Road_Segment.cc:
+	Changed comparison so that pit lane merges that coincide with the road
+	segment's resolution are handled properly.
+
+	* geometry/Interpolator.h, geometry/Linear_Interpolator.cc, geometry/Linear_Interpolator.h, geometry/Spline.cc, geometry/Spline.h, track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc, world/Gl_World.cc:
+	Make the walls join at the start of the track.
+
+2008-02-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Car.h, body/Rigid_Body.h, track/Strip_Track.cc, track/Strip_Track.h, world/World.cc:
+	Detect collisions with the end of the pit lane wall.
+
+2008-02-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.cc, track/Strip_Track.h, track/Strip_Track_Reader.cc:
+	Handle the transition from road to pit.  Moved angle parameter from
+	pit to merge section of the xml file.
+
+2008-02-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Rigid_Body.cc, body/Rigid_Body.h, body/Wheel.cc, geometry/Material.h, track/Gl_Road_Segment.cc, track/Gl_Road_Segment.h, track/Road_Segment.h, track/Strip_Track.cc, world/World.cc:
+	Improved collisions.  Avoid huge displacements of the wheels.  Don't
+	allow driving above the walls.
+
+	* geometry/Makefile.am, geometry/Makefile.in, geometry/test_Numeric.cc:
+	Added tests for numerical utilities.
+
+2008-02-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Car.h, body/Car_Reader.cc, body/Gl_Car.cc, body/Makefile.am, body/Makefile.in, body/Rigid_Body.cc, body/Rigid_Body.h, data/cars/block.ac, data/cars/block.xml, world/Gl_World.cc, world/Sounds.cc, world/World.cc:
+	Facilitate collision testing.  Allow cars without drivetrain or
+	wheels.  Put car file reader in separate file.  Allow initial
+	conditions to be set in car file.  Added car file for a cube.
+
+	Fixed moment calculation which fixes collision response.
+
+2008-01-23  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Rigid_Body.cc, body/Suspension.cc, body/Tire.cc, body/Wheel.cc:
+	Fixed transformations.  Fixed instability on kerbs.
+
+2007-07-25  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Makefile.am, body/Makefile.in, body/test_Particle.cc, world/Gl_World.cc, world/Gl_World.h:
+	Added glutInit() and removed dependency on SDL-TTF.
+
+2007-07-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Aerodynamic_Device.cc, body/Aerodynamic_Device.h, body/Contact_Point.cc, body/Contact_Point.h, body/Engine.cc, body/Exerter.cc, body/Exerter.h, body/Fuel_Tank.h, body/Makefile.am, body/Makefile.in, body/Particle.cc, body/Particle.h, body/Suspension.cc, body/Tire.cc, body/Tire.h, body/Wheel.cc, body/Wheel.h:
+	Removed unnecessary classes Aerodynamic_Device and Exerter.
+
+2007-07-15  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track.h, track/Strip_Track_Reader.cc, body/Aerodynamic_Device.cc, body/Aerodynamic_Device.h, body/Car.cc, body/Car.h, body/Contact_Point.cc, body/Contact_Point.h, body/Engine.cc, body/Engine.h, body/Frame.cc, body/Frame.h, body/Fuel_Tank.cc, body/Fuel_Tank.h, body/Gl_Car.cc, body/Makefile.am, body/Makefile.in, body/Particle.cc, body/Particle.h, body/Rigid_Body.cc, body/Rigid_Body.h, body/Suspension.cc, body/Suspension.h, body/Tire.cc, body/Tire.h, body/Wheel.cc, body/Wheel.h, body/test_Frame.cc, body/test_Rigid_Body.cc, geometry/Makefile.am, geometry/Makefile.in, geometry/Three_Matrix.cc, geometry/Three_Matrix.h, geometry/test_Three_Matrix.cc, media/Ac3d.cc, media/XML_Parser.cc, media/XML_Parser.h, media/test_XML_Parser.cc, vamos/vamos.cc, world/Gl_World.cc, world/Gl_World.h, world/Sounds.cc, world/Sounds.h, world/World.cc:
+	Added the ability to transfrom vectors to and from the world frame.
+
+2007-06-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* caelum/Cylinder_Sky.cc, caelum/Cylinder_Sky.h, caelum/Makefile.am, caelum/Makefile.in, caelum/Sky.cc, caelum/Sky.h, caelum/Sphere_Sky.cc, caelum/Sphere_Sky.h, caelum/caelum.cc, vamos/Makefile.am, vamos/Makefile.in, world/Gl_World.cc, world/Gl_World.h:
+	Updated Caelum to use SDL.
+
+	* body/Car.h, data/tracks/Interlagos.xml, geometry/Makefile.am, geometry/Makefile.in, geometry/XML_Parser.cc, geometry/XML_Parser.h, geometry/test_XML_Parser.cc, media/Makefile.am, media/Makefile.in, media/XML_Parser.cc, media/XML_Parser.h, media/test_XML_Parser.cc, track/Strip_Track.h, world/Gl_World.h, world/Makefile.am, world/Makefile.in, world/Sounds.h:
+	Moved XML_Parser from geometry to media.
+
+-- 0.5.7 --
+2007-06-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* caelum/Cylinder_Sky.cc, caelum/Cylinder_Sky.h, caelum/Makefile.am, caelum/Makefile.in, caelum/Sky.cc, caelum/Sky.h, caelum/Sphere_Sky.cc, caelum/Sphere_Sky.h, caelum/caelum.cc, vamos/Makefile.am, vamos/Makefile.in, world/Gl_World.cc, world/Gl_World.h:
+	Updated Caelum to use SDL.
+
+	* body/Car.h, data/tracks/Interlagos.xml, geometry/Makefile.am, geometry/Makefile.in, geometry/XML_Parser.cc, geometry/XML_Parser.h, geometry/test_XML_Parser.cc, media/Makefile.am, media/Makefile.in, media/XML_Parser.cc, media/XML_Parser.h, media/test_XML_Parser.cc, track/Strip_Track.h, world/Gl_World.h, world/Makefile.am, world/Makefile.in, world/Sounds.h:
+	Moved XML_Parser from geometry to media.
+
+	* body/Car.h, body/Gl_Car.cc, body/Rigid_Body.cc, body/Rigid_Body.h, data/worlds/default-world.xml, geometry/Makefile.am, geometry/Makefile.in, geometry/test_Rectangle.cc, geometry/test_Spline.cc, geometry/test_Three_Vector.cc, geometry/test_Two_Vector.cc, geometry/test_XML_Parser.cc, media/Sample.cc, media/Sample.h, track/Makefile.am, track/Makefile.in, track/test_Road_Segment.cc, world/Gl_World.cc, world/Makefile.am, world/Makefile.in, world/Sounds.cc, world/Sounds.h, world/test_Controls.cc:
+	Added doppler shifts, distance attenuation, and direction sound
+	sources with OpenAL.
+
+	Updated tests to work with the current Boost.
+
+2007-05-28  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc, configure, configure.ac, data/cars/default-car.xml, data/sounds/engine.wav, data/sounds/f1-engine.wav, media/Sample.cc, media/Sample.h, vamos/Makefile.am, vamos/Makefile.in, world/Gl_World.cc, world/Sounds.cc, world/Sounds.h:
+	Use OpenAL for sound.
+
+2007-05-21  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/controls/mouse.xml, world/Controls.cc, world/Controls.h, world/Gl_World.cc, world/Gl_World.h, world/Makefile.am, world/Makefile.in, world/test_Controls.cc:
+	Handle deadbands in controls.
+	Added tests for controls.
+
+2007-05-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* scripts/graph.sh: Added a script for generating dependency graphs.
+
+	* configure, configure.ac, data/controls/clutch-wheel.xml, data/controls/default-controls.xml, data/controls/mouse.xml, data/controls/stick.xml, data/controls/throttle-wheel.xml, vamos/Makefile.am, vamos/Makefile.in, world/Controls.cc, world/Controls.h, world/Gl_World.cc, world/Gl_World.h:
+	Re-worked controls system using SDL instead of plib for handling
+	joystick events.
+
+	* body/Car.cc, body/Drivetrain.cc, body/Drivetrain.h, body/Suspension.cc, body/Suspension.h, body/Wheel.cc, body/Wheel.h, geometry/Constants.h, track/Gl_Road_Segment.cc, track/Gl_Road_Segment.h, track/Road_Segment.cc, track/Road_Segment.h, track/Strip_Track.h, track/Strip_Track_Reader.cc:
+	Absorbed Side enumeration into Direction.
+
+2007-05-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/controls/mouse.xml, world/Controls.cc, world/Gl_World.cc, world/Gl_World.h:
+	Repaired mouse control and window resizing.
+
+	* data/tracks/pit.xml: Added pit lane test track.
+
+	* configure, configure.ac, geometry/Constants.h, vamos/Makefile.am, vamos/Makefile.in, vamos/vamos.cc, world/Controls.cc, world/Controls.h, world/Gl_World.cc, world/Gl_World.h, world/Makefile.am, world/Makefile.in:
+	Use SDL for video and event handling.  Remove sigc++ dependency.  Add
+	full-scree option.
+
+2007-05-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc, media/Sample.cc, media/Sample.h, world/Sounds.cc:
+	Fixed crash related to the engine sound when reloading the car
+	definition file.
+
+-- 0.5.6 --
+2007-05-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc, media/Sample.cc, media/Sample.h, world/Sounds.cc:
+	Fixed crash related to the engine sound when reloading the car
+	definition file.
+
+2007-04-30  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc, track/Strip_Track.cc, track/Strip_Track.h:
+	Fixed initial direction for cars.
+
+	Fixed collision with walls at the expense of pit lane entry detection.
+
+2007-04-29  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Spa.xml: Adjusted Spa to satellite photo.
+
+	* body/Aerodynamic_Device.cc, body/Brake.cc, body/Car.cc, body/Clutch.cc, body/Contact_Point.cc, body/Dashboard.cc, body/Differential.cc, body/Drivetrain.cc, body/Engine.cc, body/Exerter.cc, body/Frame.cc, body/Fuel_Tank.cc, body/Gl_Car.cc, body/Makefile.am, body/Makefile.in, body/Particle.cc, body/Rigid_Body.cc, body/Suspension.cc, body/Tire.cc, body/Transmission.cc, body/Wheel.cc, caelum/Makefile.am, caelum/Makefile.in, geometry/Inertia_Tensor.cc, geometry/Linear_Interpolator.cc, geometry/Makefile.am, geometry/Makefile.in, geometry/Material.cc, geometry/Rectangle.cc, geometry/Spline.cc, geometry/Three_Matrix.cc, geometry/Three_Vector.cc, geometry/Two_Vector.cc, geometry/XML_Parser.cc, geometry/test_Rectangle.cc, geometry/test_Spline.cc, geometry/test_Three_Vector.cc, geometry/test_Two_Vector.cc, geometry/test_XML_Parser.cc, media/Ac3d.cc, media/Makefile.am, media/Makefile.in, media/Sample.cc, media/Texture_Image.cc, track/Gl_Road_Segment.cc, track/Makefile.am, track/Makefile.in, track/Road_Segment.cc, track/Strip_Track.cc, track/Strip_Track_Reader.cc, track/test_Road_Segment.cc, world/Atmosphere.cc, world/Controls.cc, world/Gl_World.cc, world/Makefile.am, world/Makefile.in, world/Sounds.cc, world/World.cc:
+	Include local headers (e.g. "file.h") instead of system headers (e.g. <file.h>).
+
+	* Makefile.am, Makefile.in, body/Aerodynamic_Device.h, body/Brake.h, body/Car.h, body/Clutch.h, body/Contact_Point.h, body/Dashboard.h, body/Differential.h, body/Drivetrain.h, body/Engine.h, body/Exerter.h, body/Frame.h, body/Fuel_Tank.h, body/Gl_Car.h, body/Particle.h, body/Rigid_Body.h, body/Suspension.h, body/Tire.h, body/Transmission.h, body/Wheel.h, configure, configure.ac, geometry/Constants.h, geometry/Contact_Info.h, geometry/Conversions.h, geometry/Inertia_Tensor.h, geometry/Interpolator.h, geometry/Linear_Interpolator.h, geometry/Material.h, geometry/Numeric.h, geometry/Rectangle.h, geometry/Spline.h, geometry/Three_Matrix.h, geometry/Three_Vector.h, geometry/Two_Vector.h, geometry/XML_Parser.h, include/Makefile.am, include/Makefile.in, include/vamos/Makefile.am, include/vamos/Makefile.in, include/vamos/body/Aerodynamic_Device.h, include/vamos/body/Brake.h, include/vamos/body/Car.h, include/vamos/body/Clutch.h, include/vamos/body/Contact_Point.h, include/vamos/body/Dashboard.h, include/vamos/body/Differential.h, include/vamos/body/Drivetrain.h, include/vamos/body/Engine.h, include/vamos/body/Exerter.h, include/vamos/body/Frame.h, include/vamos/body/Fuel_Tank.h, include/vamos/body/Gl_Car.h, include/vamos/body/Makefile.am, include/vamos/body/Makefile.in, include/vamos/body/Particle.h, include/vamos/body/Rigid_Body.h, include/vamos/body/Suspension.h, include/vamos/body/Tire.h, include/vamos/body/Transmission.h, include/vamos/body/Wheel.h, include/vamos/geometry/Constants.h, include/vamos/geometry/Contact_Info.h, include/vamos/geometry/Conversions.h, include/vamos/geometry/Inertia_Tensor.h, include/vamos/geometry/Interpolator.h, include/vamos/geometry/Linear_Interpolator.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/geometry/Material.h, include/vamos/geometry/Numeric.h, include/vamos/geometry/Rectangle.h, include/vamos/geometry/Spline.h, include/vamos/geometry/Three_Matrix.h, include/vamos/geometry/Three_Vector.h, include/vamos/geometry/Two_Vector.h, include/vamos/geometry/XML_Parser.h, include/vamos/media/Ac3d.h, include/vamos/media/Makefile.am, include/vamos/media/Makefile.in, include/vamos/media/Sample.h, include/vamos/media/Texture_Image.h, include/vamos/track/Gl_Road_Segment.h, include/vamos/track/Makefile.am, include/vamos/track/Makefile.in, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, include/vamos/world/Atmosphere.h, include/vamos/world/Controls.h, include/vamos/world/Gl_World.h, include/vamos/world/Makefile.am, include/vamos/world/Makefile.in, include/vamos/world/Sounds.h, include/vamos/world/World.h, media/Ac3d.h, media/Sample.h, media/Texture_Image.h, track/Gl_Road_Segment.h, track/Road_Segment.h, track/Strip_Track.h, track/Track.h, world/Atmosphere.h, world/Controls.h, world/Gl_World.h, world/Sounds.h, world/World.h:
+	Moved headers from the include/ tree to the source directories.
+
+2007-03-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/default-track.xml: Added pits.
+
+	* data/tracks/Bahrain.xml: Matched to satellite photo.
+
+	* geometry/Three_Vector.cc, include/vamos/geometry/Constants.h, include/vamos/geometry/Interpolator.h, include/vamos/geometry/Linear_Interpolator.h, include/vamos/geometry/Numeric.h, include/vamos/geometry/Spline.h, include/vamos/geometry/Three_Vector.h, include/vamos/track/Gl_Road_Segment.h, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, track/Gl_Road_Segment.cc, track/Road_Segment.cc, track/Strip_Track.cc, track/Strip_Track_Reader.cc:
+	Pit lane enhancements.
+
+	* body/Makefile.am, body/Makefile.in, geometry/Makefile.am, geometry/Makefile.in, media/Makefile.am, media/Makefile.in, track/Makefile.am, track/Makefile.in, vamos/Makefile.am, vamos/Makefile.in, world/Makefile.am, world/Makefile.in:
+	Removed -gstabs+ from compiler options.  Causes compilation to fail.
+
+	* caelum/Cylinder_Sky.cc, caelum/Sky.cc, caelum/Sky.h, caelum/caelum.cc:
+	Fixed memory management problems that prevented the image from being drawn.
+
+2006-10-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Fuji.xml: Added Fuji speedway.
+
+2006-10-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Interlagos.xml, data/tracks/Laguna_Seca.xml:
+	Adjusted tracks to match satellite image.
+
+	* include/vamos/world/Gl_World.h, world/Gl_World.cc:
+	Fixed time-warp after pausing.
+
+2006-04-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, data/sounds/default-sounds.xml, include/vamos/body/Car.h, world/Sounds.cc:
+	Adjusted tire squeal volume calculation.
+
+	* track/Road_Segment.cc:
+	Account for non-parallel barriers when finding their normal vectors.
+
+2006-04-08  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Albert_Park.xml: Adjusted according to satellite photo.
+
+2005-12-01  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Rigid_Body.cc, include/vamos/body/Car.h, include/vamos/geometry/Contact_Info.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, include/vamos/world/Gl_World.h, include/vamos/world/World.h, world/Gl_World.cc, world/World.cc:
+	Handle interaction between cars.
+
+2005-11-25  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Imola.xml: Matched satellite image.
+
+2005-11-10  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Silverstone.xml: Corrected with sattelite photo.
+
+	* include/vamos/geometry/Numeric.h, body/Differential.cc, body/Suspension.cc, body/Tire.cc, include/vamos/geometry/Conversions.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, track/Road_Segment.cc, track/Strip_Track.cc, world/Controls.cc, world/Sounds.cc:
+	Moved numeric utilities from Conversions.h to Numeric.h.
+
+	* body/Gl_Car.cc, body/Rigid_Body.cc, include/vamos/body/Rigid_Body.h:
+	Fixed rigid body transformations.
+	Provide a temporary contact point.
+
+	* body/Frame.cc, include/vamos/body/Frame.h:
+	Added velocity transformations.
+
+-- 0.5.5 --
+2005-10-26  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Magny-Cours.xml: Adjusted track to match satellite photo.
+
+2005-10-24  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, track/Gl_Road_Segment.cc, track/Road_Segment.cc, track/Strip_Track.cc, track/Strip_Track_Reader.cc, track/test_Road_Segment.cc, world/Gl_World.cc:
+	Fixed skew calculations.
+
+	Added preliminary pit lane support.
+
+	Allow background images for map view.
+
+	* doc/vamos.info-2, doc/vamos.info-1: Removed extra info files.
+
+2005-10-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* doc/circles.eps, doc/curve.eps, doc/overlap.eps, doc/straight.eps, doc/track-coordinates.lisp, doc/track-coordinates.tex:
+	Added track coordinates document, code, and figures.
+
+2005-09-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/World.cc:
+	Place car on track when resetting with car in pit lane.
+
+	* doc/vamos.texi: Documented circuit tag for tracks.
+
+	* data/tracks/Interlagos.xml: Added pit lane.
+
+	* geometry/Three_Vector.cc, geometry/test_Three_Vector.cc, include/vamos/geometry/Three_Vector.h, track/Strip_Track.cc:
+	Fixed pit lane joining when the section of track being joined to is
+	not along the world x-axis.
+
+2005-09-14  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Spline.cc, include/vamos/geometry/Spline.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, track/Strip_Track.cc, track/Strip_Track_Reader.cc:
+	Allow the slope at the beginning of the track to be specified.
+
+	Allow different strategies for closing the track to be specified.
+
+2005-08-29  Sam Varner  <snick-a-doo@comcast.net>
+
+	* TODO, body/Suspension.cc, body/Tire.cc, data/cars/F1-1967.xml, data/cars/F1.xml, data/cars/default-car.xml:
+	Handle assymetry in the friction functions (e.g. camber thrust).
+	Added camber parameters to the friction coefficients.
+
+2005-08-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Engine.cc, geometry/Spline.cc, include/vamos/body/Engine.h:
+	Added friction parameter to torque curve.
+
+2005-08-25  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Engine.cc, geometry/Spline.cc, include/vamos/body/Engine.h, include/vamos/geometry/Conversions.h, include/vamos/geometry/Interpolator.h, include/vamos/geometry/Linear_Interpolator.h, include/vamos/geometry/Spline.h:
+	Allow user-defined torque curves.
+
+2005-08-23  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Istanbul.xml: Added elevation changes to Istanbul.
+
+2005-08-17  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Strip_Track_Reader.cc:
+	Allow setting of pit lane widths with a single point.
+
+	* scripts/wheels.gnuplot:
+	Added file of Gnuplot commands for plotting data from wheels.
+
+	* TODO, body/Car.cc, body/Drivetrain.cc, include/vamos/body/Drivetrain.h, include/vamos/body/Engine.h:
+	Implemented auto-neutral option.  If the <auto-neutral/> tag is
+	present in the <drivetrain> section, the transmission will be shifted
+	to neutral whenever the engine would stall.
+
+2005-08-15  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Sounds.cc: Changed tire squeal volume calculation.
+
+	* include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, include/vamos/world/World.h, track/Road_Segment.cc, track/Strip_Track.cc, track/Strip_Track_Reader.cc, world/Gl_World.cc, world/World.cc:
+	Made it possible to drive onto and off of pit lane.
+
+2005-08-12  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/track/Gl_Road_Segment.h, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, track/Gl_Road_Segment.cc, track/Makefile.am, track/Makefile.in, track/Road_Segment.cc, track/Strip_Track.cc, track/Strip_Track_Reader.cc, world/Gl_World.cc:
+	Refactored Strip_Track.  More pit lane work.
+
+	* geometry/Makefile.am, geometry/Makefile.in, geometry/Rectangle.cc, geometry/test_Rectangle.cc, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/geometry/Rectangle.h:
+	Added rectangle class and tests.
+
+2005-08-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/default-track.xml, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, track/Strip_Track.cc:
+	Added preliminary support for pit lanes.
+
+2005-08-05  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc:
+	Fixed bug in coordinate transformations that caused a crash on the
+	skid pad.
+
+	* geometry/Makefile.am, geometry/Makefile.in, geometry/Spline.cc, geometry/test_Spline.cc, include/vamos/geometry/Spline.h:
+	Provided a function for returning the slope at a point on a spline.
+	Added tests.
+
+	* geometry/XML_Parser.cc, geometry/test_XML_Parser.cc, include/vamos/geometry/XML_Parser.h:
+	Implemented wildcard matching for XML paths.
+
+	* body/Tire.cc, include/vamos/body/Tire.h:
+	Implemented Beckman's combination grip method for combining
+	longitudinal and transverse tire forces.
+
+2005-07-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, geometry/Makefile.am, geometry/Makefile.in, geometry/XML_Parser.cc, geometry/test_XML_Parser.cc, include/vamos/body/Car.h, include/vamos/geometry/Conversions.h, include/vamos/geometry/XML_Parser.h, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/world/Gl_World.h, include/vamos/world/Sounds.h, track/Strip_Track.cc, world/Gl_World.cc, world/Sounds.cc:
+	Cleaned up XML handling.
+
+	Added preliminary pit lane support.
+
+2005-07-05  Sam Varner  <snick-a-doo@comcast.net>
+
+	* TODO, vamos/Makefile.am, vamos/Makefile.in, vamos/vamos.cc:
+	Data files are now found in the configured prefix directory.
+
+-- 0.5.4 --
+2005-06-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/track/Road_Segment.h, track/Road_Segment.cc, track/Strip_Track.cc, track/test_Road_Segment.cc:
+	Implemented the transformation to track coordinates for skewed
+	curves.
+
+2005-06-05  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Gl_Car.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, world/Gl_World.cc:
+	Show rear views when panning.
+
+2005-06-04  Sam Varner  <snick-a-doo@comcast.net>
+
+	* TODO, body/Car.cc, body/Drivetrain.cc, body/Gl_Car.cc, body/Suspension.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, include/vamos/media/Texture_Image.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, include/vamos/world/World.h, media/Texture_Image.cc, track/Strip_Track.cc, world/Gl_World.cc, world/World.cc:
+	Fixed reloading of cars so that the textures aren't lost and frame
+	rate doesn't decrease.
+
+2005-05-29  Sam Varner  <snick-a-doo@comcast.net>
+
+	* configure.ac, Makefile.am: Removed old tests.
+
+	* body/Aerodynamic_Device.cc, body/Contact_Point.cc, body/Rigid_Body.cc, body/Suspension.cc, body/Tire.cc, body/Wheel.cc, geometry/Inertia_Tensor.cc, geometry/Three_Matrix.cc, geometry/Three_Vector.cc, geometry/test_Three_Vector.cc, include/vamos/geometry/Three_Vector.h, track/Road_Segment.cc, world/Gl_World.cc, world/World.cc:
+	Renamed Three_Vector::abs() magnitude().
+
+	* include/vamos/track/Strip_Track.h, include/vamos/world/Gl_World.h, track/Strip_Track.cc, world/Gl_World.cc:
+	Added cameras with fixed pan and tilt.
+
+2005-05-15  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/default-track.xml, include/vamos/track/Strip_Track.h, include/vamos/world/Gl_World.h, track/Road_Segment.cc, track/Strip_Track.cc, track/test_Road_Segment.cc, vamos/vamos.cc, world/Gl_World.cc:
+	Added support for multible camera locations around a track.
+
+2005-05-05  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/test_Two_Vector.cc:
+	Don't error out of the make for a failed test.
+
+	* include/vamos/geometry/Three_Vector.h, geometry/Three_Vector.cc, geometry/test_Three_Vector.cc:
+	Added rotation method.
+
+	* include/vamos/track/Road_Segment.h:
+	Re-wrote transformation to track coordinates (still needs skew for
+	curves).
+
+	* scripts/random_track.py: Added random track generation script.
+
+	* scripts/cppunit.el: Don't error out of the make for a failed test.
+
+	* track/Road_Segment.cc, track/test_Road_Segment.cc:
+	Re-wrote transformation to track coordinates (still needs skew for
+	curves).
+
+	* geometry/Makefile.am, geometry/Makefile.in, track/Makefile.am, track/Makefile.in:
+	Link libdl for tests.
+
+	* include/vamos/media/Texture_Image.h, media/Texture_Image.cc:
+	Fixed texture wraping.
+
+	* body/Tire.cc, geometry/Three_Matrix.cc, include/vamos/geometry/Three_Matrix.h:
+	Made the default Three_Matrix the identity matrix.
+
+	* body/Car.cc, track/Strip_Track.cc, vamos/vamos.cc, world/Gl_World.cc:
+	Allow absolute path names for data files.
+
+	Show bottom image on sky box.
+
+2005-03-12  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Dashboard.cc, body/Gl_Car.cc, body/Rigid_Body.cc, body/Suspension.cc, body/Tire.cc, body/Wheel.cc, geometry/Inertia_Tensor.cc, geometry/Linear_Interpolator.cc, geometry/Makefile.am, geometry/Makefile.in, geometry/Spline.cc, geometry/Three_Matrix.cc, geometry/Three_Vector.cc, geometry/Two_Point.cc, geometry/Two_Vector.cc, geometry/test_Two_Vector.cc, include/vamos/body/Car.h, include/vamos/body/Dashboard.h, include/vamos/geometry/Interpolator.h, include/vamos/geometry/Linear_Interpolator.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/geometry/Spline.h, include/vamos/geometry/Three_Matrix.h, include/vamos/geometry/Three_Vector.h, include/vamos/geometry/Two_Point.h, include/vamos/geometry/Two_Vector.h, include/vamos/track/Gl_Road_Segment.h, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, media/Ac3d.cc, track/Gl_Road_Segment.cc, track/Road_Segment.cc, track/Strip_Track.cc, track/test_Road_Segment.cc, world/Gl_World.cc, world/World.cc:
+	Renamed Two_Point to Two_Vector.
+
+	Added tests for Two_Vector.
+
+	Use public members x, y, z instead of subscripts for Three_Vector
+	element access.
+
+	* track/Draw.cc, Makefile.am, Makefile.in, body/Car.cc, body/Dashboard.cc, body/Gl_Car.cc, body/Suspension.cc, body/Wheel.cc, caelum/Makefile.am, caelum/Makefile.in, caelum/Sky.cc, caelum/Sky.h, caelum/caelum.cc, configure, configure.ac, geometry/Ac3d.cc, geometry/Makefile.am, geometry/Makefile.in, geometry/Sample.cc, geometry/Texture_Image.cc, geometry/Three_Vector.cc, include/vamos/body/Car.h, include/vamos/body/Dashboard.h, include/vamos/body/Gl_Car.h, include/vamos/geometry/Ac3d.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/geometry/Sample.h, include/vamos/geometry/Texture_Image.h, include/vamos/media/Ac3d.h, include/vamos/media/Makefile.am, include/vamos/media/Makefile.in, include/vamos/media/Sample.h, include/vamos/media/Texture_Image.h, include/vamos/track/Gl_Road_Segment.h, include/vamos/track/Makefile.am, include/vamos/track/Makefile.in, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/world/Sounds.h, media/Ac3d.cc, media/Makefile.am, media/Makefile.in, media/Sample.cc, media/Texture_Image.cc, track/Gl_Road_Segment.cc, track/Makefile.am, track/Makefile.in, track/Road_Segment.cc, track/Strip_Track.cc, track/test_Road_Segment.cc, vamos/Makefile.am, vamos/Makefile.in, vamos/vamos.cc, world/Gl_World.cc, world/Sounds.cc:
+	Moved graphics and sound code from the geometry library into a new
+	library called "media".  This helps avoid dependancies on external
+	libraries.
+
+	Moved graphics out of Road_Segment into a new class
+	"Gl_Road_Segment".  Road_Segment can now be tested without linking
+	external libraries.
+
+2005-02-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, geometry/Texture_Image.cc, include/vamos/geometry/Texture_Image.h, include/vamos/geometry/Three_Matrix.h, include/vamos/track/Road_Segment.h, body/Dashboard.cc, body/Rigid_Body.cc, data/tracks/Hockenheimring.xml, include/vamos/body/Rigid_Body.h, include/vamos/track/Strip_Track.h, include/vamos/world/World.h, track/Draw.cc, track/Road_Segment.cc, track/Strip_Track.cc, vamos/vamos.cc, world/World.cc:
+	Point the car in the right direction on reset.
+
+	Set normal vector for dashboard images.
+
+	Make the default Three_Matrix the identity matrix.
+
+	Fix timing crashes.
+
+2005-02-25  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Dashboard.cc, body/Gauge.cc, body/Gl_Car.cc, body/Makefile.am, body/Makefile.in, geometry/Texture_Image.cc, include/vamos/body/Car.h, include/vamos/body/Dashboard.h, include/vamos/body/Gauge.h, include/vamos/body/Gl_Car.h, include/vamos/body/Makefile.am, include/vamos/body/Makefile.in, include/vamos/geometry/Texture_Image.h, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, track/Draw.cc, track/Makefile.am, track/Makefile.in, track/Road_Segment.cc, track/Strip_Track.cc, vamos/vamos.cc:
+	Re-organized texture image handling.
+
+	Allow setting the orientation of the track.
+
+	Separated drawing code from Road_Segment.cc
+
+2005-02-04  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Magny-Cours.xml, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, track/Road_Segment.cc, track/Strip_Track.cc, world/Gl_World.cc:
+	Only build the track once.
+
+	Added preliminary support for the skew parameter.
+
+-- 0.5.3 --
+2005-02-04  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Magny-Cours.xml, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, track/Road_Segment.cc, track/Strip_Track.cc, world/Gl_World.cc:
+	Only build the track once.
+
+	Added preliminary support for the skew parameter.
+
+	* scripts/cppunit.el, Makefile.in, body/Makefile.in, caelum/Makefile.in, config/Makefile.in, configure, configure.ac, data/Makefile.in, data/cars/Makefile.in, data/controls/Makefile.in, data/sounds/Makefile.in, data/textures/Makefile.in, data/tracks/Makefile.in, data/worlds/Makefile.in, doc/Makefile.in, geometry/Makefile.am, geometry/Makefile.in, geometry/Three_Vector.cc, geometry/test_Three_Vector.cc, include/Makefile.in, include/vamos/Makefile.in, include/vamos/body/Makefile.in, include/vamos/geometry/Makefile.in, include/vamos/geometry/Three_Vector.h, include/vamos/track/Makefile.in, include/vamos/world/Makefile.in, scripts/Makefile.in, test/Makefile.in, track/Makefile.in, vamos/Makefile.in, world/Makefile.in:
+	Added support for CppUnit tests.
+
+2005-01-04  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Body.cc, body/Car.cc, body/Gl_Car.cc, body/Makefile.am, body/Makefile.in, body/Rigid_Body.cc, include/vamos/body/Body.h, include/vamos/body/Car.h, include/vamos/body/Makefile.am, include/vamos/body/Makefile.in, include/vamos/body/Rigid_Body.h, vamos/vamos.cc, world/Gl_World.cc, world/World.cc:
+	Renamed Body to Rigid_Body.  The car-body relationship is now "has-a"
+	instead of "is-a."
+
+2004-12-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, include/vamos/body/Car.h, include/vamos/world/World.h, world/Gl_World.cc, world/World.cc:
+	Added collision detection between cars.
+
+	* body/Frame.cc, geometry/Three_Vector.cc, include/vamos/body/Frame.h, include/vamos/geometry/Three_Vector.h:
+	Inlined some important functions for efficiency.
+
+	* data/tracks/Istanbul.xml: Added Istanbul track.
+
+2004-11-24  Sam Varner  <snick-a-doo@comcast.net>
+
+	* scripts/conversions.el: Added Emacs lisp conversion functions.
+
+	* body/Body.cc, body/Car.cc, body/Makefile.am, body/Makefile.in, geometry/Makefile.am, geometry/Makefile.in, geometry/Sample.cc, geometry/Spline.cc, geometry/Three_Matrix.cc, include/vamos/geometry/Spline.h, include/vamos/geometry/Three_Matrix.h, include/vamos/geometry/Three_Vector.h, include/vamos/world/Sounds.h, track/Makefile.am, track/Makefile.in, vamos/Makefile.am, vamos/Makefile.in, world/Gl_World.cc, world/Makefile.am, world/Makefile.in, world/Sounds.cc, world/World.cc:
+	Optimized.
+
+-- 0.5.2 --
+2004-11-08  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Sample.cc, include/vamos/geometry/Sample.h, include/vamos/world/World.h, world/Gl_World.cc, world/Sounds.cc, world/World.cc:
+	Fixed sounds for multiple cars.
+
+2004-11-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Ac3d.cc, include/vamos/world/World.h, world/Gl_World.cc, world/World.cc:
+	Fixed surface culling in rear views.
+
+	Fixed restarting.
+
+2004-11-06  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/world/Gl_World.h, include/vamos/world/World.h, world/Gl_World.cc, world/Sounds.cc, world/World.cc:
+	Fixed sound loading and rear views for multiple cars.
+
+2004-11-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* README.win32, body/body.vcproj, geometry/geometry.vcproj, track/track.vcproj, vamos/vamos.vcproj, vamos_all.sln, world/world.vcproj:
+	Added Win32 project files.
+
+	* body/Drivetrain.cc, body/Gauge.cc, geometry/Ac3d.cc, geometry/XML_Parser.cc, include/vamos/body/Suspension.h, include/vamos/geometry/Ac3d.h, include/vamos/geometry/Conversions.h, include/vamos/geometry/Gl_Texture_Image.h, include/vamos/geometry/XML_Parser.h, track/Road_Segment.cc, track/Strip_Track.cc, world/Gl_World.cc:
+	Fixes and cleanups from Brent.
+
+	Added diagnostic output for unterminated XML attribute string.
+
+2004-10-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/controls/clutch-wheel.xml, data/controls/default-controls.xml, data/controls/keyboard.xml, data/controls/mouse.xml, data/controls/stick.xml, data/controls/throttle-wheel.xml, include/vamos/world/Gl_World.h, include/vamos/world/World.h, world/Gl_World.cc, world/World.cc:
+	Added the ability to change the focused car on the fly.
+
+2004-10-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Linear_Interpolator.cc, geometry/Spline.cc, include/vamos/geometry/Interpolator.h, include/vamos/geometry/Linear_Interpolator.h, include/vamos/geometry/Spline.h, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, include/vamos/world/Gl_World.h, include/vamos/world/World.h, track/Makefile.am, track/Makefile.in, track/Road_Segment.cc, track/Strip_Track.cc, world/Gl_World.cc, world/World.cc:
+	Added per-car timing and location information as part of multiple car
+	support.
+
+2004-10-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/world/Gl_World.h, include/vamos/world/World.h, vamos/vamos.cc, world/Gl_World.cc, world/World.cc:
+	Added support for multiple cars.
+
+-- 0.5.1 --
+2004-10-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Shanghai.xml: Added elevation changes.
+
+2004-09-28  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Material.cc, include/vamos/geometry/Constants.h:
+	Made surface bumpiness less regular.
+
+	* data/tracks/Monza-1967.xml: Added old Monza track.
+
+	* configure, configure.ac, caelum/Sky.cc: Include glext.h on Windows.
+
+2004-09-10  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Spa.xml: Updated Spa
+
+2004-09-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/F1-1967.ac, data/cars/F1-1967.xml:
+	Rebuilt the 1967 Formula One car.
+
+2004-07-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc, world/Controls.cc, world/Gl_World.cc:
+	Avoid the words min, max, near, and far to allow compiling with Cygwin.
+
+-- 0.5.0 --
+2004-06-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/F1-1967-arm.ac, data/cars/F1-1967-stator.ac, data/cars/F1-1967-wishbone.ac, data/cars/F1-1967.xml, data/cars/F1.xml, data/cars/Makefile.am, data/cars/Makefile.in:
+	Added suspension model files.
+
+	* body/Car.cc, body/Suspension.cc, body/Wheel.cc:
+	Corrected transformations for suspension parts.
+
+2004-06-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, include/vamos/body/Car.h:
+	Allow specifying multiple suspension models for each wheel.
+
+	* body/Wheel.cc, include/vamos/body/Wheel.h:
+	Added a parameter to set how far the contact patch is from the
+	steering pivot.
+
+2004-06-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Suspension.cc:
+	Set the normal vector in the parent's frame.  This keeps the
+	suspension force pointed up regardless of the caster and camber
+	angles.
+
+2004-06-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Wheel.cc, data/cars/F1-stator.ac, data/cars/F1.xml, data/cars/Makefile.am, include/vamos/body/Car.h, include/vamos/body/Wheel.h:
+	Render the wheel stator.
+
+2004-06-17  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/body/Wheel.h: Handle bottoming out more gently.
+
+	* body/Wheel.cc: Added rendering of suspension components.
+
+	* data/textures/gears-lcd.png: Show gear numbers > 6.
+
+	* body/Car.cc, body/Suspension.cc, data/cars/F1-wishbone.ac, data/cars/F1.xml, include/vamos/body/Suspension.h:
+	Added rendering of suspension components.
+
+2004-06-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc: Fixed rear-view mirror drawing after resize.
+
+2004-06-15  Sam Varner  <snick-a-doo@comcast.net>
+
+	* test/ac3d.cc, test/down.ac, test/left.ac, test/right-up.ac, test/right.ac, test/single.ac, test/square.ac, test/triangle-fan.ac, test/triangle-right.ac, test/triangle-two-right.ac, test/triangle.ac, test/two-right.ac, test/up.ac, test/wheel.ac:
+	Added tests for ac3d strip detection.
+
+	* geometry/Ac3d.cc: Detect triangle strips and fans in ac3d files.
+
+2004-06-10  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, include/vamos/track/Road_Segment.h, track/Road_Segment.cc, track/Strip_Track.cc, world/Controls.cc, world/Gl_World.cc, world/Sounds.cc:
+	Removed stray semicolons that caused errors with GCC 3.4.0
+
+	Re-worked Road_Segment::coordinates() to avoid using exceptions.
+
+2004-05-17  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Ac3d.cc, include/vamos/geometry/Ac3d.h:
+	Finished quad strip handling.
+
+2004-05-14  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Catalunya.xml: Updated layout.
+
+	* geometry/Ac3d.cc:
+	Fixed orientation of quad strips.  All quads must now attach with the
+	same vertex indices.
+
+2004-05-13  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Ac3d.cc, include/vamos/geometry/Ac3d.h:
+	Added preliminary support for finding strips of surfaces.
+
+-- 0.4.6 --
+2004-05-03  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Tire.cc, body/Wheel.cc, include/vamos/body/Tire.h:
+	Orient the tire's frame so that the z-axis is along the road's normal.
+
+2004-04-29  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Wheel.cc, include/vamos/body/Wheel.h:
+	Return the suspension to equilibrium when the wheel leaves the ground.
+
+	* geometry/Material.cc:
+	Treat a bump wavelength of 0 as no bump rather than an error.
+
+	* body/Differential.cc, body/Gl_Car.cc, include/vamos/geometry/Conversions.h, include/vamos/world/Sounds.h, world/Controls.cc, world/Sounds.cc:
+	Replaced all clipping functions with a single function in the
+	geometry module.
+
+2004-04-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/XML_Parser.cc: Initialize variables.
+
+	* geometry/Texture_Image.cc: Free the end info structure.
+
+2004-03-15  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/controls/mouse.xml, include/vamos/world/Controls.h, include/vamos/world/Gl_World.h, world/Controls.cc, world/Gl_World.cc:
+	Changed parameter set for mouse motion bindings.
+
+	* data/controls/Makefile.am, data/controls/Makefile.in:
+	Added keyboard and mouse control files to the distribution.
+
+2004-03-08  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/world/Controls.h, world/Controls.cc, world/Gl_World.cc:
+	Factored out classes for keyboard, joystick, and mouse.
+
+2004-03-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/world/Gl_World.h, world/Gl_World.cc:
+	Fixed crash when starting in map mode.
+	Update screen when track file is read in map mode.
+
+	* body/Car.cc, body/Drivetrain.cc, include/vamos/body/Car.h:
+	Fixed stall after resetting with car in gear.
+
+2004-03-06  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/controls/mouse.xml, include/vamos/world/Controls.h, include/vamos/world/Gl_World.h, world/Controls.cc, world/Gl_World.cc:
+	Added preliminary support for mouse control.
+
+2004-03-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/GT.ac, geometry/Ac3d.cc: Fixed culling in 3D models.
+
+	* body/Car.cc, body/Drivetrain.cc, body/Engine.cc, include/vamos/body/Drivetrain.h:
+	Keep the engine running when reseting or restarting.
+
+	* data/textures/Makefile.am, data/textures/Makefile.in:
+	Added square-mirror-frame.png to the distribution.
+
+2004-02-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* vamos/vamos.cc:
+	Catch exceptions as references so that the correct virtual functions
+	are called.
+
+	* geometry/XML_Parser.cc:
+	Check stream value as well as pointer to see if the file was
+	successfully opened.
+
+-- 0.4.5 --
+2004-02-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* vamos/vamos.cc:
+	Catch exceptions as references so that the correct virtual functions
+	are called.
+
+	* geometry/XML_Parser.cc:
+	Check stream value as well as pointer to see if the file was
+	successfully opened.
+
+2004-02-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Drivetrain.cc, body/Suspension.cc, body/Wheel.cc, include/vamos/body/Wheel.h:
+	Fixed tire force calculation.  Added temporary roll height parameter
+	to definition file.
+
+	* body/Body.cc: Fixed torque calculation.
+
+2004-02-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Differential.cc, include/vamos/body/Differential.h:
+	Improved anti-slip algorithm.
+
+	* data/controls/clutch-wheel.xml, data/controls/default-controls.xml, data/controls/stick.xml, data/controls/throttle-wheel.xml, include/vamos/world/Controls.h, world/Controls.cc:
+	Multiple callbacks can now be bound to one key.
+
+2004-02-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, include/vamos/body/Car.h, include/vamos/track/Strip_Track.h, include/vamos/world/Gl_World.h, include/vamos/world/Sounds.h, track/Strip_Track.cc, vamos/vamos.cc, world/Gl_World.cc, world/Sounds.cc:
+	Used XML_Parser instead of Sim Gear's XMLVisitor.
+
+	* configure, configure.ac, vamos/Makefile.am, vamos/Makefile.in:
+	Removed dependancy on Sim Gear.
+
+	* geometry/Makefile.am, geometry/Makefile.in, geometry/XML_Parser.cc, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/geometry/XML_Parser.h:
+	Added class for parsing XML files.
+
+2004-01-30  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Watkins_Glen.xml: Added old Watkins Glen track.
+
+	* body/Car.cc, body/Gauge.cc, data/cars/default-car.xml, data/textures/square-mirror-frame.png, include/vamos/body/Car.h, include/vamos/body/Gauge.h:
+	Added mirror frames.
+
+2004-01-24  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/textures/round-mask.png, data/textures/square-mask.png, include/vamos/world/Gl_World.h, body/Car.cc, body/Gl_Car.cc, data/cars/F1-1967.xml, data/cars/F1.xml, data/cars/default-car.xml, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, world/Gl_World.cc:
+	Finished rearview mirror support.
+	Added clip plane settings to car definition files.
+	Pause the program when in map mode.
+
+-- 0.4.4 --
+2004-01-24  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/textures/round-mask.png, data/textures/square-mask.png, include/vamos/world/Gl_World.h, body/Car.cc, body/Gl_Car.cc, data/cars/F1-1967.xml, data/cars/F1.xml, data/cars/default-car.xml, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, world/Gl_World.cc:
+	Finished rearview mirror support.
+	Added clip plane settings to car definition files.
+	Pause the program when in map mode.
+
+2004-01-21  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Gl_Car.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h:
+	Added tag for showing detailed real-time information about the car.
+
+	Implemented arbitrary rearview mirror placement.
+
+2004-01-13  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/world/Controls.h, include/vamos/world/Gl_World.h, include/vamos/world/Makefile.am, include/vamos/world/Makefile.in, include/vamos/world/World.h, vamos/vamos.cc, world/Controls.cc, world/Gl_World.cc, world/Makefile.am, world/Makefile.in, world/World.cc:
+	Remove World virtual base class.  Renamed Car_World to World,
+	Gl_Car_World to Gl_World.  Refactored Gl_World a bit.
+
+2004-01-10  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Suspension.cc: Zero displacement when resetting.
+
+2004-01-06  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Gl_Texture_Image.cc:
+	Set the color format based on the number of channels in the image.
+
+2004-01-03  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Engine.cc:
+	Fixed rev limiter so that the throttle does not get stuck when the
+	wheels aren't in contact with the road.
+
+2004-01-01  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Albert_Park.xml, data/tracks/Bahrain.xml, data/tracks/Catalunya.xml, data/tracks/Hungaroring.xml, data/tracks/Imola.xml, data/tracks/Indianapolis.xml, data/tracks/Interlagos.xml, data/tracks/Magny-Cours.xml, data/tracks/Monaco.xml, data/tracks/Monza.xml, data/tracks/Nurburgring.xml, data/tracks/Sepang.xml, data/tracks/Shanghai.xml, data/tracks/Silverstone.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/Villeneuve.xml, data/tracks/default-track.xml, data/tracks/skid_pad.xml:
+	Increased resolution in turns to make them look smoother.
+
+2003-12-29  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gauge.cc, body/Gl_Car.cc, geometry/Ac3d.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Rearranged graphics commands.
+
+2003-12-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc, data/textures/rearview-mask.png, geometry/Gl_Texture_Image.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, include/vamos/geometry/Gl_Texture_Image.h:
+	Added the ability to draw an arbitrarily shaped rearview mirror.
+
+	* data/tracks/Kyalami.xml: Added the old Kyalami track.
+
+2003-12-23  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Gauge.cc, body/Gl_Car.cc, data/cars/GT-interior.ac, data/cars/default-car.xml, data/textures/needle.png, include/vamos/body/Car.h, include/vamos/body/Gauge.h, include/vamos/body/Gl_Car.h:
+	Added 3D interior model.
+
+2003-12-21  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, geometry/Sample.cc, include/vamos/body/Car.h, include/vamos/geometry/Sample.h, include/vamos/world/Sounds.h, vamos/vamos.cc, world/Sounds.cc:
+	Fixed sound system so that the car file can be reloaded.
+
+-- 0.4.3 --
+2003-12-15  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Gauge.cc, data/textures/gear-shift.png, data/textures/shift-gate.png, include/vamos/body/Car.h, include/vamos/body/Gauge.h:
+	Added gear shift to driver's view.
+
+2003-12-12  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/body/Gauge.h, body/Car.cc, body/Gauge.cc, data/cars/F1.xml:
+	Fixed problem showing the correct number of LEDs in the tachometer.
+	Allow digital tachometer.
+
+2003-12-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Gauge.cc, body/Gl_Car.cc, data/cars/F1.xml, data/textures/F1-steering-wheel.png, data/textures/digits-lcd.png, data/textures/digits.png, data/textures/gears-lcd.png, data/textures/tachometer-leds.png, include/vamos/body/Car.h, include/vamos/body/Gauge.h:
+	Added digital gauges.
+
+2003-12-10  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Gauge.cc, body/Gl_Car.cc, data/cars/F1.xml, data/textures/F1-steering-wheel.png, data/textures/tachometer-leds.png, include/vamos/body/Car.h, include/vamos/body/Gauge.h:
+	Added F1-style LED tachometer.  Gauges can now be placed on the
+	steering wheel.
+
+2003-12-09  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc: Pan about the car's vertical axis, not the world's.
+
+2003-12-08  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Gl_Car.cc, data/cars/default-car.xml, data/controls/default-controls.xml, include/vamos/body/Car.h, include/vamos/world/Gl_Car_World.h, world/Gl_Car_World.cc:
+	Added panning.
+
+2003-12-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* vamos/Makefile.am, vamos/Makefile.in, vamos/Vamos_Car.cc, vamos/Vamos_Car.h, vamos/vamos.cc:
+	Removed Vamos_Car class.  Use Gl_Car instead.
+
+	* body/Car.cc, body/Gauge.cc, body/Gl_Car.cc, data/cars/default-car.xml, include/vamos/body/Car.h, include/vamos/body/Gauge.h, include/vamos/body/Gl_Car.h, world/Gl_Car_World.cc:
+	Added dashboard stuff to Car class and car definition file.
+
+2003-12-06  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gauge.cc, include/vamos/body/Gauge.h, vamos/Vamos_Car.cc, vamos/Vamos_Car.h:
+	Added dashboard class.  Gauges are now placed relative to the dashboard.
+
+2003-12-05  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Gl_Car_World.cc:
+	Rearranged drawing code.  Pausing no longer soakes up CPU cycles.
+	Added rear view.
+
+	* body/Gauge.cc, include/vamos/body/Gauge.h, vamos/Vamos_Car.cc, vamos/Vamos_Car.h:
+	Gauges are now draw in 3D fixed to the car's frame.
+
+	* geometry/Ac3d.cc: Restore attributes after drawing.
+
+2003-11-18  Sam Varner  <snick-a-doo@comcast.net>
+
+	* vamos/Vamos_Car.cc, vamos/Vamos_Car.h: Added gauges.
+
+	* track/Strip_Track.cc, world/Gl_Car_World.cc: Show rearview window.
+
+	* data/textures/dash.png, data/textures/dash.xcf, data/textures/face.png, data/textures/face.xcf, data/textures/fuel-face.png, data/textures/gears.png, data/textures/speedometer-face.png, data/textures/steering-wheel.png, data/textures/steering-wheel.xcf, data/textures/tachometer-face.png:
+	Added and updated gauge images.
+
+	* body/Gl_Car.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h:
+	Added pan parameter to view ().
+
+	* body/Gauge.cc: Allow blank face image.
+
+2003-11-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/body/Makefile.in: Added dashboard gauges.
+
+	* include/vamos/world/Car_World.h, include/vamos/world/Gl_Car_World.h, vamos/vamos.cc, world/Car_World.cc, world/Gl_Car_World.cc:
+	Add the car to the world after the world is constructed.
+
+	* body/Gauge.cc, body/Makefile.am, body/Makefile.in, data/textures/face.png, data/textures/gears.png, data/textures/needle.png, include/vamos/body/Engine.h, include/vamos/body/Gauge.h, include/vamos/body/Makefile.am, vamos/Vamos_Car.cc, vamos/Vamos_Car.h:
+	Added dashboard gauges.
+
+2003-11-12  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Laguna_Seca.xml: Added Laguna Seca.
+
+2003-11-11  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Road_Atlanta.xml: Added Road Atlanta.
+
+-- 0.4.2 --
+2003-11-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/body/Suspension.h, body/Car.cc, body/Suspension.cc:
+	Improved speed-sensitive steering.  Coupled braking torque to the
+	suspension.
+
+2003-11-05  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Hockenheimring.xml: Added Hockenheimring track.
+
+2003-11-03  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Monaco.xml: Added Monaco.
+
+2003-11-02  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Sepang.xml: Added Sepang circuit.
+
+2003-11-01  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Bahrain.xml: Added Bahrain track.
+
+	* data/tracks/Hungaroring.xml: Added Hungaroring track.
+
+2003-10-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Gl_Car_World.cc: Fix shifting to reverse for paddle-shifters.
+
+	* data/tracks/Shanghai.xml: Added Shanghai Circuit.
+
+2003-10-25  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Imola.xml: Added Imola.
+
+2003-10-24  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Catalunya.xml: Added Ciruit de Catalunya.
+
+2003-10-23  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Tire.cc: Fixed some stability problems.
+
+2003-10-22  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Villeneuve.xml: Added the Circuit Gilles Villeneuve.
+
+2003-10-21  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Interlagos.xml: Added Interlagos track.
+
+2003-10-19  Sam Varner  <snick-a-doo@comcast.net>
+
+	* track/Road_Segment.cc: Convert rotation to radians.
+
+	* include/vamos/body/Suspension.h, body/Car.cc, body/Suspension.cc, body/Tire.cc, body/Wheel.cc:
+	Improved speed-sensitive steering.  Simplified suspension geometry.
+	Fixed the sign of the aligning torque.
+
+	* data/tracks/bridge.ac, data/tracks/default-track.xml, data/tracks/drag.xml, data/tracks/garage.ac, data/tracks/grandstand.ac:
+	Added and updated trackside objects.
+
+	* data/controls/clutch-wheel.xml, data/controls/stick.xml, data/controls/throttle-wheel.xml, data/controls/default-controls.xml, include/vamos/world/Controls.h, include/vamos/world/Gl_Car_World.h, world/Controls.cc, world/Gl_Car_World.cc:
+	Added the ability to set the deabands of the joystick axes.
+
+2003-10-07  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/default-track.xml, data/tracks/grandstand.ac, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Added support for trackside objects.
+
+2003-10-06  Sam Varner  <snick-a-doo@comcast.net>
+
+	* world/Controls.cc: Avoid crash when joystick is not present.
+
+-- 0.4.1 --
+2003-09-29  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Ac3d.cc:
+	Compensate for the change in coordinate system when exporting Blender
+	files in AC3D format.
+
+	* body/Car.cc, include/vamos/body/Car.h:
+	Read wheel model information from the XML file.
+
+	* body/Suspension.cc, body/Wheel.cc, include/vamos/body/Suspension.h:
+	Use the correct normal vector for suspension forces.
+
+	* world/Gl_Car_World.cc:
+	Removed unnecessary GL calls.  Zoomed the world view.
+
+	* data/cars/F1-1967.ac, data/cars/F1-1967.xml, data/cars/F1.ac, data/cars/F1.xml, data/cars/GT.ac, data/cars/GT.xml, data/cars/Z3.ac3d, data/cars/default-car.xml, data/cars/front-drive.xml, data/cars/trainer.xml, data/cars/wheel-fast.ac, data/cars/wheel.ac:
+	Added and updated models.
+
+2003-09-26  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/cars/F1.ac, data/cars/F1.xml, data/cars/GT.ac, data/cars/default-car.xml, data/cars/wheel-fast.ac, data/cars/wheel.ac:
+	Added model files.
+
+	* include/vamos/world/Sounds.h, vamos/vamos.cc, world/Gl_Car_World.cc, world/Sounds.cc:
+	Changed initialization sequence for cars and sounds.
+
+	* body/Suspension.cc:
+	Apply camber and caster rotations to the suspension matrix.
+
+	* body/Engine.cc: Fixed rev limiter so that no torque is generated.
+
+	* body/Car.cc, body/Gl_Car.cc, body/Wheel.cc, geometry/Ac3d.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, include/vamos/body/Wheel.h, include/vamos/geometry/Ac3d.h:
+	Added speed-sensitive steering, scaling and translation of models,
+	models for wheels.
+
+2003-09-17  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Ac3d.cc, include/vamos/geometry/Ac3d.h:
+	Added smooth shading and backface culling.
+
+2003-09-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Gl_Car.cc, geometry/Ac3d.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, include/vamos/geometry/Ac3d.h:
+	The Ac3d object is allowed to go out of scope once it returns the
+	display list ID.
+
+	* configure, caelum/Makefile.am, caelum/Makefile.in, caelum/Sky.h, caelum/caelum.cc, configure.ac:
+	Fixed SigC++ version inconsistency.
+
+2003-09-15  Sam Varner  <snick-a-doo@comcast.net>
+
+	* geometry/Ac3d.cc, include/vamos/geometry/Ac3d.h, vamos/vamos.cc:
+	Completed Ac3d reader.
+
+2003-09-13  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, body/Gl_Car.cc, data/cars/Z3.ac3d, data/cars/default-car.xml, geometry/Ac3d.cc, geometry/Makefile.am, geometry/Makefile.in, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, include/vamos/geometry/Ac3d.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, vamos/Vamos_Car.cc, vamos/Vamos_Car.h:
+	Added preliminary support for AC3D car model files.
+
+	* include/vamos/world/Controls.h, include/vamos/world/Gl_Car_World.h, world/Controls.cc, world/Gl_Car_World.cc, world/Makefile.am, world/Makefile.in:
+	Made Controls a non-template class because function pointers take care
+	of the inheritance issues.
+
+-- 0.4.0 --
+2003-09-01  Sam Varner  <snick-a-doo@comcast.net>
+
+	* doc/vamos.info, doc/vamos.info-1, doc/vamos.info-2, doc/vamos.texi:
+	Updated documentation.
+
+2003-08-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Monza.xml: Added Monza track.
+
+2003-08-03  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/controls/default-controls.xml, body/Car.cc, include/vamos/body/Car.h, include/vamos/world/Controls.h, include/vamos/world/Gl_Car_World.h, vamos/vamos.cc, world/Gl_Car_World.cc:
+	Added controls definition file.
+
+2003-07-27  Sam Varner  <snick-a-doo@comcast.net>
+
+	* include/vamos/world/Gl_Car_World.h, vamos/Makefile.am, vamos/Makefile.in, world/Makefile.am, world/Makefile.in:
+	Use libsigc++ 1.2.
+
+	* include/vamos/world/Controls.h, include/vamos/world/Gl_Car_World.h, include/vamos/world/Makefile.am, include/vamos/world/Makefile.in, world/Controls.cc, world/Gl_Car_World.cc, world/Makefile.am, world/Makefile.in:
+	Moved controls stuff from Gl_Car_World to the new Controls class.
+
+2003-07-20  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/worlds/default-world.xml, data/worlds/moon.xml, include/vamos/world/Atmosphere.h, include/vamos/world/Car_World.h, include/vamos/world/Gl_Car_World.h, include/vamos/world/World.h, vamos/vamos.cc, world/Car_World.cc, world/Gl_Car_World.cc, world/Makefile.am, world/Makefile.in, world/World.cc:
+	Added XML file for the world.
+
+2003-07-17  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Car.cc, data/cars/F1.xml, data/cars/default-car.xml, include/vamos/body/Car.h, include/vamos/world/Gl_Car_World.h, vamos/vamos.cc, world/Gl_Car_World.cc:
+	Moved steering exponent, clutch time, and shift delay from
+	Gl_Car_World to Car.  Added tags for these items and for the maximum
+	steering angle to the car definitions.
+
+2003-07-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/sounds/f1-engine.wav: Added F1 engine sound.
+
+	* data/textures/blue-green-tires.png, data/tracks/Indianapolis.xml, data/tracks/Magny-Cours.xml, data/tracks/Nurburgring.xml, data/tracks/default-track.xml:
+	Updated Magny-Cours and Nurburgring.  Added braking markers.
+
+	* include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/geometry/Sample.h, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, data/sounds/default-sounds.xml, body/Gl_Car.cc, geometry/Makefile.am, geometry/Makefile.in, geometry/Sample.cc, include/vamos/world/Gl_Car_World.h, include/vamos/world/Makefile.am, include/vamos/world/Makefile.in, include/vamos/world/Sounds.h, vamos/Vamos_Car.cc, vamos/Vamos_Car.h, vamos/vamos.cc, world/Gl_Car_World.cc, world/Makefile.am, world/Makefile.in, world/Sounds.cc:
+	Added XML file for sounds.  Re-organized sound handling.
+
+	* body/Car.cc, data/cars/F1.xml, data/cars/default-car.xml:
+	Added sound tags to car definition files.
+
+2003-07-03  Sam Varner  <snick-a-doo@comcast.net>
+
+	* body/Aerodynamic_Device.cc, body/Car.cc, include/vamos/body/Aerodynamic_Device.h, include/vamos/body/Car.h:
+	Improved wing behavior.
+
+	* data/textures/100.png, data/textures/150.png, data/textures/50.png, data/textures/grass2.png, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Added braking markers.  Merged classes Straight_Road and Arc_Road into Road_Segment.
+
+2003-06-14  Sam Varner  <snick-a-doo@comcast.net>
+
+	* data/tracks/Albert_Park.xml: Added kerbs.
+
+	* caelum/Cylinder_Sky.cc, caelum/Cylinder_Sky.h, caelum/Makefile.am, caelum/Makefile.in, caelum/Sky.cc, caelum/Sky.h, caelum/Sphere_Sky.cc, caelum/Sphere_Sky.h, caelum/caelum.cc:
+	Put sphere geometry stuff into a class.  Added a cylindrical class.
+
+	* data/tracks/Indianapolis.xml, data/tracks/Magny-Cours.xml, data/tracks/Nurburgring.xml, data/tracks/Silverstone.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/default-track.xml:
+	Added kerbs.
+
+-- 0.3.3 --
+2003-06-14  Sam Varner  <snick-a-doo@attbi.com>
+
+	* caelum/Cylinder_Sky.cc, caelum/Cylinder_Sky.h, caelum/Makefile.am, caelum/Makefile.in, caelum/Sky.cc, caelum/Sky.h, caelum/Sphere_Sky.cc, caelum/Sphere_Sky.h, caelum/caelum.cc:
+	Put sphere geometry stuff into a class.  Added a cylindrical class.
+
+	* data/tracks/Albert_Park.xml, data/tracks/Silverstone.xml, data/tracks/Indianapolis.xml, data/tracks/Magny-Cours.xml, data/tracks/Nurburgring.xml, data/tracks/Silverstone.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/default-track.xml:
+	Added kerbs.
+
+2003-06-12  Sam Varner  <snick-a-doo@attbi.com>
+
+	* data/textures/blue-kerb.png, data/textures/blue-tires.png, data/textures/red-kerb.png, data/textures/red-tires.png:
+	Added colored tire and kerb textures.
+
+	* include/vamos/track/Road_Segment.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Added code to render kerbs.
+
+2003-06-02  Sam Varner  <snick-a-doo@attbi.com>
+
+	* track/Road_Segment.cc:
+	Fixed texture scaling problem at the ends of segments.
+
+2003-05-30  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/track/Road_Segment.h, track/Road_Segment.cc:
+	Fixed problems with barriers when the track is scaled.
+
+	* data/textures/Makefile.am, data/textures/Makefile.in:
+	Replaced ppm files with png files.
+
+	* geometry/Linear_Interpolator.cc, geometry/Spline.cc, include/vamos/geometry/Interpolator.h, include/vamos/geometry/Linear_Interpolator.h, include/vamos/geometry/Spline.h, include/vamos/track/Strip_Track.h, test/spline.cc, track/Road_Segment.cc, track/Strip_Track.cc:
+	Made elevation curve return to 0.0 for circuits.
+
+2003-05-28  Sam Varner  <snick-a-doo@attbi.com>
+
+	* configure, configure.ac: Check for SimGear and libpng.
+
+	* vamos/vamos.cc, world/Gl_Car_World.cc, caelum/Makefile.am, caelum/Makefile.in, test/Makefile.am, test/Makefile.in, vamos/Makefile.am, vamos/Makefile.in, geometry/Gl_Texture_Image.cc, geometry/Texture_Image.cc, include/vamos/geometry/Texture_Image.h, data/tracks/Albert_Park.xml, data/tracks/Indianapolis.xml, data/tracks/Magny-Cours.xml, data/tracks/Mosport.xml, data/tracks/Nurburgring.xml, data/tracks/Peanut.xml, data/tracks/Silverstone.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/default-track.xml, data/tracks/drag.xml, data/tracks/jump.xml, data/tracks/skid_pad.xml, data/textures/grass.png, data/textures/grass.ppm, data/textures/gravel.png, data/textures/gravel.ppm, data/textures/gravel2.png, data/textures/gravel2.ppm, data/textures/gravel3.png, data/textures/gravel3.ppm, data/textures/kerb.png, data/textures/kerb.ppm, data/textures/rail.png, data/textures/rail.ppm, data/textures/red-white.png, data/textures/red-white.ppm, data/textures/sky.png, data/textures/sky.ppm, data/textures/sky_bottom.png, data/textures/sky_bottom.ppm, data/textures/sky_sides.png, data/textures/sky_sides.ppm, data/textures/sky_top.png, data/textures/sky_top.ppm, data/textures/tires.png, data/textures/tires.ppm, data/textures/track.png, data/textures/track.ppm, data/textures/track2.png, data/textures/track2.ppm, data/textures/wall.png, data/textures/wall.ppm:
+	Replaced ppm files with png files.
+
+2003-05-23  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/track/Road_Segment.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Made textures continuous across segments.
+-- 0.3.2 --
+	* include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, world/Gl_Car_World.cc:
+	Draw the sky only when neccesary.
+
+2003-05-23  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/track/Road_Segment.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Made textures continuous across segments.
+
+	* include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, world/Gl_Car_World.cc:
+	Draw the sky only when neccesary.
+
+2003-05-17  Sam Varner  <snick-a-doo@attbi.com>
+
+	* Makefile.am, Makefile.in, configure, configure.ac, caelum/COPYING, caelum/Makefile.am, caelum/Makefile.in, caelum/Sky.cc, caelum/Sky.h, caelum/caelum.cc:
+	Added Caelum, a program for making sky boxes.
+
+2003-05-11  Sam Varner  <snick-a-doo@attbi.com>
+
+	* data/cars/F1-1967.xml: Made the car slidier.
+
+	* TODO, body/Car.cc, body/Gl_Car.cc, include/vamos/body/Car.h, include/vamos/body/Gl_Car.h, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/world/Gl_Car_World.h, track/Road_Segment.cc, track/Strip_Track.cc, vamos/vamos.cc, world/Gl_Car_World.cc:
+	Added texture, sky box, and kerb code.
+
+	* geometry/Gl_Texture_Image.cc, geometry/Makefile.am, geometry/Makefile.in, geometry/Material.cc, geometry/Texture_Image.cc, include/vamos/geometry/Gl_Texture_Image.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/geometry/Material.h, include/vamos/geometry/Texture_Image.h:
+	Added GL-specific texture class.
+
+	* data/tracks/Albert Park.xml, data/tracks/Indianapolis.xml, data/tracks/Magny-Cours.xml, data/tracks/Mosport.xml, data/tracks/Nurburgring.xml, data/tracks/Peanut.xml, data/tracks/Silverstone.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/default-track.xml, data/tracks/drag.xml, data/tracks/jump.xml, data/tracks/skid_pad.xml:
+	Updated tracks to use new textures.
+
+	* data/textures/grass.ppm, data/textures/gravel2.ppm, data/textures/gravel3.ppm, data/textures/kerb.ppm, data/textures/rail.ppm, data/textures/sky.ppm, data/textures/sky_top.ppm, data/textures/tires.ppm, data/textures/track2.ppm, data/textures/wall.ppm:
+	Added and modified textures.
+
+2003-04-18  Sam Varner  <snick-a-doo@attbi.com>
+
+	* data/tracks/Albert Park.xml, data/tracks/Indianapolis.xml, data/tracks/Magny-Cours.xml, data/tracks/Mosport.xml, data/tracks/Nurburgring.xml, data/tracks/Silverstone.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/default-track.xml, data/tracks/drag.xml, data/tracks/jump.xml, data/tracks/skid_pad.xml, geometry/Three_Vector.cc, geometry/Two_Point.cc, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Added contoured kerbs.
+
+2003-04-12  Sam Varner  <snick-a-doo@attbi.com>
+
+	* data/textures/red-white.ppm, data/tracks/default-track.xml, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Added initial kerb support.
+
+2003-03-29  Sam Varner  <snick-a-doo@attbi.com>
+
+	* scripts/Makefile.am, scripts/Makefile.in, scripts/magic.el, scripts/trk-convert:
+	Added scripts.
+
+	* data/cars/trainer.xml: Added trainer car.
+
+	* data/cars/F1-1967.xml, data/cars/F1.xml, data/cars/default-car.xml:
+	Tweaked cars.  Made F1 car drivable.
+
+	* body/Tire.cc: Fixed error in aligning torque calculation.
+
+2003-03-29  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Tire.cc: Fixed error in aligning torque calculation.
+
+2003-03-25  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/track/Road_Segment.h, include/vamos/world/Car_World.h, track/Road_Segment.cc, track/Strip_Track.cc, world/Car_World.cc, world/Gl_Car_World.cc:
+	Fixed restarting and resetting.  Fixed scaling the track with variable
+	widths.
+
+2003-03-19  Sam Varner  <snick-a-doo@attbi.com>
+
+	* test/Makefile.am, test/Makefile.in, test/linear.cc, data/tracks/Albert Park.xml, data/tracks/Indianapolis.xml, data/tracks/Magny-Cours.xml, data/tracks/Mosport.xml, data/tracks/Nurburgring.xml, data/tracks/Peanut.xml, data/tracks/Silverstone.xml, data/tracks/Spa.xml, data/tracks/Suzuka.xml, data/tracks/default-track.xml, data/tracks/drag.xml, data/tracks/jump.xml, data/tracks/skid_pad.xml, geometry/Linear_Interpolator.cc, geometry/Makefile.am, geometry/Makefile.in, include/vamos/geometry/Interpolator.h, include/vamos/geometry/Linear_Interpolator.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, track/Road_Segment.cc, track/Strip_Track.cc:
+	Added variable-width tracks.
+
+2003-03-14  Sam Varner  <snick-a-doo@attbi.com>
+
+	* geometry/Spline.cc, include/vamos/geometry/Spline.h, test/spline.cc:
+	Added method for horizontal scaling.  Handle the case where there's
+	only one point.
+
+	* geometry/Material.cc, geometry/Surface.cc, include/vamos/geometry/Material.h, include/vamos/geometry/Surface.h, body/Body.cc, body/Contact_Point.cc, body/Tire.cc, body/Wheel.cc, geometry/Makefile.am, geometry/Makefile.in, include/vamos/body/Body.h, include/vamos/body/Contact_Point.h, include/vamos/body/Particle.h, include/vamos/body/Tire.h, include/vamos/body/Wheel.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, include/vamos/world/Car_World.h, track/Road_Segment.cc, track/Strip_Track.cc, world/Car_World.cc:
+	Removed Surface class.  Materal is used instead.
+
+2003-03-09  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/track/Makefile.am, include/vamos/track/Makefile.in, include/vamos/track/Road_Segment.h, include/vamos/track/Strip_Track.h, include/vamos/track/Track.h, track/Makefile.am, track/Makefile.in, track/Road_Segment.cc, track/Strip_Track.cc, track/Track.cc, world/Gl_Car_World.cc:
+	Re-organized track clases.
+
+2003-02-26  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/track/Track.h, include/vamos/world/Car_World.h, include/vamos/world/Gl_Car_World.h, track/Track.cc, world/Car_World.cc, world/Gl_Car_World.cc:
+	Refactored class Track to remove implementation-dependent stuff from
+	the interface.
+
+2003-01-28  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/world/Car_World.h, world/Car_World.cc, world/Gl_Car_World.cc:
+	Improved resetting.
+
+	* data/cars/F1-1967.xml, data/cars/F1.xml, data/cars/GT.xml, data/cars/front-drive.xml:
+	Added new cars.
+
+2003-01-20  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/world/Gl_Car_World.h, world/Gl_Car_World.cc:
+	Added pause functionality.
+
+2003-01-18  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Transmission.cc, include/vamos/body/Transmission.h:
+	Added constructor that calculates gear ratios.
+
+	* body/Car.cc, include/vamos/body/Car.h:
+	Added XML reader for the drivedrain.
+
+2003-01-06  Sam Varner  <snick-a-doo@attbi.com>
+
+	* track/Road_Segment.cc: Allow the track to be build without textures.
+
+2002-12-31  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/world/Car_World.h, world/Car_World.cc, world/Gl_Car_World.cc:
+	Made algorithm for finding the road segment iterative instead of
+	recursive.  Fail after all segments are checked.
+
+	* track/Road_Segment.cc, track/Track.cc, include/vamos/track/Road_Segment.h, include/vamos/track/Track.h:
+	Added the ability to set the total track length.
+
+	* include/vamos/body/Wheel.h:
+	single_contact() returns true when bottomed out.
+
+	* body/Car.cc, body/Drivetrain.cc, body/Gl_Car.cc, include/vamos/body/Car.h, include/vamos/body/Drivetrain.h, include/vamos/body/Engine.h:
+	Drivetrain now keeps pointers instead of references to the components.
+
+2002-12-27  Sam Varner  <snick-a-doo@attbi.com>
+
+	* data/sounds/Makefile.in: Added sounds.
+
+	* vamos/Makefile.am, vamos/Makefile.in:
+	Moved from Expat to SimGear's XML parser.
+
+	* data/sounds/Makefile.am, data/sounds/crash.wav, data/sounds/rumble.wav, data/sounds/wind.wav:
+	Added sound files.
+
+	* body/Gl_Car.cc, include/vamos/body/Gl_Car.h, include/vamos/world/Car_World.h, include/vamos/world/Gl_Car_World.h, world/Car_World.cc, world/Gl_Car_World.cc:
+	Allowed sounds to correspond to different suface materials.
+
+	* body/Car.cc, include/vamos/body/Car.h, include/vamos/track/Track.h, track/Track.cc:
+	Moved from Expat to SimGear's XML parser.
+
+2002-12-22  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Frame.cc: Fixed mistake in transform_in().
+
+	* body/Contact_Point.cc, body/Particle.cc, body/Wheel.cc, data/tracks/Magny-Cours.xml, data/tracks/Mosport.xml, data/tracks/Nurburgring.xml, data/tracks/Peanut.xml, data/tracks/Silverstone.xml, data/tracks/default_track.xml, data/tracks/drag.xml, data/tracks/jump.xml, data/tracks/skid_pad.xml, geometry/Surface.cc, include/vamos/body/Contact_Point.h, include/vamos/body/Particle.h, include/vamos/geometry/Surface.h, include/vamos/track/Track.h, include/vamos/world/Car_World.h, track/Track.cc, vamos/car.cc, world/Car_World.cc, world/Gl_Car_World.cc:
+	Added support for material-specific sounds.
+
+2002-12-20  Sam Varner  <snick-a-doo@attbi.com>
+
+	* vamos/vamos.cc: Added a parameter for the maximum time step.
+
+	* data/tracks/Magny-Cours.xml, data/tracks/Makefile.in, data/tracks/Mosport.xml, data/tracks/Nurburgring.xml, data/tracks/Peanut.xml, data/tracks/Silverstone.xml, data/tracks/default_track.xml, data/tracks/drag.xml, data/tracks/jump.xml, data/tracks/skid_pad.xml, geometry/Surface.cc, include/vamos/geometry/Surface.h, track/Track.cc, world/Car_World.cc:
+	Added bumpiness.
+
+2002-12-19  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/world/Gl_Car_World.h, world/Gl_Car_World.cc:
+	Added a parameter for the maximum time step.
+
+
+2002-12-14  Sam Varner  <snick-a-doo@attbi.com>
+
+	* data/tracks/Makefile.am: Added XML track definitions.
+
+	* vamos/vamos.cc: Added command line options.
+
+	* vamos/trk-convert: Create XML track files.
+
+	* body/Car.cc, include/vamos/body/Car.h:
+	Modifed Key_Control so that it can be asked to finish the current
+	action before starting the next.  Used for shifting to ensure that the
+	clutch is fully depressed before it is released.
+
+	* body/Body.cc, body/Contact_Point.cc, body/Tire.cc, body/Wheel.cc, geometry/Surface.cc, geometry/Texture_Image.cc, include/vamos/body/Body.h, include/vamos/body/Contact_Point.h, include/vamos/body/Particle.h, include/vamos/body/Tire.h, include/vamos/body/Wheel.h, include/vamos/geometry/Handle.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/geometry/Surface.h, include/vamos/geometry/Texture_Image.h, include/vamos/track/Road_Segment.h, include/vamos/world/Car_World.h, track/Road_Segment.cc, track/Track.cc, world/Car_World.cc:
+	Use a reference-counting handle for Surface and Material pointers.
+
+	* vamos/drag.cc, vamos/jump.cc, vamos/magny-cours.cc, vamos/mosport.cc, vamos/silverstone.cc, vamos/skid_pad.cc, vamos/track.h, vamos/track1.cc, vamos/track2.cc:
+	Removed C++ track definitions.
+
+	* data/Makefile.am, data/Makefile.in, configure, configure.ac, data/tracks/Magny-Cours.xml, data/tracks/Makefile.am, data/tracks/Makefile.in, data/tracks/Mosport.xml, data/tracks/Nurburgring.xml, data/tracks/Peanut.xml, data/tracks/Silverstone.xml, data/tracks/default_track.xml, data/tracks/drag.xml, data/tracks/jump.xml, data/tracks/skid_pad.xml:
+	Added XML track definitions.
+
+2002-12-06  Sam Varner  <snick-a-doo@attbi.com>
+
+	* vamos/Makefile.am: Use XML parser to read in the track.
+
+	* vamos/track.cc, vamos/vamos.cc: Use XML parser to read in the track.
+
+	* include/vamos/track/Gl_Track.h, include/vamos/track/Track.h, track/Gl_Track.cc, track/Road_Segment.cc, track/Track.cc:
+	Added an XML parser for tracks.
+
+	* geometry/Surface.cc, include/vamos/geometry/Surface.h:
+	Separated material properties from the Surface class.
+
+	* body/Aerodynamic_Device.cc, body/Body.cc, body/Car.cc, body/Contact_Point.cc, body/Particle.cc, body/Wheel.cc, include/vamos/body/Aerodynamic_Device.h, include/vamos/body/Body.h, include/vamos/body/Car.h, include/vamos/body/Contact_Point.h, include/vamos/body/Particle.h, include/vamos/body/Wheel.h, include/vamos/world/Car_World.h, world/Car_World.cc:
+	Re-structured collision handling.
+
+2002-08-24  Sam Varner  <snick-a-doo@attbi.com>
+
+	* geometry/Three_Matrix.cc, geometry/Three_Vector.cc:
+	Guard against self-assignment.
+
+	* body/Suspension.cc, include/vamos/body/Suspension.h, vamos/car.cc:
+	Implemented circular trajectory for the suspension.
+
+2002-08-06  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Car.cc, body/Drivetrain.cc, body/Engine.cc, include/vamos/body/Engine.h, vamos/Vamos_Car.cc, vamos/car.cc:
+	The engine is now a Particle that exerts a torque on the body.
+
+2002-08-05  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Suspension.cc, body/Wheel.cc, include/vamos/body/Suspension.h, include/vamos/body/Wheel.h:
+	Moved all of the geometry stuff from Wheel to Suspension.
+
+	* body/Body.cc, body/Car.cc, body/Gl_Car.cc, include/vamos/body/Car.h, include/vamos/body/Contact_Point.h, include/vamos/body/Gl_Car.h, vamos/Vamos_Car.cc, vamos/Vamos_Car.h, vamos/car.cc, vamos/car.h, vamos/vamos.cc:
+	Got rid of the separate wheel vector in the car.  Integrated new
+	interface for Particle and friends.
+
+2002-08-03  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Aerodynamic_Device.cc, body/Contact_Point.cc, body/Exerter.cc, body/Fuel_Tank.cc, body/Makefile.am, body/Makefile.in, body/Particle.cc, body/Suspension.cc, body/Wheel.cc, include/vamos/body/Component.h, include/vamos/body/Contact_Point.h, include/vamos/body/Exerter.h, include/vamos/body/Makefile.am, include/vamos/body/Makefile.in, include/vamos/body/Particle.h, include/vamos/body/Suspension.h, include/vamos/body/Tire.h, include/vamos/body/Wheel.h, vamos/car.cc:
+	Re-organized the classes for the car parts.  Removed class Component,
+	and added class Exerter and class Contact_Point.
+
+2002-07-15  Sam Varner  <snick-a-doo@attbi.com>
+
+	* vamos/car.cc:
+	Reverted the damper values now that the suspension is being propagated correctly.
+
+	* include/vamos/body/Suspension.h: Added comments.
+
+	* body/Tire.cc: Adjusted the sound level for sliding.
+
+	* body/Suspension.cc, include/vamos/body/Suspension.h:
+	Fixed propagation problem.  Removed unnecesary data members.
+
+	* body/Car.cc, body/Suspension.cc, include/vamos/body/Suspension.h:
+	Reversed the order of the rewind() and find_forces() calls.  It
+	doesn't seem to make a difference, but I think it makes more sense.
+
+2002-06-29  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/body/Wheel.h:
+	Removed declaration of CASTER_AXIS and CAMBER_AXIS.
+
+	* body/Wheel.cc:
+	Don't change the orientation of the coordinate system for caster and
+	camber adjustments.  The x and y forces need to be in the plane of the
+	road.
+
+2002-06-29  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Wheel.cc:
+	Don't change the orientation of the coordinate system for caster and
+	camber adjustments.  The x and y forces need to be in the plane of the
+	road.
+
+2002-06-26  Sam Varner  <snick-a-doo@attbi.com>
+
+	* vamos/Vamos_Car.cc: Display slip ratios instead of wheel velocities.
+
+	* include/vamos/body/Aerodynamic_Device.h, include/vamos/body/Body.h, include/vamos/body/Component.h, include/vamos/body/Drivetrain.h, include/vamos/body/Engine.h, include/vamos/body/Particle.h, include/vamos/body/Suspension.h, include/vamos/body/Tire.h, include/vamos/body/Wheel.h, body/Aerodynamic_Device.cc, body/Body.cc, body/Car.cc, body/Drivetrain.cc, body/Engine.cc, body/Particle.cc, body/Suspension.cc, body/Wheel.cc:
+	Implemented midpoint propagation.
+
+2002-06-25  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Tire.cc:
+	Implemented midpoint propagation methods.  Fixed low-speed behavior of
+	tire friction.
+
+2002-06-14  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Tire.cc:
+	Set the torque to zero when the tire loses contact.  Adjusted the
+	low-speed limit of the magic formula.
+
+2002-06-12  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Drivetrain.cc:
+	Call Clutch::drag() before checking to see if the clutch is engaged.
+
+	* include/vamos/body/Clutch.h, body/Clutch.cc:
+	Added a locking threshold to aviod oscillations when the engine an
+	transmission speeds are nearly the same.
+
+2002-06-05  Sam Varner  <snick-a-doo@attbi.com>
+
+	* world/Car_World.cc:
+	A Body now determines its own angular velocity instead of getting it
+	as an argument to contact().
+
+	* include/vamos/body/Wheel.h:
+	Wheel::contact() now takes an angular velocity vector instead of a
+	scalar.
+
+	* include/vamos/body/Tire.h: Removed unused width member.
+
+	* include/vamos/body/Particle.h:
+	Particle::contact() now takes an angular velocity vector instead of a
+	scalar.
+
+	* include/vamos/body/Car.h, include/vamos/body/Body.h:
+	A Body now determines its own angular velocity instead of getting it
+	as an argument to contact().
+
+	* geometry/Surface.cc, include/vamos/geometry/Surface.h:
+	Added a surface drag property to Surface.
+
+	* body/Wheel.cc:
+	Added the suspension's motion and caster's effect on instantaneous
+	camber.
+
+	* body/Tire.cc:
+	Added surface drag.  Initial attempt at fixing very-low-speed behavior.
+
+	* body/Particle.cc:
+	Particle::contact() now takes an angular velocity vector instead of a
+	scalar.
+
+	* body/Engine.cc: Modified stalling behavior slightly.
+
+	* body/Car.cc, body/Body.cc:
+	A Body now determines its own angular velocity instead of getting it
+	as an argument to contact().
+
+2002-06-05  Sam Varner  <snick-a-doo@attbi.com>
+
+	* world/Car_World.cc, body/Car.cc, body/Body.cc, include/vamos/body/Car.h, include/vamos/body/Body.h:
+	A Body now determines its own angular velocity instead of getting it
+	as an argument to contact().
+
+	* body/Particle.cc, include/vamos/body/Wheel.h, include/vamos/body/Particle.h::
+	Wheel::contact() now takes an angular velocity vector instead of a
+	scalar.
+
+	* geometry/Surface.cc, include/vamos/geometry/Surface.h:
+	Added a surface drag property to Surface.
+
+	* body/Wheel.cc:
+	Added the suspension's motion and caster's effect on instantaneous
+	camber.
+
+	* body/Tire.cc:
+	Added surface drag.  Initial attempt at fixing very-low-speed behavior.
+
+	* body/Engine.cc: Modified stalling behavior slightly.
+
+2002-05-29  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Engine.cc, include/vamos/body/Engine.h:
+	Engine speed at peak power is now specified in RPM.
+
+	* body/Tire.cc:
+	Added the correct reaction torque when accelerating and braking.
+
+2002-05-18  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/body/Tire.h:
+	Changed the interface of the Tire_Friction class.
+
+	* include/vamos/body/Body.h, body/Body.cc:
+	Changed velocity() to report the velocity of the body frame's origin
+	when no argument is given.
+
+	* include/vamos/geometry/Three_Matrix.h, geometry/Three_Matrix.cc:
+	Added euler_angles() to return the x,y,z Euler angles for the current
+	orientation.
+
+2002-05-17  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Tire.cc: Include Fx and Fy interaction in tire friction.
+
+2002-05-11  Sam Varner  <snick-a-doo@attbi.com>
+
+	* body/Tire.cc, include/vamos/body/Tire.h:
+	Added a quadratic rolling resistance member and constructor argument.
+
+	* vamos/car.cc: Pass the maximum power and the engine speed at which
+	the maximum power is obtained to the engine constructor.  Increased
+	brake pressure.  Lowered the center of mass.
+
+	* include/vamos/body/Engine.h, body/Engine.cc:
+	Changed torque_map() to use the model presented in Genta's "Motor
+	Vehicle Dynamics."  The maximum power and the engine speed at which
+	the maximum power is obtained are passed as constructor arguments
+	instead of the gas and friction factors.
+
+2002-04-22  Sam Varner  <snick-a-doo@attbi.com>
+
+	* geometry/Surface.cc: Handle null texture file names.
+
+	* body/Aerodynamic_Device.cc, include/vamos/body/Aerodynamic_Device.h, include/vamos/body/Body.h, body/Body.cc, world/Car_World.cc:
+	Added air density parameter to wind().
+
+2002-04-02  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/geometry/Inertia_Tensor.h, geometry/Inertia_Tensor.cc:
+	Added inertia (const Three_Vector&) for returing the inertia for a
+	rotation about a vector.
+
+	* world/Car_World.cc, include/vamos/body/Wheel.h, body/Wheel.cc,
+	include/vamos/body/Car.h, body/Car.cc: 
+	wheel_contact() now takes the full angular momentum vetcor as an
+	argument.
+
+	* include/vamos/body/Particle.h: Added torque_position().
+
+	* include/vamos/body/Engine.h, body/Engine.cc::
+	Made the start speed, stall speed and idle throttle constructor
+	parameters.
+
+	* body/Tire.cc:
+	Removed reaction torques until I know how to do them right.
+
+	* body/Body.cc:
+	Moved call to update_center_of_mass() to the beginning of
+	propagate().
+
+	Handle torques applied to places other than the center of mass.
+
+2002-03-26  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/body/Tire.h, body/Tire.cc:
+	Added Tire_Friction helper class.
+
+2002-03-11  Sam Varner  <snick-a-doo@attbi.com>
+
+	* vamos/vamos.cc:
+	Changed the driver's view.  Decreased the max steer angle.
+
+	* include/vamos/geometry/Conversions.h:
+	Added pi to the Vamos_Geometry namespace.  It takes the value of M_PI
+	if defined.
+
+	* include/vamos/body/Car.h, body/Car.cc::
+	Removed dependence on PLIB.  Removed number of wheels == 4 requirement.
+
+	* body/Brake.cc:
+	Made the locking threshold proportional to the force of the brake pads.
+
+	* include/vamos/body/Tire.h, body/Tire.cc:
+	Implemented "magic equation" tire friction model.
+
+	* include/vamos/world/Gl_Car_World.h:
+	Added a car() method that returns a Gl_Car*.
+
+	* include/vamos/geometry/Conversions.h:
+	Added pi to the Vamos_Geometry namespace.  It takes the value of M_PI
+	if defined.
+
+	* body/Spring_Device.cc, include/vamos/body/Spring_Device.h:
+	Removed no-longer-used Spring_Device class.
+
+	* body/Car.cc, include/vamos/body/Car.h:
+	Removed dependence on PLIB.  Removed number of wheels == 4 requirement.
+
+	* body/Brake.cc:
+	Made the locking threshold proportional to the force of the brake pads.
+
+	* include/vamos/body/Tire.h, body/Tire.cc:
+	Implemented "magic equation" tire friction model.
+
+2002-03-01  Sam Varner  <snick-a-doo@attbi.com>
+
+	* world/Gl_Car_World.cc:
+	Adjust the aspect ratio according to the window dimensions so that the
+	views are correct regardless of the window geometry.
+
+	* include/vamos/body/Drivetrain.h:
+	Removed unused m_left_torque and m_right_torque members.  The
+	left_torque() and right_torque() methods are now only wrappers around
+	the differential's methods.
+
+2002-02-27  Sam Varner  <snick-a-doo@attbi.com>
+
+	* world/Gl_Car_World.cc:
+	The engine no longer has a method for reporting RPM.  Use the
+	rotational_speed() method and convert with rad_s_to_rpm().
+
+2002-02-17  Sam Varner  <snick-a-doo@attbi.com>
+
+	* vamos/vamos.cc:
+	Increased maximum steer angle from 15 to 20 degrees.  Use the new
+	steer_exponent() method of Gl_Car_World to set non-linearity.
+
+	* doc/vamos.info:
+	Added entries in the Tuning section for the stiffness and
+	slip_constant tire parameters.
+
+	* body/Drivetrain.cc:
+	Used the appropriate egnaged flag in calls to Engine::torque().
+
+2002-02-16  Sam Varner  <snick-a-doo@attbi.com>
+
+
+	* include/vamos/world/Gl_Car_World.h:
+	Added steer_exponent() for setting the steering non-linearity.
+
+	* world/Gl_Car_World.cc:
+	Initialize m_steer_exponent to 1.0.  It can be changed with the new
+	method, steer_exponent().
+
+	* vamos/car.cc: Increased max_pressure for braking.
+
+	Removed no longer used slip parameter.  Renamed slip_torque_constant
+	to slip_constant.  Added stiffness parameter for tires.
+
+	Changed index to wheel array in last call to camber() from
+	Car::RIGHT_REAR to Car::LEFT_REAR.  This caused the right rear wheel's
+	camber to be set the left wheel's value.  The left wheel's camber was
+	left at 0.0.
+
+	* body/Tire.cc, include/vamos/body/Tire.h:
+	Replaced slip angle parameters with a Spring_Device.
+
+	Added a stiffness parameter to the constructor for setting the spring
+	constant of mp_spring.
+
+2002-02-13  Sam Varner  <snick-a-doo@attbi.com>
+
+	* include/vamos/body/Engine.h, body/Engine.cc:
+	When the engine is forced to match the transmission's speed, a torque
+	equal to the torque needed to change the engine's speed by the
+	required amount is added to the output torque.
+
+	A member, m_impulse, is used to store the change in the engine's
+	angular momentum.  The torque() method now takes a boolean argument
+	that tells if the clutch is engaged.
+
+	Don't use the engine's torque to change the engine's speed when the
+	clutch is engaged.
+
+2002-02-09  Sam Varner  <spvarner@atl.mediaone.net>
+	
+	* include/vamos/body/Spring_Device.h:
+	Added set methods for damping.  Added get method for spring constant.
+
+2002-02-07  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* configure:
+	Put the check for ulInit in PLIB between AC_LANG_CPLUSPLUS and
+	AC_LANG_C directives.  This forces linking the test program with C++.
+
+2002-02-06  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* world/Gl_Car_World.cc:
+	Made 0.03 seconds the maximum frame rate.  This may be a bit small for
+	a maximum, but it prevents instability on startup.
+
+	* world/Car_World.cc:
+	Use dynamic_cast()s to determine if a particle is a wheel rather than
+	assuming that the first ones are the wheels.
+
+	* vamos/Vamos_Car.h:
+	The Vamos_Car constructor now takes const references to vectors instead
+	of actual vectors.
+
+	* include/vamos/body/Transmission.h:
+	The number of consectuive forward gears is counted each time a gear is
+	added.  This elliminates the need to specify the number of gears in
+	the constructor.
+
+	* include/vamos/body/Gl_Car.h:
+	The Gl_Car constructor now takes const references to vectors instead
+	of actual vectors.
+
+2002-02-05  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/Makefile.in, vamos/Makefile.am:
+	Added installation target for the trk-convert script.  Added the other
+	tracks to the distribution.
+
+	* vamos/trk-convert:
+	Added the contents of trk-convert-header to trk-convert.  It is now a
+	stand-alone script.
+
+2002-02-03  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* doc/vamos.texi:
+	A rewrite of the manual.  Added Driver's and Constructor's manuals.
+	The code manual still needs to be written.
+
+2002-01-17  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* body/Brake.cc, body/Body.cc, body/Aerodynamic_Device.cc:
+	Put standard library names in the std namespace.
+
+2002-01-15  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/track.cc, vamos/silverstone.cc:
+	Made the plateau after Copse less noticable.
+
+2002-01-15  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* body/Body.cc:
+	Moved the call to update_center_of_mass() to the beginning of propagate().
+
+	* geometry/Inertia_Tensor.cc, include/vamos/geometry/Inertia_Tensor.h:
+	Added a definition for zero() which calls Three_Matrix::zero() and
+	sets m_mass to 0.0.  Before, only the base class's zero() was called
+	and m_mass grew each time the inertia tensor was rebuilt.
+
+2002-01-12  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/body/Car.h:
+	Removed m_fuel member.  Added Fuel_Tank* mp_fuel_tank.
+
+	* world/Gl_Car_World.cc:
+	The f key now causes the car's fuel tank's fill() method to be called.
+
+	* body/Car.cc:
+	Use the Fuel_Tank member pointer mp_fuel_tank to handle fuel
+	consumption.  Removed the member m_fuel.
+
+	* body/Body.cc:
+	Added call to update_center_of_mass() in propagate().  This is a
+	fairly expensive function, but it calling it every time step does not
+	affecte performance on my machine.
+
+	* include/vamos/body/Fuel_Tank.h, body/Fuel_Tank.cc:
+	Added Fuel_Tank class.  It's a Particle whose mass changes depending
+	on the amount of fuel left in the tank.
+
+	* vamos/Vamos_Car.cc:
+	Show the amount of fuel remaining on the dashboard.
+
+	* include/vamos/body/Car.h, body/Car.cc: Handle fuel consumption.
+
+	* body/Aerodynamic_Device.cc: Corrected the direction of lift.
+
+	* body/Engine.cc, include/vamos/body/Engine.h:
+	The engine can now report its fuel consumption.
+
+	* body/Tire.cc:
+	Updated Tire to use the modified Spring_Device; changed the sign of
+	the force and added a second damping value.
+
+	* body/Spring_Device.cc:
+	Turned the damping into two variables, one for movement away from
+	equilibrium and one for movement toward equilibrium.
+
+	Changed the sign of the force calculated in propagate().
+
+	* include/vamos/body/Spring_Device.h:
+	Turned the damping into two variables, one for movement away from
+	equilibrium and one for movement toward equilibrium.
+
+
+	* world/Car_World.cc:
+	In interact(), call the Body's wind() method so that the wind will be
+	transformed into the body frame.  The Body calls the
+	Aerodynamic_Device's wind() method.
+
+	* body/Aerodynamic_Device.cc:
+	Use the wind projected onto the x-axis for calculating lift.
+
+	* include/vamos/body/Body.h, body/Body.cc:
+	Added the wind() method.  This is called in Car_World::interact().
+	The Body transforms the wind into the body frame and then calls the
+	Aerodynamic_Device's wind() method.
+
+
+2002-01-11  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* world/Atmosphere.cc, include/vamos/world/Atmosphere.h:
+	Filled out the Atmosphere class.
+
+	* world/Car_World.cc: Added interaction with the atmosphere.
+
+	* include/vamos/body/Aerodynamic_Device.h, body/Aerodynamic_Device.cc:
+	Added the Aerodynamic_Device class, a Particle that produces drag and
+	lift.
+
+2002-01-07  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/body/Tire.h:
+	Tire uses a Spring_Device to model the deformation of the tire under
+	acceleration, braking and cornering.  A copy constructor was added so
+	that the Spring_Device pointed to is copied correctly.
+
+	* include/vamos/body/Suspension.h:
+	When the compression velocity is too high (>
+	m_max_compression_velocity) the damper locks up and the suspension
+	does not give.  The result is a hard collision.
+
+	* doc/vamos.info, doc/vamos.texi:
+	Added some more documentation to the Physics and Simulation chapter.
+
+	* body/Wheel.cc:
+	Removed the effect of camber and caster on the position of the contact
+	patch.  I couldn't figure out how to do this correctly.  I don't
+	expect those corrections to have a noticable effect on the simulation
+	anyway.
+
+	* body/Tire.cc:
+	Tire uses a Spring_Device to model the deformation of the tire under
+	acceleration, braking and cornering.  A copy constructor was added so
+	that the Spring_Device pointed to is copied correctly.
+
+	* body/Suspension.cc: When the compression velocity is too high (>
+	m_max_compression_velocity) the damper locks up and the suspension
+	does not give.  The result is a hard collision.
+
+	* include/vamos/body/Spring_Device.h, body/Spring_Device.cc:
+	Added Spring_Device, a class for spring-like objects.
+
+2002-01-07  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/vamos.cc:
+	Use Body::lowest_contact_position() for the initial placement of the car.
+
+	* body/Tire.cc, include/vamos/body/Tire.h:
+	Tire uses a Spring_Device to model the deformation of the tire under
+	acceleration, braking and cornering.  A copy constructor was added so
+	that the Spring_Device pointed to is copied correctly.
+
+	* body/Suspension.cc, include/vamos/body/Suspension.h:
+	When the compression velocity is too high (>
+	m_max_compression_velocity) the damper locks up and the suspension
+	does not give.  The result is a hard collision.
+
+	* body/Wheel.cc:
+	Removed the effect of camber and caster on the position of the contact
+	patch.  I couldn't figure out how to do this correctly.  I don't
+	expect those corrections to have a noticable effect on the simulation
+	anyway.
+
+	* include/vamos/body/Spring_Device.h, body/Spring_Device.cc:
+	Added Spring_Device, a class for spring-like objects.
+
+2002-01-05  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* body/Wheel.cc:
+	Added a reaction torque that's applied to the body under acceleration
+	and braking.
+
+	* body/Tire.cc: Adjusted the friction function.
+
+	* body/Brake.cc:
+	Set torque to 0.0 when the brakes are locked.  Set m_is_locked to
+	false when the locked condition is not met.
+
+	* include/vamos/body/Body.h, body/Body.cc:
+	Added lowest_contact_position() method.  This function returns the
+	smallest z-value of the particles.
+
+	* vamos/silverstone.cc, vamos/track.cc, vamos/trk-convert-header:
+	Adjusted the gravel friction parameters.
+
+2002-01-01  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/silverstone.cc:
+	Made the Silverstone circuit a little more accurate.
+
+	* vamos/track.cc: Made Silverstone the default track.
+
+2001-12-29  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* body/Tire.cc:
+	Removed m_slip_damp member.  This was used to provide damping for the
+	slip angle.  Without it the slip angle oscillated when driving at high
+	speed.  But the damping term caused instabilities.
+
+	Added a limit to the rate-of-change of the slip angle.  This reduces
+	oscillations without introducing instabilites.
+
+	* include/vamos/body/Tire.h: Removed m_slip_damp member.
+
+2001-12-20  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/track.cc: Made Magny-Cours the default track.
+
+	* vamos/silverstone.cc: Added some elevation changes.
+
+	* vamos/vamos.cc:
+	Lowered the max steering angle for better control at high speeds.
+
+	* vamos/car.cc: Re-added some mass to the front.
+
+	* data/textures/wall.ppm, data/textures/grass.ppm, data/textures/gravel.ppm, data/textures/track.ppm:
+	Lowered the resolution on the textures to improve efficency.
+
+	* body/Brake.cc:
+	Use the absolute value of the velocity when determining if the brakes
+	are locked.
+
+	* configure, configure.in: Raised the version to 0.1.6.
+
+2001-12-20  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/body/Car.h:
+	Created an accessor gear() for m_new_gear.  This is used to find the
+	last gear selected even if the transmission hasn't yet shifted into
+	that gear.
+
+	* world/Gl_Car_World.cc:
+	Fixed slow clutching when shifting to second.  The intentional delay
+	in shifting means that we may not actually be in second when we engage
+	the clutch.  Instead of asking the transmission what gear it's in, we
+	ask the car for the lask gear selected.  We should make a horrible
+	grinding noise, but that might be too annoying.
+
+	* track/Road_Segment.cc:
+	Fixed a problem with Arc_Road::coordinates() that caused a crash when
+	you went the wrong way around the track.
+
+	* include/vamos/body/Tire.h, body/Tire.cc:
+	Added a damping term to the slip angle.  This helps reduce slip angle
+	oscillations.
+
+	* track/Road_Segment.cc:
+	Made Arc_Road::coordinates() work with curves that are longer than 180
+	degrees.
+
+2001-12-17  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/trk-convert:
+	Improved the process of deciding if radians or distance is used to set
+	the length of a curve.  Added code to handle degrees.  Added options
+	for forcing the program to assume radians, degrees or length.
+
+2001-12-16  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/trk-convert-header:
+	Added the file with C++ lines used by trk-convert.
+
+	* world/Gl_Car_World.cc:
+	The minimum and maximum dimensions are now doubles.  Modified the
+	calculation of the arguments for glOrtho.
+
+	* include/vamos/track/Road_Segment.h:
+	Made the minimum and maximum dimensions doubles because they are lengths.
+
+	* track/Road_Segment.cc:
+	Made the minimum and maximum dimensions doubles because they are lengths.
+
+	Keep m_start_angle > 0 and < 2pi.
+
+	* include/vamos/track/Track.h:
+	Made the minimum and maximum dimensions doubles because they are lengths.
+
+	* track/Track.cc:
+	Made the minimum and maximum dimensions doubles because they are lengths.
+
+	Fixed the build_circuit() method so that it works with clockwise
+	tracks too.
+
+
+2001-12-14  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* world/Car_World.cc:
+	In center_position().  Return the z-position of the track rather than
+	the car as the third element of the return vector.  This makes
+	drop-height consistent when reset() is used.
+
+	* vamos/mosport.cc: Added Mosport track from RARS.
+
+	* body/Wheel.cc: Set the rotational velocity to 0.0 in reset().
+
+	* body/Tire.cc: Set the rotational speed to 0.0 in reset().
+
+	* vamos/silverstone.cc:
+	Added the Silverstone British GP track converted from RARS.
+
+	* vamos/magny-cours.cc:
+	Added the Magny Cours French GP track converted from RARS.
+
+2001-12-13  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/track/Road_Segment.h, track/Road_Segment.cc:
+	Added members to hold the minimum and maximum x and y dimensions.
+	Their values are determined in next_vertex().
+
+	* include/vamos/track/Track.h, track/Track.cc:
+	Added members to hold the minimum and maximum x and y dimensions.
+	Their values are determined in build().
+
+	* include/vamos/world/Gl_Car_World.h, world/Gl_Car_World.cc:
+	Added window width and height members.  These members are used along
+	with dimensions from the track to draw the track in map view with the
+	correct aspect ratio.
+
+	* vamos/trk-convert:
+	Added a program for converting RARS track (.trk) files to C++ source
+	files for used by Vamos.
+
+2001-12-06  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/geometry/Three_Vector.h, geometry/Three_Vector.cc:
+	Added angle() for determining the angle between two Three_Vectors.
+
+	* world/Gl_Car_World.cc:
+	Reduced m_steer_exponent.  Reduced m_first_clutch_time.  Use
+	m_first_clutch_time when shifting into reverse as well as shifting to
+	first.
+
+	* body/Wheel.cc:
+	Added camber, caster, toe and steer_angle members.  Take these values
+	into account when calculating the contact position.  Pass the camber
+	to Tire::input().
+
+	* body/Tire.cc:
+	Removed no-longer-used m_direction member.  Added m_camber and
+	m_camber_torque.  Include the effect of camber on the tire forces.
+
+	* body/Particle.cc:
+	Re-introduced the friction term in contact().  Friction is no longer
+	proportional to velocity.
+
+	* body/Clutch.cc:
+	If the engine plate is rotating more slowly than the transmission
+	plate, the sign of the torque is reversed.
+
+	* body/Brake.cc: Friction is no longer proportional to velocity.
+
+2001-11-28  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/jump.cc: Added a track with a jump.
+
+	* vamos/skid_pad.cc: Added a skid pad.
+
+	* vamos/drag.cc: Added a dragstrip track.
+
+	* track/Road_Segment.cc:
+	Convert angle from degrees to radians in the Arc_Road constructor.
+
+	* include/vamos/track/Road_Segment.h:
+	Put the names of the Arc_Type enumeration constants in all caps.
+
+2001-11-28  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* body/Wheel.cc:
+	The contact method now takes position and inertia tensor arguments.
+
+	Added reset method.
+
+	* body/Tire.cc: Friction is no longer proportional to velocity.
+
+	Sliding can now occur without force being applied.
+
+	Added reset method.
+
+	* include/vamos/body/Wheel.h:
+	The contact method now takes position and inertia tensor arguments.
+
+	Added reset method.
+
+	* include/vamos/body/Tire.h, include/vamos/body/Suspension.h:
+	Added reset method.
+
+	* include/vamos/body/Particle.h:
+	The position of the Particle and the inertia tensor are now passed to
+	the contact method.
+
+	* include/vamos/body/Body.h:
+	Removed the m_inertia and m_inertia_inverse Three_Matrices.  m_inertia
+	is now an Inertia_Tensor object.
+
+	The position of the Particle and the inertia tensor are now passed to
+	the Particle's contact method.
+
+	* body/Suspension.cc:
+	Added a reset method for zeroing the suspension's force.
+
+	* body/Particle.cc:
+	The position of the Particle and the inertia tensor are now passed to
+	the contact method.
+
+	* body/Clutch.cc:
+	Friction is no longer proportional to the relative speed of the plates.
+
+	* body/Car.cc:
+	The position of the Particle and the inertia tensor are now passed to
+	the wheel_contact method.
+
+	* body/Body.cc:
+	Removed the m_inertia and m_inertia_inverse Three_Matrices.  m_inertia
+	is now an Inertia_Tensor object.
+
+	The position of the Particle and the inertia tensor are now passed to
+	the Particle's contact method.
+
+	* world/Gl_Car_World.cc:
+	Decreased the default clutch time for shifting into first from 2.0 s
+	to 1.0 s.
+
+	* include/vamos/geometry/Inertia_Tensor.h, geometry/Inertia_Tensor.cc:
+	Added Inertia_Tensor class for describing the inertia tensor of a
+	rigid body.
+
+2001-11-21  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/body/Wheel.h, body/Wheel.cc:
+	Added caster and camber adjustments.  These adjustments affect the
+	orientation of the Wheel's coordinate system, but they don't yet have
+	any effect on handling.
+
+	* include/vamos/body/Particle.h, body/Particle.cc:
+	Added reset method for setting the force, impulse and torque to zero.
+
+	* body/Frame.cc:
+	The guts of the rotate method have been moved to Three_Matrix.
+	Frame::rotate() simply calls Three_Matrix::rotate().
+
+	* include/vamos/body/Car.h, body/Car.cc:
+	Added reset methods that call Body's reset() and also re-initialize
+	the engine and gearbox.
+
+	* body/Body.cc:
+	Call each Particle's reset method in Body::reset().  Added a reset
+	method that takes the position and orientation of the Body as
+	arguments.
+
+	* geometry/Three_Matrix.cc, include/vamos/geometry/Three_Matrix.h:
+	Added rotate (const Three_Vector& delta_theta).  This method rotates
+	the matrix about the vector `delta_theta' by an amount equal to the
+	magnitude of delta_theta.
+
+	* include/vamos/world/Car_World.h, world/Car_World.cc:
+	Added methods to the Car_Info class to help with reseting the
+	simulation.
+
+	center_position() returns the world-coordinate position of the center
+	of the track at the same distance along the track as the car.
+
+	center_orientation() returns the orientation matrix that would place
+	the car parallel to the road.
+
+	reset() puts the particles back on the initial road segment.
+
+	* track/Road_Segment.cc:
+	Added angle() method for finding the angle of the track in the
+	horizontal plane at a particular distance along the track.
+
+	Changed the names of local variables named `angle'.
+
+	* include/vamos/track/Road_Segment.h:
+	Added angle() method for finding the angle of the track in the
+	horizontal plane at a particular distance along the track.
+
+	* world/Gl_Car_World.cc:
+	Added a key handler for puting the car back at the starting line.
+	Added a key handler for puting the car back on the track without
+	changing its distance along the track.
+
+2001-11-20  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* world/Gl_Car_World.cc:
+	Added m_window to hold the ID of the window so it can be destroyed
+	when we quit the application.
+
+	Added key (q) for quitting the application.
+
+2001-11-19  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* world/Gl_Car_World.cc:
+	Use Car's two-argument control methods when using keyboard controls.
+	The second arument sets how long it will take for the control to reach
+	its full value.
+
+	Added members and setting methods for the controls' time values.
+
+	* include/vamos/body/Car.h, body/Car.cc:
+	Added Key_Control class for turning switched (key or button) input
+	into a gradual application of the control.
+
+	The clutch, steering, gas and brake now use Key_Control.
+
+2001-11-14  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/body/Car.h, body/Car.cc:
+	Removed toe in from the calculation of the steering angle.  Toe is now
+	a property of the wheel.
+
+	* body/Wheel.cc, include/vamos/body/Wheel.h:
+	Added toe adjustment.  This used to be in Car.  Toe and steering are
+	implemented by rotating the Wheel's frame.
+
+	Added static constant Three_Vector STEER_AXIS for the axis of rotation
+	for steering, the z-axis of the wheel's frame.
+
+	* geometry/Three_Vector.cc, include/vamos/geometry/Three_Vector.h:
+	Removed default values from three-argument constructor.  This helps
+	avoid using a double where a Three_Vector is needed.  (The double was
+	assigned to the x-value, y and z were assigned the default 0.0).
+
+	Added a default constructor that takes no args and sets all elements
+	to 0.0.
+
+2001-11-10  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* vamos/Vamos_Car.cc:
+	Reduced the height of the rendered block to be the same as the highest
+	particles as defined in car.cc
+
+	* vamos/vamos.cc:
+	Pass in a value for gravity to Gl_Car_World now that it makes a
+	difference.  Added a commented out call to the car's cm_velocity()
+	method.  This is for testing collisions by throwing the car down the
+	track.  Try it, it's fun!
+
+	* world/Car_World.cc:
+	Reworked the interact() method.  The collisions of the wheels with the
+	road, which are softened by the suspension, are handled separately
+	from the hard collisions.  Simultaneous soft collisions are handled,
+	but only one hard collision per time step.
+
+2001-11-09  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* world/Gl_Car_World.cc:
+	The gravity argument to the Gl_Car_World constructor is now honored.
+
+	* include/vamos/body/Wheel.h, body/Wheel.cc:
+	Split the contact() method into wheel_contact() and contact().
+	wheel_contact() handles collisions of the wheel with the road that are
+	cushioned by the suspension.  contact() handles the case where the
+	suspenion is at its limit.
+
+	* body/Particle.cc:
+	Commented out the friction part of the impulse in contact().  It
+	relies on the bad assumption that velocity is constant over the time
+	step.  I need to find another way to handle this.
+
+	* include/vamos/body/Car.h, body/Car.cc:
+	The wheel_contact() method was added because the soft wheel contact is
+	now handled separately from the hard bottoming-out contact.
+
+	* include/vamos/body/Body.h:
+	Made inertia() protected so it can be used by Car.
+
+	Added a velocity setting method.  Good for throwing the car at the
+	ground to see what breaks:)
+
+	* body/Body.cc:
+	Removed actual velocity calculations.  They don't seem to make a
+	difference anymore.
+
+	* include/vamos/body/Suspension.h:
+	Added m_bottomed_out member and accessor to tell when the
+	suspension is at its limit.
+
+	* body/Suspension.cc:
+	Added m_bottomed_out member to tell when the suspension is at its
+	limit.
+
+	Ignore damping for voilent collisions (rate of change of displacement
+	> 5.0 m/s).  I hate to set an arbitrary limit but at that rate the
+	calculated damping force is unreasonable.  I'd like to find a more
+	analytical way of handling this problem.
+
+2001-10-28  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* world/Car_World.cc:
+	interact(): Body::contact() returns displacement as a Three_Vector.
+
+	* body/Tire.cc:
+	propagate(): Changed the logic a little to make the similarities
+	between locked and unlocked behavior a little clearer.
+
+2001-10-28  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* world/Car_World.cc:
+	interact(): Body::contact() returns displacement as a Three_Vector.
+
+	* body/Tire.cc:
+	propagate(): Changed the logic a little to make the similarities
+	between locked and unlocked behavior a little clearer.
+
+2001-10-27  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/body/Particle.h, include/vamos/body/Wheel.h, include/vamos/body/Body.h:
+	contact(): Return the displacement of the particle as a Three_Vector.
+
+	* body/Wheel.cc:
+	contact(): Return the displacement of the particle as a Three_Vector.
+
+	contact(): Back-project the displacment vector (dist) onto the z-axis,
+	the direction of suspension travel, to get the suspension's
+	displacement.
+
+	contact(): Use the correct impulse equation when the suspension
+	bottoms out.
+
+	* body/Particle.cc:
+	contact(): Return the displacement of the particle as a Three_Vector.
+
+	propagate(): Zero the force and impulse with the zero() method.
+
+	* body/Body.cc:
+	propagate(): Transform m_gravity into the body frame outside the
+	loop over the particles.  This avoids unnecessary transformations.
+
+	propagate(): Calculate the torque with body-frame vectors.  Do the
+	translations and rotations with body-frame vectors.  Using world-frame
+	vectors gives the wrong transformation.  This also avoids a bunch of
+	transformations.
+
+	velocity(): Use world-frame vectors since we want to return a
+	world-frame velocity.
+
+	contact(): Return the displacement of the particle as a Three_Vector.
+
+2001-10-25  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/body/Wheel.h:
+	In contact(), made distance a Three_Vector that's parallel (or
+	anti-parallel) to the normal.  Got rid of the normal vector argument.
+
+	* body/Wheel.cc:
+	Project the suspension force vector onto the normal vector.
+
+	In contact(), made distance a Three_Vector that's parallel (or
+	anti-parallel) to the normal.  Got rid of the normal vector argument.
+
+	* world/Car_World.cc:
+	In contact(), made distance a Three_Vector that's parallel (or
+	anti-parallel) to the normal.  Got rid of the normal vector argument.
+
+	Exclude wheels from collisions with barriers.  We shouldn't have to do
+	this, but right now, wheels hitting walls causes problems.
+
+	* include/vamos/body/Particle.h:
+	In contact(), made distance a Three_Vector that's parallel (or
+	anti-parallel) to the normal.  Got rid of the normal vector argument.
+
+	* body/Particle.cc:
+	In contact(), made distance a Three_Vector that's parallel (or
+	anti-parallel) to the normal.  Got rid of the normal vector argument.
+
+	Put the correct factor in the collision impulse equation now that
+	(some) collisions are more stable.
+
+	* include/vamos/body/Body.h, body/Body.cc:
+	Made velocity() report the actual velocity of the body taking into
+	account any collisions or other adjustments made after propagate() was
+	called.   This is done by subtracting the current position of the
+	center of mass at the beginning of propagte() from the previous value
+	and dividing by the time step.  I'm assuming that the time step is
+	about the same as the previous time step.  The members
+	m_prev_cm_position and m_actual_cm_velocity were added.
+
+	In collision, made distance a Three_Vector that's parallel (or
+	anti-parallel) to the normal.  Got rid of the normal vector argument.
+
+2001-10-23  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* body/Body.cc: Re-arranged initializers to avoid compiler warnings.
+
+	Include the torques applied by each component in propagate().
+
+	* include/vamos/body/Tire.h:
+	Added m_slip_angle and m_slip_torque_constant members.
+
+	Added slip_torque() function for reporting the torque applied to the
+	car by the contact patch when turning.
+
+	Added argument to the constructor for specifying the torque constant,
+	that is, how much torque is applied per radian of slip angle.
+
+	* body/Wheel.cc:
+	Set the m_torque member, inherited from Component, to the value
+	returned by the tire's slip_torque() method.
+
+	* body/Tire.cc: Added m_slip_angle and m_slip_torque_constant members.
+
+	Added slip_torque() function for reporting the torque applied to the
+	car by the contact patch when turning.
+
+	Replaced the constant factor in sinusoidal forgiveness by
+	m_forgiveness.
+
+2001-10-22  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/body/Component.h, include/vamos/body/Makefile.am, include/vamos/body/Makefile.in, include/vamos/body/Tire.h, include/vamos/geometry/Makefile.am, include/vamos/geometry/Makefile.in, include/vamos/track/Makefile.am, include/vamos/track/Makefile.in, include/vamos/world/Makefile.am, include/vamos/world/Makefile.in, include/vamos/world/World.h:
+	Made headers install in the proper subdirectories.
+
+	* vamos/track1.cc:
+	Updated track1.cc's make_road() to take a pointer to a Gl_Track, and
+	to use a vector of Surface*s instead of Surfaces.
+
+2001-10-20  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/track/Track.h:
+	Removed trivial destructor definition for Track.  A destructor is now
+	defined in the source file.
+
+	* vamos/vamos.cc:
+	Make use of the new make_wheels(), make_parts() and make_road() that
+	require pointers to empty objects.
+
+	* vamos/track.h, vamos/track.cc:
+	Pass in a pointer to a Gl_Track instead of returning a Track.
+
+	* vamos/car.h, vamos/car.cc:
+	For make_wheels() and make_parts(), pass in an empty vector of
+	pointers to be filled.
+
+	* vamos/vamos.cc:
+	Make use of the new make_wheels(), make_parts() and make_road() that
+	require pointers to empty objects.
+
+	* vamos/track.h, vamos/track.cc:
+	Pass in a pointer to a Gl_Track instead of returning a Track.
+
+	* vamos/car.h, vamos/car.cc:
+	For make_wheels() and make_parts(), pass in an empty vector of
+	pointers to be filled.
+
+2001-10-19  Sam Varner  <spvarner@atl.mediaone.net>
+
+	* include/vamos/world/Car_World.h:
+	Return const references rather than pointers from segment and surface
+	acessors.
+
+	* track/Track.cc:
+	Added destructor for deleting segments.
+
+	* track/Road_Segment.cc:
+	Use const references to vectors for constructor arguments.  Tracks now
+	compile much faster.
+
+	Use vectors of pointers to Surfaces rather than actual Surfaces.
+
+	Guard against deleting un-constructed objects and against re-use of
+	deleted objects.
+
+	* geometry/Surface.cc: Initialize all members.
+
+	Added copy constructor.
+
+	Guard against deleting un-constructed objects and against re-use of
+	deleted objects.  Added framerate display.
+
+	* world/Gl_Car_World.cc:
+	Initialize all pointers to 0. Guard against deleting un-constructed
+	objects and against re-use of deleted objects.
+
+	Added framerate display.
+
+	* world/Car_World.cc:
+	Use a vector of pointers to Surfaces instead of a vector of Surfaces.
+	Guard against re-use of deleted mp_car_info by setting to 0 in
+	destructor.
+
+	* body/Gl_Car.cc:
+	In destructor, protected against deleting pointers unititialized
+	members.
+
+	* body/Body.cc:
+	Added a destructor for deleting the parts.

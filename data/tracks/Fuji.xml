@@ -1,0 +1,485 @@
+<?xml version="1.0"?>
+
+<track name="Fuji">
+  <racing-line show="0" />
+
+  <sky>
+    <sides>textures/sky_sides.png</sides>
+	<top>textures/sky_top.png</top>
+	<bottom>textures/sky_bottom.png</bottom>
+	<smooth/>
+  </sky>
+
+  <!-- map-background>
+    <image>../../Reference/Circuit_Fuji.png</image>
+    <offset>[ -500, -960 ]</offset>
+    <size>[ 2000, 2000 ]</size>
+  </map-background -->
+
+  <!-- Material Properties -->
+
+  <material name="track" type="asphalt">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.01</bump-amplitude>
+	<bump-wavelength>100.0</bump-wavelength>
+	<texture>
+	  <file>textures/track2.png</file>
+	  <length>200.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="grass" type="grass">
+	<friction>0.7</friction>
+	<restitution>0.1</restitution>
+	<rolling>5.0</rolling>
+	<drag>20.0</drag>	
+	<bump-amplitude>0.03</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/grass.png</file>
+	  <width>10.0</width>
+	  <length>12.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="gravel" type="gravel">
+	<friction>0.8</friction>
+	<restitution>0.0</restitution>
+	<rolling>40.0</rolling>
+	<drag>200.0</drag>	
+	<bump-amplitude>0.05</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/gravel3.png</file>
+	  <width>10.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="tires" type="rubber">
+	<friction>1.0</friction>
+	<restitution>0.8</restitution>
+	<rolling>1.0</rolling>
+	<drag>5.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/red-tires.png</file>
+	  <width>0.33</width>
+	  <length>3.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="rail" type="metal">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>	
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/rail.png</file>
+	  <width>0.33</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="wall" type="concrete">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+	<texture>
+	  <file>textures/wall.png</file>
+	  <width>1.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="kerb" type="kerb">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.04</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/red-kerb.png</file>
+	  <width>2.0</width>
+	  <length>4.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <!-- Segment Properties -->
+
+  <segment name="straight">
+    [ wall grass kerb track kerb grass rail ]
+  </segment>
+  <segment name="left turn">
+    [ wall grass kerb track kerb gravel tires ]
+  </segment>
+  <segment name="right turn">
+    [ tires gravel kerb track kerb grass rail ]
+  </segment>
+  <segment name="gravel">
+    [ tires gravel kerb track kerb gravel tires ]
+  </segment>
+  <segment name="paved">
+    [ rail grass kerb track kerb track wall ]
+  </segment>
+
+  <!-- The track -->
+  <start-direction>0.0</start-direction>
+
+  <!-- Front Straight -->
+  <road segment="paved">
+    <resolution>10.0</resolution>
+    <length>860.0</length>
+	<left-width>[ 0.0, 12.0 ]</left-width>
+	<right-width>[ 0.0, 12.0 ]</right-width>
+	<left-road-width>[ 0.0, 6.0 ]</left-road-width>
+	<right-road-width>[ 0.0, 6.0 ]</right-road-width>
+	<left-wall-height>1.0</left-wall-height>
+	<right-wall-height>1.0</right-wall-height>
+	<braking-marker>
+	  <file>textures/50.png</file>
+	  <distance>50.0</distance>
+	  <size>[ 1.4, 0.7 ]</size>
+	  <offset>[ 2.0, 0.0 ]</offset>
+	  <side>left</side>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/100.png</file>
+	  <distance>100.0</distance>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/150.png</file>
+	  <distance>150.0</distance>
+	</braking-marker>
+  </road>
+
+  <!-- 1 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>70.0</length>
+    <radius>-30.0</radius>
+	<right-kerb>
+	  <start>
+	    <transition>
+		  <length>4.0</length>
+		  <width>1.0</width>
+		</transition>
+	  </start>
+	  <end>
+	    <transition>
+		  <length>4.0</length>
+		  <width>1.0</width>
+		</transition>
+	  </end>
+	  <profile>[ 1.0, 0.06 ][ 1.1, 0.0 ]</profile>
+	</right-kerb>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>100.0</length>
+  </road>
+
+  <!-- 2 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>29.0</length>
+    <radius>-50.0</radius>
+	<right-kerb/>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>428.0</length>
+	<braking-marker>
+	  <file>textures/50.png</file>
+	  <distance>50.0</distance>
+	  <side>right</side>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/100.png</file>
+	  <distance>100.0</distance>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/150.png</file>
+	  <distance>150.0</distance>
+	</braking-marker>
+  </road>
+
+  <!-- 3 -->
+  <road segment="left turn">
+    <resolution>2.0</resolution>
+    <length>58</length>
+    <radius>50.0</radius>
+	<left-kerb>
+	  <start>
+	    <transition>
+		  <length>4.0</length>
+		  <width>1.0</width>
+		</transition>
+	  </start>
+	  <end>
+	    <transition>
+		  <length>4.0</length>
+		  <width>1.0</width>
+	    </transition>
+	  </end>
+	  <profile>[ 1.0, 0.06 ][ 1.1, 0.0 ]</profile>
+	</left-kerb>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>100.0</length>
+  </road>
+
+  <!-- 4 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>180.0</length>
+    <radius>-220.0</radius>
+	<right-kerb>
+	  <start><transition/></start>
+	</right-kerb>
+  </road>
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>210.0</length>
+    <radius>-140.0</radius>
+	<right-kerb/>
+  </road>
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>65.0</length>
+    <radius>-100.0</radius>
+	<right-kerb>
+	  <end><transition/></end>
+	</right-kerb>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>185.0</length>
+	<braking-marker>
+	  <file>textures/50.png</file>
+	  <distance>50.0</distance>
+	  <side>right</side>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/100.png</file>
+	  <distance>100.0</distance>
+	</braking-marker>
+  </road>
+
+  <!-- 5 -->
+  <road segment="left turn">
+    <resolution>2.0</resolution>
+    <length>40</length>
+    <radius>25.0</radius>
+    <left-kerb>
+	  <start><transition/></start>
+    </left-kerb>
+  </road>
+  <road segment="left turn">
+    <resolution>2.0</resolution>
+    <length>142</length>
+    <radius>140.0</radius>
+    <left-kerb>
+	  <end><transition/></end>
+    </left-kerb>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>165.0</length>
+  </road>
+
+  <!-- 6 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>30.0</length>
+    <radius>-50.0</radius>
+	<right-kerb/>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>215.0</length>
+  </road>
+
+  <!-- 7 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>49.0</length>
+    <radius>-100.0</radius>
+	<right-kerb/>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>285.0</length>
+	<braking-marker>
+	  <file>textures/50.png</file>
+	  <distance>50.0</distance>
+	  <side>left</side>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/100.png</file>
+	  <distance>100.0</distance>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/100.png</file>
+	  <distance>150.0</distance>
+	</braking-marker>
+  </road>
+
+  <!-- 8 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>40.0</length>
+    <radius>-20.0</radius>
+	<right-kerb/>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>40.0</length>
+  </road>
+
+  <!-- 9 -->
+  <road segment="left turn">
+    <resolution>2.0</resolution>
+    <length>32.0</length>
+    <radius>20.0</radius>
+	<left-kerb/>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>40.0</length>
+  </road>
+
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>13.0</length>
+    <radius>-30.0</radius>
+	<right-kerb/>
+  </road>
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>170.0</length>
+    <radius>-200.0</radius>
+	<right-kerb/>
+  </road>
+
+  <!-- 10 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>55.0</length>
+    <radius>-35.0</radius>
+	<right-kerb/>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>60.0</length>
+  </road>
+  <road segment="left turn">
+    <resolution>2.0</resolution>
+    <length>80.0</length>
+    <radius>130.0</radius>
+	<left-kerb>
+	  <start><transition/></start>
+	</left-kerb>
+  </road>
+  <road segment="left turn">
+    <resolution>2.0</resolution>
+    <length>70.0</length>
+    <radius>70.0</radius>
+	<left-kerb>
+	  <end><transition/></end>
+	</left-kerb>
+  </road>
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>45.0</length>
+  </road>
+
+  <!-- 11 -->
+  <road segment="left turn">
+    <resolution>2.0</resolution>
+    <length>36.0</length>
+    <radius>20.0</radius>
+	<left-kerb/>
+  </road>
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>70.0</length>
+  </road>
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>120.0</length>
+    <radius>-350.0</radius>
+	<right-kerb>
+	  <start><transition/></start>
+	</right-kerb>
+  </road>
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>80.0</length>
+    <radius>-60.0</radius>
+	<right-kerb>
+	  <end><transition/></end>
+	</right-kerb>
+  </road>
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>15.0</length>
+  </road>
+
+  <!-- 12 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>39.0</length>
+    <radius>-25.0</radius>
+	<right-kerb/>
+  </road>
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>500.0</length>
+  </road>
+
+  <!-- Force the track to close -->
+  <circuit/>
+
+  <track-length>4563.0</track-length>
+
+  <!-- Define the timing sectors -->
+  <timing-line>10.0</timing-line>
+  <timing-line>2000.0</timing-line>
+  <timing-line>4000.0</timing-line>
+</track>

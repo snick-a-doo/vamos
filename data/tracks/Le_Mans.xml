@@ -1,0 +1,518 @@
+<?xml version="1.0"?>
+
+<track name="Le Mans">
+
+  <racing-line show="0" />
+
+  <sky>
+    <sides>textures/sky_sides.png</sides>
+	<top>textures/sky_top.png</top>
+	<bottom>textures/sky_bottom.png</bottom>
+	<smooth/>
+  </sky>
+
+  <!-- map-background>
+    <image>../../Reference/Le Mans/Le Mans.png</image>
+    <offset>[ -182, -2360 ]</offset>
+    <size>[ 3000, 6000 ]</size>
+  </map-background -->
+
+  <!-- Material Properties -->
+
+  <material name="track" type="asphalt">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.01</bump-amplitude>
+	<bump-wavelength>100.0</bump-wavelength>
+	<texture>
+	  <file>textures/track2.png</file>
+	  <length>200.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="grass" type="grass">
+	<friction>0.7</friction>
+	<restitution>0.1</restitution>
+	<rolling>5.0</rolling>
+	<drag>20.0</drag>	
+	<bump-amplitude>0.03</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/grass.png</file>
+	  <width>10.0</width>
+	  <length>12.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="gravel" type="gravel">
+	<friction>0.8</friction>
+	<restitution>0.0</restitution>
+	<rolling>40.0</rolling>
+	<drag>200.0</drag>	
+	<bump-amplitude>0.05</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/gravel3.png</file>
+	  <width>10.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="sand" type="gravel">
+	<friction>0.8</friction>
+	<restitution>0.0</restitution>
+	<rolling>5.0</rolling>
+	<drag>20.0</drag>	
+	<bump-amplitude>0.05</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/gravel3.png</file>
+	  <width>10.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="tires" type="rubber">
+	<friction>1.0</friction>
+	<restitution>0.8</restitution>
+	<rolling>1.0</rolling>
+	<drag>5.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/red-tires.png</file>
+	  <width>0.33</width>
+	  <length>3.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="rail" type="metal">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>	
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/rail.png</file>
+	  <width>0.34</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="wall" type="concrete">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+	<texture>
+	  <file>textures/wall.png</file>
+	  <width>1.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="kerb" type="kerb">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.06</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/red-kerb.png</file>
+	  <width>2.0</width>
+	  <length>4.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <!-- Segment Properties -->
+
+  <segment name="straight">
+    [ wall grass kerb track kerb grass rail ]
+  </segment>
+  <segment name="left turn">
+    [ wall grass kerb track kerb gravel tires ]
+  </segment>
+  <segment name="right turn">
+    [ tires gravel kerb track kerb grass rail ]
+  </segment>
+  <segment name="right paved">
+    [ rail grass kerb track kerb track wall ]
+  </segment>
+  <segment name="left paved">
+    [ rail track kerb track kerb grass wall ]
+  </segment>
+
+  <!-- The track -->
+  <start-direction>87.0</start-direction>
+
+  <!-- Front Straight -->
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>180.0</length>
+	<left-width>[ 0.0, 20.0 ]</left-width>
+	<right-width>[ 0.0, 20.0 ]</right-width>
+	<left-road-width>[ 0.0, 7.0 ]</left-road-width>
+	<right-road-width>[ 0.0, 7.0 ]</right-road-width>
+	<left-wall-height>1.0</left-wall-height>
+	<right-wall-height>1.0</right-wall-height>
+	<braking-marker>
+	  <file>textures/50.png</file>
+	  <distance>50.0</distance>
+	  <size>[ 1.4, 0.7 ]</size>
+	  <offset>[ 2.0, 0.0 ]</offset>
+	  <side>left</side>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/100.png</file>
+	  <distance>100.0</distance>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/150.png</file>
+	  <distance>150.0</distance>
+	</braking-marker>
+	<elevation>[ 200.0, 0.0 ]</elevation>
+	<elevation>[ 400.0, 0.0 ]</elevation>
+  </road>
+
+  <road segment="right turn">
+    <length>295.0</length>
+    <radius>-800.0</radius>
+	<right-kerb>
+	  <start>
+	    <transition>
+		  <length>4.0</length>
+		  <width>2.1</width>
+		</transition>
+	  </start>
+	  <end>
+	    <transition>
+		  <length>4.0</length>
+		  <width>2.1</width>
+		</transition>
+	  </end>
+	  <profile>[ 1.0, 0.1 ][ 2.0, 0.1 ][ 2.1, 0.0 ]</profile>
+	</right-kerb>
+	<elevation>[ 0.0, 0.0 ]</elevation>
+  </road>
+
+  <!-- Dunlop Curve -->
+  <road segment="right turn">
+    <length>60.0</length>
+    <radius>-100.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>145.0</length>
+  </road>
+
+  <!-- Dunlop Chicane -->
+  <road segment="left turn">
+    <length>25.0</length>
+    <radius>20.0</radius>
+  </road>
+  <road segment="straight">
+    <length>36.0</length>
+  </road>
+  <road segment="right turn">
+    <length>26.0</length>
+    <radius>-20.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>100.0</length>
+  </road>
+
+  <road segment="straight">
+    <length>95.0</length>
+    <radius>200.0</radius>
+  </road>
+  <road segment="straight">
+    <length>35.0</length>
+  </road>
+
+  <!-- Esses -->
+  <road segment="straight">
+    <length>175.0</length>
+    <radius>-180.0</radius>
+  </road>
+  <road segment="straight">
+    <length>55.0</length>
+  </road>
+  <road segment="left turn">
+    <length>100.0</length>
+    <radius>75.0</radius>
+  </road>
+  <road segment="straight">
+    <length>65.0</length>
+  </road>
+  <road segment="right turn">
+    <length>68.0</length>
+    <radius>-90.0</radius>
+  </road>
+  <road segment="straight">
+    <length>60.0</length>
+  </road>
+
+  <road segment="right turn">
+    <length>75.0</length>
+    <radius>-250.0</radius>
+  </road>
+  <road segment="straight">
+    <length>100.0</length>
+  </road>
+
+  <!-- Tertre Rouge -->
+  <road segment="right turn">
+    <length>55.0</length>
+    <radius>-70.0</radius>
+  </road>
+  <road segment="straight">
+    <length>60.0</length>
+  </road>
+  <road segment="right turn">
+    <length>120.0</length>
+    <radius>-250.0</radius>
+  </road>
+  <road segment="straight">
+    <length>300.0</length>
+  </road>
+  <road segment="right turn">
+    <length>170.0</length>
+    <radius>-600.0</radius>
+  </road>
+
+  <!-- Mulsanne Straight -->
+  <road segment="straight">
+    <length>1320.0</length>
+  </road>
+
+  <road segment="right turn">
+    <length>21.0</length>
+    <radius>-20.0</radius>
+  </road>
+  <road segment="straight">
+    <length>13.0</length>
+  </road>
+  <road segment="left turn">
+    <length>50.0</length>
+    <radius>30.0</radius>
+  </road>
+  <road segment="straight">
+    <length>40.0</length>
+  </road>
+  <road segment="right turn">
+    <length>20.9</length>
+    <radius>-35.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>1680.0</length>
+  </road>
+
+  <road segment="left turn">
+    <length>20.0</length>
+    <radius>20.0</radius>
+  </road>
+  <road segment="straight">
+    <length>20.0</length>
+  </road>
+  <road segment="right turn">
+    <length>80.0</length>
+    <radius>-50.0</radius>
+  </road>
+  <road segment="straight">
+    <length>60.0</length>
+  </road>
+  <road segment="left turn">
+    <length>20.0</length>
+    <radius>35.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>225.0</length>
+  </road>
+  <road segment="right turn">
+    <length>19.0</length>
+    <radius>-82.0</radius>
+  </road>
+  <road segment="straight">
+    <length>1000.0</length>
+  </road>
+  <road segment="right turn">
+    <length>20.0</length>
+    <radius>-70.0</radius>
+  </road>
+  <road segment="straight">
+    <length>138.0</length>
+  </road>
+
+  <!-- Mulsanne -->
+  <road segment="right turn">
+    <length>37.0</length>
+    <radius>-23.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>680.0</length>
+  </road>
+  <road segment="right turn">
+    <length>20.0</length>
+    <radius>-90.0</radius>
+  </road>
+  <road segment="straight">
+    <length>500.0</length>
+  </road>
+  <road segment="right turn">
+    <length>16.0</length>
+    <radius>-100.0</radius>
+  </road>
+  <road segment="straight">
+    <length>515.0</length>
+  </road>
+  <road segment="right turn">
+    <length>60.0</length>
+    <radius>-100.0</radius>
+  </road>
+  <road segment="straight">
+    <length>120.0</length>
+  </road>
+
+  <!-- Indianapolis -->
+  <road segment="left turn">
+    <length>65.0</length>
+    <radius>40.0</radius>
+  </road>
+  <road segment="straight">
+    <length>245.0</length>
+  </road>
+
+  <!-- Arnage -->
+  <road segment="right turn">
+    <length>34.3</length>
+    <radius>-20.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>450.0</length>
+  </road>
+  <road segment="straight">
+    <length>85.0</length>
+    <radius>400.0</radius>
+  </road>
+  <road segment="straight">
+    <length>400.0</length>
+  </road>
+  <road segment="straight">
+    <length>60.0</length>
+    <radius>500.0</radius>
+  </road>
+  <road segment="straight">
+    <length>180.0</length>
+  </road>
+
+  <!-- Porsche Curves -->
+  <road segment="right turn">
+    <length>180.0</length>
+    <radius>-140.0</radius>
+  </road>
+  <road segment="straight">
+    <length>110.0</length>
+  </road>
+  <road segment="left turn">
+    <length>58.0</length>
+    <radius>80.0</radius>
+  </road>
+  <road segment="straight">
+    <length>110.0</length>
+  </road>
+  <road segment="left turn">
+    <length>125.0</length>
+    <radius>130.0</radius>
+  </road>
+  <road segment="right turn">
+    <length>300.0</length>
+    <radius>-150.0</radius>
+  </road>
+  <road segment="left turn">
+    <length>95.0</length>
+    <radius>80.0</radius>
+  </road>
+  <road segment="straight">
+    <length>165.0</length>
+  </road>
+
+  <road segment="straight">
+    <length>48.0</length>
+    <radius>-120.0</radius>
+  </road>
+  <road segment="straight">
+    <length>40.0</length>
+  </road>
+  <road segment="straight">
+    <length>60.0</length>
+    <radius>120.0</radius>
+  </road>
+  <road segment="straight">
+    <length>400.0</length>
+  </road>
+
+  <!-- Ford Chicanes -->
+  <road segment="left turn">
+    <length>50.0</length>
+    <radius>40.0</radius>
+  </road>
+  <road segment="right turn">
+    <length>26.0</length>
+    <radius>-20.0</radius>
+  </road>
+  <road segment="straight">
+    <length>90.0</length>
+  </road>
+
+  <road segment="left turn">
+    <length>23.0</length>
+    <radius>20.0</radius>
+  </road>
+  <road segment="straight">
+    <length>1.0</length>
+  </road>
+  <road segment="right turn">
+    <length>30.0</length>
+    <radius>-20.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>100.0</length>
+  </road>
+
+  <!-- Force the track to close -->
+  <circuit/>
+
+  <!-- Define the timing sectors -->
+  <timing-line>10.0</timing-line>
+
+  <!-- Adjust the total length if necessary. -->
+  <track-length>13650.0</track-length>
+</track>

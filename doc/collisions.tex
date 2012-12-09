@@ -1,0 +1,112 @@
+\documentclass{article}
+\usepackage{epsfig}
+
+\newcommand{\mat}[1]{%
+  \ensuremath{\mathsf \mathbf #1}}
+
+\newcommand{\skewend}{%
+  \ensuremath{\sigma_\mathrm{end}}}
+
+\begin{document}
+
+\title{Collision Calculations in Vamos}
+\author{Sam Varner\\ \texttt{snick-a-doo@comcast.net}}
+\maketitle
+
+This document describes the way that collisions are handled in Vamos
+so I can understand and fix them.
+
+\section {Impulse}
+When one object runs into another, it gets an impulse that results in a
+change in momentum.  We can treat an impulse as a force that's applied
+for a very short time.  In the simulation, we'll apply the force for
+one time step.
+
+Starting at the end, the impulse for a two-body collision is given by
+\begin{equation}
+  \label{eq:2-body-impulse}
+  \mathbf{j}=\mathbf{n} \frac{-(1+e) \mathbf{v} \cdot \mathbf{n}}
+  {\mathbf{n} \cdot \mathbf{n} (1/m_1 + 1/m_2) 
+    + [(\mathbf{I}_1^{-1} (\mathbf{r}_{1p} \times \mathbf{n})) \times \mathbf{r}_{1p}
+    + (\mathbf{I}_2^{-1} (\mathbf{r}_{2p} \times \mathbf{n})) \times \mathbf{r}_{2p}]
+    \cdot \mathbf{n}}
+\end{equation}
+Where $e$ is the coefficient of restitution, $\mathbf{v}$ is the relative
+velocities of the centers of mass of the two objects, $\mathbf{n}$ is
+the normal vector, the $m$s are masses, $\mathbf{I}$s are inertia
+tensors, and the $\mathbf{r}$s are vectors from the centers of mass to
+the contact point.
+
+For the collision of a body with a fixed object we take the limit of
+large $m_2$ and $\mathbf{I}_2$ to get
+\begin{equation}
+  \label{eq:1-body-impulse}
+  \mathbf{j}=\mathbf{n} \frac{-(1+e_1e_2) \mathbf{v} \cdot \mathbf{n}}
+  {\mathbf{n} \cdot \mathbf{n} /m_1
+    + [(\mathbf{I}_1^{-1} (\mathbf{r} \times \mathbf{n})) \times \mathbf{r}]
+    \cdot \mathbf{n}}
+\end{equation}
+The normal vector is the normal to the surface where contact is made.
+I'm guessing that the coefficient of restitution is the product of the
+object material's and the surface material's coefficient, but I'm not
+convinced that that's correct.  The velocity is the velocity of the
+point of contact.  The mass and inertia tensor are calculated from the
+particles that make up the object.  The vector $\mathbf{r}$, called
+``moment'' in the code, is the vector from the object's center of mass
+to the contact point.  All vectors ($\mathbf{n}$, $\mathbf{v}$, and
+$\mathbf{r}$) are expressed in world coordinates.
+
+\section{Collision Detection and Response}
+One of the design principles of Vamos is that cars know nothing about
+tracks and tracks know nothing about cars.  Consequently, there are no
+compile-time dependencies of the track code on the car code or vice
+versa.  Also the car code can be tested completely independently of
+the track code.  If we're going to stick with this organization then
+we need some higher-level object to manage the interaction between car
+and track.  This is a job of the {\em world}.
+
+The sequence of events for handling a collision goes something like
+this:  The world asks the car where its components are.  Then it asks
+if any of these positions is inside something solid, like the road or
+a wall.  The track responds ``yes'' or ``no''.  If ``yes'' it also
+volunteers some information like the normal vector at that point and
+the material that the point is in.  For each ``yes'' response from the
+track, the world asks for more information about the components, like
+its velocity, the vector from the center of mass to component, the
+mass of car, and its inertia tensor.  Once it has collected all of
+the information it needs, the world calculates the impulse and applies
+it to the car.  In short, the world does a lot of sneaking around to
+keep the car and track from finding out about each other.
+
+\subsection {Details}
+
+The main event loop calls \verb#GL_World::animate()# each time
+through (unless paused) before calling \verb#Gl_World::display()#
+to render the scene.  The call to \verb#animate()# advances the
+simulation in time.  Here's a simplified outline of the code.
+\begin{verbatim}
+Gl_World::animate ()
+  Gl_World::propagate_cars (time_step)
+    car->propagate (time_step)
+    World::interact (car, road_index segment_index)
+\end{verbatim}
+Within \verb#interact()# each particle is checked to see if it has
+passed through the track or a barrier by calling
+\verb#Strip_Track::test_for_contact# which returns a
+\verb#Contact_Info# structure.  The \verb#Contact_Info# structure
+tells
+\begin{itemize}
+\item if contact was made
+\item how far the object has penetrated the track or barrier
+\item the normal vector at the contact point
+\item the material that the object collided with
+\end{itemize}
+The property item of the material we're interested in right now is
+its restitution factor.
+
+We get the moment, velocity, mass, inertia tensor, and the object's
+restitution factor from the car that is passed to \verb#interact()#.
+Getting the mass, inertia tensor, and restitution factor is
+straightforward.  But with the moment and velocity, we must take
+special care that we have world-frame vectors.
+\end{document}

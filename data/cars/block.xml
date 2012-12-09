@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<car name="Block">
+  <exterior-model>
+    <file>block.ac</file>
+	<scale>1.0</scale>
+	<translate>[ 0.0, 1.0, 0.0 ]</translate>
+    <!-- fix model - shouldn't require translation -->
+	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
+  </exterior-model>
+
+  <initial-conditions>
+    <position>[ 2, 0, 200 ]</position>
+    <orientation>[ 30, 0, 0 ]</orientation>
+    <velocity>[ 2, 0, 20 ]</velocity>
+    <angular-velocity>[ 20, 20, 0 ]</angular-velocity>
+  </initial-conditions>
+
+  <view>
+    <position>[ 2.07, 1.24, 1.0 ]</position>
+    <field-width>60.0</field-width>
+	<near-plane>0.5</near-plane>
+	<far-plane>700.0</far-plane>
+	<pan-angle>60.0</pan-angle>
+  </view>
+
+  <contact-point>
+    <mass>60.0</mass>
+    <position>[ 0.0, 0.0, 0.0 ]</position>
+	<material>metal</material>
+	<friction>1</friction>
+	<restitution>0.1</restitution>
+  </contact-point>
+  <contact-point>
+    <position>[ 1.0, 0.0, 0.0 ]</position>
+  </contact-point>
+  <contact-point>
+    <position>[ 1.0, 1.0, 0.0 ]</position>
+  </contact-point>
+  <contact-point>
+    <position>[ 0.0, 1.0, 0.0 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 0.0, 0.0, 1.0 ]</position>
+  </contact-point>
+  <contact-point>
+    <position>[ 1.0, 0.0, 1.0 ]</position>
+  </contact-point>
+  <contact-point>
+    <position>[ 1.0, 1.0, 1.0 ]</position>
+  </contact-point>
+  <contact-point>
+    <position>[ 0.0, 1.0, 1.0 ]</position>
+  </contact-point>
+</car>

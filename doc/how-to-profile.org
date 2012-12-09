@@ -1,0 +1,29 @@
+* Compiling
+  Profiling with gprof requires the -pg compiler option for compiling
+  and linking.  People have reported mixed success with profiling
+  shared libraries.  It doesn't seem to work for me.  So I have to
+  disable building shared libraries.  With static libraries, the tests
+  don't compile.  It's probably a configuration issue that should be
+  fixed.  But for now, the tests need to be disabled.
+
+cd <source root>
+./configure CXXFLAGS=-pg --enable-shared=no --enable-unit-tests=no
+
+* Building
+  Everything needs to be rebuilt, so 
+
+make clean 
+make 
+
+* Running
+  Run as usual.
+
+cd vamos
+./vamos <args> 
+
+* Reporting
+gprof vamos > <output file>
+
+  With shared libraries, the actual executable is .libs/lt-vamos.  So
+  in that case you'd give that as the argument to gprof.
+

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<world name="Earth">
+  <!-- Acceleration due to gravity -->
+  <gravity>9.8</gravity>
+
+  <atmosphere>
+    <!-- Air density -->
+	<density>1.2</density>
+	<!-- Wind velocity -->
+    <velocity>[ 0.0, 0.0, 0.0 ]</velocity>
+  </atmosphere>
+
+  <lighting>
+    <!-- Direction to the light source -->
+    <source-position>[ 0.0, -1.0, 1.0 ]</source-position>
+	<!-- RGB for ambient light -->
+	<ambient>[ 0.7 , 0.7, 0.7 ]</ambient>
+  </lighting>
+</world>

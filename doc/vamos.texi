@@ -1,0 +1,2119 @@
+\input texinfo
+@c -*-texinfo-*-
+@c -*-auto-fill-mode-*-
+@c -*-flyspell-mode-*-
+
+@c %**start of header
+@setfilename vamos.info
+@setchapternewpage
+@settitle Vamos
+@set VERSION 0.7.0
+@set EDITION 0.5
+@set UPDATED 15 January 2012
+@c %**end of header
+
+@dircategory Applications
+@direntry
+* Vamos: (vamos).               An automotive simulator
+@end direntry
+
+@ifinfo
+Vamos Automotive Simulator, by Sam Varner.
+
+This file documents the Vamos libraries and application.
+
+Copyright 2001--2012 Sam Varner
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled "GNU
+Free Documentation License".
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries copying permission notice
+identical to this one except for the removal of this paragraph (this
+paragraph not being relevant to the printed manual).
+@end ignore
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation.
+@end ifinfo
+
+@titlepage
+@title Vamos Automotive Simulator
+@subtitle @value{EDITION}, version @value{VERSION}
+@subtitle @vaule{UPDATED}
+@author
+
+@page
+@c Move the copyright notice to the bottom of the page.
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2001--2008 Sam Varner
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled "GNU
+Free Documentation License".
+
+@end titlepage
+
+@ifnottex
+@node Top, Let's Go, (dir), (dir)
+@top Vamos Automotive Simulator
+
+Sam Varner @email{snick-a-doo@@comcast.net}
+
+Vamos is an automotive simulation framework with an emphasis on
+thorough physical modeling and good C++ design. Vamos includes a
+real-time, first-person, 3D driving application.
+
+This file documents Vamos version @value{VERSION}.
+@end ifnottex
+
+@menu
+* Let's Go::                    Getting on the road.
+* Controls::                    Keyboard and joystick settings.
+* Dashboard::                   On-screen information.
+* Cars::                        Choosing and creating cars.
+* Tracks::                      Choosing and creating tracks.
+* Worlds::                      Specifying environments.
+* Units::                       A note about units of measure.
+* Code Reference::              The inner workings.
+* Building Vamos::              Downloading and compiling the program.
+* Copying::                     The GNU Free Documentation License.
+* Concept Index::               An item for each concept.
+@end menu
+
+@c=============================================================================
+@node Let's Go, Controls, Top, Top
+@chapter Let's Go
+@cindex driving
+The @file{vamos} application lets you experience the simulation first
+hand.  Its main purpose is to be a test bed for the libraries.  It is
+not intended to be a polished end-user application.  However, you can
+drive on a number of tracks and try to beat your best time.  Or you
+can just have fun driving on, and over, the ragged edge.
+
+@section Getting Started
+When you start the application with no arguments you will be looking out
+over the hood of your car, down the front straight of a simple,
+fictitious circuit.  Give the car a little gas and shift into first by
+pressing and releasing the first joystick button.  The clutch is engaged
+gradually, so you will need to increase the throttle to keep the engine
+revs up.  If you stall, shift back to neutral (second button) and press
+the @key{s} key to restart the engine.  @xref{Controls}.
+
+Once you get going you will need to shift into second.  When you press
+the button to shift, the clutch is disengaged.  It is re-engaged when
+you release the button.  You will need to back off the throttle when
+the clutch is disengaged in order to make your shifts smooth.  As with
+shifting to first gear, the clutch is engaged gradually, although much
+more quickly.
+
+The first turn on the circuit is a sharp left-hander at the top of a
+hill.  This is a good place to practice sliding the car through a
+turn.  You will probably hear the tires slide as you enter the turn.
+Don't worry, the tires actually have @emph{more} grip when they're
+sliding a little.  However, you do lose some directional stability.
+So you point the nose a little toward the center of the turn and use
+the throttle to hold the car in the turn.  If you slide the car more
+than a little, you will lose grip and probably find yourself in the
+gravel.
+
+When driving on the edge, the throttle and brake do as much as the
+steering wheel to control the trajectory of the car.  In general,
+accelerating tends to straighten out the car and braking tends to turn
+the car more.  To demonstrate this, try backing off the throttle
+midway through a turn.  You'll find that the back end steps out a
+little causing the car to turn in.
+
+@section Robot Cars
+You can race against computer-controlled opponents.  Use the @command{o}
+option with a numeric argument to race against other cars.  Use the
+@command{d} if you just want to watch.
+
+@node Controls, Dashboard, Let's Go, Top
+@section Controls
+The car can be driven with a joystick, keys, or even a mouse.  A
+joystick is highly recommended.
+
+Keys, buttons, and joystick axes are mapped to functions in an XML
+file in the data directory (usually
+@file{/usr/local/share/vamos/controls}).  By default the file
+@file{default-controls} is used.  You can specify a different file
+with the @command{-a} or @command{--controls=} options.  The default
+control bindings are as follows:
+
+@cindex controls
+@multitable @columnfractions .15 .25 .60
+@item Key            @tab Stick         @tab Action
+@item @key{Up}*      @tab Forward       @tab Throttle.
+@item @key{Down}*    @tab Backward      @tab Brake.
+@item @key{Left}*    @tab Left          @tab Turn left.
+@item @key{Right}*   @tab Right         @tab Turn right.
+@item @key{Insert}*  @tab Button-1*     @tab Shift up.
+@item @key{Delete}*  @tab Button-2*     @tab Shift down.
+@item @key{Home}*    @tab Button-3*     @tab Clutch.
+@item @key{a}        @tab   @tab Place the car back at the starting line.
+@item @key{r}        @tab   @tab Place the car back on the road.
+@item @key{s}        @tab   @tab Start the engine after a stall.
+@item @key{f}        @tab   @tab Fill the fuel tank.
+@item @key{c}        @tab   @tab Reload the car definition file.
+@item @key{t}        @tab   @tab Reload the track definition file.
+@item @key{p}        @tab   @tab Pause the application.
+@item @key{q}        @tab   @tab Exit the application.
+@item @key{F9}       @tab   @tab Cycle through the views.
+@end multitable
+
+The `*' symbol indicates that the action is performed gradually after
+the key or button is pressed.
+
+When shifting, pressing the key or button causes the clutch to be
+disengaged before the new gear is selected.  Releasing the button
+releases the clutch.  The clutch is engaged slowly when shifting from
+neutral, and more quickly for other gears.  The clutch is always
+disengaged quickly.
+
+@section Control File Format
+Here's the format of a controls file.
+
+@example
+@group
+<controls name="Name">
+  <!-- Key Binding -->
+  <bind>
+    <function>function name</function>
+    <key>k</key>[<up|down/>]
+    [<time>t</time>]
+  </bind>
+
+  <!-- Button Binding -->
+  <bind>
+    <function>function name</function>
+    <button>b</button>[<up|down/>]
+  </bind>
+
+  <!-- Axis Binding -->
+  <bind>
+    <function>function name</function>
+    <axis>a</axis>
+    [<factor>f</factor>]
+    [<offset>o</offset>]
+    [<minimum>m</minimum>]
+  </bind>
+</controls>
+@end group
+@end example
+
+The @code{function} tag gives the name of the function to bind.  Any
+member funciton of Gl_Car_World that takes two double arguments and
+returns a bool can be bound.  The case of the name inside the
+@code{function} tag must match the actual function's name, and
+underscores must be replaced with single spaces.
+
+The @code{down} tag binds the function to a key (or button) press;
+@code{up} binds it to a key release.  If neither is specified, the
+function is bound to a key press.
+
+The @code{time} tag sets how long it takes for setting to be ramped up
+to its target value.  It is used for controling continuous values,
+like throttle, from the keyboard.  The default time is 0.
+
+For joystick axes, vaules range from -1 to 1.  This number is
+multiplied by the value in the @code{factor} tag and then the value in
+the @code{offset} tag is added.  The result is clipped at
+@code{minimum}.  The defaults are 1, 0, 0, respectively.
+
+@subsection Bindable Functions
+These are the functions that can be bound to controls.
+
+@table @code
+@item pause
+Pause the simulation.
+
+@item quit
+Quit the program.
+
+@item cycle view
+Change the point-of-view from car to trackside to overhead.
+
+@item read car
+Read the car definition file.
+
+@item read track
+Read the track definition file.
+
+@item read world
+Read the world definition file.
+
+@item restart car
+Put the car at the starting line.
+
+@item reset car
+Put the car back on the track.
+
+@item fill tank
+Fill the car's gas tank.
+
+@item gas
+Operate the throttle.
+
+@item brake
+Operate the brakes.
+
+@item steer
+@itemx steer left
+@itemx steer right
+Operate the steering wheel.  The 'steer left' and 'steer right'
+functions are useful for binding to keys.
+
+@item shift up
+@itemx shift down
+Select an adjacent gear, except when in neutral.
+
+@item shift up disengage
+@itemx shift down disengage
+Select an adjacent gear and operate the clutch, except when in neutral.
+
+@item initial shift up
+@itemx initial shift down
+Select an adjacent gear when in neutral.
+
+@item initial shift up disengage
+@itemx initial shift down disengage
+Select an adjacent gear and operate the clutch when in neutral.
+
+@item clutch
+Operate the clutch.
+
+@item engage clutch
+@itemx disengage clutch
+Operate the clutch, except when in neutral
+
+@item initial engage clutch
+@itemx initial disengage clutch
+Operate the clutch when in neutral
+@end table
+
+A function can be bound to more than one control.  However, when the
+simulation is running, the joystick is read after the keys.  If, for
+example, you bind the throttle to the up arrow key and to a joystick
+axis, the joystick (if present) will override the keyboard.
+
+Similarly, more than one function can be bound to a control.  Each
+function is called in turn until one of them returns true.
+
+For shifting, you will likely bind two functions to each shifting
+control, one for shifting from neutral (e.g. @code{initial shift up})
+and the other for shifting from other gears (e.g. @code{shift up}).
+If you bind the clutch to a key or button, rather than a continuous
+contral, you will also bind two functions to the clutch controls.  The
+reason is that you may want different behavior from the clutch in
+these two situations.
+
+When shifting from neutral to first, you will let the clutch out
+slowly to get the car started without stalling.  When shifting to
+other gears you will operate the clutch more quickly.  You can make
+this happen by binding both @code{initial shift up disegnage} and
+@code{shift up disengage} to the same key or button, and using a
+larger value in the @code{time} tage for @code{initial shift up
+disengage}.
+
+@node Dashboard, Cars, Controls, Top
+@section Dashboard
+@cindex dashboard
+Several rows of text are printed along the bottom of the screen to
+provide some information about the car, similar to the gauges on a
+car's dashboard.  You also get some information that you would not
+normally see on a dashboard.  Here's what is shown, going down the
+columns, starting on the left.
+
+@table @asis
+@item RPM
+The engine speed in revolutions per minute.
+
+@item Torque
+The current engine torque in Newton-meters.
+
+@item Speed
+The car's speed in kilometers per hour.
+
+@item Gear
+The currently selected gear.  @samp{N} stands for neutral and
+@samp{R} is for reverse.
+
+@item Break and Throttle
+The cyan bar shows the current brake setting.  The magenta bar shows the
+throttle setting.  These bars are useful for evaluating robot cars.
+
+@item Slip Ratios
+The slip ratios for each of the tires as a percentage.  A slip ratio is
+the difference between the speed of the contact patch and the road
+moving beneath it, divided by the speed of the wheel's hub.  Rolling
+without sliding yields a slip ratio of zero.  Locking the wheels results
+in a slip ratio of 100%.  Slip ratios are useful for seeing how close
+you are to the limit of adhesion.  A ratio of 9% or 10% is usually close
+to optimal.
+
+@item Fuel
+Amount of fuel remaining in liters.
+
+@item Air Density
+The current density of the air that the car is driving through.  This
+number decreases in another car's slipstream.
+
+@item Lap Time
+The elapsed time for the current lap.
+
+@item Last
+The time taken to complete the previous lap and the difference between
+this time and the best time.
+
+@item Best
+The shortest lap time so far.
+
+@item frame/s
+The current frame rate.
+
+@item Sector
+The number of the current timing sector and the elapsed time for that
+sector.
+
+@item Best
+The best time for the current sector.
+
+@item Last Sector
+The time taken to complete the previous sector and the difference
+between this time and the best time for that sector.
+
+@item Distance
+The distance from the start/finish line in meters.
+@end table
+
+@node Cars, Tracks, Dashboard, Top
+@section Cars
+@cindex cars
+A number of different car definitions are provided.  The car can be
+selected with @command{-c <car>} or @command{--car=<car>}, where
+@command{<car>} is one of the following
+
+@table @file
+@item F1
+A modern Formula One car.
+
+@item F1-1967
+A late sixties Formula One car.  For reasons I don't yet understand,
+this car is very difficult to control.
+
+@item front-drive
+A front wheel drive car.
+
+@item GT
+@itemx default-car
+A rear wheel drive sports car.
+
+@item trainer
+An under-powered car for beginners.
+@end table
+
+@section Car File Format
+The car definition goes inside a @code{car} tag.  You can assign a
+name to the car with the @code{name} attribute.
+
+@example
+@group
+<car name="GT">
+  ...
+</car>
+@end group
+@end example
+
+The sections below show how the various subsystems are defined.
+
+@subsection Robot Parameters
+These settings define the target performance of the robot car.  The
+robot will use the specified slip ratio for acceleration.  Deceleration
+and lateral acceleration give the performance targets for braking and
+cornering on a flat and level road with no aerodynamic assistance.  The
+actual targets are adjusted in real time for the slope of the track and
+aerodynamic downforce.
+
+Note that these are just targets.  If they are set to values that can't
+be achieved by the car the robot will drive the car off the road.
+
+@example
+@group
+  <robot>
+    <slip-ratio>9.0</slip-ratio>
+    <deceleration>1.4</deceleration>
+    <lateral-acceleration>1.5</lateral-acceleration>
+  </robot>
+@end group
+@end example
+
+@subsection View
+The driver's point-of-view is set with the @code{position} tag.  You
+may use whatever units you like, as long as you're consistent.
+@xref{Units}.  The horizontal field-of-view is set with the
+@code{field-width} tag.  The vertical field-of-view is calculated
+automatically from the current window geometry.
+
+@example
+@group
+  <view>
+    <position>[ 1.3, 1.0, 0.8 ]</position>
+    <field-width>60.0</field-width>
+  </view>
+@end group
+@end example
+
+@subsection Steering
+
+The maximum steering angle is set with the @code{max-angle} tag.  The
+@code{exponent} detemines how linear the steering response is.  A
+higher number makes the steering less sensitive at small angles.
+
+@example
+@group
+  <steering>
+    <max-angle>10.0</max-angle>
+	<exponent>3.0</exponent>
+  </steering>
+@end group
+@end example
+
+@subsection Drivetrain
+The drivetrain section defines the engine, clutch, transmission and
+differential. 
+
+@example
+@group
+  <drivetrain>
+    <engine>
+      ...
+    </engine>
+
+    <clutch>
+      ...
+    </clutch>
+
+    <transmission>
+      ...
+    </transmission>
+
+    <differential>
+      ...
+    </differential>
+  </drivetrain>
+@end group
+@end example
+
+The subsections of the drivetrain are described below.
+
+@example
+@group
+    <engine>
+	  <position>[ 1.5, 1.0, 0.2 ]</position>
+	  <mass>200.0</mass>
+      <max-power>3.0e5</max-power>
+	  <peak-engine-rpm>8000.0</peak-engine-rpm>
+	  <rpm-limit>10000.0</rpm-limit>
+	  <inertia>0.10</inertia>
+	  <idle>0.05</idle>
+	  <start-rpm>1000</start-rpm>
+	  <stall-rpm>500</stall-rpm>
+	  <fuel-consumption>0.0001</fuel-consumption>
+
+      <sound>
+        <file>engine.wav</file>
+		<pitch>0.01</pitch>
+		<volume>0.8</volume>
+		<throttle-volume-factor>1.0</throttle-volume-factor>
+		<engine-speed-volume-factor>0.001</engine-speed-volume-factor>
+	  </sound>
+    </engine>
+@end group
+@end example
+
+The @code{position} and @code{mass} parameters affect the weight
+distribution of the car.  The torque curve is calculated from
+@code{max-power} and @code{peak-engine-rpm} using a polynomial
+expression given in @cite{Motor Vehicle Dynamics, Genta (1997)}, where
+@code{peak-engine-rpm} is the engine speed at which the maximum power
+output (@code{max-power}) is achieved.  A rev limit can be set with
+@code{rpm-limit}.  The rotational inertia of the moving parts is
+@code{inertia}.  @code{idle} is the throttle position at idle.
+Starting the engine initially sets the engine speed to
+@code{start-rpm}.  Letting the engine speed drop below
+@code{stall-rpm} makes the engine stall.  The rate of fuel
+consumption is set with @code{fuel-consumption}.
+
+The engine sound is set in the @code{sound} section.  @code{file} is
+the name of a WAV file in the @file{data/sounds} directory.
+@code{throttle-volume-factor} and @code{engine-speed-volume-factor}
+determine how the loudness of the sound changes.
+
+@example
+@group
+    <clutch>
+      <sliding>0.5</sliding>
+	  <radius>0.25</radius>
+	  <area>0.2</area>
+	  <max-pressure>1.0e4</max-pressure>
+    </clutch>
+@end group
+@end example
+
+The torque on the clutch is found by dividing the clutch pressure by
+the value in the @code{area} tag and multiplying by the @code{radius}
+and @code{sliding} (friction) parameters. 
+
+The gear ratios can be defined in two different ways inside the
+@code{transmission} tag.  The ratios can be defined individually as in
+the example below.  The first number inside the brackets is the gear
+(-1 is reverse), and the second is the clutch speed divided by the
+driveshaft speed.
+
+@example
+@group
+    <transmission>
+	  <gear-ratio>[ -1, -2.69 ]</gear-ratio>
+	  <gear-ratio>[ 1, 2.53 ]</gear-ratio>
+	  <gear-ratio>[ 2, 1.71 ]</gear-ratio>
+	  <gear-ratio>[ 3, 1.42 ]</gear-ratio>
+	  <gear-ratio>[ 4, 1.19 ]</gear-ratio>
+	  <gear-ratio>[ 5, 1.04 ]</gear-ratio>
+	  <shift-delay>0.2</shift-delay>
+    </transmission>
+@end group
+@end example
+
+Alternatively, the number of gears and the highest and lowest ratios
+can be specified.   The other gears will be calculate such that the
+reciprocals of the ratios are equally spaced.
+
+@example
+@group
+    <transmission>
+	  <forward-gears>5</forward-gears>
+	  <first-ratio>3.21</first-ratio>
+	  <last-ratio>1.10</last-ratio>
+	  <shift-delay>0.2</shift-delay>
+    </transmission>
+@end group
+@end example
+
+The @code{shift-delay} tag tells how long it takes to change gears.
+For a paddle-shifter, like a modern Formula One car,
+@code{shift-delay} can be set to zero.
+
+@subsection Fuel Tank
+The fuel tank's position, the current volume of fuel and the density
+of the fuel affect the car's weight distribution.  The @code{capacity}
+tag sets the maximum volume of fuel that the tank can hold.  The
+initial volume is set with the @code{volume} tag.  The density of the
+fuel is set with @code{fuel-density}.
+
+@example
+@group
+  <fuel-tank>
+    <position>[ 1.00, 1.00, 0.25 ]</position>
+	<capacity>100.0</capacity>
+	<volume>100.0</volume>
+	<fuel-density>0.8</fuel-density>
+  </fuel-tank>
+@end group
+@end example
+
+@subsection Wheels
+The @code{wheel} section contains information about the suspension,
+tire, and brakes as well as the wheel itself.  The @code{side} and
+@code{end} attributes tell where the wheel is located.  The values of
+these attributes are important.
+
+The @code{steered} tag tells that the wheel responds to steering
+input.  The @code{driven} tag tells that torque from the engine is
+applied to the wheel.  Only two wheels may have a @code{steered} tag,
+and only two may have a @code{driven} tag.
+
+@example
+@group
+  <wheel side="right" end="front">
+    <steered/>
+    <driven/>
+    <position>[ 3.0, 0.05, -0.1 ]</position>
+	<mass>30.0</mass>
+	<restitution>0.1</restitution>
+    <suspension>
+      ...
+    </suspension>
+    <tire>
+      ...
+    </tire>
+    <brakes>
+      ...
+    </brakes>
+  <wheel>
+@end group
+@end example
+
+Values set in one wheel section are persistent; if you want the same
+value for another wheel, you do not need set it.
+
+The suspension, tire, and brakes sections are described below.
+
+@subsection Suspension
+@example
+@group
+    <suspension>
+	  <position>[ 3.0, 0.35, -0.1 ]</position>
+	  <hinge>[ 2.0, 0.35, 0.3 ]</hinge>
+	  <spring-constant>22000.0</spring-constant>
+	  <bounce>2000.0</bounce>
+	  <rebound>2000.0</rebound>
+	  <travel>0.4</travel>
+	  <max-compression-velocity>10.0</max-compression-velocity>
+	  <camber>-2.0</camber>
+	  <caster>5.0</caster>
+	  <toe>-2.0</toe>
+	</suspension>
+@end group
+@end example
+
+The @code{hinge} is the center of the wheel's path as the suspension
+moves.  The location of the hinge is determined by suspension
+geometry, and may be outside of the car itself.  Currently, this
+parameter has no effect of performance.  It may be used in the future
+for configuring anti-dive and anti-squat suspension geometries.
+
+@code{bounce} and @code{rebound} are the damping coefficients for
+compression and expansion of the suspension, respectively.  If the
+speed at which the suspension is compressed, or expanded exceeds the
+value in @code{max-compression-velocity}, the dampers ``lock up.''  
+
+Wheel alignment is set with the @code{camber}, @code{caster}, and
+@code{toe} tags.  All angles are in degrees.
+
+@subsection Tires
+The @code{longitudinal}, @code{transverse}, and @code{aligning}
+section each contain a vector of ``magic formula'' coefficients as
+presented in @cite{Motor Vehicle Dynamics, Genta (1997)}.  The two
+elements of @code{rolling-resistance} are the constant and
+velocity-squared terms, respectively.
+
+@example
+@group
+	<tire>
+      <friction>
+        <longitudinal>
+          [ 1.65, 0.0, 1690.0, 0.0, 229.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
+        </longitudinal>
+	    <transverse>
+	      [ 1.80, 0.0, 1690.0, 800.0, 6.03, 0.0, -0.359, 1.0, 0.0, -6.11e-3, -3.22e-2, 0.0, 0.0, 0.0, 0.0 ]
+	    </transverse>
+	    <aligning>
+	      [ 2.07, -6.49, -21.9, 0.416, -21.3, 2.94e-2, 0.0, -1.20, 5.23, -14.8, 0.0, 0.0, -3.74e-3, 3.89e-2, 0.0, 0.0, 0.639, 1.69 ]
+	    </aligning>
+	  </friction>
+	  <radius>0.310</radius>
+      <rolling-resistance>[ 1.3e-2, 6.5e-6 ]</rolling-resistance>
+	  <rotational-inertia>10.0</rotational-inertia>
+    </tire>
+@end group
+@end example
+
+@subsection Brakes
+@example
+@group
+    <brakes>
+	  <friction>0.8</friction>
+	  <max-pressure>2.0e6</max-pressure>
+      <front-bias>0.55</front-bias>
+	  <radius>0.2</radius>
+	  <area>0.01</area>
+    </brakes>
+@end group
+@end example
+
+@code{front-bias} is the fraction of braking pressure applied to the
+front brakes.
+
+@subsection Particles and Contact Points
+Particles affect the mass distribution of the car.
+
+@example
+@group
+  <particle>
+    <position>[ 2.0, 1.0, 0.5 ]</position>
+	<mass>100.0</mass>
+  </particle>
+@end group
+@end example
+
+Contact points are particles that participate in collisions.  The
+material specified in the @code{material} tag (either ``metal'' or
+``rubber'') determines the sound made when contact is detected.  The
+coefficients of friction and restitution are set with the
+@code{friction} and @code{restitution} tags, respectively.
+
+@example
+@group
+  <contact-point>
+    <mass>40.0</mass>
+    <position>[ 0.0, 0.0, 0.0 ]</position>
+	<material>metal</material>
+	<friction>0.5</friction>
+	<restitution>0.1</restitution>
+  </contact-point>
+@end group
+@end example
+
+@subsection Drag and Wings
+The aerodynamic properties of the car are determined by the
+@code{drag} and @code{wing} sections.  The frontal area and
+coefficient of drag, set it @code{frontal-area} and
+@code{drag-coefficient}, are used to calculate the drag force.
+
+@example
+@group
+  <drag>
+    <position>[ 2.0, 1.0, 0.25 ]</position>
+	<frontal-area>2.0</frontal-area>
+	<drag-coefficient>0.3</drag-coefficient>
+  </drag>
+@end group
+@end example
+
+Downforce can be added with wings.  The amount of downforce is
+determined by the value in the @code{lift-coefficient} tag.  If the
+lift coefficient is positive, upforce is generated.  This is usually
+undesirable for cars.  The @code{efficiency} determines how much drag
+is added as downforce increases.  The @code{surface-area} is the
+surface area of the wing.  This value is also used in the drag
+calculation.
+
+@example
+@group
+  <wing>
+    <position>[ 0.0, 0.9, 0.5 ]</position>
+	<frontal-area>0.2</frontal-area>
+	<surface-area>0.5</surface-area>
+	<lift-coefficient>-4.0</lift-coefficient>
+	<efficiency>0.5</efficiency>
+  </wing>
+@end group
+@end example
+
+@node Tracks, Worlds, Cars, Top
+@section Tracks
+@cindex tracks
+Once you get bored with the default, you might want to try driving on
+some different tracks.  The track can be selected using command line
+arguments.  Use either @command{vamos -t <track>} or @command{vamos
+--track==<track>}, where @command{<track>}, is the name of one of the
+XML files in the @file{data/tracks} directory.  There are files for
+almost all of the Formula One circuits for the past couple of decades,
+plus a few more.  These include
+
+@table @file
+@item drag
+A striaight flat strip of road.
+
+@item Monza
+The high-speed Italian circuit.
+
+@item Peanut
+@itemx default-track
+A simple track.
+
+@item Road_Atlanta
+The Georgia-shaped track in Georgia.
+
+@item Silverstone
+The home of the British grand prix.
+
+@item skid_pad
+A cirular track for testing handling.
+
+@item Spa
+The Spa-Francorchamps track in Belgium.
+
+@item Suzuka
+The track for many Japanase Grands Prix.
+@end table
+
+You can use the @command{trk-convert} program to turn a track file for
+RARS (Robot Auto Racing @url{http://rars.sourceforge.net}) into a
+C++ track file for Vamos.  The converted files usually need
+some adjusting, so you'll have to learn a little about Vamos track
+files.
+
+@section Track File Format
+
+Tracks are defined in XML files.  Here's the beginning of a track
+file. 
+
+@example
+@group
+<track name="Peanut">
+  <racing-line show="0">
+    <iterations>800</iterations>
+    <stiffness>1.0</stiffness>
+    <damping>0.01</damping>
+    <margin>1.6</margin>
+    <resolution>14.0</resolution>
+  </racing-line>
+@end group
+@end example
+
+@subsection Racing Line
+The racing line section is optional.  A good line is calculated for
+almost all tracks using the default parameters (shown).  Changing the
+@code{show} parameter to 1 will cause the racing line to be drawn on the
+track.  However, the @command{-l} option is a more convenient way to do
+this.
+
+Use more iterations if the racing line does not converge to something
+reasonable.  You can try fewer to reduce the calculation time.
+
+The racing line is calculated by simulating a chain of masses with springs
+that tend to straighten the chain.  Stiffness sets the spring constant.
+Damping prevents runaway oscillation.
+
+The margin is how close to the edge of the road the line is allowed to
+get.
+
+Resolution is the distance between masses.  This parameter defaults to
+the width of the road at the starting line.
+
+The racing line can be modified by the tags
+@code{racing-line-adjustment} and @code{curvature-factor} in the
+@code{road}.  See below.
+
+@subsection The Sky Box
+
+@example
+@group
+  <sky>
+    <sides>textures/sky_sides.png</sides>
+	<top>textures/sky_top.png</top>
+	<bottom>textures/sky_bottom.png</bottom>
+	<smooth/>
+  </sky>
+@end group
+@end example
+
+The @code{sky} section describes the sky box, which is a cube onto which
+a background is mapped.  The @code{sides} image is wrapped around the
+front, right, back, and left sides of the sky box.  The optional
+@code{smooth} tag can improve the quality of the sky box images.
+
+@subsection Materials
+
+After the sky box, the properties of the various materials that make
+up the track are defined.
+
+@example
+@group
+  <material name="track" type="asphalt">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.01</bump-amplitude>
+	<bump-wavelength>100.0</bump-wavelength>
+	<texture>
+	  <file>textures/track2.png</file>
+	  <length>200.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+@end group
+@end example
+
+The name is used to identify the material in other parts of the file.
+The type helps determine what sound is played.  The type must be one
+of rubber, metal, asphalt, concrete, grass, gravel, or dirt.
+
+The @code{friction} tag sets the relative friction of the surface.
+If, for example, you want to specify another surface that has half the
+friction of asphalt, you whould set the friction value to 0.5.  The
+calculation of the actual frictional force involves the car.
+Similarly, relative values of the coefficient of restitution, rolling
+resistance, and velocity-dependent drag are set with the
+@code{restitution}, @code{rolling}, and @code{drag} tags.
+
+The bumpiness of the surface is set with the @code{bump-amplitude},
+and @code{bump-wavelength} tags.  They define a sinusiodal variation
+in the track's elevation.  You may use whatever units you like, as
+long as you're consistent.  @xref{Units}.
+
+The texture image is set in the @code{texture} section.  The file is
+the name of a PNG image file.  The physical size that the image covers
+is set with the @code{length} and @code{width} tags.  In this example,
+the @code{width} tag is omitted.   As a result, the texture is
+stretched to fit the width of the track.
+ 
+The @code{smooth} and @code{mipmap} tags improve the quality of the
+images, but they also reduce the frame rate. 
+
+@subsection Segments
+
+The materials are grouped into ``segments'' that describe the
+materials for the track, kerbs, shoulders, and barriers.
+
+@example
+@group
+  <segment name="left turn">
+    [ wall grass kerb track kerb gravel tires ]
+  </segment>
+@end group
+@end example
+
+The name is used to identify the segment in other parts of the file.
+Inside the @code{segment} tag is an array of material names.  The
+material of the right-side barrier (as seen from a car traveling
+forward around the track) is first.
+
+@subsection Track Geometry
+
+The track is made up of @code{road} sections.  Here is a simple
+@code{road} section 
+
+@example
+@group
+  <road segment="left turn">
+    <resolution>5.0</resolution>
+	<length>130.0</length>
+	<radius>160.0</radius>
+  </road>
+@end group
+@end example
+
+The @code{segment} attribute names a list of materials defined earlier
+in the file.  The @code{resolution} sets the size of the quadrilateral
+divisions in the road section.  The smaller the resolution, the more
+closely the section approximates a smooth curve.  The length and width
+are given in meters.  However, any system of units can be used as long
+as they are used consistently throughout the simulation for both
+derived and fundamental quantities.
+
+The first road section must set the width of the track and shoulder,
+and also the height of the barriers.  These dimensions are specified
+as (distance, width) pairs.  Any number of pairs may be specified for
+a given width,  the program will interpolate linearly between
+specified points.
+
+@example
+@group
+  <!-- front straight -->
+  <road segment="straight pit">
+    <resolution>10.0</resolution>
+	<length>100.0</length>
+	<left-width>[ 0.0, 25.0 ]</left-width>
+	<right-width>[ 0.0, 25.0 ]</right-width>
+	<left-road-width>[ 0.0, 8.0 ]</left-road-width>
+	<right-road-width>[ 0.0, 8.0 ]</right-road-width>
+	<left-wall-height>2.0</left-wall-height>
+	<right-wall-height>2.0</right-wall-height>
+	<elevation>[ 20.0, 0.0 ]</elevation>
+	<elevation>[ 200.0, 5.0 ]</elevation>
+  </road>
+@end group
+@end example
+
+Similarly, any number of elevation points may be specified.  A spline
+is used to interpolate between elevation points to achieve smooth
+elevation changes.
+
+The @code{racing-line-adjustment} adjusts the edges of the track left
+(positive) or right (negative) for the purpose of calculating the racing
+line.  It is often useful to do this to shift the line toward the edge
+of the track so that the robot cars will run onto the kerbs.
+
+If the cars go too fast or too slow for on a particular segment, the
+@code{curvature-factor} can be specified to make the robots think the
+racing line is curved more or less than it actually is.  The actual
+curvature is multiplied by this number.  If it's greater than one the
+cars will go slower; if it's less they'll go faster.
+
+@subsection Braking Markers
+
+Braking markers are signs that show the distance to an upcoming turn.
+For turns approached a high speed, markers at 150 m, 100 m, and 50 m
+are typically shown.
+
+@example
+@group
+  <road>
+    ...
+	<braking-marker>
+	  <file>textures/50.png</file>
+	  <distance>50.0</distance>
+	  <size>[ 1.4, 0.7 ]</size>
+	  <offset>[ 2.0, 0.0 ]</offset>
+	  <side>right</side>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/100.png</file>
+	  <distance>100.0</distance>
+	</braking-marker>
+	<braking-marker>
+	  <file>textures/150.png</file>
+	  <distance>150.0</distance>
+	</braking-marker>
+    ...
+  </road>
+@end group
+@end example
+
+Once the size and offset parameters have been set, they do not need to
+be specified again unless you want to use different values.
+
+@subsection Kerbs
+
+Concrete kerbs are often placed along the insides of curves, and on
+the opposite side at the curve exits.  I'm not really sure why.
+Nonetheless, kerbs can be specified in the road sections.
+
+@example
+@group
+  <road>
+    ...
+	<left-kerb>
+	  <start>
+        <distance>10.0</distance>
+		<transition>
+		  <length>4.0</length>
+		  <width>1.0</width>
+		</transition>
+	  </start>
+	  <end>
+        <distance>100.0</distance>
+		<transition>
+		  <length>4.0</length>
+		  <width>1.0</width>
+		</transition>
+	  </end>
+	  <profile>[ 1.0, 0.1 ][ 3.0, 0.1 ][ 3.1, 0.0 ]</profile>
+	</left-kerb>
+
+    <right-kerb>
+      ...
+    </right-kerb>
+    ...
+  </road>
+@end group
+@end example
+
+Each road section can have a left-side and a right-side kerb.  A set
+of coordinates of the form [ distance-from-edge-of-track,
+elevation-above-track ] set the shape of the kerb in the
+@code{profile} tag.  A [ 0.0, 0.0 ] coordinate is inserted
+automatically. 
+
+The @code{start} and @code{end} tags tell where and how the kerb begins
+and ends.  If the distance is positive it is relative to the beginning
+of the road section.  If it's negative it is measured from the end.  The
+distance may be omitted for either or both ends.  The default start and
+end distances are zero and the end of the track, respectively.
+
+The @code{transition} section tells how the ends of the kerb are capped.
+In the example above, the kerb tapers down track level and a width of
+1.0 m in a distance of 4.0 m.  The transition does not add length to the
+kerb.  The @code{start} and @code{end} tags specify the endpoints of the
+kerb including the transitions.
+
+If the @code{end} tag is omitted on one segment and the @code{start} tag
+is omitted on the next, the kerb will run seamlessly across the segment
+boundary.  If the kerb should run through the segment and connect with
+kerbs on the next and previous segments an empty tag
+(@code{<left-kerb/>} or @code{<right-kerb/>}) will do.
+
+Once the transition length and width, and the profile are set they do
+not need to be specified again unless you want to use different
+values.  You can use @code{<transition/>} to specify a transition with
+the previously set values.  For example, this kerb runs the entire
+length of its road section and is capped with transitions at both
+ends.
+
+@example
+@group
+    <right-kerb>
+	  <start><transition/></start>
+	  <end><transition/></end>
+    </right-kerb>
+@end group
+@end example
+
+If there's no @code{start} tag, the kerb starts at the beginning of
+the road section with no transition.  If there's to @code{end}, the
+kerb ends at the end of the road section.  To make the kerb join
+smoothly across two road sections, omit the @code{end} in the first
+section, and omit the @code{start} in the second.
+
+Kerbs are typically serrated.  Again, I don't know why.  This can be
+simulated by setting the bump parameters on the kerb material defined
+near the beginning of the track file. 
+
+@subsection Closing a Circuit
+Adjusting a track to make meet the beginning seamlessly is tedious.
+If a @code{<circuit/>} tag is included, the program will make the
+adjustments automatically.  You can specify how many of the last
+segments will be adjusted with the @code{segments} attribute.  For
+example, with @code{<circuit segments="2"/>} only the last two
+segments will be changed.  Note the quotes around the value (required
+by the XML standard) and the trailing slash.
+
+Allowed values for the @code{segments} tag are 0, 1, 2, and 3.  The
+default is 3.  
+
+@table @file
+@item 3
+Adjust the length of the next-to-last segment (which must be a curve),
+to make the last segment parallel to the first.  Adjust the length of
+the third-to-last segment (which must be straight) to put the last
+segment in line with the first.  Adjust the length of the last segment
+so that it meets the beginning of the first.
+
+@item 2
+Adjust the radius and length of the next-to-last segment to align the
+last with the first.  Adjust the length of the last segment
+so that it meets the beginning of the first.
+
+@item 1
+Adjust the length of the last segment so that it meets the beginning
+of the first.
+
+@item 0
+Adjust nothing.
+@end table
+
+In all cases (including 0) the elevation curve is forced to close.
+
+If the track can not be closed with the specified adjustments, or the
+requirements about what segments must be stright or curved, the
+exception @code{Vamos_Track::Can_Not_Close} is thrown.
+
+@node Worlds, Units, Tracks, Top
+@section Worlds
+The ``world'' specifies various environmental factors.  Here's the
+entire default world file.
+
+@example
+@group
+<world name="Earth">
+  <!-- Acceleration due to gravity -->
+  <gravity>9.8</gravity>
+
+  <maximum-time-step>0.01</maximum-time-step>
+
+  <atmosphere>
+    <!-- Air density -->
+	<density>1.2</density>
+	<!-- Wind velocity -->
+    <velocity>[ 0.0, 0.0, 0.0 ]</velocity>
+  </atmosphere>
+
+  <lighting>
+    <!-- Direction to the light source -->
+    <source-position>[ 0.0, -1.0, 1.0 ]</source-position>
+	<!-- RGB for ambient light -->
+	<ambient>[ 0.7 , 0.7, 0.7 ]</ambient>
+  </lighting>
+</world>
+@end group
+@end example
+
+Here is a description of the sections.
+
+@table @code
+@item gravity
+Acceleration due to gravity.  The typical value for Earth is 9.8
+m/s^2.
+
+@item maximum-time-step
+Each frame in the simulation will be sub-divided into time steps no
+larger than this value.  If you see jitter when the car is stopped,
+try lowering the maximum time step.  However, you may take a
+performance hit, if the value is too small.
+
+@item atmosphere
+Density of the air and wind velocity.
+
+@item lighting
+Light source position and ambient light level.
+@end table
+
+Other world files can be specified with the @command{--world=} or
+@command{-w} options.  Just for fun, a world file for the moon is
+provided.  
+
+@c=============================================================================
+@node Units, Code Reference, Worlds, Top
+@chapter Units
+@cindex units
+
+A number that describes a physical quantity is meaningless unless the
+units of measure are given.  If we have a length of 20, we don't know
+if it's 20 meters, 20 feet, or 20 light years.  Despite this fact,
+there are no units specified in Vamos.
+
+Consider the fundamental quantities to be time, length, and mass.
+From these, you can derive the units for any quantity used in the
+simulation.  For instance, the units on velocity are a length unit
+divided by a time unit.  Force units are mass times length divided by
+time squared.  As long as the fundamental and derived units are
+consistent, it does not matter what base units are used.
+
+There's one exception.  Since the simulation relies on library
+functions for timing information, and these libraries use seconds, the
+unit of time must be seconds.
+
+I always use SI (metric) units because it's easy to keep the base and
+derived units consistent.  The SI base units are the meter (m) for
+length and kilogram (kg) for mass.  Power is derived quantity with
+units of Watts.  A Watt is a kg*m^2/s^3.  If you use feet and slugs as
+your base unit, then your power will be in slug*ft^2/s^3; you can't
+simply use horsepower.
+
+Derived units used in the simulation are
+
+@itemize @bullet
+@item area (distance^2)
+
+@item volume (distance^3)
+
+@item speed (distance/time)
+
+@item acceleration (distance/time^2)
+
+@item force (mass*acceleration)
+
+@item torque (force*distance)
+
+@item engine power (force*distance/time)
+
+@item spring constant (force/distance)
+
+@item damping (force/speed)
+
+@item density (mass/volume)
+@end itemize
+
+There are some places where non-SI units are used.  All angles are
+specified in degrees.  Engine speeds are specified in rotations per
+minute (RPM).  The coefficients for tire friction have their customary
+units.
+
+@c=============================================================================
+@node Code Reference, Building Vamos, Units, Top
+@chapter Code Reference
+
+The code is devided into four modules that reside in four namespaces,
+@code{Vamos_Geometry}, @code{Vamos_Body}, @code{Vamos_Track} and
+@code{Vamos_World}.  Each namespace contains the code for a library.
+These libraries are @code{libvamos-geometry}, @code{libvamos-body},
+@code{libvamos-track}, and @code{libvamos-world}.  The geometry library
+has classes for vectors, matrices and curves.  The body library has a
+class for a rigid body and classes for a car and its parts.  It also has
+other classes that are needed by more than one of the other libraries.
+The track library has the classes needed for building a track.  The
+world library handles a rigid body's interaction with the track.
+
+@menu
+* The Geometry Library::        Vectors, matrices, curves, etc.
+* The Media Library::           Code for sound, images, 3D models.
+* The Track Library::           The driving surface.
+* The Body Library::            Cars and other rigid bodies.
+* The World Library::           The world mediates interactions.
+@end menu
+
+The geometry library is used by both the body and world libraries.  The
+body library is used by the world library.  The dependency graph looks
+like this:
+@example
+@group
+           libvamos-geometry
+              /    |
+             /     |
+  libvamos-media   |
+             \     |
+              \    |
+               ----+----          
+              /    |    \
+             /     |     \
+  libvamos-track   |   libvamos-body
+             \     |     /
+              \    |    /
+            libvamos-world
+
+@end group
+@end example
+Libraries farther down the graph depend on the libraries above them.  If
+you only need the services of the geometry library, then you only have
+one library to link.  If you use the body library, then you need to link
+the geometry and media libraries as well.  If you use the world library,
+then you need to link all five.  When linking multiple libraries you may
+need to make sure that @code{libvamos-geometry} is linked first,
+followed by @code{libvamos-body}, and then @code{libvamos-world}.  If
+you get errors from the linker about undefined references to functions
+defined in one of these libraries, then you may have to adjust the link
+order.
+
+Care was taken to avoid a dependency of @code{libvamos-track} on
+@code{libvamos-body} and vice versa.  This allows cars and tracks to
+tested independently.
+
+@node The Geometry Library, The Media Library, , Code Reference
+@section The Geometry Library
+@cindex geometry library
+@cindex @code{Vamos_Geometry}
+@cindex @file{libvamos-geometry}
+
+The geometry module is a collection of mathematical constants,
+functions, and objects.  There are also a few less mathematical classes
+that are required by more than one other module.  This is done to avoid
+dependency problems.
+
+@section Three_Vector
+@cindex @code{Three_Vector}
+@cindex vector
+A @code{Three_Vector} represents a vector in three dimensions.  Some
+supported operations are
+
+@itemize @bullet
+@item subscripting using @code{[]}
+
+@item vector addition and subtraction using @code{+} and @code{-}
+
+@item multiplication and division by a scalar using @code{*} and @code{/}
+
+@item left and right matrix multiplication using @code{*}
+
+@item dot and cross products using the @code{dot()} and @code{cross()}methods
+
+@item projection onto another vector using the @code{project()} method
+
+@item magnitude using the @code{abs()} method
+@end itemize
+
+Matrix multiplication is done with a @code{Three_Matrix}.
+
+@section Three_Matrix
+@cindex @code{Three_Matrix}
+@cindex matrix
+
+A @code{Three_Matrix} represents 3x3 matrix.  It's suitable for
+representing a three-dimensional rotation matrix or inertia tensor.
+Some suported operations are
+
+@itemize @bullet
+@item subscripting using @code{[]}
+
+@item matrix addition and subtraction using @code{+} and @code{-}
+
+@item multiplication and division by a scalar using @code{*} and @code{/}
+
+@item left and right vector multiplication using @code{*}
+
+@item matrix multiplication using @code{*}
+
+@item eigenvalue and eigenvector determination
+
+@item inversion
+@end itemize
+
+@section Inertia_Tensor
+@cindex @code{Inertia_Tensor}
+@cindex inertia tensor
+An inertia tensor is a matrix that describes a rigid body's responce
+to torques.  The @code{Inertia_Tensor} generates the tensor from the
+locations of masses on a body.  The masses and positions are specified
+using the @code{add()} method.  The @code{inertia()} method returns
+the moment of inertia for a force applied at a particular point on the
+body. 
+
+@section Two_Point
+@cindex @code{Two_Point}
+@cindex point
+A @code{Two_Point} describes a point in a plane.  It is a @code{struct}
+with two data members, @code{x} and @code{y}.  A constructor is provided
+for initializing the members.  No vector operations are supported, and
+some of the supported operations are undefined for vectors.  That's why
+this class is called @code{Two_Point} and not @code{Two_Vector}.  The
+supported operations are scalar and member-wise addition, subtraction,
+multiplication, and division.  For the scalar versions, the operation is
+performed on each member.
+
+@code{Spline} is the only user of @code{Two_Point}.  Perhaps it should
+be defined in @code{Spline}'s header so that there's less temptation to
+use @code{Two_Point} inappropriately.
+
+@section Spline
+@cindex @code{Spline}
+@cindex spline
+@code{Spline} is a class for a parametric cubic spline interpolation
+between points.  A vector of @code{Two_Point}s through which the curve
+passes and angle of the curve at the first and last points are passed to
+the constructor.
+
+@code{Spline}s are used to make smooth road elevation changes and banking
+transitions.
+
+@section Surface
+@cindex @code{surface}
+A @code{Surface} describes the friction, rolling resistance, restitution
+and texture image of a surface such as pavement, grass or gravel.
+
+@section Texture_Image
+@cindex @code{Texture_Image}
+@cindex texture
+@cindex image
+The @code{Texture Image} class provides a convenient way of reading a
+@file{*.ppm} image file from the disk and for getting information about
+the image.
+
+@section Conversions
+@cindex @code{Conversions}
+The header file @file{Conversions.h} contains a few functions for
+performing frequently-used unit conversions.  Currently, there are
+conversions for radians and degress, radians per second and revolutions
+per minute, and meters per second and kilometers per hour. 
+
+@node The Media Library, The Track Library, The Geometry Library, Code Reference
+@section The Media Library
+@cindex media library
+@cindex @code{Vamos_Media}
+@cindex @file{libvamos-media}
+
+@node The Track Library, The Body Library, The Media Library, Code Reference
+@section The Track Library
+@cindex track library
+@cindex @code{Vamos_Track}
+@cindex @file{libvamos-track}
+
+A @code{Track} is a collection of straight and curved pieces of road.
+These pieces are described by classes derived from @code{Road_Segment}.
+Currently, we have a straight segment class (@code{Straight_Road}), and
+a circle arc segment class (@code{Arc_Road}).  The track is assembled so
+that there are no corners where two segments join.
+
+If you look at the code you'll find a class for a segment that smoothly
+curves through a set of given points (@code{Spline_Road}).  This class
+has been commented out because I don't know how to do the transformation
+from world coordinates to track coordinates for a spline.
+
+The elevation and banking at any number of points on a segment can be
+specified.  The specified points are interpolated with a cubic spline so
+that the transitions are smooth.
+
+@example
+@group
+Track o---Road_Segment
+           ^     ^
+          /       \
+Straight_Road    Arc_Road
+@end group
+@end example
+
+@node The Body Library, The World Library, The Track Library, Code Reference
+@section The Body Library
+@cindex body library
+@cindex @code{Vamos_Body}
+@cindex @file{libvamos-body}
+@cindex @code{Body}
+@cindex @code{Particle}
+@cindex @code{Frame}
+@cindex @code{Car}
+
+A @code{Body} describes a three-dimensional rigid body made up of point
+particles.  These particles are described by @code{Particle} and its
+subclasses.  Position and orientation for both @code{Body}s and
+@code{Particle}s is provided by the @code{Frame} base class.  The
+@code{Car} class is derived from @code{Body}
+
+@example
+@group
+     Frame
+     ^   ^
+    /     \
+ Body o---Particle
+  ^
+  |
+ Car
+@end group
+@end example
+
+@menu
+* Frame::                       A coordinate system.
+* Particle::                    A body is made up of point particles.
+* Body::                        A rigid body.
+* Car::                         A drivable body.
+@end menu
+
+@node Frame
+@subsection Frame
+
+@node Particle
+@subsection Particle
+
+@node Body
+@subsection Body
+
+@node Car
+@subsection Car
+
+@subsubsection Drivetrain
+
+@subsubsection Wheel
+
+
+@node The World Library,  , The Body Library, Code Reference
+@section The World Library
+@cindex world library
+@cindex @code{Vamos_World}
+@cindex @file{libvamos-world}
+
+To avoid dependencies, @code{Track}, @code{Atmosphere}, and
+@code{Body} were each designed so that they know nothing about the
+others.  It is the purpose of the @code{World} class to mediate any
+interactions among those classes.  Because @code{Track},
+@code{Atmosphere}, and @code{Body} are independent, it is neccessary
+that @code{World} depend on each of these classes.  A subclass of
+@code{World} that provides an interface to the input methods of
+@code{Car} is provided.  It's called @code{Car_World}.  (Apologies to
+Marcus Hewat, creator of the Carworld program,
+@url{http://perso.club-internet.fr/hewat/carworld/carworld.htm}.
+Aside from some bits of code I stole for reading textures from files
+and drawing text on the screen, this project is unrelated to
+Carworld.)
+
+@example
+@group
+        World
+       o ^ o o---.
+      /  |  \     \
+ Track   |  Body  Atmosphere
+         |   ^
+  Car_World  |
+          o  |
+           \ |
+            Car
+@end group
+@end example
+
+The @code{World} base class doesn't do any graphics.  If you want to see
+the results of the simulation on screen, you must derive an appropriate
+class and define the @code{draw()} method.  An example of such a class
+that uses OpenGL, @code{Gl_Car_World}, is provided.  You must also use
+subclasses of Track and Car (such as @code{Gl_Track} and @code{Gl_Car})
+that use the same graphics system if you wish to see instances of those
+objects.
+
+A typical application will construct a @code{Track}, @code{Atmosphere},
+and @code{Car}, and then construct a @code{World} by passing pointers to those
+objects.  The simulation is started by calling the @code{World}'s
+@code{start()} method.  The @code{World} is responsible for initializing the
+graphics system (if used) and starting the event loop.
+
+@subsection Atmosphere
+@cindex @code{Atmosphere}
+To be written.
+
+@c=============================================================================
+@node Building Vamos, Copying, Code Reference, Top
+@appendix Building Vamos
+@cindex building
+
+@section Downloading
+@cindex downloading
+You can get the latest release by going to the Vamos home page,
+@url{http://vamos.sourceforge.net}, and following the ``Download''
+link.  Another way to get there is to go through the SourceForge
+project page, @url{http://sourceforge.net/projects/vamos}.
+
+@section Dependencies
+@cindex dependencies
+Vamos makes use of some external libraries.  These libraries need to
+be present in order to compile Vamos.
+
+OpenGL-compatible libraries, including the OpenGL Utility Library
+(GLU) and the OpenGL Utility Toolkit (GLUT) must be installed.  Mesa
+@url{http://www.mesa-3d.org} works fine.  In addition, you need
+accelerated video hardware.  Some video cards require specific GL
+implementations.
+
+SDL @url{http://www.libsdl.org} is used for event handling (keys, mouse,
+and joystick).  Sound is handled by OpenAL
+@url{http://connect.creativelabs.com/openal}.
+
+You will also need a reasonably up-to-date C++ compiler.  Specifically,
+it must handle namespaces.  Gcc version 2.96 and later, including 3.x,
+and 4.x should do.  See @url{http://gcc.gnu.org}.  The code is intended
+to be portable, standard C++, so other compilers should work as well.
+
+@section Compiling
+@cindex compiling
+@cindex configure
+@cindex installing
+After downloading the source archive (the @file{tar.gz} file), unpack
+it with the @command{tar} command, or some other utility.  All of the
+files in the archive are placed in a subdirectory.  If the
+archive is @file{vamos-1.2.3.tar.gz}, the files are placed in
+@file{vamos-1.2.3}. 
+
+Vamos uses the GNU Autotools (@command{automake}, @command{autoconf},
+and @command{libtool}) to check for prerequisites and handle different
+architectures.  Change to the directory created by un-archiving and
+type @command{./configure}.  Type @command{./configure --help} to see
+the options accepted by @code{configure}.  I have only tried to
+compile Vamos on GNU/Linux and Cygwin/Win32 platforms.  Please write
+me if you find an architecture that is not handled correctly.
+
+The @command{configure} script generates the @file{Makefile}s needed
+to compile the program.  Issue the @command{make} command to start the
+compilation.  If you encounter errors, or warnings that you think I
+should know about, please contact me.
+
+If the compilation succeeds, you can install the libraries, headers,
+and application by typing @command{make install}.  You may need to be
+a privileged user to install software on your system.  You do not need
+to install the program to run the application.  Switch to the
+@file{vamos} directory and run @command{./vamos} to try the
+application without installing.
+
+@node Copying, Concept Index, Building Vamos, Top
+@appendix Copying
+@cindex copying
+
+Vamos may be copied according to the terms of the GNU General Public
+License (GNU GPL).  The license is in the file COPYING in the
+top-level directory of the source code.
+
+This documentation may be copied according to the
+terms of the GNU Free Documentation License (GNU FDL) which is printed
+below. 
+
+@appendixsec GNU Free Documentation License
+
+@cindex FDL, GNU Free Documentation License
+@center Version 1.1, March 2000
+
+@display
+Copyright @copyright{} 2000 Free Software Foundation, Inc.
+59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
+
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+@end display
+
+@enumerate 0
+@item
+PREAMBLE
+
+The purpose of this License is to make a manual, textbook, or other
+written document @dfn{free} in the sense of freedom: to assure everyone
+the effective freedom to copy and redistribute it, with or without
+modifying it, either commercially or noncommercially.  Secondarily,
+this License preserves for the author and publisher a way to get
+credit for their work, while not being considered responsible for
+modifications made by others.
+
+This License is a kind of ``copyleft'', which means that derivative
+works of the document must themselves be free in the same sense.  It
+complements the GNU General Public License, which is a copyleft
+license designed for free software.
+
+We have designed this License in order to use it for manuals for free
+software, because free software needs free documentation: a free
+program should come with manuals providing the same freedoms that the
+software does.  But this License is not limited to software manuals;
+it can be used for any textual work, regardless of subject matter or
+whether it is published as a printed book.  We recommend this License
+principally for works whose purpose is instruction or reference.
+
+@item
+APPLICABILITY AND DEFINITIONS
+
+This License applies to any manual or other work that contains a
+notice placed by the copyright holder saying it can be distributed
+under the terms of this License.  The ``Document'', below, refers to any
+such manual or work.  Any member of the public is a licensee, and is
+addressed as ``you''.
+
+A ``Modified Version'' of the Document means any work containing the
+Document or a portion of it, either copied verbatim, or with
+modifications and/or translated into another language.
+
+A ``Secondary Section'' is a named appendix or a front-matter section of
+the Document that deals exclusively with the relationship of the
+publishers or authors of the Document to the Document's overall subject
+(or to related matters) and contains nothing that could fall directly
+within that overall subject.  (For example, if the Document is in part a
+textbook of mathematics, a Secondary Section may not explain any
+mathematics.)  The relationship could be a matter of historical
+connection with the subject or with related matters, or of legal,
+commercial, philosophical, ethical or political position regarding
+them.
+
+The ``Invariant Sections'' are certain Secondary Sections whose titles
+are designated, as being those of Invariant Sections, in the notice
+that says that the Document is released under this License.
+
+The ``Cover Texts'' are certain short passages of text that are listed,
+as Front-Cover Texts or Back-Cover Texts, in the notice that says that
+the Document is released under this License.
+
+A ``Transparent'' copy of the Document means a machine-readable copy,
+represented in a format whose specification is available to the
+general public, whose contents can be viewed and edited directly and
+straightforwardly with generic text editors or (for images composed of
+pixels) generic paint programs or (for drawings) some widely available
+drawing editor, and that is suitable for input to text formatters or
+for automatic translation to a variety of formats suitable for input
+to text formatters.  A copy made in an otherwise Transparent file
+format whose markup has been designed to thwart or discourage
+subsequent modification by readers is not Transparent.  A copy that is
+not ``Transparent'' is called ``Opaque''.
+
+Examples of suitable formats for Transparent copies include plain
+@sc{ascii} without markup, Texinfo input format, La@TeX{} input format,
+@acronym{SGML} or @acronym{XML} using a publicly available
+@acronym{DTD}, and standard-conforming simple @acronym{HTML} designed
+for human modification.  Opaque formats include PostScript,
+@acronym{PDF}, proprietary formats that can be read and edited only by
+proprietary word processors, @acronym{SGML} or @acronym{XML} for which
+the @acronym{DTD} and/or processing tools are not generally available,
+and the machine-generated @acronym{HTML} produced by some word
+processors for output purposes only.
+
+The ``Title Page'' means, for a printed book, the title page itself,
+plus such following pages as are needed to hold, legibly, the material
+this License requires to appear in the title page.  For works in
+formats which do not have any title page as such, ``Title Page'' means
+the text near the most prominent appearance of the work's title,
+preceding the beginning of the body of the text.
+
+@item
+VERBATIM COPYING
+
+You may copy and distribute the Document in any medium, either
+commercially or noncommercially, provided that this License, the
+copyright notices, and the license notice saying this License applies
+to the Document are reproduced in all copies, and that you add no other
+conditions whatsoever to those of this License.  You may not use
+technical measures to obstruct or control the reading or further
+copying of the copies you make or distribute.  However, you may accept
+compensation in exchange for copies.  If you distribute a large enough
+number of copies you must also follow the conditions in section 3.
+
+You may also lend copies, under the same conditions stated above, and
+you may publicly display copies.
+
+@item
+COPYING IN QUANTITY
+
+If you publish printed copies of the Document numbering more than 100,
+and the Document's license notice requires Cover Texts, you must enclose
+the copies in covers that carry, clearly and legibly, all these Cover
+Texts: Front-Cover Texts on the front cover, and Back-Cover Texts on
+the back cover.  Both covers must also clearly and legibly identify
+you as the publisher of these copies.  The front cover must present
+the full title with all words of the title equally prominent and
+visible.  You may add other material on the covers in addition.
+Copying with changes limited to the covers, as long as they preserve
+the title of the Document and satisfy these conditions, can be treated
+as verbatim copying in other respects.
+
+If the required texts for either cover are too voluminous to fit
+legibly, you should put the first ones listed (as many as fit
+reasonably) on the actual cover, and continue the rest onto adjacent
+pages.
+
+If you publish or distribute Opaque copies of the Document numbering
+more than 100, you must either include a machine-readable Transparent
+copy along with each Opaque copy, or state in or with each Opaque copy
+a publicly-accessible computer-network location containing a complete
+Transparent copy of the Document, free of added material, which the
+general network-using public has access to download anonymously at no
+charge using public-standard network protocols.  If you use the latter
+option, you must take reasonably prudent steps, when you begin
+distribution of Opaque copies in quantity, to ensure that this
+Transparent copy will remain thus accessible at the stated location
+until at least one year after the last time you distribute an Opaque
+copy (directly or through your agents or retailers) of that edition to
+the public.
+
+It is requested, but not required, that you contact the authors of the
+Document well before redistributing any large number of copies, to give
+them a chance to provide you with an updated version of the Document.
+
+@item
+MODIFICATIONS
+
+You may copy and distribute a Modified Version of the Document under
+the conditions of sections 2 and 3 above, provided that you release
+the Modified Version under precisely this License, with the Modified
+Version filling the role of the Document, thus licensing distribution
+and modification of the Modified Version to whoever possesses a copy
+of it.  In addition, you must do these things in the Modified Version:
+
+@enumerate A
+@item
+Use in the Title Page (and on the covers, if any) a title distinct
+from that of the Document, and from those of previous versions
+(which should, if there were any, be listed in the History section
+of the Document).  You may use the same title as a previous version
+if the original publisher of that version gives permission.
+
+@item
+List on the Title Page, as authors, one or more persons or entities
+responsible for authorship of the modifications in the Modified
+Version, together with at least five of the principal authors of the
+Document (all of its principal authors, if it has less than five).
+
+@item
+State on the Title page the name of the publisher of the
+Modified Version, as the publisher.
+
+@item
+Preserve all the copyright notices of the Document.
+
+@item
+Add an appropriate copyright notice for your modifications
+adjacent to the other copyright notices.
+
+@item
+Include, immediately after the copyright notices, a license notice
+giving the public permission to use the Modified Version under the
+terms of this License, in the form shown in the Addendum below.
+
+@item
+Preserve in that license notice the full lists of Invariant Sections
+and required Cover Texts given in the Document's license notice.
+
+@item
+Include an unaltered copy of this License.
+
+@item
+Preserve the section entitled ``History'', and its title, and add to
+it an item stating at least the title, year, new authors, and
+publisher of the Modified Version as given on the Title Page.  If
+there is no section entitled ``History'' in the Document, create one
+stating the title, year, authors, and publisher of the Document as
+given on its Title Page, then add an item describing the Modified
+Version as stated in the previous sentence.
+
+@item
+Preserve the network location, if any, given in the Document for
+public access to a Transparent copy of the Document, and likewise
+the network locations given in the Document for previous versions
+it was based on.  These may be placed in the ``History'' section.
+You may omit a network location for a work that was published at
+least four years before the Document itself, or if the original
+publisher of the version it refers to gives permission.
+
+@item
+In any section entitled ``Acknowledgments'' or ``Dedications'',
+preserve the section's title, and preserve in the section all the
+substance and tone of each of the contributor acknowledgments
+and/or dedications given therein.
+
+@item
+Preserve all the Invariant Sections of the Document,
+unaltered in their text and in their titles.  Section numbers
+or the equivalent are not considered part of the section titles.
+
+@item
+Delete any section entitled ``Endorsements''.  Such a section
+may not be included in the Modified Version.
+
+@item
+Do not retitle any existing section as ``Endorsements''
+or to conflict in title with any Invariant Section.
+@end enumerate
+
+If the Modified Version includes new front-matter sections or
+appendices that qualify as Secondary Sections and contain no material
+copied from the Document, you may at your option designate some or all
+of these sections as invariant.  To do this, add their titles to the
+list of Invariant Sections in the Modified Version's license notice.
+These titles must be distinct from any other section titles.
+
+You may add a section entitled ``Endorsements'', provided it contains
+nothing but endorsements of your Modified Version by various
+parties---for example, statements of peer review or that the text has
+been approved by an organization as the authoritative definition of a
+standard.
+
+You may add a passage of up to five words as a Front-Cover Text, and a
+passage of up to 25 words as a Back-Cover Text, to the end of the list
+of Cover Texts in the Modified Version.  Only one passage of
+Front-Cover Text and one of Back-Cover Text may be added by (or
+through arrangements made by) any one entity.  If the Document already
+includes a cover text for the same cover, previously added by you or
+by arrangement made by the same entity you are acting on behalf of,
+you may not add another; but you may replace the old one, on explicit
+permission from the previous publisher that added the old one.
+
+The author(s) and publisher(s) of the Document do not by this License
+give permission to use their names for publicity for or to assert or
+imply endorsement of any Modified Version.
+
+@item
+COMBINING DOCUMENTS
+
+You may combine the Document with other documents released under this
+License, under the terms defined in section 4 above for modified
+versions, provided that you include in the combination all of the
+Invariant Sections of all of the original documents, unmodified, and
+list them all as Invariant Sections of your combined work in its
+license notice.
+
+The combined work need only contain one copy of this License, and
+multiple identical Invariant Sections may be replaced with a single
+copy.  If there are multiple Invariant Sections with the same name but
+different contents, make the title of each such section unique by
+adding at the end of it, in parentheses, the name of the original
+author or publisher of that section if known, or else a unique number.
+Make the same adjustment to the section titles in the list of
+Invariant Sections in the license notice of the combined work.
+
+In the combination, you must combine any sections entitled ``History''
+in the various original documents, forming one section entitled
+``History''; likewise combine any sections entitled ``Acknowledgments'',
+and any sections entitled ``Dedications''.  You must delete all sections
+entitled ``Endorsements.''
+
+@item
+COLLECTIONS OF DOCUMENTS
+
+You may make a collection consisting of the Document and other documents
+released under this License, and replace the individual copies of this
+License in the various documents with a single copy that is included in
+the collection, provided that you follow the rules of this License for
+verbatim copying of each of the documents in all other respects.
+
+You may extract a single document from such a collection, and distribute
+it individually under this License, provided you insert a copy of this
+License into the extracted document, and follow this License in all
+other respects regarding verbatim copying of that document.
+
+@item
+AGGREGATION WITH INDEPENDENT WORKS
+
+A compilation of the Document or its derivatives with other separate
+and independent documents or works, in or on a volume of a storage or
+distribution medium, does not as a whole count as a Modified Version
+of the Document, provided no compilation copyright is claimed for the
+compilation.  Such a compilation is called an ``aggregate'', and this
+License does not apply to the other self-contained works thus compiled
+with the Document, on account of their being thus compiled, if they
+are not themselves derivative works of the Document.
+
+If the Cover Text requirement of section 3 is applicable to these
+copies of the Document, then if the Document is less than one quarter
+of the entire aggregate, the Document's Cover Texts may be placed on
+covers that surround only the Document within the aggregate.
+Otherwise they must appear on covers around the whole aggregate.
+
+@item
+TRANSLATION
+
+Translation is considered a kind of modification, so you may
+distribute translations of the Document under the terms of section 4.
+Replacing Invariant Sections with translations requires special
+permission from their copyright holders, but you may include
+translations of some or all Invariant Sections in addition to the
+original versions of these Invariant Sections.  You may include a
+translation of this License provided that you also include the
+original English version of this License.  In case of a disagreement
+between the translation and the original English version of this
+License, the original English version will prevail.
+
+@item
+TERMINATION
+
+You may not copy, modify, sublicense, or distribute the Document except
+as expressly provided for under this License.  Any other attempt to
+copy, modify, sublicense or distribute the Document is void, and will
+automatically terminate your rights under this License.  However,
+parties who have received copies, or rights, from you under this
+License will not have their licenses terminated so long as such
+parties remain in full compliance.
+
+@item
+FUTURE REVISIONS OF THIS LICENSE
+
+The Free Software Foundation may publish new, revised versions
+of the GNU Free Documentation License from time to time.  Such new
+versions will be similar in spirit to the present version, but may
+differ in detail to address new problems or concerns.  See
+@uref{http://www.gnu.org/copyleft/}.
+
+Each version of the License is given a distinguishing version number.
+If the Document specifies that a particular numbered version of this
+License ``or any later version'' applies to it, you have the option of
+following the terms and conditions either of that specified version or
+of any later version that has been published (not as a draft) by the
+Free Software Foundation.  If the Document does not specify a version
+number of this License, you may choose any version ever published (not
+as a draft) by the Free Software Foundation.
+@end enumerate
+
+@page
+@appendixsubsec ADDENDUM: How to use this License for your documents
+
+To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and
+license notices just after the title page:
+
+@smallexample
+@group
+  Copyright (C)  @var{year}  @var{your name}.
+  Permission is granted to copy, distribute and/or modify this document
+  under the terms of the GNU Free Documentation License, Version 1.1
+  or any later version published by the Free Software Foundation;
+  with the Invariant Sections being @var{list their titles}, with the
+  Front-Cover Texts being @var{list}, and with the Back-Cover Texts being @var{list}.
+  A copy of the license is included in the section entitled ``GNU
+  Free Documentation License''.
+@end group
+@end smallexample
+
+If you have no Invariant Sections, write ``with no Invariant Sections''
+instead of saying which ones are invariant.  If you have no
+Front-Cover Texts, write ``no Front-Cover Texts'' instead of
+``Front-Cover Texts being @var{list}''; likewise for Back-Cover Texts.
+
+If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License,
+to permit their use in free software.
+
+@c Local Variables:
+@c ispell-local-pdict: "ispell-dict"
+@c End:
+
+@node Concept Index,  , Copying, Top
+@unnumbered Concept Index
+
+@printindex cp
+
+@contents
+
+@bye

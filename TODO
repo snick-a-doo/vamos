@@ -1,0 +1,98 @@
+-*-org-*-
+
+* Pending
+** Bump function is not smooth across start of track.
+** Don't let cars intersect.
+** Handle starting, passing, recovering, etc. with computer-controled cars.
+** Check for memory leaks on reloading cars and tracks.
+** Occasional track-to-world assert
+nico> ./vamos -o 6 -t Villeneuve -f -c F1
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Road::track_coordinates guess=18 found=20
+Warning: Strip_Track::track_coordinates guess=6 found=9
+lt-vamos: Strip_Track.cc:1417: virtual Vamos_Geometry::Three_Vector Vamos_Track::Strip_Track::track_coordinates(const Vamos_Geometry::Three_Vector&, size_t&, size_t&): Assertion `false' failed.
+Aborted (core dumped)
+
+** Improve framerate
+   Allow more cars at once.  Rendering is the major bottleneck.
+   Collision handling reduces perfomance a bit for large numbers of cars.
+   | Car |  # | f/s (rendered) | f/s (not rendered) | f/s (no collision) |
+   |-----+----+----------------+--------------------+--------------------|
+   | GT  |  1 | 240, 230       | 390                | 240, 230           |
+   |     |  2 | 230, 220       | 390                | 230, 225           |
+   |     | 10 | 90, 77         | 250, 200           | 120, 110           |
+   |     | 15 | 57, 38         | 160, 125           | 74, 64             |
+   |     | 18 | 40, < 33       | 72, 57             | 60, 55             |
+   |     | 20 |                | 60, < 33           | 57, 40             |
+   | F1  |  1 | 240, 230       | 390                | 240, 230           |
+   |     |  2 | 200, 180       | 380                | 200, 195           |
+   |     | 10 | 40             | 250, 200           | 44, 40             |
+   |     | 15 | < 33           | 160, 130           | < 33               |
+   |     | 18 |                | 70, 60             |                    |
+   |     | 20 |                | 61, 40             |                    |
+   - F1: 6 cars @ 60 Hz fullscreen
+   - GT: 13 cars @ 60 Hz fullscreen
+
+** Fail if libraries are missing
+   Also add libXi, libXmu
+* Enif's Win32 issues
+** Update dependencies in web docs.
+   http://vamos.sourceforge.net/vamos-docs/Building-Vamos.html#Building-Vamos
+** Macro guards
+   In front of glu.h and glut.h includes:
+   #ifdef WIN32
+   # define WINDOWS_LEAN_AND_MEAN 1
+   # define NOMINMAX 1
+   # include <windows.h>
+   #endif
+** Direction enum conflicts
+** Rectangle name conflicts
+   Rectangle -> Vamos_Geometry::Rectangle.
+* Game Support (post 0.7.0)
+** Draw lines on the track.
+** Handle starting grid.
+** Handle pit placement.
+** Add starting lights.
+** Decide how to show timing information.
+** Make crash sound play consistently.
+** Show cars with different appearances
+** Use different performance levels for different cars.
+** Randomize robots.
+
+* Post 1.0
+** Make tires springy
+** Review suspension
+   - Is the current model adequate?
+   - Should we handle bad settings better?
+   - Handle bottoming out
+
+* Maybe
+** Draw shadows
+*** Projection shadows and stencil buffer
+    Glut 3.7 example
+    Planar surface only.  Track may be close enough to planar.
+*** Stencil buffer
+    Any shape of surface
+*** Fast shadows
+    SIGGRAPH '92 paper Fast Shadows and Lighting Effects Using Texture
+    Mapping, Mark Segal et al.
+    GL_EXT_depth_texture and the GL_EXT_texture3D extensions or OpenGL
+    1.2 are required.
+
+    Have GL_EXT_texture3D, GL_SGIX_depth_texture and
+    GL_ARB_depth_texture.  Good enough?
+
+    Can't find the article.
+

@@ -1,0 +1,1017 @@
+//  Robot_Driver.cc - a computer-controlled driver
+//
+//	Vamos Automotive Simulator
+//  Copyright (C) 2008 Sam Varner
+//
+//  This program is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#include "Robot_Driver.h"
+#include "../body/Car.h"
+#include "../body/Wheel.h"
+#include "../geometry/Calculations.h"
+#include "../geometry/Constants.h"
+#include "../geometry/Numeric.h"
+#include "../geometry/Parameter.h"
+#include "../geometry/Three_Vector.h"
+#include "../track/Strip_Track.h"
+#include "World.h"
+
+#include <algorithm>
+#include <limits>
+
+using namespace Vamos_Body;
+using namespace Vamos_Geometry;
+using namespace Vamos_Track;
+using namespace Vamos_World;
+
+//-----------------------------------------------------------------------------
+Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity) 
+: Driver (car_in),
+  mp_cars (0),
+  m_speed_control (4.0, 0.0, 0.0),
+  m_traction_control (0.5, 0.0, 0.0),
+  m_brake_control (0.1, 0.0, 0.0),
+  m_steer_control (0.5, 0.0, 0.0),
+  m_front_gap_control (0.2, 0.0, 0.2),
+  m_target_slip (car_in->get_robot_parameters ().slip_ratio),
+  m_speed (0.0),
+  m_road_index (0),
+  m_target_segment (0),
+  m_segment_index (0),
+  mp_track (track_in),
+  m_shift_time (0.0),
+  m_state (PARKED),
+  m_state_time (0.0),
+  m_timestep (1.0),
+  m_lane_shift (10.0),
+  m_lane_shift_timer (0.0),
+  m_interact (true),
+  m_show_steering_target (false),
+  m_racing_line (mp_track->get_road (m_road_index),
+                 car_in->get_robot_parameters ().lateral_acceleration,
+                 gravity),
+  m_braking (mp_track->get_road (m_road_index),
+             car_in->get_robot_parameters ().deceleration,
+             gravity,
+             m_racing_line),
+  m_speed_factor (1.0),
+  m_follow_lengths (3.0)
+{
+  m_traction_control.set (m_target_slip);
+}
+
+void 
+Robot_Driver::propagate (double timestep) 
+{
+  // Step the driver forward in time.
+
+  // It's useful for other methods to know the size of the current timestep.
+  m_timestep = timestep;
+  m_speed = mp_car->chassis ().cm_velocity ().magnitude();
+
+  if (update_state () != PARKED)
+    drive ();
+}
+
+//* Update State
+Robot_Driver::State Robot_Driver::update_state ()
+{
+  switch (m_state)
+    {
+    case PARKED:
+      //! For now, wait for a second and then go. Eventually the start of the
+      //! race needs to be signaled.
+      static const double wait_time = 1.0;
+      set_brake (1.0);
+      mp_car->shift (0);
+      mp_car->disengage_clutch (0.0);
+      if (mp_car->engine ()->rotational_speed () < mp_car->engine ()->stall_speed ())
+        mp_car->start_engine ();
+      set_gas (0.0);
+
+      m_state_time += m_timestep;
+      if (m_state_time > wait_time)
+        {
+          set_brake (0.0);
+          m_state_time = 0.0;
+          m_state = STARTING;
+        }
+      break;
+
+    case STARTING:
+      // Operate the clutch while starting. Switch to the DRIVING state when the
+      // clutch is fully engaged.
+      static const double clutch_time = 3.0;
+      if (m_state_time == 0.0)
+        {
+          mp_car->engage_clutch (clutch_time);
+          mp_car->shift (1);
+        }
+
+      m_state_time += m_timestep;
+      if (m_state_time > clutch_time)
+        {
+          m_state_time = 0.0;
+          m_state = DRIVING;
+        }
+      break;
+
+    case DRIVING:
+      //! Go back to PARKED in pits or to retire.
+      break;
+    }
+
+  return m_state;
+}
+
+//* Drive
+void Robot_Driver::drive ()
+{
+  m_track_position = mp_track->track_coordinates (mp_car->center_position (), 
+                                                  m_road_index, 
+                                                  m_segment_index);
+  mp_segment = mp_track->get_road (m_road_index).segments ()[m_segment_index];
+
+  // Initialize the lane shift with the car's starting position.
+  if (std::abs (m_lane_shift) > 1.0)
+    m_lane_shift = get_lane_shift ();
+
+  steer ();
+  choose_gear ();
+  accelerate ();
+
+  // Avoid collisions last since we may override steering and braking.
+  if (m_interact)
+    avoid_collisions ();
+}
+
+double
+Robot_Driver::get_lane_shift () const
+{
+  double line_y = m_racing_line.from_center (m_track_position.x, m_segment_index);
+  const Road& road = mp_track->get_road (m_road_index);
+  const double edge = m_track_position.y > line_y
+    ? road.racing_line ().left_width (road, m_track_position.x)
+    : -road.racing_line ().right_width (road, m_track_position.x);
+
+  return (m_track_position.y - line_y)/(std::abs (edge - line_y));
+}
+
+//** Steer
+void
+Robot_Driver::steer ()
+{
+  // Steer to keep the car on the racing line. The target is ahead of the
+  // car as if attached to a pole that sticks out in front of the car. Trying to
+  // steer to keep the car's position on the racing line leads to
+  // instability. Using a target that's ahead of the car is very stable.
+
+  // Steer by an amount that's proportional to the cross product of the actual
+  // and desired directions. For small angles steering is approximately
+  // proportional to the angle between them. The steering wheel is set according
+  // to the output of a PID controller (although only the P term seems to be
+  // necessary). 
+  m_steer_control.set (pointer_vector ().cross (target_vector ()).z);
+  set_steering (m_steer_control.propagate (mp_car->steer_angle (), m_timestep));
+}
+
+Three_Vector
+Robot_Driver::pointer_vector () const
+{
+  // Return a vector that points in the direction of the point that the driver
+  // tries to keep on the racing line.
+  return mp_car->chassis ()
+    .transform_to_world (Three_Vector (pointer_distance (), 0.0, 0.0))
+    - mp_car->chassis ().position ();
+}
+
+double 
+Robot_Driver::pointer_distance () const
+{
+  // Return the distance from the center of the car to the steering pointer.
+  // Move the pointer farther away as speed increases to avoid high-speed
+  // instability.
+  return 2.0 * mp_car->length () + 0.2 * m_speed;
+}
+
+Three_Vector
+Robot_Driver::target_vector ()
+{
+  /// Return a vector that points in the direction of the position of the point on
+  /// the track that the driver aims for.
+  return lane_shift (m_racing_line.target (m_track_position.x, pointer_distance ()))
+     - mp_car->center_position ();
+}
+
+Three_Vector
+Robot_Driver::lane_shift (const Three_Vector& target)
+{
+  // When passing or avoiding a collision, the target will be moved off of the
+  // racing line to the left or right according to the current value of
+  // 'm_lane_shift'. This method returns the given target vector shifted by the
+  // appropriate amount.
+
+  // The value of 'm_lane_shift' ranges from -1 to 1. For positive values
+  // 'm_lane_shift' gives the target's position as a proportion of the distance
+  // from the racing line to the left edge of the track. Similarly for negative
+  // values and the right edge.
+
+  // Get the track coordinates of the target.
+  const Road& road = mp_track->get_road (m_road_index);
+  const Three_Vector track = road.track_coordinates (target, m_target_segment);
+
+  // Convert the lane shift to a distance.
+  const double across = m_lane_shift 
+    * (m_lane_shift > 0.0
+       ? road.racing_line ().left_width (road, track.x) - track.y
+       : road.racing_line ().right_width (road, track.x) + track.y);
+
+  // Shift the target vector in track coordinates and return the world
+  // coordinate vector.
+  const Gl_Road_Segment& segment = *road.segments ()[m_target_segment];
+  double along = wrap (track.x, road.length ());
+  return road.position (along, track.y + across, segment);
+}
+
+void
+Robot_Driver::set_steering (double angle)
+{
+  // Set the steering angle to 'angle'. Clip to a reasonable range. The 'true'
+  // argument indicates "direct steering"; non-linearity and speed-sensitivity
+  // are ignored..
+  const double max_angle = 1.5 * target_slip_angle ();
+  mp_car->steer (clip (angle, -max_angle, max_angle), 0.0, true);
+}
+
+double
+Robot_Driver::target_slip_angle () const
+{
+  //! Can we use a constant instead?
+  return abs_max (mp_car->wheel (0)->peak_slip_angle (),
+                  mp_car->wheel (1)->peak_slip_angle (),
+                  mp_car->wheel (2)->peak_slip_angle (),
+                  mp_car->wheel (3)->peak_slip_angle ());
+}
+
+//** Choose Gear
+void
+Robot_Driver::choose_gear ()
+{
+  if (m_state == STARTING)
+    return;
+
+  // Avoid shifting too frequently.
+  m_shift_time += m_timestep;
+  if (m_shift_time < 0.3)
+    return;
+
+  // Save some values that show up often in this method.
+  const int gear = mp_car->gear ();
+  const double throttle = mp_car->engine ()->throttle ();
+
+  // Find current the engine power and the power at maximum throttle in 1) the
+  // current gear 2) the next gear up 3) 2 gears down. Two gears to prevent
+  // downshifting to 1st and to prevent too much engine drag under braking.
+  double omega = mp_car->engine ()->rotational_speed ();
+  double up_omega = omega
+    * mp_car->transmission ()->gear_ratio (gear + 1)
+    / mp_car->transmission ()->gear_ratio (gear);
+  double down2_omega = omega
+    * mp_car->transmission ()->gear_ratio (gear - 2)
+    / mp_car->transmission ()->gear_ratio (gear);
+
+  double current_power = mp_car->engine ()->power (throttle, omega);
+  double power = mp_car->engine ()->power (1.0, omega);
+  double up_power = mp_car->engine ()->power (1.0, up_omega);
+  double down2_power = mp_car->engine ()->power (1.0, down2_omega);
+
+  // Shift up if there's more power at the current revs in the next higher
+  // gear. 
+  if (up_power > power)
+    {
+      mp_car->shift_up ();
+    }
+  // Shift up if there's enough power in the next higher gear even if there's
+  // potentially more power in the current gear. This saves fuel by lowering
+  // revs.
+  else if ((up_power > current_power)
+           && (up_power > 0.95 * power)
+           && (throttle > 0.1)
+           && (throttle < 0.9))
+    {
+      mp_car->shift_up ();
+    }
+  // Shift down if there's more power 2 gears down.
+  else if ((down2_power > power)
+           && (gear > 2))
+    {
+      mp_car->shift_down ();
+    }
+
+  // Reset the timer if the gear actually changed.
+  if (mp_car->gear () != gear)
+    m_shift_time = 0.0;
+}
+
+//** Accelerate
+void
+Robot_Driver::accelerate ()
+{
+  // Try to achieve the maximum safe speed for this point on the track.
+
+  // Save some values that show up often in this method. The normal vector
+  // calculation requires distance along the segment instead of distance along
+  // the track.
+  const double along = m_track_position.x - mp_segment->start_distance ();
+  // The 'true' argument causes kerbs to be ignored when calculating the normal
+  // for the racing line speed.
+  const Three_Vector normal = mp_segment->normal (along, m_track_position.y, false);
+  const double drag = mp_car->chassis ().aerodynamic_drag ();
+  const double lift = mp_car->chassis ().aerodynamic_lift ();
+
+  double cornering_speed 
+    = m_racing_line.maximum_speed (m_track_position.x, 
+                                   m_lane_shift,
+                                   lift,
+                                   normal,
+                                   mp_car->chassis ().mass ());
+
+  double braking_speed
+    = m_braking.maximum_speed (m_speed,
+                               m_track_position.x,
+                               m_lane_shift,
+                               drag,
+                               lift,
+                               mp_car->chassis ().mass ());
+
+  set_speed (std::min (cornering_speed, braking_speed));
+}
+
+void
+Robot_Driver::set_speed (double target_speed)
+{
+  // Set the gas and brake pedal positions. Three PID controllers are involved
+  // in setting the pedal position: 'm_speed_control' ant 'm_brake_control'
+  // attempt to reach the target speed, 'm_traction_control' attempts to limit
+  // wheel spin. Nothing prevents the gas and brake from being applied
+  // simultaneously, but with only P terms of the PID controllers being used it
+  // does not happen in practice.
+
+  // Speed may be modulated to avoid running into the back of the car in front.
+  target_speed *= m_speed_factor;
+  m_speed_control.set (target_speed);
+  double d1 = m_speed_control.propagate (m_speed, m_timestep);
+  double d2 = m_traction_control.propagate (total_slip (), m_timestep);
+  double gas = std::min (d1, d2);
+
+  if (!mp_car->clutch ()->engaged ())
+    {
+      // Keep the revs in check if the clutch is not fully engaged.
+      m_speed_control.set (0.0);
+      double error = (mp_car->engine ()->rotational_speed ()
+                      - mp_car->engine ()->peak_engine_speed ());
+      gas = std::min (gas, m_speed_control.propagate (0.01 * error, m_timestep));
+    }
+
+  set_gas (gas);
+
+  m_brake_control.set (std::min (target_speed, m_speed));
+  double b1 = -m_brake_control.propagate (m_speed, m_timestep);
+  double b2 = m_traction_control.propagate (total_slip (), m_timestep);
+  set_brake (std::min (b1, b2));
+}
+
+double
+Robot_Driver::total_slip () const
+{
+  return Three_Vector (longitudinal_slip (), transverse_slip (), 0.0).magnitude ();
+}
+
+double
+Robot_Driver::longitudinal_slip () const
+{
+  return abs_max (mp_car->wheel (0)->slip ().x,
+                  mp_car->wheel (1)->slip ().x,
+                  mp_car->wheel (2)->slip ().x,
+                  mp_car->wheel (3)->slip ().x);
+}
+
+double
+Robot_Driver::transverse_slip () const
+{
+  return abs_max (mp_car->wheel (0)->slip ().y,
+                  mp_car->wheel (1)->slip ().y,
+                  mp_car->wheel (2)->slip ().y,
+                  mp_car->wheel (3)->slip ().y);
+}
+
+void
+Robot_Driver::set_gas (double gas)
+{
+  if (gas <= 0.0)
+    {
+      // Erase the controllers' history.
+      m_speed_control.reset ();
+      m_traction_control.reset ();
+    }
+  mp_car->gas (clip (gas, 0.0, 1.0));  
+}
+
+void
+Robot_Driver::set_brake (double brake)
+{
+  if (brake <= 0.0)
+    {
+      // Erase the controllers' history.
+      m_brake_control.reset ();
+      m_traction_control.reset ();
+    }
+  mp_car->brake (clip (brake, 0.0, 1.0));
+}
+
+//** Avoid Collisions
+void
+Robot_Driver::avoid_collisions ()
+{
+  // Take action to pass or avoid potential collisions.
+  if (mp_cars == 0) return;
+
+  static const double crash_time_limit = 2.0;
+
+  double min_forward_distance_gap = 100;
+  double min_left_distance_gap = 100;
+  double min_right_distance_gap = 100;
+  Direction pass_side = NONE;
+  double crash_time = 2*crash_time_limit;
+
+  // Loop through the other cars. Each time through the loop we potentially
+  // update 'min_forward_distance_gap', 'min_left_distance_gap',
+  // 'min_right_distance_gap', 'pass_side', 'crash_time'.
+  for (std::vector <Car_Information>::const_iterator it = mp_cars->begin ();
+       it != mp_cars->end ();
+       it++)
+    {
+      // Don't check for collisions with yourself.
+      if (it->car == mp_car)
+        continue;
+
+      size_t segment = it->segment_index;
+      size_t road_index = it->road_index;
+      const Three_Vector r2_track = 
+        mp_track->track_coordinates (it->car->center_position (), 
+                                     road_index, 
+                                     segment);
+
+      Three_Vector distance_gap = find_gap (m_track_position, r2_track);
+      switch (relative_position (m_track_position, r2_track))
+        {
+        case FORWARD:
+          if ((distance_gap.x > 0) && (distance_gap.x < min_forward_distance_gap))
+            {
+              min_forward_distance_gap = distance_gap.x;
+              m_follow_lengths = maybe_passable (m_track_position.x, segment) ? 1.0 : 2.0;
+              double dv = m_speed - it->car->chassis ().cm_velocity ().magnitude ();
+              crash_time = distance_gap.x / dv;
+              pass_side = get_pass_side (m_track_position.x, distance_gap.x, dv, segment);
+            }
+          break;
+        case LEFT:
+          if ((distance_gap.y > 0) && (distance_gap.y < min_left_distance_gap))
+            {
+              min_left_distance_gap = distance_gap.y;
+            }
+          break;
+        case RIGHT:
+          if ((distance_gap.y > 0) && (distance_gap.y < min_right_distance_gap))
+            {
+              min_right_distance_gap = distance_gap.y;
+            }
+          break;
+        default:
+          break;
+        }
+    }
+
+  const double shift_step = 0.3 * m_timestep;
+
+  if (m_lane_shift != 0.0)
+    m_lane_shift_timer += m_timestep;
+
+  if ((crash_time > 0.0) && (crash_time < crash_time_limit))
+    {
+      switch (pass_side)
+        {
+        case LEFT:
+          m_lane_shift = std::min (1.0, m_lane_shift + shift_step);
+          m_lane_shift_timer = 0.0;
+          m_follow_lengths = 0.1;
+          //! 0.1 is good for the car you're passing but it's too small for a car
+          //! in front when driving off the racing line.
+          break;
+        case RIGHT:
+          m_lane_shift = std::max (-1.0, m_lane_shift - shift_step);
+          m_lane_shift_timer = 0.0;
+          m_follow_lengths = 0.1;
+          //! 0.1 is good for the car you're passing but it's too small for a car
+          //! in front when driving off the racing line.
+          break;
+        default:
+          break;
+        }
+    }
+
+  if (min_right_distance_gap < 0.5*mp_car->width ())
+    {
+      m_lane_shift = std::min (1.0, m_lane_shift + shift_step);
+      m_lane_shift_timer = 0.0;
+    }
+  else if (min_left_distance_gap < 0.5*mp_car->width ())
+    {
+      m_lane_shift = std::max (-1.0, m_lane_shift - shift_step);
+      m_lane_shift_timer = 0.0;
+    }
+  else if (m_lane_shift_timer > 2.0)
+    { // No danger of collision.  Get back to the racing line.
+      if ((m_lane_shift > 0.0) && (min_right_distance_gap > 0.5*mp_car->width ()))
+        m_lane_shift = std::max (0.0, m_lane_shift - 0.5*shift_step);
+      else if ((m_lane_shift < 0.0) && (min_left_distance_gap > 0.5*mp_car->width ()))
+        m_lane_shift = std::min (0.0, m_lane_shift + 0.5*shift_step);
+    }
+
+  m_front_gap_control.set (std::min (m_follow_lengths*mp_car->length (), 0.5*m_speed));
+
+  m_speed_factor = 
+    1.0 - clip (m_front_gap_control.propagate (min_forward_distance_gap, m_timestep),
+                0.0, 1.0);
+}
+
+Direction
+Robot_Driver::relative_position (const Three_Vector& r1_track,
+                                 const Three_Vector& r2_track) const
+{
+  const Three_Vector delta = r2_track - r1_track;
+  if ((delta.x < 1.2 * mp_car->length () && delta.x > -mp_car->length ())
+      && (std::abs (delta.y) < 3 * mp_car->width ()))
+    return (delta.y > 0) ? LEFT : RIGHT;
+  else if (std::abs (delta.y) < 3 * mp_car->width ())
+    return (delta.x > 0) ? FORWARD : BACKWARD;
+  else
+    return NONE;
+}
+
+Three_Vector
+Robot_Driver::find_gap (const Three_Vector& r1_track,
+                        const Three_Vector& r2_track) const
+{
+  return Three_Vector (r2_track.x - r1_track.x - mp_car->length (),
+                       std::abs (r2_track.y - r1_track.y) - mp_car->width (),
+                       0.0);
+}
+
+bool
+Robot_Driver::maybe_passable (double along, size_t segment) const
+{
+  return !((m_racing_line.from_center (along + 4*m_speed, segment)
+            * m_racing_line.from_center (along + 2*m_speed, segment)) < 0);
+}
+
+Direction
+Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
+                             size_t segment) const
+{
+  // Return 'RIGHT' if we should try to pass on the right, 'LEFT' if we should
+  // try to pass on the left, 'NONE' if it's better not to try.
+
+  // Give up immediately if we're not closing at a significant rate. Returning
+  // here avoids a possible divide-by-zero below. 
+  if (delta_v < 1e-6)
+    return NONE;
+
+  // We'll try to pass if the racing line stays on one side of the track far
+  // enough ahead for us to pull alongside the opponent's car at our current
+  // rate of closing, 'delta_v'.
+  double pass_distance = delta_x * m_speed / delta_v;
+
+  // We'll sample the racing line's side at three positions
+  // 1. our current position
+  double near = along;
+  // 2. the position at which we'd be alongside
+  double far = along + pass_distance;
+  // 3. midway between
+  double mid = along + 0.5*pass_distance;
+
+  std::pair <Direction, Direction> far_side;
+  {
+    double across = m_racing_line.from_center (far, segment);
+    if (across > 0)
+      {
+        far_side.first = RIGHT;
+        far_side.second = LEFT;
+      }
+    else
+      {
+        far_side.first = LEFT;
+        far_side.second = RIGHT;
+      }
+  }
+
+  Direction mid_block = NONE;
+  {
+    double across = m_racing_line.from_center (mid, segment);
+    if (across > 2)
+      mid_block = LEFT;
+    else if (across < -2)
+      mid_block = RIGHT;
+  }
+
+  Direction near_block = NONE;
+  {
+    double across = m_racing_line.from_center (near, segment);
+    if (across > 2)
+      near_block = LEFT;
+    else if (across < -2)
+      near_block = RIGHT;
+  }
+
+  if ((mid_block != far_side.first) && (near_block != far_side.first))
+    return far_side.first;
+  if ((mid_block != far_side.second) && (near_block != far_side.second))
+    return far_side.second;
+  return NONE;
+}
+
+//! Currently unused
+double
+Robot_Driver::slip_excess () const
+{
+  // Tell how much traction we have to spare.
+
+  // Subtract from the slip vector a vector in the same direction that touches
+  // the ellipse defined by the x- and y-components of the target slip vector.
+  double r = total_slip ();
+  // The direction is undefined for r=0.  Arbitrarily pick x.  
+  if (r < 1.0e-9)
+    return -m_target_slip;
+  double x = longitudinal_slip ();
+  double y = transverse_slip ();
+  // The factor that relates the lengths of the slip and target vectors. 
+  double c = m_target_slip / std::sqrt (x*x + y*y);
+  return r * (1.0 - c);
+}
+
+//** Draw
+void
+Robot_Driver::draw ()
+{
+  /// Optionally show the target and vector as green and red squares.
+  if (!m_show_steering_target)
+    return;
+
+  glLoadIdentity ();
+  glPointSize (8.0);
+  glBegin (GL_POINTS);
+
+  // Draw where the car is currently pointed.
+  const Three_Vector pointer (mp_car->center_position () + pointer_vector ());  
+  glColor3d (0.0, 0.8, 0.0);
+  glVertex3d (pointer.x, pointer.y, pointer.z);
+
+  // Draw the point on the racing line.
+  const Three_Vector goal (mp_car->center_position () + target_vector ());
+  glColor3d (8.0, 0.0, 0.0);
+  glVertex3d (goal.x, goal.y, goal.z + 0.1);
+
+  glEnd ();
+}
+
+//-----------------------------------------------------------------------------
+
+// The distance resolution of the braking speed calculation
+static const double delta_x = 10.0;
+// Braking is applied gradually.  It reaches its maximum in this many meters.
+static const double fade_in = 50.0;
+
+Braking_Operation::Braking_Operation (const Road& road,
+                                      double deceleration,
+                                      double gravity,
+                                      const Robot_Racing_Line& line)
+  : m_start (0.0),
+    m_length (0.0),
+    m_is_braking (false),
+    m_road (road),
+    m_deceleration (deceleration),
+    m_gravity (gravity),
+    m_line (line)
+{
+}
+
+Braking_Operation::~Braking_Operation ()
+{
+  // Do the proper cleanup if we were deleted during a braking operation.
+  end ();
+}
+
+void
+Braking_Operation::start (double start, double length)
+{
+  // Use start distance and length instead of start and end to avoid issues with
+  // wrapping around the track.
+  m_start = start;
+  m_length = length;
+  m_is_braking = true;
+}
+
+void
+Braking_Operation::end ()
+{
+  m_is_braking = false;
+}
+
+bool
+Braking_Operation::check_done_braking (double distance)
+{
+  if (past_end (distance))
+    end ();
+  return !m_is_braking;
+}
+
+double
+Braking_Operation::distance_from_start (double distance) const
+{
+  if (distance >= m_start)
+    return (distance - m_start);
+  else // wrap around the track
+    return (distance + m_road.length () - m_start);
+}
+
+bool
+Braking_Operation::past_end (double distance) const
+{
+  return (distance_from_start (distance) > m_length);
+}
+
+double 
+Braking_Operation::deceleration (const Three_Vector& curvature,
+                                 double speed, 
+                                 double drag,
+                                 double lift,
+                                 const Three_Vector& n_hat,
+                                 const Three_Vector& p_hat,
+                                 double mass,
+                                 double fraction) const
+{
+  double c = curvature.magnitude ();
+  double mu = m_deceleration * fraction;
+  double v2 = speed * speed;
+  Three_Vector r_hat = curvature.unit ();
+  return (m_gravity*p_hat.z 
+          - v2*drag/mass
+          + mu * (m_gravity*n_hat.z - v2*(lift/mass + c*r_hat.dot (n_hat))));
+}
+
+Three_Vector
+Braking_Operation::get_normal (double along) const
+{
+  const Road_Segment* segment = m_road.segment_at (along);
+  double along_segment = along - segment->start_distance ();
+  return segment->normal (along_segment, 0.0);
+}
+
+double
+Braking_Operation::delta_braking_speed (double speed,
+                                        double cornering_speed,
+                                        double along,
+                                        double lane_shift,
+                                        const Three_Vector& normal,
+                                        double drag, 
+                                        double lift, 
+                                        double mass,
+                                        double fraction) const
+{
+  Three_Vector curvature = m_line.curvature (along, lane_shift);
+  Three_Vector p = m_line.tangent (along);
+
+  double a = deceleration (curvature, speed, drag, lift, normal, p, mass, fraction);
+  double a_par = a * (1.0 - speed / cornering_speed);
+  return a_par * delta_x / speed;
+}
+
+double 
+Braking_Operation::maximum_speed (double speed,
+                                  double distance,
+                                  double lane_shift,
+                                  double drag,
+                                  double lift,
+                                  double mass)
+{
+  // Return the maximum safe speed under braking.
+
+  // See if we've past the end of a braking operation.
+  check_done_braking (distance);
+
+  // If we're in the middle of a braking operation, get the speed from the speed
+  // vs. braking curve.
+  if (is_braking ())
+    {
+      if (distance < m_speed_vs_distance [0].x)
+        distance += m_road.length ();
+      return m_speed_vs_distance.interpolate (distance);
+    }
+
+  // Calculate the car's speed as a function of distance if braking started now.
+  // If the projected speed exceeds the maximum cornering speed calculated from
+  // the racing line then braking should start now.  When this happens, find the
+  // minimum cornering speed and calculate distance vs. speed backwards from
+  // there. 
+
+  Two_Vector minimum_speed_vs_distance (0.0, speed);
+
+  // True if projected braking speed exceeds cornering speed anywhere.
+  bool too_fast = false;
+  // True if a minimum in the cornering speed was found in the distance range
+  // where projected braking speed exceeds cornering speed.
+  bool found_min = false;
+  double start_speed = speed;
+  // Look up to 1000 m ahead.
+  for (double d = 0.0; d < 1000.0; d += delta_x)
+    {
+      double along = wrap (distance + d, m_road.length ());
+      Three_Vector normal = get_normal (along);
+      double cornering_speed 
+        = m_line.maximum_speed (along, lane_shift, lift, normal, mass);
+
+      // Apply braking gradually.
+      double braking_fraction = std::min (d / fade_in, 1.0);
+      double dv = delta_braking_speed (speed, cornering_speed, along, lane_shift, 
+                                       normal, drag, lift, mass, braking_fraction);
+
+      speed -= dv;
+      if (speed <= 0.0)
+        break;
+
+      if (speed >= cornering_speed)
+        {
+          // Already too fast, nothing we can do.
+          if (d == 0.0)
+            break;
+          too_fast = true;
+        }
+      else if (too_fast)
+        {
+          // We've gone from a region where braking speed is higher than
+          // cornering speed to one where it's lower.  Keep going in case
+          // there's another curve up ahead that requires harder braking.
+          found_min = true;
+          too_fast = false;
+        }
+
+      if (too_fast && (cornering_speed < minimum_speed_vs_distance.y))
+        minimum_speed_vs_distance = Two_Vector (d, cornering_speed);
+    }
+
+  // No need to start braking yet.
+  if (!found_min)
+    return std::numeric_limits <double>::max ();
+
+  // Build the speed vs. distance curve by working backwards from the minimum
+  // speed.  Start one interval beyond the end; end one interval before the
+  // beginning to ensure that the interpolations are good slightly beyond the
+  // endpoints.
+  too_fast = false;
+  std::vector <Two_Vector> points;
+  speed = minimum_speed_vs_distance.y;
+  for (double d = minimum_speed_vs_distance.x; d > -delta_x; d -= delta_x)
+    {
+      // Use un-wrapped distances so the interpolator's points are in order. 
+      points.push_back (Two_Vector (distance + d, speed));
+
+      double along = wrap (distance + d, m_road.length ());
+      Three_Vector normal = get_normal (along);
+      double cornering_speed 
+        = m_line.maximum_speed (along, lane_shift, lift, normal, mass);
+
+      double braking_fraction = std::min (d / fade_in, 1.0);
+      double dv = delta_braking_speed (speed, cornering_speed, along, lane_shift, 
+                                       normal, drag, lift, mass, braking_fraction);
+
+      if (too_fast && (cornering_speed < minimum_speed_vs_distance.y))
+        minimum_speed_vs_distance = Two_Vector (d, cornering_speed);
+
+      if (speed >= cornering_speed)
+        {
+          if (!too_fast)
+            {
+              minimum_speed_vs_distance = Two_Vector (d, cornering_speed);
+              // Found an earlier curve that requires a lower speed.
+              too_fast = true;
+            }
+        }
+      else if (too_fast)
+        {
+          // Found the new minimum.  Start over from there.
+          d = minimum_speed_vs_distance.x;
+          speed = minimum_speed_vs_distance.y;
+          points.clear ();
+          points.push_back (minimum_speed_vs_distance 
+                            + Two_Vector (distance + delta_x, 0.0));
+          too_fast = false;
+        }
+      else
+        speed += dv;
+    }
+
+  // The interpolator requires ascending x-values.  Reverse the points.
+  m_speed_vs_distance.clear ();
+  std::reverse (points.begin (), points.end ());
+  m_speed_vs_distance.load (points);
+
+  // Scale speed vs. distance so it matches the passed-in speed at the passed-in
+  // distance.  This is usually a small adjustment, but can be significant when
+  // curves are closely spaced.
+  double delta_speed = start_speed - m_speed_vs_distance [0].y;
+  for (size_t i = 0; i < m_speed_vs_distance.size (); i++)
+    {
+      double fraction 
+        = ((distance + minimum_speed_vs_distance.x - m_speed_vs_distance [i].x)
+           / (distance + minimum_speed_vs_distance.x - m_speed_vs_distance [0].x));
+      m_speed_vs_distance [i].y += fraction * delta_speed;
+    }
+
+  // Mark the start of a braking operation.
+  start (distance, minimum_speed_vs_distance.x);
+  // No need to restrict speed yet.  Next call will get it from the newly
+  // calculated speed vs. distance curve.
+  return std::numeric_limits <double>::max ();
+}
+
+//-----------------------------------------------------------------------------
+Robot_Racing_Line::Robot_Racing_Line (const Road& road,
+                                      double lateral_acceleration,
+                                      double gravity)
+  : mp_road (&road),
+    m_lateral_acceleration (lateral_acceleration),
+    m_gravity (gravity)
+{
+}
+
+Three_Vector
+Robot_Racing_Line::curvature (double along, double lane_shift) const
+{
+  return mp_road->racing_line ().curvature (along, lane_shift);
+}
+
+Three_Vector
+Robot_Racing_Line::tangent (double along) const
+{
+  return mp_road->racing_line ().tangent (along);
+}
+
+double
+Robot_Racing_Line::maximum_speed (double distance, 
+                                  double lane_shift,
+                                  double lift,
+                                  const Three_Vector& n_hat,
+                                  double mass) const
+{
+  const Three_Vector curve = curvature (distance, lane_shift);
+  double c = curve.magnitude ();
+  double mu = m_lateral_acceleration;
+  Three_Vector r_hat = curve.unit ();
+  Three_Vector r_perp (-r_hat.y, r_hat.x, 0.0);
+  Three_Vector q_hat = n_hat.rotate (0.5 * pi * r_perp.unit ());
+
+  double upper = m_gravity*(q_hat.z + mu*n_hat.z);
+  double lower = c*(r_hat.dot(q_hat) + mu*r_hat.dot(n_hat)) + mu*lift/mass;
+
+  if (lower > 1e-9)
+    return std::sqrt (upper / lower);
+  else
+    return std::numeric_limits <double>::max ();
+}
+
+Three_Vector
+Robot_Racing_Line::target (double along, double lead) const
+{
+  return mp_road->racing_line ().position (along + lead);
+}
+
+double
+Robot_Racing_Line::from_center (double along, size_t segment) const
+{
+  Three_Vector r = target (along, 0.0);
+  glVertex3d (100, 1, 1);//r.x, r.y, 1);
+
+  return mp_road->track_coordinates (target (along, 0.0), segment).y;
+}

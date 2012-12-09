@@ -1,0 +1,339 @@
+<?xml version="1.0"?>
+<!-- Converted from the RARS track file mosport.trk by trk-kerb. -->
+<track name="Mosport">
+
+  <racing-line show="0" />
+
+  <sky>
+    <sides>textures/sky_sides.png</sides>
+	<top>textures/sky_top.png</top>
+	<bottom>textures/sky_bottom.png</bottom>
+	<smooth/>
+  </sky>
+
+  <!-- Material Properties -->
+
+  <material name="track" type="asphalt">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.01</bump-amplitude>
+	<bump-wavelength>100.0</bump-wavelength>
+	<texture>
+	  <file>textures/track2.png</file>
+	  <length>200.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="grass" type="grass">
+	<friction>0.7</friction>
+	<restitution>0.1</restitution>
+	<rolling>5.0</rolling>
+	<drag>20.0</drag>	
+	<bump-amplitude>0.03</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/grass.png</file>
+	  <width>10.0</width>
+	  <length>12.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="gravel" type="gravel">
+	<friction>0.8</friction>
+	<restitution>0.0</restitution>
+	<rolling>40.0</rolling>
+	<drag>200.0</drag>	
+	<bump-amplitude>0.05</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/gravel3.png</file>
+	  <width>10.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="tires" type="rubber">
+	<friction>1.0</friction>
+	<restitution>0.8</restitution>
+	<rolling>1.0</rolling>
+	<drag>5.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/tires.png</file>
+	  <width>0.33</width>
+	  <length>3.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="rail" type="metal">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>	
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/rail.png</file>
+	  <width>0.375</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="wall" type="concrete">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+	<texture>
+	  <file>textures/wall.png</file>
+	  <width>1.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="kerb" type="kerb">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.06</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/kerb.png</file>
+	  <width>2.0</width>
+	  <length>4.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <!-- Segment Properties -->
+
+  <segment name="straight">
+    [ rail grass kerb track kerb grass wall ]
+  </segment>
+  <segment name="left turn">
+    [ rail grass kerb track kerb gravel tires ]
+  </segment>
+  <segment name="right turn">
+    [ tires gravel kerb track kerb grass rail ]
+  </segment>
+
+  <!-- The track -->
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>150.0</length>
+	<left-width>[ 0.0, 25.0 ]</left-width>
+	<right-width>[ 0.0, 25.0 ]</right-width>
+	<left-road-width>[ 0.0, 8.0 ]</left-road-width>
+	<right-road-width>[ 0.0, 8.0 ]</right-road-width>
+	<left-wall-height>1.1</left-wall-height>
+	<right-wall-height>1.1</right-wall-height>
+	<elevation>[ 100.0, 0.0 ]</elevation>
+	<elevation>[ 150.0, -2.0 ]</elevation>
+  </road>
+
+  <!-- 1 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>231.8</length>
+    <radius>-128.0</radius>
+	<elevation>[ 240.0, -18.0 ]</elevation>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>300.0</length>
+	<elevation>[ 50.0, -18.0 ]</elevation>
+	<elevation>[ 240.0, -6.0 ]</elevation>
+  </road>
+
+  <!-- 2 -->
+  <road segment="left turn">
+    <resolution>2.0</resolution>
+    <length>305.6</length>
+    <radius>152.4</radius>
+	<elevation>[ 158.0, -16.0 ]</elevation>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>160.0</length>
+	<elevation>[ 200.0, -11.0 ]</elevation>
+  </road>
+
+  <!-- 3 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>152.2</length>
+    <radius>-91.4</radius>
+	<elevation>[ 120.0, -11.0 ]</elevation>
+  </road>
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>130.0</length>
+    <radius>-175.9</radius>
+	<elevation>[ 150.0, -14.0 ]</elevation>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>270.0</length>
+	<elevation>[ 150.0, -14.0 ]</elevation>
+	<elevation>[ 310.0, -10.0 ]</elevation>
+  </road>
+
+  <!-- 4 -->
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>137.0</length>
+    <radius>121.9</radius>
+	<elevation>[ 112.0, -20.0 ]</elevation>
+  </road>
+
+  <road segment="straight">
+    <resolution>5.0</resolution>
+    <length>100.0</length>
+	<elevation>[ 65.0, -22.0 ]</elevation>
+	<elevation>[ 130.0, -20.0 ]</elevation>
+  </road>
+
+  <!-- 5a -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>84.0</length>
+    <radius>-48.8</radius>
+	<elevation>[ 75.0, -14.0 ]</elevation>
+  </road>
+
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>40.0</length>
+	<elevation>[ 20.0, -14.0 ]</elevation>
+	<elevation>[ 40.0, -14.0 ]</elevation>
+  </road>
+
+  <!-- Moss 5b -->
+  <road segment="straight">
+    <resolution>1.0</resolution>
+    <length>15.8</length>
+    <radius>-10.4</radius>
+	<elevation>[ 33.0, -16.0 ]</elevation>
+  </road>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>50.0</length>
+	<elevation>[ 100.0, -16.0 ]</elevation>
+  </road>
+
+  <!-- 5c -->
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>157.3.0</length>
+    <radius>243.8</radius>
+	<elevation>[ 95.0, -16.0 ]</elevation>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>150.0</length>
+	<elevation>[ 300.0, 5.0 ]</elevation>
+  </road>
+
+  <!-- 6 -->
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>95.8</length>
+    <radius>-609.6</radius>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>200.0</length>
+	<elevation>[ 210.0, -1.0 ]</elevation>
+  </road>
+
+  <!-- 7 -->
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>171.7</length>
+    <radius>-609.6</radius>
+	<elevation>[ 220.0, -3.0 ]</elevation>
+  </road>
+
+  <!-- Andretti Straight -->
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>360.0</length>
+	<elevation>[ 130.0, 4.0 ]</elevation>
+	<elevation>[ 250.0, -2.0 ]</elevation>
+  </road>
+
+  <!-- 8 -->
+  <road segment="right turn">
+    <resolution>2.0</resolution>
+    <length>255.8</length>
+    <radius>-152.4</radius>
+	<elevation>[ 220.0, 0.0 ]</elevation>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>55.0</length>
+  </road>
+
+  <!-- 9 -->
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>130.0</length>
+    <radius>103.6</radius>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>50.0</length>
+	<elevation>[ 70.0, -1.0 ]</elevation>
+  </road>
+
+  <!-- White 10 -->
+  <road segment="straight">
+    <resolution>2.0</resolution>
+    <length>100.0</length>
+    <radius>-60.0</radius>
+	<elevation>[ 105.0, 0.0 ]</elevation>
+  </road>
+
+  <road segment="straight">
+    <resolution>10.0</resolution>
+    <length>180.0</length>
+  </road>
+
+  <!-- Force the track to close -->
+  <circuit/>
+
+  <!-- Define the timing sectors -->
+  <timing-line>10.0</timing-line>
+  <timing-line>700.0</timing-line>
+  <timing-line>1800.0</timing-line>
+
+  <track-length>3957.0</track-length>
+</track>

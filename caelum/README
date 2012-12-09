@@ -1,0 +1,102 @@
+There's a version of this document with pictures at
+<vamos.sourceforge.net/caelum>
+
+Usage: caelum [options] image-file.ppm
+	Run Caelum, a tool for creating sky boxes.
+
+The image file is mapped onto a sphere and six views are shown.  The
+views are from the center of the sphere looking up (top row), down
+(bottom row), front, right, back, and left (middle row).  When these
+images are mapped to the faces of a cube and viewed from the center of
+the cube, the view in any direction is indistinguishable from the view
+from the center of the sphere.  The images for the sky box are
+extracted by taking a screenshot.
+
+
+Installation
+------------
+
+To install, copy .libs/lt-caelum to /usr/local/bin/caelum.
+Caelum requires libvamos-geometry and libsigc++.  If you install Vamos
+first, you should be ready to go.
+
+
+Options
+-------
+
+--divisions=DIV
+-d DIV	
+	Specify the number of latitude divisions.  The number of longitude
+	divisions is twice DIV.  The default value is 16.
+
+--height=HEIGHT
+-h HEIGHT		
+	Specify the height of the window in pixels.  The height of each view
+	entire window will be HEIGHT/2.  The default is 1.5 times the
+	height of the source image.
+
+--width=WIDTH
+-w WIDTH
+	Specify the width of the window in pixels.  The width of each view
+	window will be WIDTH/4.  The default is twice the width of the
+	source image.
+
+--help
+	Display a help message and exit successfully. 
+
+--version
+	Display version information and exit successfully.
+
+
+Controls
+--------
+
+<Left>
+<Right>
+	Rotate the image about the vertical axis.
+
+<Up>
+<Down>
+	Shift the image vertically.
+
+<Page Up>
+<Page Down>
+	Scale the image vertically.  
+
+
+Example
+-------
+
+Load the sky image from the textures directory.
+
+	 ./caelum ../data/textures/sky.ppm
+
+This image comes from the Sky collection at
+<http://www.vb3d.com/Textures.html>.  It is not (and doesn't claim to
+be) a true panorama.  As a result, the top is pinched in the center.
+Using the <Up>, <Down>, <Page Up>, and <Page Down> keys you can change
+the position of the horizon and make the mountains appear taller or
+shorter.
+
+When you're satisfied, take a screenshot and chop it up with
+an image manipulation program such as the GIMP.  For Vamos, you need
+three images, the top view, the bottom view, and the entire strip of
+side views.  The sky box images are specified in the XML track files.
+
+
+Possible Enhancements
+-------- ------------
+
+o The ability to write the transformed images to files would be
+  useful.
+
+o Better use of the blank space on the screen could be made by showing
+  instructions, current scaling parameters, or other useful bits of
+  information.
+
+
+Caelum comes with ABSOLUTELY NO WARRANTY.  You may redistribute copies
+of Caelum under the terms of the GNU General Public License.  For more
+information about these matters, see the file named COPYING.
+
+Report bugs to snick-a-doo@attbi.com

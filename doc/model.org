@@ -1,0 +1,41 @@
+In Vamos, a car is modeled as a rigid body that consists of point masses at
+fixed relative positions.  The total mass, the location of the center of mass,
+and the inertia tensor are calculated from these masses.  All forces and torques
+on the body are exerted by the point masses.  When the model is propagated
+forward in time, the linear and angular acceleration are calculated from the
+these forces and torques and the mass distribution.
+
+A point mass may be of any type derived from the class 'Particle'.
+- Particle: Has mass and weight
+  - Contact_Point: Can collide with other objects
+    - Wheel: Provides force and torque from tire friction and the reaction
+      torque from braking.
+  - Drag: Provides aerodynamic drag
+    - Wing: Provides aerodynamic downforce
+  - Engine: Provides reaction torque from engine rotation
+  - Fuel_Tank: Mass decreases as fuel is used
+  - Suspension: Provides forces from springs, dampers, and anti-roll bars
+
+The car is controlled by setting the throttle, brake, clutch, gear, and
+steering. 
+
+The 'Engine' object determines how much torque is applied to the driven wheels
+based on its rotational velocity and the current throttle setting.  The torque
+curve can be defined by spline interpolation through specified points, or by the
+3rd-order polynomial given in Genta's book.
+
+Tire friction is calculated from the Pacejka function, or "magic equation".
+Longitudinal and transverse components are coupled to limit the total frictional
+force. 
+
+An instance of the class 'World' mediates the interaction of a car with its
+environment.  It provides 
+1. the acceleration due to gravity for calculating weight
+2. the atmospheric density, and velocity for calculating wind resistance and
+   downforce 
+3. information about contact with the track and walls
+4. information about contact with other cars
+
+The usual situation where the car is in contact with the road is handled as a
+collision between the wheel and the track.  The suspension forces are calculated
+from information about this collision.

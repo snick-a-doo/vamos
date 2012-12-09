@@ -1,0 +1,227 @@
+<?xml version="1.0" standalone="no"?>
+
+<!-- An example track for the documentation -->
+
+<track name="Demo">
+
+  <racing-line show="1">
+    <iterations>200</iterations>
+    <stiffness>2.0</stiffness>
+  </racing-line>
+  
+  <!-- Sky Box -->
+
+  <sky>
+    <sides>textures/sky_sides.png</sides>
+	<top>textures/sky_top.png</top>
+	<bottom>textures/sky_bottom.png</bottom>
+	<smooth/>
+  </sky>
+
+  <!-- Material Properties -->
+
+  <material name="track" type="asphalt">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.01</bump-amplitude>
+	<bump-wavelength>100.0</bump-wavelength>
+	<texture>
+	  <file>textures/track2.png</file>
+	  <length>200.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="grass" type="grass">
+	<friction>0.7</friction>
+	<restitution>0.1</restitution>
+	<rolling>5.0</rolling>
+	<drag>20.0</drag>	
+	<bump-amplitude>0.03</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/grass.png</file>
+	  <width>10.0</width>
+	  <length>12.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="gravel" type="gravel">
+	<friction>0.8</friction>
+	<restitution>0.0</restitution>
+	<rolling>40.0</rolling>
+	<drag>200.0</drag>	
+	<bump-amplitude>0.05</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/gravel3.png</file>
+	  <width>10.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="tires" type="rubber">
+	<friction>1.0</friction>
+	<restitution>0.8</restitution>
+	<rolling>1.0</rolling>
+	<drag>5.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/red-tires.png</file>
+	  <width>0.33</width>
+	  <length>3.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="rail" type="metal">
+	<friction>1.0</friction>
+	<restitution>0.5</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>	
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/rail.png</file>
+	  <width>0.34</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="wall" type="concrete">
+	<friction>1.0</friction>
+	<restitution>0.5</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+	<texture>
+	  <file>textures/wall.png</file>
+	  <width>1.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="kerb" type="kerb">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.06</bump-amplitude>
+	<bump-wavelength>2.0</bump-wavelength>
+	<texture>
+	  <file>textures/red-kerb.png</file>
+	  <width>2.0</width>
+	  <length>4.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <!-- Segment Properties -->
+
+  <segment name="straight">
+    [ wall grass kerb track kerb grass rail ]
+  </segment>
+  <segment name="straight pit">
+    [ wall track kerb track kerb grass rail ]
+  </segment>
+  <segment name="left turn">
+    [ wall grass kerb track kerb gravel tires ]
+  </segment>
+  <segment name="left turn pit">
+    [ wall track kerb track kerb gravel tires ]
+  </segment>
+  <segment name="right turn">
+    [ tires gravel kerb track kerb grass rail ]
+  </segment>
+
+  <!-- The track -->
+
+  <!-- front straight -->
+  <start-direction>0.0</start-direction>
+  <start-slope>0.0</start-slope>
+
+  <road segment="straight">
+    <resolution>2.0</resolution>
+	<length>200.0</length>
+	<left-width>[ 0.0, 16.0 ]</left-width>
+	<right-width>[ 0.0, 16.0 ]</right-width>
+	<left-road-width>[ 0.0, 8.0 ]</left-road-width>
+	<right-road-width>[ 0.0, 8.0 ]</right-road-width>
+	<left-wall-height>1.0</left-wall-height>
+	<right-wall-height>1.0</right-wall-height>
+  </road>
+
+  <road segment="left turn">
+    <length>50.0</length>
+    <radius>25.0</radius>
+  </road>
+  <road segment="straight">
+    <length>50.0</length>
+  </road>
+  <road segment="left turn">
+    <length>60.0</length>
+    <radius>40.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>150.0</length>
+  </road>
+
+  <road segment="right turn">
+    <length>72.0</length>
+    <radius>-30.0</radius>
+  </road>
+  <road segment="straight">
+    <length>30.0</length>
+  </road>
+  <road segment="left turn">
+    <length>41.0</length>
+    <radius>20.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>100.0</length>
+  </road>
+
+  <road segment="left turn">
+    <length>90.0</length>
+    <radius>70.0</radius>
+  </road>
+  <road segment="straight">
+    <length>30.0</length>
+  </road>
+  <road segment="left turn">
+    <length>30.0</length>
+    <radius>20.0</radius>
+  </road>
+
+  <road segment="straight">
+    <length>50.0</length>
+  </road>
+
+  <!-- Force the track to close.-->
+  <circuit/>
+
+  <!-- Define the timing sectors. -->
+  <timing-line>10.0</timing-line>
+  <timing-line>700.0</timing-line>
+  <timing-line>1800.0</timing-line>
+
+  <!-- Adjust the total length if necessary. -->
+  <track-length>1133.0</track-length>
+</track>

@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+
+<track name="Skid Pad">
+  <racing-line>
+    <resolution>10.0</resolution>
+  </racing-line>
+
+  <sky>
+    <sides>textures/sky_sides.png</sides>
+	<top>textures/sky_top.png</top>
+	<bottom>textures/sky_bottom.png</bottom>
+	<smooth/>
+  </sky>
+
+  <!-- Material Properties -->
+
+  <material name="track" type="asphalt">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.01</bump-amplitude>
+	<bump-wavelength>100.0</bump-wavelength>
+	<texture>
+	  <file>textures/track2.png</file>
+	  <length>200.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="rail" type="metal">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>	
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+    <texture>
+	  <file>textures/rail.png</file>
+	  <width>0.34</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <material name="wall" type="concrete">
+	<friction>1.0</friction>
+	<restitution>0.1</restitution>
+	<rolling>1.0</rolling>
+	<drag>0.0</drag>
+	<bump-amplitude>0.0</bump-amplitude>
+	<bump-wavelength>1.0</bump-wavelength>
+	<texture>
+	  <file>textures/wall.png</file>
+	  <width>1.0</width>
+	  <length>10.0</length>
+	  <smooth/>
+	  <mipmap/>
+	</texture>
+  </material>
+
+  <!-- Segment Properties -->
+
+  <segment name="skid pad">
+    [ wall track track track track track rail ]
+  </segment>
+
+  <!-- The track -->
+
+  <road segment="skid pad">
+    <resolution>2.0</resolution>
+    <length>628.0</length>
+	<radius>100.0</radius>
+	<left-width>[ 0.0, 50.0 ]</left-width>
+	<right-width>[ 0.0, 100.0 ]</right-width>
+	<left-road-width>[ 0.0, 0.0 ]</left-road-width>
+	<right-road-width>[ 0.0, 50.0 ]</right-road-width>
+	<left-wall-height>1.0</left-wall-height>
+	<right-wall-height>1.0</right-wall-height>
+	<bank>0.0</bank>
+  </road>
+
+  <road segment="skid pad">
+    <resolution>2.0</resolution>
+    <length>1.0</length>
+	<radius>100.0</radius>
+	<bank>0.0</bank>
+  </road>
+
+  <!-- Force the track to close.-->
+  <circuit segments="1" />
+</track>

@@ -1,0 +1,319 @@
+<?xml version="1.0"?>
+
+<car name="GT">
+  <robot>
+    <slip-ratio>[ 8.0, 5.0 ]</slip-ratio>
+    <deceleration>[ 10.0, 0.0 ]</deceleration>
+    <lateral-acceleration>[ 12, 0.0 ]</lateral-acceleration>
+  </robot>
+
+  <exterior-model>
+    <file>GT.ac</file>
+	<scale>1.0</scale>
+	<translate>[ 0.0, 0.0, 0.0 ]</translate>
+	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
+  </exterior-model>
+  <interior-model>
+    <file>GT-interior.ac</file>
+	<scale>1.0</scale>
+	<translate>[ 0.0, 0.0, 0.0 ]</translate>
+	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
+  </interior-model>
+
+  <view>
+    <position>[ 2.07, 1.24, 1.0 ]</position>
+    <field-width>60.0</field-width>
+	<near-plane>0.5</near-plane>
+	<far-plane>700.0</far-plane>
+	<pan-angle>60.0</pan-angle>
+  </view>
+  <mirror>
+    <position>[ 3, 2.0, 0.8 ]</position>
+	<size>[ 0.25, 0.25 ]</size>
+	<direction>160.0</direction>
+    <field-width>60.0</field-width>
+	<near-plane>2.0</near-plane>
+	<far-plane>400.0</far-plane>
+	<mask>square-mask.png</mask>
+  </mirror>
+  <mirror>
+    <position>[ 2.5, 1.03, 1.1 ]</position>
+	<size>[ 0.30, 0.10 ]</size>
+	<direction>180.0</direction>
+    <field-width>30.0</field-width>
+	<near-plane>6.0</near-plane>
+  </mirror>
+
+  <dashboard>
+    <position>[ 2.9, 1.24, 0.68 ]</position>
+	<tilt>10.0</tilt>
+	<mirror-frame>
+	  <position>[ -0.77, 0.09, -0.1 ]</position>
+	  <size>[ 0.27, 0.28 ]</size>
+	  <image>square-mirror-frame.png</image>
+	</mirror-frame>
+
+    <tachometer>
+	  <position>[ -0.13, 0.01, 0.0 ]</position>
+	  <radius>0.08</radius>
+	  <min>[ 0.0, 215.0 ]</min>
+	  <max>[ 10000.0, 505.0 ]</max>
+	  <face>tachometer-face.png</face>
+	  <needle>needle.png</needle>
+	</tachometer>
+
+    <speedometer>
+	  <position>[ 0.13, 0.01, 0.0 ]</position>
+	  <radius>0.08</radius>
+	  <min>[ 0.0, 215.0 ]</min>
+	  <max>[ 300.0, 505.0 ]</max>
+	  <face>speedometer-face.png</face>
+	  <needle>needle.png</needle>
+	</speedometer>
+
+	<fuel-gauge>
+	  <position>[ 0.0, 0.01, 0.0 ]</position>
+	  <radius>0.04</radius>
+	  <min>[ 0.0, 300.0 ]</min>
+	  <max>[ 100.0, 420.0 ]</max>
+	  <face>fuel-face.png</face>
+	  <needle>needle.png</needle>
+	</fuel-gauge>
+
+	<gear-indicator>
+	  <position>[ 0.02, 0.06, 0.0 ]</position>
+	  <size>[ 0.04, 0.06 ]</size>
+	  <image>gears.png</image>
+	  <numbers>8</numbers>
+	</gear-indicator>
+
+	<steering-wheel>
+	  <position>[ 0.0, -0.03, 0.3 ]</position>
+	  <radius>0.22</radius>
+	  <min>[ -10.0, 110.0 ]</min>
+	  <max>[ 10.0, -110.0 ]</max>
+	  <image>steering-wheel.png</image>
+	</steering-wheel>
+	<extras/>
+  </dashboard>
+
+  <steering>
+    <max-angle>20.0</max-angle>
+	<exponent>2.0</exponent>
+	<speed-sensitivity>0.0</speed-sensitivity>
+  </steering>
+
+  <drivetrain>
+    <!-- auto-neutral/ -->
+    <engine>
+	  <position>[ 3.5, 0.88, 0.2 ]</position>
+	  <mass>200.0</mass>
+      <max-power>2.5e5</max-power>
+	  <peak-engine-rpm>8000.0</peak-engine-rpm>
+      <!-- torque-curve friction="0.00025">
+        [ 1000.0, 150.0 ]
+        [ 2000.0, 200.0 ]
+        [ 6000.0, 300.0 ]
+        [ 8000.0 250.0 ]
+      </torque-curve -->
+	  <rpm-limit>10000.0</rpm-limit>
+	  <inertia>0.18</inertia>
+	  <idle>0.05</idle>
+	  <start-rpm>1000</start-rpm>
+	  <stall-rpm>0</stall-rpm>
+	  <fuel-consumption>0.0001</fuel-consumption>
+
+      <sound>
+        <file>engine.wav</file>
+		<pitch>0.001</pitch>
+		<volume>0.1</volume>
+		<throttle-volume-factor>1.0</throttle-volume-factor>
+		<engine-speed-volume-factor>0.001</engine-speed-volume-factor>
+	  </sound>
+    </engine>
+
+    <clutch>
+      <sliding>0.5</sliding>
+	  <radius>0.25</radius>
+	  <area>0.2</area>
+	  <max-pressure>1.0e4</max-pressure>
+    </clutch>
+
+    <transmission>
+	  <forward-gears>5</forward-gears>
+	  <first-ratio>3.00</first-ratio>
+	  <last-ratio>1.20</last-ratio>
+	  <shift-delay>0.2</shift-delay>
+    </transmission>
+
+    <differential>
+      <final-drive>3.44</final-drive>
+	  <anti-slip>300.0</anti-slip>
+    </differential>
+  </drivetrain>
+
+  <fuel-tank>
+    <position>[ 2.00, 0.88, 0.1 ]</position>
+	<capacity>100.0</capacity>
+	<volume>100.0</volume>
+	<fuel-density>0.8</fuel-density>
+  </fuel-tank>
+
+  <!-- Wheels -->
+  <wheel side="right" end="front">
+    <model>
+	  <slow-file>wheel.ac</slow-file>
+	  <fast-file>wheel.ac</fast-file>
+	  <transition-speed>30.0</transition-speed>
+	  <scale>0.22</scale>
+	  <translate>[ 0.0, 0.0, 0.0 ]</translate>
+	  <rotate>[ 0.0, 0.0, 0.0 ]</rotate>
+    </model>
+
+    <steered/>
+    <position>[ 3.7, 0.12, 0.1 ]</position>
+	<roll-height>0.16</roll-height>
+	<mass>30.0</mass>
+	<restitution>0.1</restitution>
+
+    <suspension>
+	  <position>[ 3.7, 0.35, 0.1 ]</position>
+	  <hinge>[ 2.8, 0.35, 0.2 ]</hinge>
+	  <spring-constant>18000.0</spring-constant>
+	  <bounce>4000.0</bounce>
+	  <rebound>4000.0</rebound>
+	  <travel>0.4</travel>
+	  <max-compression-velocity>10.0</max-compression-velocity>
+	  <camber>-0.5</camber>
+	  <caster>0.0</caster>
+	  <toe>0.0</toe>
+	</suspension>
+
+	<tire>
+      <friction>
+        <longitudinal>
+          [ 1.65, 0.0, 1690.0, 0.0, 229.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
+        </longitudinal>
+	    <transverse>
+	      [ 1.80, 0.0, 1690.0, 1200.0, 6.03, 0.0, -0.359, 1.0, -0.05, 0.0, 0.0, -8.0, -0.2, 0.0, 0.0 ]
+	    </transverse>
+	    <aligning>
+	      [ 2.07, -6.49, -21.9, 0.416, -21.3, 2.94e-2, 0.0, -1.20, 5.23, -14.8, 0.0, 0.0, -3.74e-3, 3.89e-2, 0.0, 0.0, 0.0, 0.0 ]
+	    </aligning>
+	  </friction>
+	  <radius>0.328</radius>
+      <rolling-resistance>[ 1.3e-2, 6.5e-6 ]</rolling-resistance>
+	  <rotational-inertia>10.0</rotational-inertia>
+    </tire>
+ 
+    <brakes>
+	  <friction>0.8</friction>
+	  <max-pressure>2.5e6</max-pressure>
+      <front-bias>0.57</front-bias>
+	  <radius>0.2</radius>
+	  <area>0.01</area>
+    </brakes>
+  </wheel>
+
+  <wheel side="left" end="front">
+    <steered/>
+    <position>[ 3.7, 1.66, 0.1 ]</position>
+	<suspension>
+	  <position>[ 3.7, 1.46, 0.1 ]</position>
+	  <hinge>[ 2.8, 1.46, 0.2 ]</hinge>
+	  <anti-roll>19000.0</anti-roll>
+	</suspension>
+  </wheel>
+
+  <wheel side="right" end="rear">
+    <driven/>
+    <position>[ 1.0, 0.12, 0.08 ]</position>
+	<roll-height>0.1</roll-height>
+    <tire>
+	  <radius>0.328</radius>
+	</tire>
+    <suspension>
+	  <position>[ 1.0, 0.32, 0.1 ]</position>
+	  <hinge>[ 1.8, 0.32, 0.2 ]</hinge>
+	  <spring-constant>16000.0</spring-constant>
+	  <bounce>4000.0</bounce>
+	  <rebound>4000.0</rebound>
+	  <toe>0.0</toe>
+	  <camber>-0.0</camber>
+	  <caster>0.0</caster>
+	</suspension>
+  </wheel>
+
+  <wheel side="left" end="rear">
+    <driven/>
+    <position>[ 1.0, 1.66, 0.08 ]</position>
+	<suspension>
+	  <position>[ 1.0, 1.46, 0.1 ]</position>
+	  <hinge>[ 1.8, 1.46, 0.2 ]</hinge>
+	  <anti-roll>14000.0</anti-roll>
+	</suspension>
+  </wheel>
+
+  <contact-point>
+    <mass>60.0</mass>
+    <position>[ 0.0, 0.0, 0.5 ]</position>
+	<material>metal</material>
+	<friction>0.0</friction>
+	<restitution>0.1</restitution>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 4.49, 0.0, 0.0 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 0.0, 1.76, 0.0 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 4.49, 1.76, 0.0 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 0.0, 0.0, 0.5 ]</position>
+    <mass>20.0</mass>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 4.49, 0.0, 0.5 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 0.0, 1.76, 0.5 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 4.49, 1.76, 0.5 ]</position>
+  </contact-point>
+
+  <particle>
+    <position>[ 2.0, 0.88, 0.2 ]</position>
+	<mass>100.0</mass>
+  </particle>
+
+  <drag>
+    <position>[ 2.0, 0.88, 0.25 ]</position>
+	<frontal-area>2.0</frontal-area>
+	<drag-coefficient>0.6</drag-coefficient>
+  </drag>
+
+  <wing>
+    <position>[ 4.49, 0.88, 0.01 ]</position>
+	<frontal-area>0.2</frontal-area>
+	<surface-area>0.3</surface-area>
+	<lift-coefficient>-0.5</lift-coefficient>
+	<efficiency>0.95</efficiency>
+  </wing>
+  <wing>
+    <position>[ 0.0, 0.88, 0.5 ]</position>
+	<frontal-area>0.2</frontal-area>
+	<surface-area>0.5</surface-area>
+	<lift-coefficient>-0.5</lift-coefficient>
+	<efficiency>0.95</efficiency>
+  </wing>
+</car>

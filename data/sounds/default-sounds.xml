@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<sounds name="Default Sounds">
+  <sample-rate>44000</sample-rate>
+  <buffer-duration>0.2</buffer-duration>
+
+  <!-- Tires on a pavement or concrete -->
+  <tire-squeal>
+    <file>tire_squeal.wav</file>
+	<pitch>1.0</pitch>
+	<volume>0.5</volume>
+  </tire-squeal>
+
+  <!-- Tires on kerbs -->
+  <kerb-sound>
+    <file>kerb.wav</file>
+	<pitch>0.002</pitch>
+	<volume>0.5</volume>
+  </kerb-sound>
+
+  <!-- Anything on grass -->
+  <grass-sound>
+    <file>rumble.wav</file>
+  </grass-sound>
+
+  <!-- Anything on gravel -->
+  <gravel-sound>
+    <file>rumble.wav</file>
+  </gravel-sound>
+
+  <!-- Metal on pavement or concrete -->
+  <scrape-sound>
+    <file>rumble.wav</file>
+  </scrape-sound>
+
+  <!-- Wind noise -->
+  <wind-sound>
+    <file>wind.wav</file>
+	<volume>0.1</volume>
+  </wind-sound>
+
+  <!-- Collision with grass or gravel -->
+  <soft-crash-sound>
+    <file>rumble.wav</file>
+  </soft-crash-sound>
+
+  <!-- Collision with pavement or concrete -->
+  <hard-crash-sound>
+    <file>crash.wav</file>
+  </hard-crash-sound>
+</sounds>
