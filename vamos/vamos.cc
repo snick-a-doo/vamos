@@ -327,7 +327,8 @@ int main (int argc, char* argv [])
           for (size_t i = 0; i < number_of_opponents; i++)
             {
               car = new Vamos_Body::Gl_Car (position, orientation);
-              car->read (data_dir, car_files [std::min (car_files.size () - 1, i + 1)]);
+              size_t index = number_of_opponents - i;
+              car->read (data_dir, car_files [std::min (car_files.size () - 1, index)]);
               car->start_engine ();
               Robot_Driver* driver = new Robot_Driver (car, &track, world.get_gravity ());
               driver->interact (!no_interaction);
