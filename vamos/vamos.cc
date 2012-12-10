@@ -179,10 +179,8 @@ get_car_files (const std::string& car_file)
   std::vector <std::string> car_files;
 
   path car_path (get_path (car_file, "cars", false));
-  std::cerr << "path=" << car_path.native () << std::endl;
   if (is_directory (car_path))
     {
-      std::cerr << "dir\n";
       for (directory_iterator it = directory_iterator (car_path);
            it != directory_iterator ();
            it++)
@@ -193,10 +191,7 @@ get_car_files (const std::string& car_file)
       std::sort (car_files.begin (), car_files.end ());
     }
   else
-    {
-      std::cerr << "file\n";
       car_files.push_back (get_path (car_file, "cars"));
-    }
 
   return car_files;
 }
@@ -306,21 +301,29 @@ int main (int argc, char* argv [])
   track.show_racing_line (show_line);
 
   std::vector <std::string> car_files = get_car_files (car_file);
-  for (std::vector <std::string>::const_iterator it = car_files.begin ();
-       it != car_files.end ();
-       it++)
-    std::cerr << *it << std::endl;
 
   Vamos_Body::Gl_Car* car = 0;
   if (!map_mode)
     {
       try
         {
-          Three_Vector position (0.0, 3.0, 0.0);
+          Three_Vector position (8.0, 3.0, 0.0);
           Three_Matrix orientation;
           const double grid_interval = 8.0;
           const Vamos_Track::Road& road = track.get_road (0);
 
+          // Place cars on the grid from back to front to avoid putting cars off
+          // the end of a non-circuit track.
+          if (!demo)
+            {
+              car = new Vamos_Body::Gl_Car (position, orientation);
+              car->read (data_dir, car_files [0]);
+              car->start_engine ();
+              world.add_car (car, new Interactive_Driver (car), road, true);
+
+              position.x += grid_interval;
+              position.y *= -1.0;
+            }
           for (size_t i = 0; i < number_of_opponents; i++)
             {
               car = new Vamos_Body::Gl_Car (position, orientation);
@@ -331,27 +334,22 @@ int main (int argc, char* argv [])
               driver->show_steering_target (show_line);
               world.add_car (car, driver, road);
 
-              position.x -= grid_interval;
+              position.x += grid_interval;
               position.y *= -1.0;
             }
 
-          if (!demo)
-            {
-              car = new Vamos_Body::Gl_Car (position, orientation);
-              car->read (data_dir, car_files [0]);
-              car->start_engine ();
-              world.add_car (car, new Interactive_Driver (car), road, true);
-            }
-
           if (car != 0)
-            track.build_racing_line (number_of_opponents >= 1);
+            {
+              world.set_focused_car (0);
+              track.build_racing_line (number_of_opponents >= 1);
+            }
         }
       catch (XML_Exception& error)
         {
           std::cerr << error.message () << std::endl;
           std::exit (EXIT_FAILURE);
         }
-      catch (Vamos_Media::Malformed_Ac3d_File& error)
+      catch (Vamos_Media::Ac3d_Exception& error)
         {
           std::cerr << error.message () << std::endl;
           std::exit (EXIT_FAILURE);
