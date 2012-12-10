@@ -108,7 +108,7 @@
     <engine>
 	  <position>[ 3.5, 0.88, 0.2 ]</position>
 	  <mass>200.0</mass>
-      <max-power>2.5e5</max-power>
+      <max-power>2.0e5</max-power>
 	  <peak-engine-rpm>8000.0</peak-engine-rpm>
       <!-- torque-curve friction="0.00025">
         [ 1000.0, 150.0 ]
@@ -179,9 +179,9 @@
     <suspension>
 	  <position>[ 3.7, 0.35, 0.1 ]</position>
 	  <hinge>[ 2.8, 0.35, 0.2 ]</hinge>
-	  <spring-constant>20000.0</spring-constant>
-	  <bounce>1500.0</bounce>
-	  <rebound>1500.0</rebound>
+	  <spring-constant>25000.0</spring-constant>
+	  <bounce>2000.0</bounce>
+	  <rebound>2000.0</rebound>
 	  <travel>0.4</travel>
 	  <max-compression-velocity>10.0</max-compression-velocity>
 	  <camber>-0.5</camber>
@@ -192,7 +192,7 @@
 	<tire>
       <friction>
         <longitudinal>
-          [ 1.65, 0.0, 1690.0, 0.0, 229.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
+          [ 1.65, 0.0, 1590.0, 0.0, 229.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
         </longitudinal>
 	    <transverse>
 	      [ 1.80, 0.0, 1690.0, 1200.0, 6.03, 0.0, -0.359, 1.0, -0.05, 0.0, 0.0, -8.0, -0.2, 0.0, 0.0 ]
@@ -235,9 +235,9 @@
     <suspension>
 	  <position>[ 1.0, 0.32, 0.1 ]</position>
 	  <hinge>[ 1.8, 0.32, 0.2 ]</hinge>
-	  <spring-constant>18000.0</spring-constant>
-	  <bounce>1500.0</bounce>
-	  <rebound>1500.0</rebound>
+	  <spring-constant>23000.0</spring-constant>
+	  <bounce>2000.0</bounce>
+	  <rebound>2000.0</rebound>
 	  <toe>0.0</toe>
 	  <camber>-0.0</camber>
 	  <caster>0.0</caster>
@@ -255,7 +255,7 @@
   </wheel>
 
   <contact-point>
-    <mass>60.0</mass>
+    <mass>30.0</mass>
     <position>[ 0.0, 0.0, 0.5 ]</position>
 	<material>metal</material>
 	<friction>0.0</friction>

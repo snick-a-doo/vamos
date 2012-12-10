@@ -4,7 +4,7 @@
 <car name="F1">
   <robot>
     <slip-ratio>8.0</slip-ratio>
-    <deceleration>1.1</deceleration>
+    <deceleration>1.9</deceleration>
     <lateral-acceleration>1.9</lateral-acceleration>
   </robot>
 
@@ -304,7 +304,7 @@
     <position>[ 4.0, 0.9, 0.01 ]</position>
 	<frontal-area>0.2</frontal-area>
 	<surface-area>0.3</surface-area>
-	<lift-coefficient>-7.0</lift-coefficient>
+	<lift-coefficient>-6.5</lift-coefficient>
 	<efficiency>0.5</efficiency>
   </wing>
   <wing>
@@ -312,7 +312,7 @@
     <position>[ 0.0, 0.9, 0.5 ]</position>
 	<frontal-area>0.2</frontal-area>
 	<surface-area>0.5</surface-area>
-	<lift-coefficient>-7.0</lift-coefficient>
+	<lift-coefficient>-6.5</lift-coefficient>
 	<efficiency>0.5</efficiency>
   </wing>
 </car>

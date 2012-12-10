@@ -39,7 +39,7 @@
 	<mask>round-mask.png</mask>
   </mirror>
   <mirror>
-    <position>[ 2.5, 0.5, 0.49 ]</position>
+    <position>[ 2.0, 0.6, 0.49 ]</position>
 	<direction>200.0</direction>
   </mirror>
 
@@ -92,65 +92,16 @@
 	</steering-wheel>
   </dashboard>
 
-  <drivetrain>
-    <engine>
-	  <position>[ 0.8, 0.8, 0.3 ]</position>
-	  <mass>300.0</mass>
-      <max-power>3.0e5</max-power>
-	  <peak-engine-rpm>9000.0</peak-engine-rpm>
-	  <rpm-limit>10000.0</rpm-limit>
-	  <inertia>0.3</inertia>
-	  <idle>0.015</idle>
-	  <start-rpm>800</start-rpm>
-	  <stall-rpm>0</stall-rpm>
-	  <fuel-consumption>0.0001</fuel-consumption>
-
-      <sound>
-        <file>engine.wav</file>
-		<pitch>0.001</pitch>
-		<volume>0.1</volume>
-		<throttle-volume-factor>1.0</throttle-volume-factor>
-		<engine-speed-volume-factor>0.002</engine-speed-volume-factor>
-	  </sound>
-    </engine>
-
-    <clutch>
-      <sliding>0.5</sliding>
-	  <radius>0.25</radius>
-	  <area>0.2</area>
-	  <max-pressure>3.0e4</max-pressure>
-    </clutch>
-
-    <transmission>
-	  <forward-gears>5</forward-gears>
-	  <first-ratio>2.53</first-ratio>
-	  <last-ratio>1.10</last-ratio>
-	  <shift-delay>0.2</shift-delay>
-    </transmission>
-
-    <differential>
-      <final-drive>3.44</final-drive>
-	  <anti-slip>100.0</anti-slip>
-    </differential>
-  </drivetrain>
-
-  <fuel-tank>
-    <position>[ 1.0, 0.8, 0.15 ]</position>
-	<capacity>173.0</capacity>
-	<volume>100.0</volume>
-	<fuel-density>0.8</fuel-density>
-  </fuel-tank>
-
   <steering>
     <max-angle>32.0</max-angle>
 	<exponent>2.0</exponent>
-	<speed-sensitivity>6.0</speed-sensitivity>	
+	<speed-sensitivity>0.0</speed-sensitivity>	
   </steering>
 
   <drivetrain>
     <engine>
 	  <position>[ 1.0, 0.8, 0.1 ]</position>
-	  <mass>100.0</mass>
+	  <mass>80.0</mass>
 
       <max-power>3e5</max-power><!-- hp * 746 W/hp -->
 	  <peak-engine-rpm>9000.0</peak-engine-rpm>
@@ -211,8 +162,8 @@
     </model>
 
     <steered/>
-    <position>[ 2.8, 0.0, 0.09 ]</position>
-	<roll-height>0.3</roll-height>
+    <position>[ 2.8, 0.0, 0.05 ]</position>
+	<roll-height>0.1</roll-height>
 	<mass>30.0</mass>
 	<restitution>0.1</restitution>
 
@@ -220,7 +171,7 @@
 	  <model>
 		<file>F1-1967-arm.ac</file>
 		<scale>0.53</scale>
-		<translate>[ 0.0, 0.65, 0.37 ]</translate>
+		<translate>[ 0.0, 0.65, 0.27 ]</translate>
 		<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
 	  </model>
 	  <model>
@@ -231,25 +182,25 @@
 	  </model>
 
 	  <position>[ 2.8, 0.0, 0.0 ]</position>
-	  <hinge>[ 1.9, 0.0, 0.1 ]</hinge>
-	  <spring-constant>18000.0</spring-constant>
-	  <bounce>1500.0</bounce>
-	  <rebound>1500.0</rebound>
+	  <hinge>[ 0.0, 0.0, 0.0 ]</hinge>
+	  <spring-constant>14000.0</spring-constant>
+	  <bounce>2500.0</bounce>
+	  <rebound>2500.0</rebound>
 	  <travel>0.5</travel>
 	  <max-compression-velocity>10.0</max-compression-velocity>
-	  <camber>0.5</camber>
+	  <camber>-0.75</camber>
 	  <caster>0.0</caster>
-	  <toe>-1.5</toe>
+	  <toe>0.0</toe>
 	</suspension>
 
 	<tire>
 	  <offset>0.3</offset>
       <friction>
         <longitudinal>
-          [ 1.4, 0.0, 1300.0, 0.0, 300.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
+          [ 1.65, 0.0, 1490.0, 0.0, 229.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
         </longitudinal>
 	    <transverse>
-	      [ 2.0, 0.0, 1600.0, 1200.0, 6.03, 0.0, -0.359, 1.0, -0.05, 0.0, 0.0, -8.0, -0.2, 0.0, 0.0 ]
+	      [ 1.80, 0.0, 1490.0, 1200.0, 6.03, 0.0, -0.359, 1.0, -0.05, 0.0, 0.0, -8.0, -0.2, 0.0, 0.0 ]
 	    </transverse>
 	    <aligning>
 	      [ 2.07, -6.49, -21.9, 0.416, -21.3, 2.94e-2, 0.0, -1.20, 5.23, -14.8, 0.0, 0.0, -3.74e-3, 3.89e-2, 0.0, 0.0, 0.0, 0.0 ]
@@ -262,8 +213,8 @@
  
     <brakes>
 	  <friction>0.8</friction>
-	  <max-pressure>1.0e6</max-pressure>
-      <front-bias>0.58</front-bias>
+	  <max-pressure>1.5e6</max-pressure>
+      <front-bias>0.60</front-bias>
 	  <radius>0.37</radius>
 	  <area>0.01</area>
     </brakes>
@@ -271,11 +222,11 @@
 
   <wheel side="left" end="front">
     <steered/>
-    <position>[ 2.8, 1.6, 0.09 ]</position>
+    <position>[ 2.8, 1.6, 0.05 ]</position>
 	<suspension>
 	  <position>[ 2.8, 1.6, 0.0 ]</position>
-	  <hinge>[ 1.9, 1.6, 0.1 ]</hinge>
-	  <anti-roll>15000.0</anti-roll>
+	  <hinge>[ 0.0, 1.6, 0.0 ]</hinge>
+	  <anti-roll>15800.0</anti-roll>
 	</suspension>
   </wheel>
 
@@ -284,21 +235,21 @@
     <position>[ 0.37, 0.0, 0.09 ]</position>
     <suspension>
 	  <position>[ 0.37, 0.0, 0.0 ]</position>
-	  <hinge>[ 1.5, 0.0, 0.1 ]</hinge>
-	  <spring-constant>20000.0</spring-constant>
-	  <camber>1.0</camber>
+	  <hinge>[ 2.8, 0.0, 0.0 ]</hinge>
+	  <spring-constant>15800.0</spring-constant>
+	  <camber>-1.0</camber>
 	  <caster>0.0</caster>
-	  <toe>1.0</toe>
+	  <toe>0.0</toe>
 	</suspension>
   </wheel>
 
   <wheel side="left" end="rear">
     <driven/>
-    <position>[ 0.2, 1.6, 0.1 ]</position>
+    <position>[ 0.37, 1.6, 0.09 ]</position>
 	<suspension>
-	  <position>[ 0.2, 1.8, 0.0 ]</position>
-	  <hinge>[ 1.5, 1.5, 0.10 ]</hinge>
-	  <anti-roll>12000.0</anti-roll>
+	  <position>[ 0.37, 1.6, 0.0 ]</position>
+	  <hinge>[ 2.8, 1.6, 0.0 ]</hinge>
+	  <anti-roll>12300.0</anti-roll>
 	</suspension>
   </wheel>
 
@@ -349,7 +300,7 @@
   </contact-point>
 
   <particle>
-    <position>[ 1.0, 0.8, 0.0 ]</position>
+    <position>[ 2.0, 0.8, 0.0 ]</position>
 	<mass>200.0</mass>
   </particle>
 
