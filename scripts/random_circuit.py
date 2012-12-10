@@ -13,7 +13,6 @@
 
 import vamos_track
 import random
-import clutter
 import sys
 import math
 
@@ -29,11 +28,16 @@ class Random_Curve ():
     def __init__ (self):
         self.x = random.uniform (-500, 500)
         self.y = random.uniform (-500, 500)
-        self.r = random.uniform (25, 100)
+        self.r = random.uniform (25, 150)
 
         self.start_angle = 0
         self.end_angle = 2*math.pi
+
+        # 1 if CCW, -1 if CW, 0 if not yet decided.
         self.direction = 0
+
+        # True if this curve's circle is entirely within the tangent lines
+        # connecting the neighboring circles.
         self.hidden = False
 
     def center (self):
@@ -43,13 +47,8 @@ class Random_Curve ():
         return distance (self.center (), c.center ())
 
     def overlap (self, c):
+        # True if this circle overlaps any part of c.
         return self.distance (c) < (self.r + c.r)
-
-    def show (self):
-        print self.x, self.y, self.signed_r (), self.start_angle, self.end_angle
-
-    def edge_point (self, angle):
-        return Point(self.x + self.r*math.cos (angle), self.y + self.r*math.sin (angle))
 
     def set_start_angle (self, angle):
         while angle < 0: angle += 2*math.pi
@@ -59,11 +58,14 @@ class Random_Curve ():
         while angle < self.start_angle: angle += 2*math.pi
         self.end_angle = angle
 
+    def _edge_point (self, angle):
+        return Point(self.x + self.r*math.cos (angle), self.y + self.r*math.sin (angle))
+
     def arc_start_point (self):
-        return self.edge_point (self.start_angle)
+        return self._edge_point (self.start_angle)
 
     def arc_end_point (self):
-        return self.edge_point (self.end_angle)
+        return self._edge_point (self.end_angle)
 
     def arc_length (self):
         delta = self.direction * (self.end_angle - self.start_angle)
@@ -147,11 +149,11 @@ def connect_curves (curves):
         c2.set_start_angle (angle)
     return curves
 
-class random_circuit (vamos_track.vamos_track):
+class Random_Circuit (vamos_track.vamos_track):
     def __init__ (self):
         vamos_track.vamos_track.__init__ (self, True)
         self.direction = random.choice ([-1, 1])
-        self.corners = random.randint (6, 12)
+        self.corners = random.randint (6, 10)
         self.curves = connect_curves (
             set_directions (self.generate_curves (self.corners)))
 
@@ -199,81 +201,81 @@ class random_circuit (vamos_track.vamos_track):
         self.add_segment (self.curves [end].arc_length (), self.curves [end].signed_r ())
         self.add_segment (distances [max_index]/2, 0)
 
-class circuit_viewer (clutter.Stage):
-    def __init__ (self):
-        clutter.Stage.__init__ (self)
-        self.set_size (600, 600)
-        self.set_color (clutter.Color (10, 10, 100))
-        self.connect ('key-press-event', self.handle_event)
-        self.connect ('button-press-event', self.handle_event)
-        self.connect ('destroy', clutter.main_quit)
-        self.track = None
-        self.new_track ()
+# class Circuit_Viewer (clutter.Stage):
+#     def __init__ (self):
+#         clutter.Stage.__init__ (self)
+#         self.set_size (600, 600)
+#         self.set_color (clutter.Color (10, 10, 100))
+#         self.connect ('key-press-event', self.handle_event)
+#         self.connect ('button-press-event', self.handle_event)
+#         self.connect ('destroy', clutter.main_quit)
+#         self.track = None
+#         self.new_track ()
 
-    def handle_event (self, stage, event):
-        done = False
-        try:
-            done = (event.keyval == clutter.keysyms.Escape 
-                    or chr (event.keyval) == 'q')
-        except:
-            pass
-        if done:
-            self.write_quit ()
-        else:
-            self.new_track ()
+#     def handle_event (self, stage, event):
+#         done = False
+#         try:
+#             done = (event.keyval == clutter.keysyms.Escape 
+#                     or chr (event.keyval) == 'q')
+#         except:
+#             pass
+#         if done:
+#             self.write_quit ()
+#         else:
+#             self.new_track ()
 
-    def new_track (self):
-        self.remove_all ()
-        self.track = random_circuit ()
-        self.track.construct ()
-        self.show_curves ()
+#     def new_track (self):
+#         self.remove_all ()
+#         self.track = Random_Circuit ()
+#         self.track.construct ()
+#         self.show_curves ()
 
-    def write_quit (self):
-        self.track.write_track ('/tmp/random-circuit.xml')
-        clutter.main_quit ()
+#     def write_quit (self):
+#         self.track.write_track ('/tmp/random-circuit.xml')
+#         clutter.main_quit ()
 
-    def show_curves (self):
-        canvas = clutter.CairoTexture (int (self.get_width ()), 
-                                       int (self.get_height ()))
-        self.add (canvas)
-        cr = canvas.cairo_create ()
-        cr.translate (self.get_width ()/2, self.get_height ()/2)
-        # Flip y so that +ve y is up.  This makes +ve theta CCW.
-        cr.scale (self.get_width ()/1400, -self.get_height ()/1400)
-        cr.set_line_width (3)
-        # Mark the center.
-        cr.arc (0, 0, 3, 0, 2*math.pi)
-        cr.set_source_rgb (0.5, 0.0, 0.0)
-        cr.fill ()
-        # Draw and connect the circles.
-        cr.move_to (0, 0)
-        for c in self.track.curves:
-            cr.line_to (c.x, c.y)
-            cr.set_source_rgb (0.0, 0.0, 0.5)
-            cr.stroke ()
-            cr.arc (c.x, c.y, c.r, 0, 2*math.pi)
-            cr.set_source_rgb (0.5, 0.5, 0.5)
-            cr.stroke ()
-            cr.move_to (c.x, c.y)
-        cr.line_to (self.track.curves [0].x, self.track.curves [0].y)
-        cr.set_source_rgb (0.2, 0.2, 0.5)
-        cr.stroke ()
-        # Draw the track.
-        cr.set_source_rgb (0.0, 1.0, 0.0)
-        c = self.track.curves [-1]
-        p = c.arc_end_point ()
-        cr.move_to (p.x, p.y)
-        for c in self.track.curves:
-            p = c.arc_start_point ()
-            cr.line_to (p.x, p.y)
-            cr.stroke ()
-            if c.direction < 0:
-                cr.arc_negative (c.x, c.y, c.r, c.start_angle, c.end_angle)
-            else:
-                cr.arc (c.x, c.y, c.r, c.start_angle, c.end_angle)
-            cr.stroke ()
-            p = c.arc_end_point ()
-            cr.move_to (p.x, p.y)
+#     def show_curves (self):
+#         canvas = clutter.CairoTexture (int (self.get_width ()), 
+#                                        int (self.get_height ()))
+#         self.add (canvas)
+#         cr = canvas.cairo_create ()
+#         cr.translate (self.get_width ()/2, self.get_height ()/2)
+#         # Flip y so that +ve y is up.  This makes +ve theta CCW.
+#         cr.scale (self.get_width ()/1400, -self.get_height ()/1400)
+#         cr.set_line_width (3)
+#         # Mark the center.
+#         cr.arc (0, 0, 3, 0, 2*math.pi)
+#         cr.set_source_rgb (0.5, 0.0, 0.0)
+#         cr.fill ()
+#         # Draw and connect the circles.
+#         cr.move_to (0, 0)
+#         for c in self.track.curves:
+#             cr.line_to (c.x, c.y)
+#             cr.set_source_rgb (0.0, 0.0, 0.5)
+#             cr.stroke ()
+#             cr.arc (c.x, c.y, c.r, 0, 2*math.pi)
+#             cr.set_source_rgb (0.5, 0.5, 0.5)
+#             cr.stroke ()
+#             cr.move_to (c.x, c.y)
+#         cr.line_to (self.track.curves [0].x, self.track.curves [0].y)
+#         cr.set_source_rgb (0.2, 0.2, 0.5)
+#         cr.stroke ()
+#         # Draw the track.
+#         cr.set_source_rgb (0.0, 1.0, 0.0)
+#         c = self.track.curves [-1]
+#         p = c.arc_end_point ()
+#         cr.move_to (p.x, p.y)
+#         for c in self.track.curves:
+#             p = c.arc_start_point ()
+#             cr.line_to (p.x, p.y)
+#             cr.stroke ()
+#             if c.direction < 0:
+#                 cr.arc_negative (c.x, c.y, c.r, c.start_angle, c.end_angle)
+#             else:
+#                 cr.arc (c.x, c.y, c.r, c.start_angle, c.end_angle)
+#             cr.stroke ()
+#             p = c.arc_end_point ()
+#             cr.move_to (p.x, p.y)
 
 sys.argv = sys.argv [1:]
 
@@ -293,10 +295,11 @@ print seed
 random.seed (seed)
 
 if show:
-    viewer = circuit_viewer ()
+    import clutter
+    viewer = Circuit_Viewer ()
     viewer.show_all ()
     clutter.main ()
 else:
-    track = random_circuit ()
+    track = Random_Circuit ()
     track.construct ()
     track.write_track ('/tmp/random-circuit.xml')

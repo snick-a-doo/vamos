@@ -146,7 +146,7 @@ header = '''<?xml version="1.0"?>
   <!-- The track -->
 '''
 
-first_segment_extras = '''<left-width>[ 0.0, 25.0 ]</left-width>
+first_segment_extras = '''    <left-width>[ 0.0, 25.0 ]</left-width>
     <right-width>[ 0.0, 25.0 ]</right-width>
     <left-road-width>[ 0.0, 8.0 ]</left-road-width>
     <right-road-width>[ 0.0, 8.0 ]</right-road-width>
@@ -186,8 +186,7 @@ first_segment_extras = '''<left-width>[ 0.0, 25.0 ]</left-width>
 		</transition>
 	  </end>
 	  <profile>[ 1.0, 0.1 ][ 2.0, 0.1 ][ 2.1, 0.0 ]</profile>
-	</left-kerb>
-'''
+	</left-kerb>'''
 
 def angle_to_radius (angle, length):
     radius = length / (math.pi * (angle / 180.0))
@@ -238,33 +237,35 @@ class road_segment:
     def add_braking_markers (self, side):
         self.braking_marker_side = side
 
-    def print_segment (self, first = False):
+    def print_segment (self, first, turn = None):
         '''Print the XML for this segment'''
-        print '''<road segment="%s">
-<resolution>2</resolution>
-<length>%f</length>
-<radius>%f</radius>''' % (self.name, self.length, self.radius)
+        if turn != None:
+            print '  <!-- Turn %d -->' % turn
+        print '''  <road segment="%s">
+    <resolution>2</resolution>
+    <length>%.1f</length>
+    <radius>%.1f</radius>''' % (self.name, self.length, self.radius)
         if first:
             print first_segment_extras
         for e in self.elevation:
-            print '<elevation>%s</elevation>' % e
+            print '    <elevation>[ %.1f, %.1f ]</elevation>' % (e[0], e[1])
         if self.braking_marker_side != None:
             for distance in [ 50, 100, 150 ]:
                 if distance > self.length:
                     break;
-                print '''<braking-marker>
-<file>textures/%d.png</file>
-<distance>%d.0</distance>
-  <size>[ 1.4, 0.7 ]</size>
-  <offset>[ 2.0, 0.0 ]</offset>
-  <side>%s</side>
-</braking-marker>''' % (distance, distance, self.braking_marker_side)
+                print '''    <braking-marker>
+      <file>textures/%d.png</file>
+      <distance>%d.0</distance>
+      <size>[ 1.4, 0.7 ]</size>
+      <offset>[ 2.0, 0.0 ]</offset>
+      <side>%s</side>
+    </braking-marker>''' % (distance, distance, self.braking_marker_side)
         if self.camera_distance != None:
-            print '''<camera>
-<position>[ %f, 20.0, 5.0 ]</position>
-<range>%f</range>
-</camera>''' % (self.camera_distance / 2, self.camera_distance)
-        print '</road>'
+            print '''    <camera>
+      <position>[ %.1f, 20.0, 5.0 ]</position>
+      <range>%.1f</range>
+    </camera>''' % (self.camera_distance / 2, self.camera_distance)
+        print '  </road>\n'
 
 class vamos_track ():
     elevation_distance_range = [30.0, 400.0]
@@ -357,8 +358,13 @@ class vamos_track ():
         sys.stdout = out
         print header
         first = True
+        turn = 0
         for s in self.segments:
-            s.print_segment (first)
+            if s.name != 'straight':
+                turn += 1
+                s.print_segment (first, turn)
+            else:
+                s.print_segment (first)
             first = False
         if self.close:
             print '  <circuit/>'
