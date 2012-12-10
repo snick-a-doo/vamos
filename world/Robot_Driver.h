@@ -224,13 +224,13 @@ namespace Vamos_World
                        const Vamos_Geometry::Three_Vector& r2_track) const;
 
     Vamos_Geometry::Three_Vector 
-    find_gap (const Vamos_Geometry::Three_Vector& r1_track,
-              const Vamos_Geometry::Three_Vector& r2_track) const;
+    find_gap (const Car_Information& car_2) const;
     bool maybe_passable (double along, size_t segment) const;
     Vamos_Geometry::Direction get_pass_side (double along, 
                                              double delta_x, 
                                              double delta_v,
                                              size_t segment) const;
+    Vamos_Geometry::Direction get_block_side (double along, size_t segment) const;
 
     Vamos_Geometry::Three_Vector lane_shift (const Vamos_Geometry::Three_Vector& target);
     void set_steering (double angle);

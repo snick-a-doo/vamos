@@ -153,8 +153,7 @@ void Robot_Driver::drive ()
   accelerate ();
 
   // Avoid collisions last since we may override steering and braking.
-  if (m_interact)
-    avoid_collisions ();
+  avoid_collisions ();
 }
 
 double
@@ -456,6 +455,8 @@ Robot_Driver::avoid_collisions ()
   Direction pass_side = NONE;
   double crash_time = 2*crash_time_limit;
 
+  if (m_interact)
+    {
   // Loop through the other cars. Each time through the loop we potentially
   // update 'min_forward_distance_gap', 'min_left_distance_gap',
   // 'min_right_distance_gap', 'pass_side', 'crash_time'.
@@ -474,7 +475,7 @@ Robot_Driver::avoid_collisions ()
                                      road_index, 
                                      segment);
 
-      Three_Vector distance_gap = find_gap (m_track_position, r2_track);
+      Three_Vector distance_gap = find_gap (*it);
       switch (relative_position (m_track_position, r2_track))
         {
         case FORWARD:
@@ -503,7 +504,7 @@ Robot_Driver::avoid_collisions ()
           break;
         }
     }
-
+    }
   const double shift_step = 0.3 * m_timestep;
 
   if (m_lane_shift != 0.0)
@@ -516,21 +517,19 @@ Robot_Driver::avoid_collisions ()
         case LEFT:
           m_lane_shift = std::min (1.0, m_lane_shift + shift_step);
           m_lane_shift_timer = 0.0;
-          m_follow_lengths = 0.1;
-          //! 0.1 is good for the car you're passing but it's too small for a car
-          //! in front when driving off the racing line.
           break;
         case RIGHT:
           m_lane_shift = std::max (-1.0, m_lane_shift - shift_step);
           m_lane_shift_timer = 0.0;
-          m_follow_lengths = 0.1;
-          //! 0.1 is good for the car you're passing but it's too small for a car
-          //! in front when driving off the racing line.
           break;
         default:
           break;
         }
     }
+
+  // Let the car get close if we're passing.
+  if ((m_lane_shift_timer > 0.0) && (m_lane_shift_timer < 2.0))
+    m_follow_lengths = 0.1;
 
   if (min_right_distance_gap < 0.5*mp_car->width ())
     {
@@ -572,11 +571,33 @@ Robot_Driver::relative_position (const Three_Vector& r1_track,
 }
 
 Three_Vector
-Robot_Driver::find_gap (const Three_Vector& r1_track,
-                        const Three_Vector& r2_track) const
+Robot_Driver::find_gap (const Car_Information& car_2) const
 {
+  //! Is car info the right place to calculate track coordinates?
+
+  //! Need the cars' pointers' track positions.
+  size_t road_index = 0;
+  size_t segment = m_segment_index;
+  Three_Vector r1_track 
+    = mp_track->track_coordinates (mp_car->center_position () + pointer_vector (),
+                                   road_index,
+                                   segment);
+
+  //! Duplicate pointer position calculation for now.
+  double d = 2.0 * car_2.car->length () 
+    + 0.2 * car_2.car->chassis ().cm_velocity ().magnitude();
+  Three_Vector p = car_2.car->chassis ().transform_to_world (Three_Vector (d, 0.0, 0.0))
+    - car_2.car->chassis ().position ();
+  segment = car_2.segment_index;
+  road_index = 0;
+  Three_Vector r2_track 
+    = mp_track->track_coordinates (car_2.car->center_position () + p,
+                                   road_index,
+                                   segment);
+
+  double delta_y = r2_track.y - r1_track.y;
   return Three_Vector (r2_track.x - r1_track.x - mp_car->length (),
-                       std::abs (r2_track.y - r1_track.y) - mp_car->width (),
+                       std::abs (delta_y) - mp_car->width (),
                        0.0);
 }
 
@@ -604,6 +625,10 @@ Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
   // rate of closing, 'delta_v'.
   double pass_distance = delta_x * m_speed / delta_v;
 
+  const Road& road = mp_track->get_road (m_road_index);
+  if (pass_distance > 0.5*road.length ())
+    return NONE;
+
   // We'll sample the racing line's side at three positions
   // 1. our current position
   double near = along;
@@ -627,28 +652,24 @@ Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
       }
   }
 
-  Direction mid_block = NONE;
-  {
-    double across = m_racing_line.from_center (mid, segment);
-    if (across > 2)
-      mid_block = LEFT;
-    else if (across < -2)
-      mid_block = RIGHT;
-  }
-
-  Direction near_block = NONE;
-  {
-    double across = m_racing_line.from_center (near, segment);
-    if (across > 2)
-      near_block = LEFT;
-    else if (across < -2)
-      near_block = RIGHT;
-  }
+  Direction mid_block = get_block_side (mid, segment);
+  Direction near_block = get_block_side (near, segment);
 
   if ((mid_block != far_side.first) && (near_block != far_side.first))
     return far_side.first;
   if ((mid_block != far_side.second) && (near_block != far_side.second))
     return far_side.second;
+  return NONE;
+}
+
+Direction
+Robot_Driver::get_block_side (double along, size_t segment) const
+{
+  const double across = m_racing_line.from_center (along, segment);
+  if (across > mp_car->width ())
+    return LEFT;
+  else if (across < -mp_car->width ())
+    return RIGHT;
   return NONE;
 }
 
@@ -1010,8 +1031,5 @@ Robot_Racing_Line::target (double along, double lead) const
 double
 Robot_Racing_Line::from_center (double along, size_t segment) const
 {
-  Three_Vector r = target (along, 0.0);
-  glVertex3d (100, 1, 1);//r.x, r.y, 1);
-
-  return mp_road->track_coordinates (target (along, 0.0), segment).y;
+  return mp_road->track_coordinates (target (along, 0.0), segment, true).y;
 }
