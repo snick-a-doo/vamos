@@ -167,7 +167,7 @@
       <position>[ 1000.0, 20.0, 0.0 ]</position>
       <range>500.0</range>
     </camera>
-    <elevation>[ 500.0, -200.0 ]</elevation>
+    <elevation>[ 500.0, 0.0 ]</elevation>
     <elevation>[ 1000.0, 0.0 ]</elevation>
   </road>
 

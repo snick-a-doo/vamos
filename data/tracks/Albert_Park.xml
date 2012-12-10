@@ -208,6 +208,7 @@
     <resolution>2.0</resolution>
     <length>34.0</length>
     <radius>-25.0</radius>
+    <racing-line-adjustment>-1.0</racing-line-adjustment>
 	<right-kerb>
 	  <start>
 	    <transition>
@@ -272,6 +273,7 @@
     <resolution>2.0</resolution>
     <length>46.0</length>
     <radius>-25.0</radius>
+    <racing-line-adjustment>-1.0</racing-line-adjustment>
 	<right-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
@@ -292,6 +294,7 @@
     <resolution>2.0</resolution>
     <length>48.0</length>
     <radius>32.0</radius>
+    <racing-line-adjustment>1.0</racing-line-adjustment>
 	<left-kerb>
 	  <end><transition/></end>
 	</left-kerb>
@@ -330,6 +333,7 @@
     <resolution>2.0</resolution>
     <length>34.5</length>
     <radius>-32.0</radius>
+    <racing-line-adjustment>-1.0</racing-line-adjustment>
 	<right-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
@@ -374,6 +378,7 @@
     <resolution>2.0</resolution>
     <length>38.0</length>
     <radius>-25.0</radius>
+    <racing-line-adjustment>-1.0</racing-line-adjustment>
 	<right-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
@@ -434,6 +439,7 @@
     <resolution>2.0</resolution>
     <length>42.0</length>
     <radius>-25.0</radius>
+    <racing-line-adjustment>-1.5</racing-line-adjustment>
 	<right-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
@@ -507,6 +513,7 @@
     <resolution>2.0</resolution>
     <length>50.0</length>
     <radius>-70.0</radius>
+    <racing-line-adjustment>0.5</racing-line-adjustment>
 	<right-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
@@ -553,6 +560,7 @@
     <resolution>2.0</resolution>
     <length>45.0</length>
     <radius>-30.0</radius>
+    <racing-line-adjustment>-1.0</racing-line-adjustment>
 	<right-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
@@ -602,6 +610,7 @@
     <resolution>2.0</resolution>
     <length>40.0</length>
     <radius>20.0</radius>
+    <racing-line-adjustment>1.0</racing-line-adjustment>
 	<left-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
