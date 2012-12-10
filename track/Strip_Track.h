@@ -274,7 +274,8 @@ namespace Vamos_Track
 	// segment.
 	Vamos_Geometry::Three_Vector 
 	track_coordinates (const Vamos_Geometry::Three_Vector& world_pos,
-					   size_t& segment_index) const;
+					   size_t& segment_index,
+                       bool forward_only = false) const;
     const Gl_Road_Segment* segment_at (double along) const;
 
     void build_racing_line (bool unconditional = false);

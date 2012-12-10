@@ -647,7 +647,8 @@ Road::position (double along, double from_center) const
 // segment.
 Three_Vector 
 Road::track_coordinates (const Three_Vector& world_pos,
-                         size_t& segment_index) const
+                         size_t& segment_index,
+                         bool forward_only) const
 {
   // Find the distance along the track, distance from center, and elevation
   // for the world coordinates `world_pos.x' and `world_pos.y'.
@@ -668,7 +669,7 @@ Road::track_coordinates (const Three_Vector& world_pos,
 		  break;
 		}
 
-	  if (off > 0.0)
+	  if (forward_only || (off > 0.0))
 		{
           // We're off the end of the current segment.  Find a new
           // candidate segment.
@@ -1406,8 +1407,14 @@ Strip_Track::track_coordinates (const Three_Vector& world_pos,
 
   Three_Vector track_pos;
   const Segment_List* segments = &get_road (road_index).segments ();
-  assert (segment_index < segments->size ());
+  if (segment_index >= segments->size ())
+    {
+      std::cerr << segment_index << ' ' << segments->size () << ' ' << road_index << std::endl;
+      assert (false);
+    }
   Gl_Road_Segment* segment = (*segments)[segment_index];
+
+  int direction = 0;
 
   size_t i = 0;
   bool found = false;
@@ -1420,8 +1427,9 @@ Strip_Track::track_coordinates (const Three_Vector& world_pos,
 		  break;
 		}
 
-	  if (off > 0.0)
+	  if ((direction == 1) || ((direction == 0) && (off > 0.0)))
 		{
+          direction = 1;
           // We're off the end of the current segment.  Find a new
           // candidate segment.
           if ((road_index == 0) 
@@ -1451,6 +1459,7 @@ Strip_Track::track_coordinates (const Three_Vector& world_pos,
         }
 	  else
 		{
+          direction = -1;
           // We're off the beginning of the current segment.  Find a new
           // candidate segment.
           if ((road_index == 0) 

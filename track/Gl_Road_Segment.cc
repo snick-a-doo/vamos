@@ -341,10 +341,7 @@ Segment_Iterator::operator ++ ()
   else
     {
       m_coordinates = m_segment.position (m_distance, across);
-      m_coordinates.z = m_segment.mp_elevation_curve->
-        interpolate (m_distance + m_segment.start_distance ())
-        + m_segment.banking ().height (m_distance, across)
-        + up;
+      m_coordinates.z = m_segment.elevation (m_distance, across) + up;
     }
 
   if (m_position != BEGIN
