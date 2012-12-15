@@ -421,4 +421,48 @@ need to shift.
 
 Currently the robots use more fuel than they need to.  A better shifting
 algorithm could also improve fuel consumption.
+
+\section{Passing}
+When other cars are on the track following the racing line may not be fastest
+way around. You may have to go off-line to overtake, avoid collisions, and to be
+passed without losing too much time. In these three situations the strategy is
+the same: go as fast as possible without hitting anybody.
+
+In most situations there are, at most, three cars we need to be concerned with.
+We may need to brake or steer do avoid a car in front of us. Cars to our sides
+may cause us to steer to avoid them, or they may prevent us from steering to
+avoid a car in front.
+
+A car is considered in front if it's not too far ahead and if its position
+across the track differs from ours by less than a car width plus some
+margin. We'll ignore the fact that distance across the track is not necessarily
+a good indicator of whether or not a car is in our way. For example, as we
+approach a turn on the outside, we may need to avoid a car at the apex even
+though its position across the track is much different from ours.  We're making
+the assumption that if a car is close enough to worry about this effect is
+negligible. If this assumption causes trouble we'll have to calculate distance
+from the racing line instead.
+
+Each
+computer-controlled car has a {\em lane shift} variable which tells how far the
+car is off the racing line as a fraction of the distance to the edge of the
+track. 
+\begin{eqnarray}
+  \Delta y & = & y_\mathrm{car} - y_\mathrm{line} \\
+  s & = & \left\{ \begin{array}{ll}
+        \Delta y / (y_\mathrm{left} - y_\mathrm{line}) & \mbox{if $\Delta y > 0$} \\
+      \Delta y / (y_\mathrm{right} - y_\mathrm{line}) & \mbox{otherwise}
+    \end{array}
+    \right.
+\end{eqnarray}
+A car on the racing line has a lane shift of 0. A car driving on the left edge
+of the track has a lane shift of 1. One on the right edge has a lane shift of
+-1. The reason for defining lane shift this way has to do with calculating
+maximum safe speed for when driving off the racing line.
+
+To find out if we can get by the car ahead we need to find if, with both cars at
+their current lane shift values the two $y_\mathrm{car}$ would differ by a car
+width at the point at which our nose reaches the rear end of the car ahead.
+
+
 \end{document}
