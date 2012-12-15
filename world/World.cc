@@ -563,7 +563,6 @@ World::add_car (Car* car, Driver* driver, const Road& road, bool controlled)
 
   place_car (car, car->chassis ().position (), road);
 
-  set_focused_car (m_cars.size () - 1);
   if (controlled)
     set_controlled_car (m_cars.size () - 1);
 }
