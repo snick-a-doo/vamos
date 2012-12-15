@@ -10244,7 +10244,7 @@ else
 fi
 
 
-ac_config_files="$ac_config_files Makefile config/Makefile scripts/Makefile body/Makefile geometry/Makefile media/Makefile track/Makefile world/Makefile vamos/Makefile data/Makefile data/cars/Makefile data/controls/Makefile data/textures/Makefile data/tracks/Makefile data/sounds/Makefile data/worlds/Makefile doc/Makefile caelum/Makefile"
+ac_config_files="$ac_config_files Makefile config/Makefile scripts/Makefile body/Makefile geometry/Makefile media/Makefile track/Makefile world/Makefile vamos/Makefile data/Makefile data/cars/Makefile data/cars/GT/Makefile data/controls/Makefile data/textures/Makefile data/tracks/Makefile data/sounds/Makefile data/worlds/Makefile doc/Makefile caelum/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -11023,6 +11023,7 @@ do
     "vamos/Makefile") CONFIG_FILES="$CONFIG_FILES vamos/Makefile" ;;
     "data/Makefile") CONFIG_FILES="$CONFIG_FILES data/Makefile" ;;
     "data/cars/Makefile") CONFIG_FILES="$CONFIG_FILES data/cars/Makefile" ;;
+    "data/cars/GT/Makefile") CONFIG_FILES="$CONFIG_FILES data/cars/GT/Makefile" ;;
     "data/controls/Makefile") CONFIG_FILES="$CONFIG_FILES data/controls/Makefile" ;;
     "data/textures/Makefile") CONFIG_FILES="$CONFIG_FILES data/textures/Makefile" ;;
     "data/tracks/Makefile") CONFIG_FILES="$CONFIG_FILES data/tracks/Makefile" ;;

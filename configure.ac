@@ -126,6 +126,7 @@ AC_CONFIG_FILES([Makefile
 				vamos/Makefile
 				data/Makefile
 				data/cars/Makefile
+				data/cars/GT/Makefile
 				data/controls/Makefile
 				data/textures/Makefile
 				data/tracks/Makefile

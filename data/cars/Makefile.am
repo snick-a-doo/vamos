@@ -1,5 +1,7 @@
 carsdir = $(pkgdatadir)/cars
 
+SUBDIRS = GT
+
 cars_DATA = \
 	default-car.xml \
 	F1-1967.ac \
