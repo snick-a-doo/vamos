@@ -1,0 +1,318 @@
+<?xml version="1.0"?>
+
+<!-- A modern Formula One car -->
+<car name="F1">
+  <robot>
+    <slip-ratio>8.0</slip-ratio>
+    <deceleration>1.9</deceleration>
+    <lateral-acceleration>1.9</lateral-acceleration>
+  </robot>
+
+  <exterior-model>
+    <file>F1-red.ac</file>
+	<scale>1.0</scale>
+	<translate>[ -0.5, 0.2, -0.1 ]</translate>
+	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
+  </exterior-model>
+
+  <view>
+    <position>[ 1.6, 0.9, 0.65 ]</position>
+    <field-width>60.0</field-width>
+	<near-plane>0.3</near-plane>
+	<far-plane>700.0</far-plane>
+	<pan-angle>180.0</pan-angle>
+  </view>
+  <mirror>
+    <position>[ 2.5, 1.6, 0.4 ]</position>
+	<size>[ 0.2, 0.2 ]</size>
+	<direction>160.0</direction>
+    <field-width>60.0</field-width>
+	<near-plane>1.0</near-plane>
+	<far-plane>400.0</far-plane>
+	<mask>square-mask.png</mask>
+  </mirror>
+  <mirror>
+    <position>[ 2.5, 0.4, 0.4 ]</position>
+	<direction>200.0</direction>
+  </mirror>
+
+  <dashboard>
+    <extras/>
+    <position>[ 2.6, 0.9, 0.45 ]</position>
+	<tilt>0.0</tilt>
+
+    <tachometer type="LED">
+	  <position>[ -0.07, 0.08, 0.3 ]</position>
+	  <on-steering-wheel/>
+	  <width>0.06</width>
+	  <elements>7</elements>
+	  <range>[ 8000, 17000.0 ]</range>
+	  <image>tachometer-leds.png</image>
+	</tachometer>
+
+    <speedometer type="digital">
+	  <position>[ -0.01, 0.04, 0.3 ]</position>
+	  <on-steering-wheel/>
+	  <size>[ 0.05, 0.025 ]</size>
+	  <places>3</places>
+	  <image>digits-lcd.png</image>
+	</speedometer>
+
+    <fuel-gauge type="digital">
+	  <position>[ 0.0, 0.01, 0.3 ]</position>
+	  <on-steering-wheel/>
+	  <size>[ 0.04, 0.020 ]</size>
+	  <places>3</places>
+	  <image>digits-lcd.png</image>
+	</fuel-gauge>
+
+	<gear-indicator>
+	  <position>[ -0.03, 0.04, 0.3 ]</position>
+	  <on-steering-wheel/>
+	  <size>[ 0.017, 0.025 ]</size>
+	  <image>gears-lcd.png</image>
+	  <numbers>11</numbers>
+	</gear-indicator>
+
+	<steering-wheel>
+	  <position>[ 0.0, -0.1, 0.3 ]</position>
+	  <radius>0.15</radius>
+	  <min>[ -10.0, 110.0 ]</min>
+	  <max>[ 10.0, -110.0 ]</max>
+	  <image>F1-steering-wheel.png</image>
+	</steering-wheel>
+  </dashboard>
+
+  <steering>
+    <max-angle>35.0</max-angle>
+	<exponent>2.0</exponent>
+	<speed-sensitivity>6.0</speed-sensitivity>	
+  </steering>
+
+  <drivetrain>
+    <engine>
+	  <position>[ 1.0, 0.9, 0.1 ]</position>
+	  <mass>100.0</mass>
+
+      <max-power>6.8e5</max-power><!-- hp * 746 W/hp -->
+	  <peak-engine-rpm>16000.0</peak-engine-rpm>
+	  <rpm-limit>19000.0</rpm-limit>
+	  <inertia>0.5</inertia>
+	  <idle>0.18</idle>
+	  <start-rpm>8000</start-rpm>
+	  <stall-rpm>0</stall-rpm>
+	  <fuel-consumption>0.0001</fuel-consumption>
+
+      <sound>
+        <file>f1-v8.wav</file>
+		<pitch>0.0009</pitch>
+		<volume>0.02</volume>
+		<throttle-volume-factor>1.0</throttle-volume-factor>
+		<engine-speed-volume-factor>0.001</engine-speed-volume-factor>
+	  </sound>
+    </engine>
+
+    <clutch>
+      <sliding>0.5</sliding>
+	  <radius>0.25</radius>
+	  <area>0.2</area>
+	  <max-pressure>1.8e4</max-pressure>
+    </clutch>
+
+    <transmission>
+	  <forward-gears>7</forward-gears>
+	  <first-ratio>2.0</first-ratio>
+	  <last-ratio>1.05</last-ratio> 
+	  <shift-delay>0.0</shift-delay>
+    </transmission>
+
+    <differential>
+      <final-drive>6.0</final-drive>
+	  <anti-slip>150.0</anti-slip>
+    </differential>
+  </drivetrain>
+
+  <fuel-tank>
+    <position>[ 1.00, 0.9, 0.20 ]</position>
+	<capacity>100.0</capacity>
+	<volume>100.0</volume>
+	<fuel-density>0.8</fuel-density>
+  </fuel-tank>
+
+
+  <!-- Wheels -->
+  <wheel side="right" end="front">
+    <model>
+	  <slow-file>wheel.ac</slow-file>
+	  <fast-file>wheel.ac</fast-file>
+	  <stator-file>F1-stator.ac</stator-file>
+	  <transition-speed>30.0</transition-speed>
+	  <stator-offset>-0.04</stator-offset>
+	  <scale>0.23</scale>
+	  <translate>[ 0.0, 0.0, 0.0 ]</translate>
+	  <rotate>[ 0.0, 0.0, 0.0 ]</rotate>
+    </model>
+
+    <steered/>
+    <position>[ 3.1, 0.2, 0.22 ]</position>
+	<roll-height>0.02</roll-height>
+	<mass>30.0</mass>
+	<restitution>0.1</restitution>
+
+    <suspension>
+	  <model>
+		<file>F1-wishbone.ac</file>
+		<scale>0.53</scale>
+		<translate>[ 0.0, 0.7, 0.37 ]</translate>
+		<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
+	  </model>
+	  <model>
+		<file>F1-wishbone.ac</file>
+		<scale>0.53</scale>
+		<translate>[ 0.0, 0.7, 0.1 ]</translate>
+		<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
+	  </model>
+
+	  <position>[ 3.1, 0.0, 0.0 ]</position>
+	  <hinge>[ 2.0, 0.3, 0.0 ]</hinge>
+	  <spring-constant>80000.0</spring-constant>
+	  <bounce>2500.0</bounce>
+	  <rebound>2500.0</rebound>
+	  <travel>0.1</travel>
+	  <max-compression-velocity>10.0</max-compression-velocity>
+	  <camber>-1.2</camber>
+	  <caster>5.0</caster>
+	  <toe>-1.0</toe>
+	  <toe>0.0</toe>
+	</suspension>
+
+	<tire>
+	  <offset>0.3</offset>
+      <friction>
+        <longitudinal>
+          [ 1.6, 0.0, 2300.0, 0.0, 400.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
+        </longitudinal>
+	    <transverse>
+	      [ 1.6, 0.0, 2300.0, 2600.0, 6.03, 0.0, -0.359, 1.0, -0.05, 0.0, 0.0, -8.0, -0.2, 0.0, 0.0 ]
+	    </transverse>
+	    <aligning>
+	      [ 0.07, -6.49, -21.9, 0.416, -21.3, 2.94e-2, 0.0, -1.20, 5.23, -14.8, 0.0, 0.0, -3.74e-3, 3.89e-2, 0.0, 0.0, 0.0, 0.0 ]
+	    </aligning>
+	  </friction>
+	  <radius>0.330</radius>
+      <rolling-resistance>[ 1.3e-2, 6.5e-6 ]</rolling-resistance>
+	  <rotational-inertia>10.0</rotational-inertia>
+    </tire>
+ 
+    <brakes>
+	  <friction>0.8</friction>
+	  <max-pressure>6.0e6</max-pressure>
+      <front-bias>0.55</front-bias>
+	  <radius>0.2</radius>
+	  <area>0.01</area>
+    </brakes>
+  </wheel>
+
+  <wheel side="left" end="front">
+    <steered/>
+    <position>[ 3.1, 1.6, 0.22 ]</position>
+	<suspension>
+	  <position>[ 3.1, 1.8, 0.0 ]</position>
+	  <hinge>[ 2.0, 1.5, 0.0 ]</hinge>
+	  <anti-roll>50000.0</anti-roll>
+	</suspension>
+  </wheel>
+
+  <wheel side="right" end="rear">
+    <driven/>
+    <position>[ 0.2, 0.2, 0.20 ]</position>
+    <suspension>
+	  <position>[ 0.2, 0.0, 0.0 ]</position>
+	  <hinge>[ 1.5, 0.3, 0.0 ]</hinge>
+	  <spring-constant>100000.0</spring-constant>
+	  <camber>0.5</camber>
+	  <caster>0.0</caster>
+	  <toe>1.0</toe>
+	</suspension>
+  </wheel>
+
+  <wheel side="left" end="rear">
+    <driven/>
+    <position>[ 0.2, 1.6, 0.20 ]</position>
+	<suspension>
+	  <position>[ 0.2, 1.8, 0.0 ]</position>
+	  <hinge>[ 1.5, 1.5, 0.0 ]</hinge>
+	  <anti-roll>30000.0</anti-roll>
+	</suspension>
+  </wheel>
+
+
+  <contact-point>
+    <mass>60.0</mass>
+    <position>[ 0.0, 0.0, 0.0 ]</position>
+	<material>metal</material>
+	<friction>5.0</friction>
+	<restitution>0.1</restitution>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 4.0, 0.0, 0.0 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 0.0, 1.8, 0.0 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 4.0, 1.8, 0.0 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 0.0, 0.0, 0.5 ]</position>
+    <mass>20.0</mass>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 4.0, 0.0, 0.5 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 0.0, 1.8, 0.5 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 4.0, 1.8, 0.5 ]</position>
+  </contact-point>
+
+  <contact-point>
+    <position>[ 2.0, 0.9, 1.0 ]</position>
+  </contact-point>
+
+  <particle>
+    <position>[ 0.8, 0.9, 0.0 ]</position>
+	<mass>100.0</mass>
+  </particle>
+
+  <drag>
+    <position>[ 2.0, 0.9, 0.25 ]</position>
+	<frontal-area>1.0</frontal-area>
+	<drag-coefficient>0.1</drag-coefficient>
+  </drag>
+
+  <wing>
+    <position>[ 4.0, 0.9, 0.01 ]</position>
+    <position>[ 4.0, 0.9, 0.01 ]</position>
+	<frontal-area>0.2</frontal-area>
+	<surface-area>0.3</surface-area>
+	<lift-coefficient>-6.5</lift-coefficient>
+	<efficiency>0.5</efficiency>
+  </wing>
+  <wing>
+    <position>[ 0.0, 0.9, 0.5 ]</position>
+    <position>[ 0.0, 0.9, 0.5 ]</position>
+	<frontal-area>0.2</frontal-area>
+	<surface-area>0.5</surface-area>
+	<lift-coefficient>-6.5</lift-coefficient>
+	<efficiency>0.5</efficiency>
+  </wing>
+</car>

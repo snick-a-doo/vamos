@@ -1,6 +1,6 @@
 carsdir = $(pkgdatadir)/cars
 
-SUBDIRS = GT
+SUBDIRS = GT F1
 
 cars_DATA = \
 	default-car.xml \

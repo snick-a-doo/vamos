@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- contact-point mass 30.0 -> 27.0 -->
+<!-- lowered mass, raised deceleration, lateral-acceleration by 0.1 -->
 <car name="GT">
   <robot>
     <slip-ratio>9.0</slip-ratio>
