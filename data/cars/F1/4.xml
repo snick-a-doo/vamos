@@ -4,13 +4,13 @@
 <!-- raised wing efficiency 0.05 -->
 <car name="SLV">
   <robot>
-    <slip-ratio>8.0</slip-ratio>
-    <deceleration>1.9</deceleration>
-    <lateral-acceleration>1.9</lateral-acceleration>
+    <slip-ratio>6.0</slip-ratio>
+    <deceleration>1.8</deceleration>
+    <lateral-acceleration>1.8</lateral-acceleration>
   </robot>
 
   <exterior-model>
-    <file>F1-silver.ac</file>
+    <file>F1-red.ac</file>
 	<scale>1.0</scale>
 	<translate>[ -0.5, 0.2, -0.1 ]</translate>
 	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>

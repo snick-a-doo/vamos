@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <!-- A modern Formula One car -->
 
-<!-- max-power 6.8e5 -> 7.4e5 -->
+<!-- max-power 6.8e5 -> 7.2e5 -->
 <car name="BLU">
   <robot>
-    <slip-ratio>8.0</slip-ratio>
-    <deceleration>1.9</deceleration>
-    <lateral-acceleration>1.9</lateral-acceleration>
+    <slip-ratio>7.0</slip-ratio>
+    <deceleration>1.8</deceleration>
+    <lateral-acceleration>1.8</lateral-acceleration>
   </robot>
 
   <exterior-model>
@@ -95,7 +95,7 @@
 	  <position>[ 1.0, 0.9, 0.1 ]</position>
 	  <mass>100.0</mass>
 
-      <max-power>7.4e5</max-power><!-- hp * 746 W/hp -->
+      <max-power>7.2e5</max-power><!-- hp * 746 W/hp -->
 	  <peak-engine-rpm>16000.0</peak-engine-rpm>
 	  <rpm-limit>19000.0</rpm-limit>
 	  <inertia>0.5</inertia>

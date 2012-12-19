@@ -4,9 +4,9 @@
 <!-- raised deceleration, lateral-acceleration by 0.1 -->
 <car name="BLK">
   <robot>
-    <slip-ratio>8.0</slip-ratio>
-    <deceleration>2.0</deceleration>
-    <lateral-acceleration>2.0</lateral-acceleration>
+    <slip-ratio>6.0</slip-ratio>
+    <deceleration>1.9</deceleration>
+    <lateral-acceleration>1.9</lateral-acceleration>
   </robot>
 
   <exterior-model>

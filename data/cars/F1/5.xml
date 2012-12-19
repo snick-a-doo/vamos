@@ -3,13 +3,13 @@
 <!-- increased grip, deceleration, lateral-acceleration -->
 <car name="WHT">
   <robot>
-    <slip-ratio>8.0</slip-ratio>
-    <deceleration>2.0</deceleration>
-    <lateral-acceleration>2.0</lateral-acceleration>
+    <slip-ratio>7.0</slip-ratio>
+    <deceleration>1.9</deceleration>
+    <lateral-acceleration>1.9</lateral-acceleration>
   </robot>
 
   <exterior-model>
-    <file>F1-white.ac</file>
+    <file>F1-silver.ac</file>
 	<scale>1.0</scale>
 	<translate>[ -0.5, 0.2, -0.1 ]</translate>
 	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
