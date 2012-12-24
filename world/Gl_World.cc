@@ -23,6 +23,7 @@
 #include "Gl_World.h"
 #include "Sounds.h"
 #include "Interactive_Driver.h"
+#include "Timing_Info.h"
 
 #include <SDL.h>
 #include <GL/glut.h>
@@ -44,7 +45,7 @@ using namespace Vamos_World;
 static std::string 
 format_time (double time)
 {
-  if (time == 0.0) return "";
+  if (time == Timing_Info::NO_TIME) return "";
 
   int minutes = int (time / 60.0);
   int seconds = int (time) % 60;
@@ -59,7 +60,7 @@ format_time (double time)
 static std::string 
 format_time_difference (double delta_time)
 {
-  if (delta_time == 0.0) return "";
+  if (delta_time == Timing_Info::NO_TIME) return "";
 
   std::ostringstream os;
   if (delta_time > 0.0)
@@ -181,8 +182,9 @@ Gl_World::Gl_World (int argc, char** argv,
                     Atmosphere* atmosphere,
                     Sounds* sounds,
                     bool full_screen,
-                    bool show_mirror_views)
-  : World (track, atmosphere),
+                    bool show_mirror_views,
+                    size_t laps)
+  : World (track, atmosphere, laps),
     m_timer (100, 10),
     m_show_mirror_views (show_mirror_views),
     mp_sounds (sounds),
@@ -453,16 +455,16 @@ Gl_World::animate ()
 void
 Gl_World::update_car_timing ()
 {
-  for (std::vector <Car_Information>::iterator it = m_cars.begin ();
-       it != m_cars.end ();
-       it++)
+  for (size_t i = 0; i < m_cars.size (); i++)
     {
+      Car_Information& car = m_cars [i];
       const double distance = 
-        mp_track->track_coordinates (it->car->chassis ().position (), 
-                                     it->road_index,
-                                     it->segment_index).x;
+        mp_track->track_coordinates (car.car->chassis ().position (), 
+                                     car.road_index,
+                                     car.segment_index).x;
       const int sector = mp_track->sector (distance);
-      it->timing.update (m_timer.get_current_time (), distance, sector);
+
+      m_timing.update (m_timer.get_current_time (), &car, distance, sector);
     }
 }
 
@@ -698,10 +700,13 @@ Gl_World::display ()
       break;
     case WORLD_VIEW:
       {
-        const Vamos_Track::Camera& camera =
-          mp_track->get_camera (focused_car ()->timing.get_distance ());
-        set_world_view (camera);
-        draw_track (true, mp_track->camera_position (camera));
+        if (focused_car () != 0)
+          {
+            const Vamos_Track::Camera& camera =
+              mp_track->get_camera (m_timing.lap_distance (focused_car ()));
+            set_world_view (camera);
+            draw_track (true, mp_track->camera_position (camera));
+          }
         draw_cars (true);
       }
       break;
@@ -736,7 +741,8 @@ Gl_World::draw_string (const std::string& str, double x, double y)
 void 
 Gl_World::draw_timing_info ()
 {
-  if (focused_car ()->car == 0) return;
+  const Car_Information* p_car = focused_car ();
+  if ((p_car == 0) || (p_car->car == 0)) return;
 
   glDisable (GL_DEPTH_TEST);
   glDisable (GL_LIGHTING);
@@ -750,65 +756,71 @@ Gl_World::draw_timing_info ()
   glLoadIdentity ();
   
   std::ostringstream b_stream;
-  double x = 5.5;
+  double x = 55;
 
-  gluOrtho2D (0, 10, 0, 10);
+  gluOrtho2D (0, 100, 0, 100);
 
-  const Timing_Info& timing = focused_car ()->timing;
-  b_stream << "Lap Time " << format_time (timing.get_lap_time ());
-  draw_string (b_stream.str (), x, 1.4);
+  draw_leaderboard ();
+
+  b_stream << "Lap Time " << format_time (m_timing.lap_time (p_car));
+  draw_string (b_stream.str (), x, 14);
 
   b_stream.str ("");
-  b_stream << "    Last " << format_time (timing.get_previous_lap_time ()) 
+  b_stream << "    Last " << format_time (m_timing.previous_lap_time (p_car)) 
            << " " 
-           << format_time_difference (timing.get_lap_time_difference ());
-  draw_string (b_stream.str (), x, 1.0);
+           << format_time_difference (m_timing.lap_time_difference (p_car));
+  draw_string (b_stream.str (), x, 10);
 
   b_stream.str ("");
-  b_stream << "    Best " << format_time (timing.get_best_lap_time ());
-  draw_string (b_stream.str (), x, 0.6);
+  b_stream << "    Best " << format_time (m_timing.best_lap_time (p_car));
+  draw_string (b_stream.str (), x, 6);
 
   b_stream.str ("");
   b_stream << m_timer.get_frame_rate () << " frame/s";
-  draw_string (b_stream.str (), x, 0.2);
+  draw_string (b_stream.str (), x, 2);
 
-  x = 7.5;
+  x = 75;
 
-  int sector = timing.get_sector ();
+  size_t sector = m_timing.current_sector (p_car);
   b_stream.str ("");
   b_stream << "   Sector ";
-  if (sector != -1)
+  if (sector != 0)
     {
-      b_stream << sector + 1 << " " 
-               << format_time (timing.get_sector_time ());
+      b_stream << sector << " " 
+               << format_time (m_timing.sector_time (p_car));
     }
-  draw_string (b_stream.str (), x, 1.4);
+  draw_string (b_stream.str (), x, 14);
 
   b_stream.str ("");
   b_stream << "       Best "; 
-  if (sector != -1)
+  if (sector != 0)
     {
-      b_stream << format_time (timing.get_best_sector_time (sector));
+      b_stream << format_time (m_timing.best_sector_time (p_car));
     }
-  draw_string (b_stream.str (), x, 1.0);
+  draw_string (b_stream.str (), x, 10);
 
   b_stream.str ("");
   b_stream << "Last Sector ";
-  if (timing.get_previous_sector () != -1)
+  if (m_timing.previous_sector (p_car) != 0)
     {
-      b_stream << format_time (timing.get_previous_sector_time ()) << "  " 
+      b_stream << format_time (m_timing.previous_sector_time (p_car)) << "  " 
                << format_time_difference 
-        (timing.get_previous_sector_time_difference ());
+        (m_timing.previous_sector_time_difference (p_car));
     }
-  draw_string (b_stream.str (), x, 0.6);
+  draw_string (b_stream.str (), x, 6);
 
   b_stream.str ("");
-  b_stream << "Distance " << int (timing.get_distance ()) << " m";
-  draw_string (b_stream.str (), x, 0.2);
+  b_stream << "Distance " << int (m_timing.lap_distance (p_car)) << " m";
+  draw_string (b_stream.str (), x, 2);
 
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_LIGHTING);
   glEnable (GL_TEXTURE_2D);
+}
+
+void
+Gl_World::draw_leaderboard ()
+{
 }
 
 void 

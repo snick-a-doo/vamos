@@ -286,7 +286,7 @@ int main (int argc, char* argv [])
         }
       sounds->master_volume (volume);
     }
-  Gl_World world (argc, argv, &track, &air, sounds, full_screen, !no_mirrors);
+  Gl_World world (argc, argv, &track, &air, sounds, full_screen, !no_mirrors, 5);
   world.cars_can_interact (!no_interaction);
 
   try
@@ -307,41 +307,38 @@ int main (int argc, char* argv [])
     {
       try
         {
-          Three_Vector position (8.0, 3.0, 0.0);
-          Three_Matrix orientation;
-          const double grid_interval = 8.0;
           const Vamos_Track::Road& road = track.get_road (0);
+          const double grid_interval = 8.0;
+          const size_t number_of_cars = number_of_opponents + (demo ? 0 : 1);
+          Three_Vector position (grid_interval * number_of_cars, 3.0, 0.0);
+          Three_Matrix orientation;
 
-          // Place cars on the grid from back to front to avoid putting cars off
-          // the end of a non-circuit track.
-          if (!demo)
-            {
-              car = new Vamos_Body::Gl_Car (position, orientation);
-              car->read (data_dir, car_files [0]);
-              car->start_engine ();
-              world.add_car (car, new Interactive_Driver (car), road, true);
-
-              position.x += grid_interval;
-              position.y *= -1.0;
-            }
+          // Place cars on the grid from front to back. Avoid putting cars off
+          // the end of the first segment.
           for (size_t i = 0; i < number_of_opponents; i++)
             {
               car = new Vamos_Body::Gl_Car (position, orientation);
-              size_t index = number_of_opponents - i;
-              car->read (data_dir, car_files [std::min (car_files.size () - 1, index)]);
+              car->read (data_dir, car_files [std::min (car_files.size () - 1, i + 1)]);
               car->start_engine ();
               Robot_Driver* driver = new Robot_Driver (car, &track, world.get_gravity ());
               driver->interact (!no_interaction);
               driver->show_steering_target (show_line);
               world.add_car (car, driver, road);
 
-              position.x += grid_interval;
+              position.x -= grid_interval;
               position.y *= -1.0;
+            }
+          if (!demo)
+            {
+              car = new Vamos_Body::Gl_Car (position, orientation);
+              car->read (data_dir, car_files [0]);
+              car->start_engine ();
+              world.add_car (car, new Interactive_Driver (car), road, true);
             }
 
           if (car != 0)
             {
-              world.set_focused_car (0);
+              world.set_focused_car (number_of_cars - 1);
               track.build_racing_line (number_of_opponents >= 1);
             }
         }

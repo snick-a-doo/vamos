@@ -189,7 +189,8 @@ namespace Vamos_World
 			  Atmosphere* atmosphere,
 			  Sounds* sounds,
               bool full_screen,
-              bool show_mirror_views);
+              bool show_mirror_views,
+              size_t laps);
 	~Gl_World ();
 
     virtual void add_car (Vamos_Body::Car* car,
@@ -232,6 +233,7 @@ namespace Vamos_World
 
   protected:
 	virtual void draw_timing_info ();
+    void draw_leaderboard ();
 	void draw_string (const std::string& str, double x, double y);
 	Timer m_timer;
 

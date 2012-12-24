@@ -17,6 +17,7 @@
 
 #include "World.h"
 #include "Driver.h"
+#include "Timing_Info.h"
 #include "../body/Wheel.h"
 
 #include <cassert>
@@ -28,105 +29,6 @@ using namespace Vamos_World;
 using namespace Vamos_Track;
 
 const double slipstream_time_constant = 0.7;
-
-//-----------------------------------------------------------------------------
-Times::Times () :
-  m_start (0.0),
-  m_current (0.0),
-  m_previous (0.0),
-  m_best (0.0),
-  m_difference (0.0)
-{
-}
-
-void 
-Times::finalize ()
-{
-  const double elapsed = time ();
-
-  if (m_best != 0.0)
-    m_difference = elapsed - m_best;
-
-  if ((elapsed < m_best) || (m_best == 0.0))
-    m_best = elapsed;
-
-  m_previous = elapsed;
-}
-
-void
-Times::reset ()
-{
-  m_start = m_current;
-}
-
-//-----------------------------------------------------------------------------
-
-Timing_Info::Timing_Info () :
-  m_sector (-1),
-  m_previous_sector (-1),
-  m_distance (0.0)
-{
-}
-
-void 
-Timing_Info::update_sector_info (double current_time, int sector)
-{
-  if (sector >= int (ma_sector_times.size ()))
-    { // We're entering a sector for the first time.
-      ma_sector_times.resize (sector + 1);
-    }
-
-  if ((sector != m_sector) && (sector != -1))
-    { // We have left a sector.
-      if (m_sector != -1)
-        {
-          ma_sector_times [m_sector].finalize ();
-          
-          if (sector == 0)
-            { // We have finished a lap.
-              m_lap_times.finalize ();
-              m_lap_times.start (current_time);
-            }
-        }
-      m_previous_sector = m_sector;
-      m_sector = sector;
-      ma_sector_times [m_sector].start (current_time);
-    }
-}
-
-void
-Timing_Info::update_times (double current_time, int sector)
-{
-  m_lap_times.update (current_time);
-  if (sector != -1)
-    {
-      assert (sector < int (ma_sector_times.size ()));
-      ma_sector_times [sector].update (current_time);
-    }
-}
-
-void 
-Timing_Info::update (double current_time, double distance, int sector)
-{
-  update_sector_info (current_time, sector);
-  update_times (current_time, sector);
-  m_distance = distance;
-}
-
-void 
-Timing_Info::reset ()
-{
-  m_lap_times.reset ();
-
-  if (m_sector != -1)
-    {
-      assert (m_sector < int (ma_sector_times.size ()));
-      ma_sector_times [m_sector].reset ();
-    }
-  m_sector = -1;
-  m_previous_sector = -1;
-  m_distance = 0.0;
-}
 
 //-----------------------------------------------------------------------------
 
@@ -143,7 +45,6 @@ Car_Information::Car_Information (Car* car_in, Driver* driver_in)
 void 
 Car_Information::reset ()
 {
-  timing.reset ();
   road_index = 0;
   segment_index = 0;
   if (driver != 0)
@@ -153,13 +54,15 @@ Car_Information::reset ()
 
 //-----------------------------------------------------------------------------
 void 
-Car_Information::propagate (double time_step, const Three_Vector& track_position)
+Car_Information::propagate (double time_step,
+                            double total_time,
+                            const Three_Vector& track_position)
 {
   if (driver != 0)
     driver->propagate (time_step);
 
   car->propagate (time_step);
-  m_record.push_back (Record (timing.get_total_time (), car, track_position));
+  m_record.push_back (Record (total_time, car, track_position));
 }
 
 //-----------------------------------------------------------------------------
@@ -174,10 +77,11 @@ Car_Information::Record::Record (double time,
 }
 
 //-----------------------------------------------------------------------------
-World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere) 
+World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere, size_t laps) 
   : mp_track (track),
     mp_atmosphere (atmosphere),
     m_gravity (9.8),
+    m_timing (track->timing_lines (), laps),
     m_focused_car_index (0),
     m_cars_can_interact (true),
     m_has_controlled_car (false),
@@ -242,35 +146,35 @@ impulse (const Three_Vector& r,
 void
 World::propagate_cars (double time_step)
 {
-  for (std::vector <Car_Information>::iterator it = m_cars.begin ();
-       it != m_cars.end ();
-       it++)
+  for (size_t i = 0; i < m_cars.size (); i++)
     {
-      it->propagate (time_step, mp_track->track_coordinates (it->car->center_position (),
-                                                             it->road_index,
-                                                             it->segment_index));
-      interact (it->car, it->road_index, it->segment_index);
+      Car_Information& info = m_cars [i];
+      info.propagate (time_step, 
+                      m_timing.total_time (),
+                      mp_track->track_coordinates (info.car->center_position (),
+                                                   info.road_index,
+                                                   info.segment_index));
+      interact (info.car, info.road_index, info.segment_index);
 
       double air_density_factor = 1.0;
       if (m_cars_can_interact)
         {
-          for (std::vector <Car_Information>::iterator other = m_cars.begin ();
-               other != m_cars.end ();
-               other++)
+          for (size_t j = 0; j < m_cars.size (); j++)
             {
-              if (other == it)
+              if (j == i)
                 continue;
 
-              collide (&*it, &*other);
+               Car_Information& other = m_cars [j];
+              collide (&info, &other);
               air_density_factor = std::min (air_density_factor, 
-                                             slipstream_air_density_factor (*it, *other));
+                                             slipstream_air_density_factor (info, other));
             }
         }
       
       // Handle air resistance.
-      it->car->wind (mp_atmosphere->velocity (), 
-                     mp_atmosphere->density () * air_density_factor);
-      it->driver->set_air_density_factor (air_density_factor);
+      info.car->wind (mp_atmosphere->velocity (), 
+                      mp_atmosphere->density () * air_density_factor);
+      info.driver->set_air_density_factor (air_density_factor);
     }
 }
 
@@ -300,7 +204,7 @@ World::slipstream_air_density_factor (Car_Information& car1, Car_Information& ca
       const Three_Vector& p2 = car2.m_record [i - 1].m_track_position;
       if (road.distance (p1.x, p2.x) > 0.0)
         {
-          const double now = car2.timing.get_total_time ();
+          const double now = m_timing.total_time ();
           const double longitudinal 
             = std::exp ((car2.m_record [i - 1].m_time - now)
                         / slipstream_time_constant);
@@ -500,6 +404,7 @@ World::reset ()
 void 
 World::restart ()
 {
+  m_timing.reset ();
   if (m_has_controlled_car)
     controlled_car ()->reset ();
 }
@@ -560,6 +465,8 @@ World::add_car (Car* car, Driver* driver, const Road& road, bool controlled)
     driver->set_cars (&m_cars);
   car->chassis ().gravity (Three_Vector (0.0, 0.0, -m_gravity));
   m_cars.push_back (Car_Information (car, driver));
+
+  m_timing.add_car (&*(m_cars.end () - 1));
 
   place_car (car, car->chassis ().position (), road);
 

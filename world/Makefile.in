@@ -95,14 +95,19 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libvamos_world_la_LIBADD =
-am_libvamos_world_la_OBJECTS = Atmosphere.lo Interactive_Driver.lo \
-	Robot_Driver.lo World.lo Controls.lo Gl_World.lo Sounds.lo
+am_libvamos_world_la_OBJECTS = Atmosphere.lo Controls.lo Gl_World.lo \
+	Interactive_Driver.lo Robot_Driver.lo Sounds.lo Timing_Info.lo \
+	World.lo
 libvamos_world_la_OBJECTS = $(am_libvamos_world_la_OBJECTS)
-@DO_UNIT_TESTS_TRUE@am__EXEEXT_1 = test_Controls$(EXEEXT)
+@DO_UNIT_TESTS_TRUE@am__EXEEXT_1 = test_Controls$(EXEEXT) \
+@DO_UNIT_TESTS_TRUE@	test_Timing_Info$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 am_test_Controls_OBJECTS = test_Controls.$(OBJEXT)
 test_Controls_OBJECTS = $(am_test_Controls_OBJECTS)
 test_Controls_DEPENDENCIES = Controls.lo
+am_test_Timing_Info_OBJECTS = test_Timing_Info.$(OBJEXT)
+test_Timing_Info_OBJECTS = $(am_test_Timing_Info_OBJECTS)
+test_Timing_Info_DEPENDENCIES = Timing_Info.lo
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -116,8 +121,10 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(libvamos_world_la_SOURCES) $(test_Controls_SOURCES)
-DIST_SOURCES = $(libvamos_world_la_SOURCES) $(test_Controls_SOURCES)
+SOURCES = $(libvamos_world_la_SOURCES) $(test_Controls_SOURCES) \
+	$(test_Timing_Info_SOURCES)
+DIST_SOURCES = $(libvamos_world_la_SOURCES) $(test_Controls_SOURCES) \
+	$(test_Timing_Info_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -240,29 +247,33 @@ top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libvamos-world.la
 libvamos_world_la_SOURCES = \
 	Atmosphere.cc \
-	Interactive_Driver.cc \
-	Robot_Driver.cc \
-	World.cc \
 	Controls.cc \
 	Gl_World.cc \
-	Sounds.cc
+	Interactive_Driver.cc \
+	Robot_Driver.cc \
+	Sounds.cc \
+	Timing_Info.cc \
+	World.cc
 
 pkginclude_HEADERS = \
 	Atmosphere.h \
+	Controls.h \
 	Driver.h \
+	Gl_World.h \
 	Interactive_Driver.h \
 	Robot_Driver.h \
-	World.h \
-	Controls.h \
-	Gl_World.h \
-	Sounds.h
+	Sounds.h \
+	Timing_Info.h \
+	World.h
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 AM_CXXFLAGS = -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost `pkg-config sdl --cflags`
 @DO_UNIT_TESTS_FALSE@UNIT_TESTS = 
-@DO_UNIT_TESTS_TRUE@UNIT_TESTS = test_Controls
+@DO_UNIT_TESTS_TRUE@UNIT_TESTS = test_Controls test_Timing_Info
 test_Controls_SOURCES = test_Controls.cc
 test_Controls_LDADD = Controls.lo -lboost_unit_test_framework
+test_Timing_Info_SOURCES = test_Timing_Info.cc
+test_Timing_Info_LDADD = Timing_Info.lo -lboost_unit_test_framework
 all: all-am
 
 .SUFFIXES:
@@ -343,6 +354,9 @@ clean-noinstPROGRAMS:
 test_Controls$(EXEEXT): $(test_Controls_OBJECTS) $(test_Controls_DEPENDENCIES) $(EXTRA_test_Controls_DEPENDENCIES) 
 	@rm -f test_Controls$(EXEEXT)
 	$(CXXLINK) $(test_Controls_OBJECTS) $(test_Controls_LDADD) $(LIBS)
+test_Timing_Info$(EXEEXT): $(test_Timing_Info_OBJECTS) $(test_Timing_Info_DEPENDENCIES) $(EXTRA_test_Timing_Info_DEPENDENCIES) 
+	@rm -f test_Timing_Info$(EXEEXT)
+	$(CXXLINK) $(test_Timing_Info_OBJECTS) $(test_Timing_Info_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -356,8 +370,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Interactive_Driver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Robot_Driver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Sounds.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Timing_Info.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/World.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_Controls.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_Timing_Info.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
