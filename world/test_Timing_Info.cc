@@ -147,9 +147,9 @@ BOOST_AUTO_TEST_CASE (second_sector)
   BOOST_CHECK_EQUAL (f.timing.sector_time (f.car (1)), 22);
   BOOST_CHECK_EQUAL (f.timing.sector_time (f.car (2)), 41);
   BOOST_CHECK_EQUAL (f.timing.sector_time (f.car (3)), 0);
-  BOOST_CHECK_EQUAL (f.timing.previous_sector_time (f.car (1)), Timing_Info::NO_TIME);
-  BOOST_CHECK_EQUAL (f.timing.previous_sector_time (f.car (2)), Timing_Info::NO_TIME);
-  BOOST_CHECK_EQUAL (f.timing.previous_sector_time (f.car (3)), Timing_Info::NO_TIME);
+  BOOST_CHECK_EQUAL (f.timing.previous_sector_time (f.car (1)), 70);
+  BOOST_CHECK_EQUAL (f.timing.previous_sector_time (f.car (2)), 51);
+  BOOST_CHECK_EQUAL (f.timing.previous_sector_time (f.car (3)), 92);
   BOOST_CHECK_EQUAL (f.timing.best_sector_time (f.car (1)), Timing_Info::NO_TIME);
   BOOST_CHECK_EQUAL (f.timing.best_sector_time (f.car (2)), Timing_Info::NO_TIME);
   BOOST_CHECK_EQUAL (f.timing.best_sector_time (f.car (3)), Timing_Info::NO_TIME);

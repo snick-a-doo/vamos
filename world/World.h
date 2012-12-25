@@ -90,7 +90,7 @@ namespace Vamos_World
   class World
   {
   public:
-    World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere, size_t laps);
+    World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere);
     virtual ~World ();
 
     void interact (Vamos_Body::Car* car, 
@@ -116,9 +116,10 @@ namespace Vamos_World
 
     std::vector <Car_Information> m_cars;
     /// The times for all cars.
-    Timing_Info m_timing;
+    Timing_Info* mp_timing;
     std::vector <Interaction_Info> m_interaction_info;
 
+    virtual void start (size_t laps);
     void reset ();
     void restart ();
 

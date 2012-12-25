@@ -270,7 +270,7 @@ int main (int argc, char* argv [])
     }
 
   Vamos_Track::Strip_Track track;
-
+  // Need to initialize GL by constructing Gl_World before reading the track.
   Sounds* sounds = 0;
   if (!map_mode)
     {
@@ -286,7 +286,7 @@ int main (int argc, char* argv [])
         }
       sounds->master_volume (volume);
     }
-  Gl_World world (argc, argv, &track, &air, sounds, full_screen, !no_mirrors, 5);
+  Gl_World world (argc, argv, &track, &air, sounds, full_screen, !no_mirrors);
   world.cars_can_interact (!no_interaction);
 
   try
@@ -367,7 +367,7 @@ int main (int argc, char* argv [])
       std::cerr << error.message () << std::endl;
       std::exit (EXIT_FAILURE);
     }
-  world.start ();
+  world.start (5);
 
   delete sounds;
 

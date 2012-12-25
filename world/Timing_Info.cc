@@ -254,9 +254,15 @@ double Timing_Info::previous_sector_time (const Car_Information* p_car) const
 {
   // Return the time spent in the most recently completed sector.
   const std::vector <double>& a_time = maa_sector_time.find (p_car)->second;
-  return (a_time.size () < m_sectors 
-          ? NO_TIME 
-          : *(a_time.end () - m_sectors + 1) - *(a_time.end () - m_sectors));
+  switch (a_time.size ())
+    {
+    case 0:
+      return NO_TIME;
+    case 1:
+      return a_time.back ();
+    default:
+      return a_time.back () - *(a_time.end () - 2);
+    }
 }
 
 double Timing_Info::previous_sector_time_difference (const Car_Information* p_car) const

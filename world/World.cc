@@ -77,11 +77,11 @@ Car_Information::Record::Record (double time,
 }
 
 //-----------------------------------------------------------------------------
-World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere, size_t laps) 
+World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere)
   : mp_track (track),
     mp_atmosphere (atmosphere),
     m_gravity (9.8),
-    m_timing (track->timing_lines (), laps),
+    mp_timing (0),
     m_focused_car_index (0),
     m_cars_can_interact (true),
     m_has_controlled_car (false),
@@ -100,6 +100,15 @@ World::~World ()
       delete it->car;
       delete it->driver;
     }
+  delete mp_timing;
+}
+
+void
+World::start (size_t laps)
+{
+  mp_timing = new Timing_Info (mp_track->timing_lines (), laps);
+  for (size_t i = 0; i < m_cars.size (); i++)
+    mp_timing->add_car (&m_cars [i]);
 }
 
 inline Three_Vector
@@ -150,7 +159,7 @@ World::propagate_cars (double time_step)
     {
       Car_Information& info = m_cars [i];
       info.propagate (time_step, 
-                      m_timing.total_time (),
+                      mp_timing->total_time (),
                       mp_track->track_coordinates (info.car->center_position (),
                                                    info.road_index,
                                                    info.segment_index));
@@ -204,7 +213,7 @@ World::slipstream_air_density_factor (Car_Information& car1, Car_Information& ca
       const Three_Vector& p2 = car2.m_record [i - 1].m_track_position;
       if (road.distance (p1.x, p2.x) > 0.0)
         {
-          const double now = m_timing.total_time ();
+          const double now = mp_timing->total_time ();
           const double longitudinal 
             = std::exp ((car2.m_record [i - 1].m_time - now)
                         / slipstream_time_constant);
@@ -404,7 +413,7 @@ World::reset ()
 void 
 World::restart ()
 {
-  m_timing.reset ();
+  mp_timing->reset ();
   if (m_has_controlled_car)
     controlled_car ()->reset ();
 }
@@ -465,8 +474,6 @@ World::add_car (Car* car, Driver* driver, const Road& road, bool controlled)
     driver->set_cars (&m_cars);
   car->chassis ().gravity (Three_Vector (0.0, 0.0, -m_gravity));
   m_cars.push_back (Car_Information (car, driver));
-
-  m_timing.add_car (&*(m_cars.end () - 1));
 
   place_car (car, car->chassis ().position (), road);
 

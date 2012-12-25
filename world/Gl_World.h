@@ -189,8 +189,7 @@ namespace Vamos_World
 			  Atmosphere* atmosphere,
 			  Sounds* sounds,
               bool full_screen,
-              bool show_mirror_views,
-              size_t laps);
+              bool show_mirror_views);
 	~Gl_World ();
 
     virtual void add_car (Vamos_Body::Car* car,
@@ -203,7 +202,7 @@ namespace Vamos_World
 			   std::string world_file = "",
 			   std::string controls_file = "");
 
-	void start ();
+	virtual void start (size_t laps);
 
 	void set_paused (bool is_paused);
 

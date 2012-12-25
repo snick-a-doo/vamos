@@ -182,9 +182,8 @@ Gl_World::Gl_World (int argc, char** argv,
                     Atmosphere* atmosphere,
                     Sounds* sounds,
                     bool full_screen,
-                    bool show_mirror_views,
-                    size_t laps)
-  : World (track, atmosphere, laps),
+                    bool show_mirror_views)
+  : World (track, atmosphere),
     m_timer (100, 10),
     m_show_mirror_views (show_mirror_views),
     mp_sounds (sounds),
@@ -463,8 +462,7 @@ Gl_World::update_car_timing ()
                                      car.road_index,
                                      car.segment_index).x;
       const int sector = mp_track->sector (distance);
-
-      m_timing.update (m_timer.get_current_time (), &car, distance, sector);
+      mp_timing->update (m_timer.get_current_time (), &car, distance, sector);
     }
 }
 
@@ -703,7 +701,7 @@ Gl_World::display ()
         if (focused_car () != 0)
           {
             const Vamos_Track::Camera& camera =
-              mp_track->get_camera (m_timing.lap_distance (focused_car ()));
+              mp_track->get_camera (mp_timing->lap_distance (focused_car ()));
             set_world_view (camera);
             draw_track (true, mp_track->camera_position (camera));
           }
@@ -762,17 +760,17 @@ Gl_World::draw_timing_info ()
 
   draw_leaderboard ();
 
-  b_stream << "Lap Time " << format_time (m_timing.lap_time (p_car));
+  b_stream << "Lap Time " << format_time (mp_timing->lap_time (p_car));
   draw_string (b_stream.str (), x, 14);
 
   b_stream.str ("");
-  b_stream << "    Last " << format_time (m_timing.previous_lap_time (p_car)) 
+  b_stream << "    Last " << format_time (mp_timing->previous_lap_time (p_car)) 
            << " " 
-           << format_time_difference (m_timing.lap_time_difference (p_car));
+           << format_time_difference (mp_timing->lap_time_difference (p_car));
   draw_string (b_stream.str (), x, 10);
 
   b_stream.str ("");
-  b_stream << "    Best " << format_time (m_timing.best_lap_time (p_car));
+  b_stream << "    Best " << format_time (mp_timing->best_lap_time (p_car));
   draw_string (b_stream.str (), x, 6);
 
   b_stream.str ("");
@@ -781,13 +779,13 @@ Gl_World::draw_timing_info ()
 
   x = 75;
 
-  size_t sector = m_timing.current_sector (p_car);
+  size_t sector = mp_timing->current_sector (p_car);
   b_stream.str ("");
   b_stream << "   Sector ";
   if (sector != 0)
     {
       b_stream << sector << " " 
-               << format_time (m_timing.sector_time (p_car));
+               << format_time (mp_timing->sector_time (p_car));
     }
   draw_string (b_stream.str (), x, 14);
 
@@ -795,22 +793,22 @@ Gl_World::draw_timing_info ()
   b_stream << "       Best "; 
   if (sector != 0)
     {
-      b_stream << format_time (m_timing.best_sector_time (p_car));
+      b_stream << format_time (mp_timing->best_sector_time (p_car));
     }
   draw_string (b_stream.str (), x, 10);
 
   b_stream.str ("");
   b_stream << "Last Sector ";
-  if (m_timing.previous_sector (p_car) != 0)
+  if (mp_timing->previous_sector (p_car) != 0)
     {
-      b_stream << format_time (m_timing.previous_sector_time (p_car)) << "  " 
+      b_stream << format_time (mp_timing->previous_sector_time (p_car)) << "  " 
                << format_time_difference 
-        (m_timing.previous_sector_time_difference (p_car));
+        (mp_timing->previous_sector_time_difference (p_car));
     }
   draw_string (b_stream.str (), x, 6);
 
   b_stream.str ("");
-  b_stream << "Distance " << int (m_timing.lap_distance (p_car)) << " m";
+  b_stream << "Distance " << int (mp_timing->lap_distance (p_car)) << " m";
   draw_string (b_stream.str (), x, 2);
 
   glEnable (GL_DEPTH_TEST);
@@ -824,8 +822,9 @@ Gl_World::draw_leaderboard ()
 }
 
 void 
-Gl_World::start ()
+Gl_World::start (size_t laps)
 {
+  World::start (laps);
   m_map.set_bounds (*mp_track, *mp_window);
   if (!m_cars.empty ())
     set_paused (false);

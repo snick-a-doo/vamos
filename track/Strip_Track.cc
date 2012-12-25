@@ -1593,9 +1593,9 @@ Strip_Track::sector (double distance)
   for (size_t i = 0; i < m_timing_lines.size (); i++)
 	{
 	  if (m_timing_lines [i] > distance)
-		return i - 1;
+		return i;
 	}
-  return m_timing_lines.size () - 1;
+  return m_timing_lines.size ();
 }
 
 void 
