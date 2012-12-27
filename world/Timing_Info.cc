@@ -25,249 +25,213 @@ using namespace Vamos_World;
 
 const double Timing_Info::NO_TIME = std::numeric_limits <double>::min ();
 
-Timing_Info::Timing_Info (size_t n_sectors, size_t n_laps)
+Timing_Info::Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps)
   : m_sectors (n_sectors),
     m_laps (n_laps),
     m_total_time (0.0)
 {
+  assert (n_sectors > 0);
+
   // Reserve space if we know the total number of sectors. n_laps may be 0 in
   // which case these vectors will grow indefinitely.
   ma_sector_position.reserve (n_sectors * n_laps);
   ma_sector_time.reserve (n_sectors * n_laps);
-}
-
-void Timing_Info::add_car (const Car_Information* p_car)
-{
-  ma_cars.push_back (p_car);
-
-  ma_sector [p_car] = 0;
-  ma_last_sector [p_car] = 0;
-  ma_lap [p_car] = 0;
-  //! use same vector for sector, lap times, lap count
-  maa_lap_time [p_car].reserve (m_laps);
-  maa_sector_time [p_car].reserve (m_sectors * m_laps);
-  ma_best_lap_time [p_car] = NO_TIME;
-  maa_best_sector_time [p_car].resize (m_sectors);
-  maa_sector_delta [p_car].resize (m_sectors);
-  for (size_t sector = 0; sector < m_sectors; sector++)
+  for (size_t i = 0; i < n_cars; i++)
     {
-      maa_best_sector_time [p_car][sector] = NO_TIME;
-      maa_sector_delta [p_car][sector] = NO_TIME;
+      ma_car_timing.push_back (Car_Timing (i + 1, n_sectors, n_laps));
+      ma_index_at_position.push_back (i);
     }
-  ma_lap_delta [p_car] = NO_TIME;
-  ma_distance [p_car] = 0.0;
-  ma_position [p_car] = ma_cars.size ();
-  ma_interval [p_car] = NO_TIME;
 }
 
 void Timing_Info::reset ()
 {
+  //!todo
 }
 
 void Timing_Info::update (double current_time,
-                          const Car_Information* p_car,
+                          size_t index,
                           double distance,
                           size_t sector)
 {
-  if (is_new_sector (p_car, sector))
-    {
-      if (is_start_of_lap (sector))
-        update_lap_data (current_time, p_car);
-
-      update_sector_data (current_time, p_car, sector);
-
-      const size_t nth_sector = m_sectors * (ma_lap [p_car] - 1) + sector;
-      const size_t old_position = ma_position [p_car];
-      assert (ma_cars [old_position - 1] = p_car);
-      size_t new_position;
-      if (nth_sector > ma_sector_position.size ())
-        {
-          new_position = 1;
-          ma_sector_position.push_back (new_position);
-          ma_sector_time.push_back (current_time);
-          ma_interval [p_car] = NO_TIME;
-        }
-      else
-        {
-          new_position = ++ma_sector_position [nth_sector - 1];
-          ma_interval [p_car] = current_time - ma_sector_time [nth_sector - 1];
-          ma_sector_time [nth_sector - 1] = current_time;
-        }
-
-      std::swap (ma_position [p_car], ma_position [ma_cars [new_position - 1]]);
-      std::swap (ma_cars [old_position - 1], ma_cars [new_position - 1]);
-      assert (ma_cars [new_position - 1] = p_car);
-    }
+  assert (index < ma_car_timing.size ());
+  assert (sector <= m_sectors);
 
   m_total_time = current_time;
-  ma_distance [p_car] = distance;
+  const bool new_sector = is_new_sector (index, sector);
+  ma_car_timing [index].update (current_time, distance, sector, new_sector);
+  if (new_sector)
+    update_position (current_time, index, sector);
 }
 
-bool Timing_Info::is_new_sector (const Car_Information* p_car, size_t sector)
+void Timing_Info::update_position (double current_time, size_t index, size_t sector)
 {
-  return (sector == (ma_sector [p_car] % m_sectors) + 1);
+  Car_Timing& car = ma_car_timing [index];
+  const size_t nth_sector = m_sectors * (car.current_lap () - 1) + sector;
+  const size_t old_position = car.position ();
+  size_t new_position;
+  double interval;
+  if (nth_sector > ma_sector_position.size ())
+    {
+      new_position = 1;
+      interval = NO_TIME;
+      ma_sector_position.push_back (new_position);
+      ma_sector_time.push_back (current_time);
+    }
+  else
+    {
+      new_position = ++ma_sector_position [nth_sector - 1];
+      interval = current_time - ma_sector_time [nth_sector - 1];
+      ma_sector_time [nth_sector - 1] = current_time;
+    }
+
+  car.set_position (new_position, interval);
+  std::swap (ma_index_at_position [old_position - 1], 
+             ma_index_at_position [new_position - 1]);
 }
 
-bool Timing_Info::is_start_of_lap (size_t sector)
+bool Timing_Info::is_new_sector (size_t index, size_t sector) const
+{
+  return (sector == (ma_car_timing [index].current_sector () % m_sectors) + 1);
+}
+
+Timing_Info::Car_Timing::Car_Timing (size_t position, size_t sectors, size_t laps)
+  : m_position (position),
+    m_current_time (0.0),
+    m_distance (0.0),
+    m_interval (NO_TIME),
+    m_sectors (sectors),
+    m_sector (0),
+    m_last_sector (0),
+    m_lap (0),
+    m_best_lap_time (NO_TIME),
+    m_lap_delta (NO_TIME)
+{
+  //! use same vector for sector, lap times, lap count
+  ma_lap_time.reserve (laps);
+  ma_sector_time.reserve (m_sectors * laps);
+  ma_best_sector_time.resize (m_sectors);
+  ma_sector_delta.resize (m_sectors);
+  for (size_t sector = 0; sector < m_sectors; sector++)
+    {
+      ma_best_sector_time [sector] = NO_TIME;
+      ma_sector_delta [sector] = NO_TIME;
+    }
+}
+
+void Timing_Info::Car_Timing::update (double current_time, 
+                                      double distance, 
+                                      size_t sector,
+                                      bool new_sector)
+{
+  m_current_time = current_time;
+  m_distance = distance;
+  if (new_sector)
+    {
+      if (is_start_of_lap (sector))
+        update_lap_data (current_time);
+      update_sector_data (current_time, sector);
+    }
+}
+
+bool Timing_Info::Car_Timing::is_start_of_lap (size_t sector) const
 {
   return (sector == 1);
 }
 
-void Timing_Info::update_lap_data (double current_time, const Car_Information* p_car)
+void Timing_Info::Car_Timing::update_lap_data (double current_time)
 {
-  ma_lap [p_car]++;
-  if (ma_sector [p_car] > 0)
+  m_lap++;
+  if (m_sector > 0)
     {
-      maa_lap_time [p_car].push_back (current_time);
-      if (ma_best_lap_time [p_car] == NO_TIME)
-        ma_best_lap_time [p_car] = previous_lap_time (p_car);
+      ma_lap_time.push_back (current_time);
+      if (m_best_lap_time == NO_TIME)
+        m_best_lap_time = previous_lap_time ();
       else
         {
-          ma_lap_delta [p_car] = previous_lap_time (p_car) - ma_best_lap_time [p_car];
-          if (ma_lap_delta [p_car] < 0.0)
-            ma_best_lap_time [p_car] = previous_lap_time (p_car);
+          m_lap_delta = previous_lap_time () - m_best_lap_time;
+          if (m_lap_delta < 0.0)
+            m_best_lap_time = previous_lap_time ();
         }
     }
 }
 
-void Timing_Info::update_sector_data (double current_time,
-                                      const Car_Information* p_car,
-                                      size_t sector)
+void Timing_Info::Car_Timing::update_sector_data (double current_time, size_t sector)
 {
-  if (ma_sector [p_car] > 0)
-    maa_sector_time [p_car].push_back (current_time);
+  if (m_sector > 0)
+    ma_sector_time.push_back (current_time);
 
-  ma_last_sector [p_car] = ma_sector [p_car];
-  ma_sector [p_car] = sector;
+  m_last_sector = m_sector;
+  m_sector = sector;
 
-  if (ma_last_sector [p_car] > 0)
+  if (m_last_sector > 0)
     {
-      const size_t index = ma_last_sector [p_car] - 1;
+      const size_t index = m_last_sector - 1;
       assert (index < m_sectors);
-      double& best = maa_best_sector_time [p_car][index];
+      double& best = ma_best_sector_time [index];
       if (best == NO_TIME)
-        best = maa_sector_time [p_car].back ()
-          - (maa_sector_time [p_car].size () > 1 
-             ? *(maa_sector_time [p_car].end () - 2)
+        best = ma_sector_time.back ()
+          - (ma_sector_time.size () > 1 
+             ? *(ma_sector_time.end () - 2)
              : 0);
       else
         {
-          maa_sector_delta [p_car][index] = previous_sector_time (p_car) - best;
-          if (maa_sector_delta [p_car][index] < 0.0)
-            best = previous_sector_time (p_car);
+          ma_sector_delta [index] = previous_sector_time () - best;
+          if (ma_sector_delta [index] < 0.0)
+            best = previous_sector_time ();
         }
     }
 }
 
-double Timing_Info::total_time () const
+void Timing_Info::Car_Timing::set_position (size_t position, double interval)
 {
-  return m_total_time;
+  m_position = position;
+  m_interval = interval;
 }
 
-size_t Timing_Info::total_laps () const 
-{ 
-  return m_laps;
+double Timing_Info::Car_Timing::lap_time () const
+{
+  return m_current_time - (ma_lap_time.size () == 0 ? 0.0 : ma_lap_time.back ());
 }
 
-size_t Timing_Info::total_cars () const
+double Timing_Info::Car_Timing::previous_lap_time () const
 {
-  return ma_cars.size ();
-}
-
-const Car_Information* Timing_Info::car_at_position (size_t position) const
-{
-  if ((position < 1) || (position > ma_cars.size ()))
-    return 0;
-  return ma_cars [position - 1];
-}
-
-double Timing_Info::interval (const Car_Information* p_car) const
-{
-  return ma_interval.find (p_car)->second;
-}
-
-double Timing_Info::lap_distance (const Car_Information* p_car) const
-{
-  return ma_distance.find (p_car)->second;
-}
-
-size_t Timing_Info::current_lap (const Car_Information* p_car) const
-{
-  return ma_lap.find (p_car)->second;
-}
-
-double Timing_Info::lap_time (const Car_Information* p_car) const
-{
-  const std::vector <double>& a_time = maa_lap_time.find (p_car)->second;
-  return m_total_time - (a_time.size () == 0 ? 0.0 : a_time.back ());
-}
-
-double Timing_Info::previous_lap_time (const Car_Information* p_car) const
-{
-  const std::vector <double>& a_time = maa_lap_time.find (p_car)->second;
-  switch (a_time.size ())
+  switch (ma_lap_time.size ())
     {
     case 0:
       return NO_TIME;
     case 1:
-      return a_time.back ();
+      return ma_lap_time.back ();
     default:
-      return a_time.back () - *(a_time.end () - 2);
+      return ma_lap_time.back () - *(ma_lap_time.end () - 2);
     }
 }
 
-double Timing_Info::best_lap_time (const Car_Information* p_car) const
+double Timing_Info::Car_Timing::sector_time () const
 {
-  return ma_best_lap_time.find (p_car)->second;
+  return m_current_time - (ma_sector_time.size () == 0 ? 0.0 : ma_sector_time.back ());
 }
 
-double Timing_Info::lap_time_difference (const Car_Information* p_car) const
-{
-  return ma_lap_delta.find (p_car)->second;
-}
-
-size_t Timing_Info::current_sector (const Car_Information* p_car) const
-{
-  return ma_sector.find (p_car)->second;
-}
-
-size_t Timing_Info::previous_sector (const Car_Information* p_car) const
-{
-  return ma_last_sector.find (p_car)->second;
-}
-
-double Timing_Info::sector_time (const Car_Information* p_car) const
-{
-  const std::vector <double>& a_time = maa_sector_time.find (p_car)->second;
-  return m_total_time - (a_time.size () == 0 ? 0.0 : a_time.back ());
-}
-
-double Timing_Info::best_sector_time (const Car_Information* p_car) const
+double Timing_Info::Car_Timing::best_sector_time () const
 {
   // Return the best time on the current sector.
-  if (current_sector (p_car) == 0)
-    return NO_TIME;
-  return maa_best_sector_time.find (p_car)->second [current_sector (p_car) - 1];
+  return (m_sector == 0) ? NO_TIME : ma_best_sector_time [m_sector - 1];
 }
 
-double Timing_Info::previous_sector_time (const Car_Information* p_car) const
+double Timing_Info::Car_Timing::previous_sector_time () const
 {
   // Return the time spent in the most recently completed sector.
-  const std::vector <double>& a_time = maa_sector_time.find (p_car)->second;
-  switch (a_time.size ())
+  switch (ma_sector_time.size ())
     {
     case 0:
       return NO_TIME;
     case 1:
-      return a_time.back ();
+      return ma_sector_time.back ();
     default:
-      return a_time.back () - *(a_time.end () - 2);
+      return ma_sector_time.back () - *(ma_sector_time.end () - 2);
     }
 }
 
-double Timing_Info::previous_sector_time_difference (const Car_Information* p_car) const
+double Timing_Info::Car_Timing::previous_sector_time_difference () const
 {
-  if (previous_sector (p_car) == 0)
-    return NO_TIME;
-  return maa_sector_delta.find (p_car)->second [previous_sector (p_car) - 1];
+  return (m_last_sector == 0) ? NO_TIME : ma_sector_delta [m_last_sector - 1];
 }

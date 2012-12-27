@@ -462,7 +462,7 @@ Gl_World::update_car_timing ()
                                      car.road_index,
                                      car.segment_index).x;
       const int sector = mp_track->sector (distance);
-      mp_timing->update (m_timer.get_current_time (), &car, distance, sector);
+      mp_timing->update (m_timer.get_current_time (), i, distance, sector);
     }
 }
 
@@ -701,7 +701,8 @@ Gl_World::display ()
         if (focused_car () != 0)
           {
             const Vamos_Track::Camera& camera =
-              mp_track->get_camera (mp_timing->lap_distance (focused_car ()));
+              mp_track->get_camera (mp_timing->timing_at_index (m_focused_car_index)
+                                    .lap_distance ());
             set_world_view (camera);
             draw_track (true, mp_track->camera_position (camera));
           }
@@ -739,9 +740,6 @@ Gl_World::draw_string (const std::string& str, double x, double y)
 void 
 Gl_World::draw_timing_info ()
 {
-  const Car_Information* p_car = focused_car ();
-  if ((p_car == 0) || (p_car->car == 0)) return;
-
   glDisable (GL_DEPTH_TEST);
   glDisable (GL_LIGHTING);
   glDisable (GL_TEXTURE_2D);
@@ -760,17 +758,18 @@ Gl_World::draw_timing_info ()
 
   draw_leaderboard ();
 
-  b_stream << "Lap Time " << format_time (mp_timing->lap_time (p_car));
+  const Timing_Info::Car_Timing& car = mp_timing->timing_at_index (m_focused_car_index);
+  b_stream << "Lap Time " << format_time (car.lap_time ());
   draw_string (b_stream.str (), x, 14);
 
   b_stream.str ("");
-  b_stream << "    Last " << format_time (mp_timing->previous_lap_time (p_car)) 
+  b_stream << "    Last " << format_time (car.previous_lap_time ()) 
            << " " 
-           << format_time_difference (mp_timing->lap_time_difference (p_car));
+           << format_time_difference (car.lap_time_difference ());
   draw_string (b_stream.str (), x, 10);
 
   b_stream.str ("");
-  b_stream << "    Best " << format_time (mp_timing->best_lap_time (p_car));
+  b_stream << "    Best " << format_time (car.best_lap_time ());
   draw_string (b_stream.str (), x, 6);
 
   b_stream.str ("");
@@ -779,13 +778,13 @@ Gl_World::draw_timing_info ()
 
   x = 75;
 
-  size_t sector = mp_timing->current_sector (p_car);
+  size_t sector = car.current_sector ();
   b_stream.str ("");
   b_stream << "   Sector ";
   if (sector != 0)
     {
       b_stream << sector << " " 
-               << format_time (mp_timing->sector_time (p_car));
+               << format_time (car.sector_time ());
     }
   draw_string (b_stream.str (), x, 14);
 
@@ -793,22 +792,22 @@ Gl_World::draw_timing_info ()
   b_stream << "       Best "; 
   if (sector != 0)
     {
-      b_stream << format_time (mp_timing->best_sector_time (p_car));
+      b_stream << format_time (car.best_sector_time ());
     }
   draw_string (b_stream.str (), x, 10);
 
   b_stream.str ("");
   b_stream << "Last Sector ";
-  if (mp_timing->previous_sector (p_car) != 0)
+  if (car.previous_sector () != 0)
     {
-      b_stream << format_time (mp_timing->previous_sector_time (p_car)) << "  " 
+      b_stream << format_time (car.previous_sector_time ()) << "  " 
                << format_time_difference 
-        (mp_timing->previous_sector_time_difference (p_car));
+        (car.previous_sector_time_difference ());
     }
   draw_string (b_stream.str (), x, 6);
 
   b_stream.str ("");
-  b_stream << "Distance " << int (mp_timing->lap_distance (p_car)) << " m";
+  b_stream << "Distance " << int (car.lap_distance ()) << " m";
   draw_string (b_stream.str (), x, 2);
 
   glEnable (GL_DEPTH_TEST);
@@ -819,6 +818,34 @@ Gl_World::draw_timing_info ()
 void
 Gl_World::draw_leaderboard ()
 {
+  const size_t lap = mp_timing->timing_at_position (1).current_lap ();
+  const size_t total_laps = mp_timing->total_laps ();
+
+  double x = 85;
+  double y = 95;
+
+  std::ostringstream b_stream;
+  b_stream << "Lap " << lap << '/' << total_laps;
+  draw_string (b_stream.str (), x, y);
+
+  y -= 3;
+  b_stream.str ("");
+  b_stream << m_cars [mp_timing->index_at_position (1)].car->name () << ' ';
+  double time = mp_timing->timing_at_position (1).previous_lap_time ();
+  if (time != Timing_Info::NO_TIME)
+    b_stream << format_time (time);
+  draw_string (b_stream.str (), x, y);
+
+  for (size_t i = 2; (i <= mp_timing->total_cars ()) && (i <= 10); i++)
+    {
+      y -= 3;
+      b_stream.str ("");
+      b_stream << m_cars [mp_timing->index_at_position (i)].car->name () << ' ';
+      double interval = mp_timing->timing_at_position (i).interval ();
+      if (interval != Timing_Info::NO_TIME)
+        b_stream << format_time_difference (interval);
+      draw_string (b_stream.str (), x, y);
+    }
 }
 
 void 

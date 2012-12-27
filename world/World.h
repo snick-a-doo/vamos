@@ -118,6 +118,7 @@ namespace Vamos_World
     /// The times for all cars.
     Timing_Info* mp_timing;
     std::vector <Interaction_Info> m_interaction_info;
+    size_t m_focused_car_index;
 
     virtual void start (size_t laps);
     void reset ();
@@ -132,7 +133,6 @@ namespace Vamos_World
                     const Vamos_Track::Road& Road);
     void set_controlled_car (size_t car_index);
 
-    size_t m_focused_car_index;
     bool m_cars_can_interact;
     bool m_has_controlled_car;
     size_t m_controlled_car_index;
