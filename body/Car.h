@@ -369,6 +369,8 @@ namespace Vamos_Body
     void wind (const Vamos_Geometry::Three_Vector& wind_vector, 
                double densty);
 
+    std::string name () const { return m_name; }
+
   protected:
     Rigid_Body m_chassis;
 
@@ -455,6 +457,7 @@ namespace Vamos_Body
   private:
     std::string m_data_dir;
     std::string m_car_file;
+    std::string m_name;
     Crash_Box m_crash_box;
 
     Robot_Parameters m_robot_parameters;
@@ -483,6 +486,13 @@ namespace Vamos_Body
 
   class Car_Reader : public Vamos_Media::XML_Parser
   {
+  public:
+    Car_Reader (std::string data_dir, 
+                std::string car_file, 
+                Car* car);
+    ~Car_Reader ();
+
+  private:
     void on_start_tag (const Vamos_Media::XML_Tag& tag); 
     void on_end_tag (const Vamos_Media::XML_Tag& tag); 
     void on_data (std::string data_string);
@@ -527,12 +537,6 @@ namespace Vamos_Body
     std::string m_tachometer_type;
     std::string m_speedometer_type;
     std::string m_fuel_gauge_type;
-
-  public:
-    Car_Reader (std::string data_dir, 
-                std::string car_file, 
-                Car* car);
-    ~Car_Reader ();
   };
 }
 

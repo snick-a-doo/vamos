@@ -88,8 +88,11 @@ Car_Reader::on_start_tag (const Vamos_Media::XML_Tag& tag)
   const Vamos_Media::XML_Tag::Attribute_List& 
     attribs = tag.get_attributes ();
 
-
-  if (path () == "/car/robot")
+  if (path () == "/car")
+    {
+      mp_car->m_name = attribs [0].value;
+    }
+  else if (path () == "/car/robot")
     {
       m_doubles.resize (3);
     }
