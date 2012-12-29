@@ -22,7 +22,7 @@
 
 #include <cstddef>
 #include <vector>
-#include <map>
+#include <list>
 
 namespace Vamos_World
 {
@@ -30,49 +30,55 @@ namespace Vamos_World
   class Timing_Info
   {
   public:
+    class Car_Timing;
+    typedef std::list <const Car_Timing*> Running_Order;
+
     /// Initialize the timing information.
     /// @param n_cars The number of cars added to the world.
     /// @param n_sectors The number of timing sectors per lap. Must be > 0. 
     /// @param n_laps The number of laps in the session. If 0 laps-to-go
     ///               information is not available. 
     Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps);
+    ~Timing_Info ();
 
-    /// Reset the global timer and the cars' times.
-    void reset ();
-
-    /// Update the total time and the timing for the car with the specified index.
-    void update (double current_time, size_t index, double distance, size_t sector);
-
-    /// Time since the start of the session. Zero before the session
-    /// starts. Updated continuously.
-    double total_time () const { return m_total_time; }
     /// Return the total number of laps specified at construction. May be
     /// zero. Fixed. 
     size_t total_laps () const { return m_laps; }
-    /// The number of cars added. Updated with 'add_cars()'
-    size_t total_cars () const { return ma_car_timing.size (); }
+    size_t total_time () const { return m_total_time; }
+    /// Reset the global timer and the cars' times.
+    void reset ();
+    /// Update the total time and the timing for the car with the specified index.
+    void update (double current_time, size_t index, double distance, size_t sector);
+
+    const Running_Order& running_order () const { return ma_running_order; }
+
+    const Car_Timing& timing_at_index (size_t index) const 
+    { return *ma_car_timing [index]; }
+
+    static const double NO_TIME; 
 
     class Car_Timing
     {
+      friend class Timing_Info;
+
     public:
       Car_Timing (size_t position, size_t sectors, size_t laps);
 
-      void update (double current_time, double distance, size_t sector, bool new_sector);
-      void set_position (size_t position, double interval);
-
-      size_t position () const { return m_position; }
+      /// The (incomplete) lap the car is currently on. It's 0 before the start
+      /// of the session, 1 as soon as the timer starts. Updated each lap.
+      size_t current_lap () const { return m_lap; }
+      /// The car's position at the start. Fixed.
+      size_t grid_position () const { return m_grid_position; }
       /// Return the time interval to the car ahead. -1 is returned for the
       /// leader, all other intervals are non-negative. Updated each time a car
       /// completes a sector.
       double interval () const { return m_interval; }
+
       /// The distance traveled on the current lap. Resets to zero each lap at the
       /// finish line. May be > 0 at the start of the session. Updated
       /// continuously. 
       double lap_distance () const { return m_distance; }
 
-      /// The (incomplete) lap the car is currently on. It's 0 before the start
-      /// of the session, 1 as soon as the timer starts. Updated each lap.
-      size_t current_lap () const { return m_lap; }
       /// Time spent on the current lap so far. Updated continuously.
       double lap_time () const;
       /// Time taken to complete the previous lap. Updated each lap.
@@ -101,11 +107,12 @@ namespace Vamos_World
       double previous_sector_time_difference () const;
 
     private:
+      void update (double current_time, double distance, size_t sector, bool new_sector);
       bool is_start_of_lap (size_t sector) const;
       void update_lap_data (double current_time);
       void update_sector_data (double current_time, size_t sector);
 
-      size_t m_position;
+      double m_grid_position;
       double m_current_time;
       double m_distance;
       double m_interval;
@@ -121,15 +128,6 @@ namespace Vamos_World
       std::vector <double> ma_sector_time;
     };
 
-    const Car_Timing& timing_at_index (size_t index) const 
-    { return ma_car_timing [index]; }
-    const Car_Timing& timing_at_position (size_t position) const
-    { return timing_at_index (index_at_position (position)); }
-    const size_t index_at_position (size_t position) const
-    { return ma_index_at_position [position - 1]; }
-
-    static const double NO_TIME; 
-
   private:
     bool is_new_sector (size_t index, size_t sector) const;
     void update_position (double current_time, size_t index, size_t sector);
@@ -138,10 +136,10 @@ namespace Vamos_World
     size_t m_laps;
     double m_total_time;
 
-    std::vector <Car_Timing> ma_car_timing;
+    std::vector <Car_Timing*> ma_car_timing;
     std::vector <size_t> ma_sector_position;
     std::vector <double> ma_sector_time;
-    std::vector <size_t> ma_index_at_position;
+    Running_Order ma_running_order;
   };
 }
 

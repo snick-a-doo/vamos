@@ -19,7 +19,6 @@ struct Timing_Fixture
 
   const Timing_Info::Car_Timing& car (size_t n) const 
   {
-    assert ((n > 0) && (n <= timing.total_cars ()));
     return timing.timing_at_index (n - 1);
   }
 
@@ -31,10 +30,6 @@ BOOST_AUTO_TEST_CASE (initial_state)
   Timing_Fixture f (3, 3, 4);
   BOOST_CHECK_EQUAL (f.timing.total_time (), 0.0);
   BOOST_CHECK_EQUAL (f.timing.total_laps (), 4);
-  BOOST_CHECK_EQUAL (f.timing.total_cars (), 3);
-  BOOST_CHECK_EQUAL (f.car (1).position (), 1);
-  BOOST_CHECK_EQUAL (f.car (2).position (), 2);
-  BOOST_CHECK_EQUAL (f.car (3).position (), 3);
   BOOST_CHECK_EQUAL (f.car (1).current_lap (), 0);
   BOOST_CHECK_EQUAL (f.car (2).current_lap (), 0);
   BOOST_CHECK_EQUAL (f.car (3).current_lap (), 0);
@@ -90,9 +85,6 @@ BOOST_AUTO_TEST_CASE (second_sector)
   f.timing.update (81.0, 1, 900.0, 2);
   f.timing.update (92.0, 2, 750.0, 2);
   BOOST_CHECK_EQUAL (f.timing.total_time (), 92.0);
-  BOOST_CHECK_EQUAL (f.car (1).position (), 2);
-  BOOST_CHECK_EQUAL (f.car (2).position (), 1);
-  BOOST_CHECK_EQUAL (f.car (3).position (), 3);
   BOOST_CHECK_EQUAL (f.car (1).interval (), 19);
   BOOST_CHECK_EQUAL (f.car (2).interval (), Timing_Info::NO_TIME);
   BOOST_CHECK_EQUAL (f.car (3).interval (), 22);

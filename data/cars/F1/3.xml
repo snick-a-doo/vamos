@@ -2,7 +2,7 @@
 <!-- A modern Formula One car -->
 
 <!-- raised deceleration, lateral-acceleration by 0.1 -->
-<car name="F1">
+<car name="BLK">
   <robot>
     <slip-ratio>8.0</slip-ratio>
     <deceleration>2.0</deceleration>

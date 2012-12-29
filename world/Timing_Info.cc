@@ -38,9 +38,16 @@ Timing_Info::Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps)
   ma_sector_time.reserve (n_sectors * n_laps);
   for (size_t i = 0; i < n_cars; i++)
     {
-      ma_car_timing.push_back (Car_Timing (i + 1, n_sectors, n_laps));
-      ma_index_at_position.push_back (i);
+      Car_Timing* p_car = new Car_Timing (i + 1, n_sectors, n_laps);
+      ma_car_timing.push_back (p_car);
+      ma_running_order.push_back (p_car);
     }
+}
+
+Timing_Info::~Timing_Info ()
+{
+  for (size_t i = 0; i < ma_car_timing.size (); i++)
+    delete ma_car_timing [i];
 }
 
 void Timing_Info::reset ()
@@ -58,44 +65,57 @@ void Timing_Info::update (double current_time,
 
   m_total_time = current_time;
   const bool new_sector = is_new_sector (index, sector);
-  ma_car_timing [index].update (current_time, distance, sector, new_sector);
+  ma_car_timing [index]->update (current_time, distance, sector, new_sector);
   if (new_sector)
     update_position (current_time, index, sector);
 }
 
 void Timing_Info::update_position (double current_time, size_t index, size_t sector)
 {
-  Car_Timing& car = ma_car_timing [index];
-  const size_t nth_sector = m_sectors * (car.current_lap () - 1) + sector;
-  const size_t old_position = car.position ();
-  size_t new_position;
+  assert ((sector > 0) && (sector <= m_sectors));
+  Car_Timing* p_car = ma_car_timing [index];
+  const size_t nth_sector = m_sectors * (p_car->current_lap () - 1) + sector;
+
+  Timing_Info::Running_Order::iterator new_position = ma_running_order.begin ();
   double interval;
   if (nth_sector > ma_sector_position.size ())
     {
-      new_position = 1;
       interval = NO_TIME;
-      ma_sector_position.push_back (new_position);
+      ma_sector_position.push_back (1);
       ma_sector_time.push_back (current_time);
     }
   else
     {
-      new_position = ++ma_sector_position [nth_sector - 1];
+      size_t p = ma_sector_position [nth_sector - 1]++;
+      for (; p > 0; p--)
+        ++new_position;
       interval = current_time - ma_sector_time [nth_sector - 1];
       ma_sector_time [nth_sector - 1] = current_time;
+  
     }
 
-  car.set_position (new_position, interval);
-  std::swap (ma_index_at_position [old_position - 1], 
-             ma_index_at_position [new_position - 1]);
+  // If this car has lost positions it will have been pushed down the running
+  // order by the cars that have already reached this sector. Thus, old_position
+  // is at or after new_position.
+  Timing_Info::Running_Order::iterator old_position 
+    = std::find (new_position, ma_running_order.end (), p_car);
+  if (new_position != old_position)
+    {
+      ma_running_order.insert (new_position, *old_position);
+      ma_running_order.erase (old_position);
+    }
+  p_car->m_interval = interval;
 }
 
 bool Timing_Info::is_new_sector (size_t index, size_t sector) const
 {
-  return (sector == (ma_car_timing [index].current_sector () % m_sectors) + 1);
+  const size_t current = ma_car_timing [index]->current_sector ();
+  // Do the % before + because sector is 1-based.
+  return (sector == (current % m_sectors) + 1);
 }
 
 Timing_Info::Car_Timing::Car_Timing (size_t position, size_t sectors, size_t laps)
-  : m_position (position),
+  : m_grid_position (position),
     m_current_time (0.0),
     m_distance (0.0),
     m_interval (NO_TIME),
@@ -180,12 +200,6 @@ void Timing_Info::Car_Timing::update_sector_data (double current_time, size_t se
             best = previous_sector_time ();
         }
     }
-}
-
-void Timing_Info::Car_Timing::set_position (size_t position, double interval)
-{
-  m_position = position;
-  m_interval = interval;
 }
 
 double Timing_Info::Car_Timing::lap_time () const

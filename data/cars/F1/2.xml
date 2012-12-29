@@ -2,7 +2,7 @@
 <!-- A modern Formula One car -->
 
 <!-- max-power 6.8e5 -> 7.4e5 -->
-<car name="F1">
+<car name="BLU">
   <robot>
     <slip-ratio>8.0</slip-ratio>
     <deceleration>1.9</deceleration>

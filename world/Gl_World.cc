@@ -818,30 +818,32 @@ Gl_World::draw_timing_info ()
 void
 Gl_World::draw_leaderboard ()
 {
-  const size_t lap = mp_timing->timing_at_position (1).current_lap ();
-  const size_t total_laps = mp_timing->total_laps ();
-
   double x = 85;
   double y = 95;
-
   std::ostringstream b_stream;
+
+  const Timing_Info::Running_Order& order = mp_timing->running_order ();
+  Timing_Info::Running_Order::const_iterator it = order.begin ();
+
+  const size_t lap = (*it)->current_lap ();
+  const size_t total_laps = mp_timing->total_laps ();
   b_stream << "Lap " << lap << '/' << total_laps;
   draw_string (b_stream.str (), x, y);
 
   y -= 3;
   b_stream.str ("");
-  b_stream << m_cars [mp_timing->index_at_position (1)].car->name () << ' ';
-  double time = mp_timing->timing_at_position (1).previous_lap_time ();
+  b_stream << m_cars [(*it)->grid_position () - 1].car->name () << ' ';
+  double time = (*it)->previous_lap_time ();
   if (time != Timing_Info::NO_TIME)
     b_stream << format_time (time);
   draw_string (b_stream.str (), x, y);
 
-  for (size_t i = 2; (i <= mp_timing->total_cars ()) && (i <= 10); i++)
+  while (++it != order.end ())
     {
       y -= 3;
       b_stream.str ("");
-      b_stream << m_cars [mp_timing->index_at_position (i)].car->name () << ' ';
-      double interval = mp_timing->timing_at_position (i).interval ();
+      b_stream << m_cars [(*it)->grid_position () - 1].car->name () << ' ';
+      double interval = (*it)->interval ();
       if (interval != Timing_Info::NO_TIME)
         b_stream << format_time_difference (interval);
       draw_string (b_stream.str (), x, y);
