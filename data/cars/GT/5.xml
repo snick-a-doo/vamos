@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- increased grip, deceleration, lateral-acceleration -->
-<car name="GT">
+<car name="BLK">
   <robot>
     <slip-ratio>9.0</slip-ratio>
     <deceleration>1.5</deceleration>

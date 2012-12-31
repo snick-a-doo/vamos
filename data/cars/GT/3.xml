@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- lowered mass, raised deceleration, lateral-acceleration by 0.1 -->
-<car name="GT">
+<car name="GRN">
   <robot>
     <slip-ratio>9.0</slip-ratio>
     <deceleration>1.5</deceleration>

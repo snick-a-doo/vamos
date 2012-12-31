@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- drag-coefficient 0.6 -> 0.5 -->
-<car name="GT">
+<car name="RED">
   <robot>
     <slip-ratio>9.0</slip-ratio>
     <deceleration>1.4</deceleration>
