@@ -60,7 +60,7 @@ bool get_options (int argc, char* argv [],
   controls_file = "default-controls";
   number_of_opponents = 0;
   laps = 5;
-  performance = 1.0;
+  performance = 0.0;
   volume = 1.0;
   map_mode = false;
   full_screen = false;

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- A modern Formula One car -->
 <!-- increased grip, deceleration, lateral-acceleration -->
-<car name="WHT">
+<car name="SLV">
   <robot>
     <slip-ratio>7.0</slip-ratio>
     <deceleration>1.9</deceleration>

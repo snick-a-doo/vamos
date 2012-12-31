@@ -2,7 +2,7 @@
 <!-- A modern Formula One car -->
 
 <!-- raised wing efficiency 0.05 -->
-<car name="SLV">
+<car name="RED">
   <robot>
     <slip-ratio>6.0</slip-ratio>
     <deceleration>1.8</deceleration>
