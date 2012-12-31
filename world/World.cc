@@ -91,8 +91,6 @@ World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere)
 
 World::~World ()
 {
-  delete mp_atmosphere;
-  delete mp_track;
   for (std::vector <Car_Information>::iterator it = m_cars.begin ();
        it != m_cars.end ();
        it++)

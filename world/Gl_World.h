@@ -230,16 +230,16 @@ namespace Vamos_World
     virtual Control& keyboard () { return m_keyboard; }
     virtual Control& mouse () { return m_mouse; }
 
-  protected:
+  private:
 	virtual void draw_timing_info ();
     void draw_leaderboard ();
+    void draw_lap_times ();
 	void draw_string (const std::string& str, double x, double y);
-	Timer m_timer;
 
-  private:
 	friend class World_Reader;
 	friend class Controls_Reader;
 
+	Timer m_timer;
     bool m_show_mirror_views;
 
 	std::string m_data_dir;
@@ -266,6 +266,7 @@ namespace Vamos_World
 	int m_frames;
 	bool m_paused;
     bool m_update_graphics;
+    bool m_done;
     Map m_map;
 
     class Event_Repeat

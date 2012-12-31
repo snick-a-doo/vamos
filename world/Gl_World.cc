@@ -52,8 +52,8 @@ format_time (double time)
   int milliseconds = int (1000 * (time - floor (time)));
 
   std::ostringstream os;
-  os << minutes << ':' << std::setfill ('0') << std::setw (2) 
-     << seconds << '.' << milliseconds;
+  os << minutes << ':' << std::setfill ('0') << std::setw (2)
+     << seconds << '.' << std::setw (3) << milliseconds;
   return os.str ();
 }
 
@@ -67,7 +67,7 @@ format_time_difference (double delta_time)
     {
       os << '+';
     }
-  os << std::setprecision (3) << delta_time;
+  os << std::setfill ('0') << std::setprecision (3) << delta_time;
   return os.str ();
 }
 
@@ -189,7 +189,8 @@ Gl_World::Gl_World (int argc, char** argv,
     mp_sounds (sounds),
     mp_window (0),
     m_view (MAP_VIEW),
-    m_update_graphics (true)
+    m_update_graphics (true),
+    m_done (false)
 {
   initialize_graphics (&argc, argv);
   mp_window = new Gl_Window (900, 600, argv [0], full_screen);
@@ -198,11 +199,9 @@ Gl_World::Gl_World (int argc, char** argv,
   set_paused (true);
 }
 
-Gl_World::
-~Gl_World ()
+Gl_World::~Gl_World ()
 {
   delete mp_window;
-  delete mp_sounds;
 }
 
 void 
@@ -307,9 +306,7 @@ Gl_World::pause (double, double)
 bool 
 Gl_World::quit (double, double)
 {
-  delete mp_window;
-  mp_window = 0;
-  std::exit (0);
+  m_done = true;
   return true;
 }
 
@@ -424,6 +421,7 @@ Gl_World::replay (double, double)
           it->car->chassis ().set_orientation (record.m_orientation);
         }
 
+      std::cerr << time << ' ' << real_time << std::endl;
       if (time >= real_time)
         display ();
       check_for_events ();
@@ -756,7 +754,10 @@ Gl_World::draw_timing_info ()
 
   gluOrtho2D (0, 100, 0, 100);
 
-  draw_leaderboard ();
+  if (mp_timing->running_order ().size () > 1 )
+    draw_leaderboard ();
+  else
+    draw_lap_times ();
 
   const Timing_Info::Car_Timing& car = mp_timing->timing_at_index (m_focused_car_index);
   b_stream << "Lap Time " << format_time (car.lap_time ());
@@ -781,11 +782,7 @@ Gl_World::draw_timing_info ()
   size_t sector = car.current_sector ();
   b_stream.str ("");
   b_stream << "   Sector ";
-  if (sector != 0)
-    {
-      b_stream << sector << " " 
-               << format_time (car.sector_time ());
-    }
+  b_stream << sector << " " << format_time (car.sector_time ());
   draw_string (b_stream.str (), x, 14);
 
   b_stream.str ("");
@@ -827,7 +824,10 @@ Gl_World::draw_leaderboard ()
 
   const size_t lap = (*it)->current_lap ();
   const size_t total_laps = mp_timing->total_laps ();
-  b_stream << "Lap " << lap << '/' << total_laps;
+  if (lap <= total_laps)
+    b_stream << "Lap " << lap << '/' << total_laps;
+  else
+    b_stream << "Finish";
   draw_string (b_stream.str (), x, y);
 
   y -= 3;
@@ -848,6 +848,49 @@ Gl_World::draw_leaderboard ()
         b_stream << format_time_difference (interval);
       draw_string (b_stream.str (), x, y);
     }
+
+  y -= 3;
+  b_stream.str ("");
+  b_stream << "Fastest Lap"; 
+  draw_string (b_stream.str (), x, y);
+  y -= 2;
+  b_stream.str ("");
+  const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
+  if (p_fastest)
+    {
+      time = p_fastest->best_lap_time ();
+      if (time != Timing_Info::NO_TIME)
+        b_stream << m_cars [p_fastest->grid_position () - 1].car->name () << ' '
+                 << format_time (p_fastest->best_lap_time ());
+    }
+  draw_string (b_stream.str (), x, y);
+}
+
+void
+Gl_World::draw_lap_times ()
+{
+  double x = 85;
+  double y = 95;
+  std::ostringstream b_stream;
+
+  const Timing_Info::Running_Order& order = mp_timing->running_order ();
+  Timing_Info::Running_Order::const_iterator it = order.begin ();
+
+  static std::vector <double> a_time;
+  const double lap_time = (*it)->previous_lap_time ();
+  const size_t lap = (*it)->current_lap ();
+  if ((lap_time != Timing_Info::NO_TIME) 
+      && (lap > 0)
+      && (lap - 1) > a_time.size ())
+    a_time.push_back (lap_time);
+
+  for (size_t i = 0; i < a_time.size (); i++)
+    {
+      b_stream.str ("");
+      b_stream << i + 1 << ' ' << format_time (a_time [i]);
+      draw_string (b_stream.str (), x, y);
+      y -= 3;
+    }
 }
 
 void 
@@ -865,7 +908,7 @@ Gl_World::start (size_t laps)
   while (SDL_PollEvent (&event))
     ;
 
-  while (true)
+  while (!m_done)
     {
       m_timer.update ();
       check_for_events ();

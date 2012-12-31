@@ -25,7 +25,6 @@
 #include <sstream>
 #include <cassert>
 
-using Vamos_Media::Sample;
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 

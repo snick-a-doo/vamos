@@ -42,6 +42,8 @@ bool get_options (int argc, char* argv [],
                   std::string& world_file,
                   std::string& controls_file,
                   size_t& number_of_opponents,
+                  size_t& laps,
+                  double& performance,
                   double& volume,
                   bool& map_mode,
                   bool& full_screen,
@@ -57,6 +59,9 @@ bool get_options (int argc, char* argv [],
   world_file = "default-world";
   controls_file = "default-controls";
   number_of_opponents = 0;
+  laps = 5;
+  performance = 1.0;
+  volume = 1.0;
   map_mode = false;
   full_screen = false;
   no_interaction = false;
@@ -75,6 +80,8 @@ bool get_options (int argc, char* argv [],
           { "world", required_argument, 0, 'w' },
           { "controls", required_argument, 0, 'a' },
           { "opponents", required_argument, 0, 'o' },
+          { "laps", required_argument, 0, 'p' },
+          { "performance", required_argument, 0, 'z' },
           { "volume", required_argument, 0, 's' },
           { "show-line", optional_argument, 0, 'l' },
           { "map", no_argument, 0, 'm' },
@@ -87,7 +94,7 @@ bool get_options (int argc, char* argv [],
         };
 
       int option_index = 0;
-      int c = getopt_long (argc, argv, "c:t:w:a:o:s:l::mdfnrv", 
+      int c = getopt_long (argc, argv, "c:t:w:a:o:p:z:s:l::mdfnrv", 
                            long_options, &option_index);
       if (c == -1)
         break;
@@ -110,6 +117,11 @@ bool get_options (int argc, char* argv [],
           break;
         case 'o':
           number_of_opponents = atoi (optarg);
+          break;
+        case 'p':
+          laps = atoi (optarg);
+        case 'z':
+          performance = atoi (optarg) / 100.0 - 1.0;
           break;
         case 's':
           volume = atoi (optarg) / 100.0;
@@ -203,7 +215,9 @@ int main (int argc, char* argv [])
   std::string world_file;
   std::string controls_file;
   size_t number_of_opponents;
-  double volume = 1.0;
+  size_t laps;
+  double performance;
+  double volume;
   bool map_mode;
   bool full_screen;
   bool no_interaction;
@@ -216,6 +230,8 @@ int main (int argc, char* argv [])
                             car_file, track_file, 
                             world_file, controls_file,
                             number_of_opponents,
+                            laps,
+                            performance,
                             volume,
                             map_mode,
                             full_screen,
@@ -234,6 +250,8 @@ int main (int argc, char* argv [])
                 << "[[-w|--world=] WORLD_FILE] "
                 << "[[-a|--controls=] CONTROLS_FILE] "
                 << "[[-o|--opponents=] NUMBER_OF_OPPONENTS] "
+                << "[[-p|--laps=] NUMBER_OF_LAPS] "
+                << "[[-z|--performance=] FACTOR] "
                 << "[[-s|--volume=] VOLUME_PERCENT] "
                 << "[-f|--full-screen] "
                 << "[-n|--no-interaction] "
@@ -319,6 +337,7 @@ int main (int argc, char* argv [])
             {
               car = new Vamos_Body::Gl_Car (position, orientation);
               car->read (data_dir, car_files [std::min (car_files.size () - 1, i + 1)]);
+              car->adjust_robot_parameters (performance, performance, performance);
               car->start_engine ();
               Robot_Driver* driver = new Robot_Driver (car, &track, world.get_gravity ());
               driver->interact (!no_interaction);
@@ -367,7 +386,7 @@ int main (int argc, char* argv [])
       std::cerr << error.message () << std::endl;
       std::exit (EXIT_FAILURE);
     }
-  world.start (5);
+  world.start (laps);
 
   delete sounds;
 

@@ -28,7 +28,10 @@ const double Timing_Info::NO_TIME = std::numeric_limits <double>::min ();
 Timing_Info::Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps)
   : m_sectors (n_sectors),
     m_laps (n_laps),
-    m_total_time (0.0)
+    m_total_time (0.0),
+    mp_fastest (0),
+    m_fastest_lap (NO_TIME),
+    m_finished (false)
 {
   assert (n_sectors > 0);
 
@@ -41,6 +44,8 @@ Timing_Info::Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps)
       Car_Timing* p_car = new Car_Timing (i + 1, n_sectors, n_laps);
       ma_car_timing.push_back (p_car);
       ma_running_order.push_back (p_car);
+      if (i == 0)
+        mp_fastest = p_car;
     }
 }
 
@@ -52,7 +57,19 @@ Timing_Info::~Timing_Info ()
 
 void Timing_Info::reset ()
 {
-  //!todo
+  m_total_time = 0.0;
+  mp_fastest = 0;
+  m_fastest_lap = NO_TIME;
+
+  ma_running_order.clear ();
+  for (size_t i = 0; i < ma_car_timing.size (); i++)
+    {
+      Car_Timing* p_car = ma_car_timing [i];
+      p_car->reset ();
+      ma_running_order.push_back (p_car);
+      if (i == 0)
+        mp_fastest = p_car;
+    }
 }
 
 void Timing_Info::update (double current_time,
@@ -65,16 +82,26 @@ void Timing_Info::update (double current_time,
 
   m_total_time = current_time;
   const bool new_sector = is_new_sector (index, sector);
-  ma_car_timing [index]->update (current_time, distance, sector, new_sector);
+  Car_Timing* p_car = ma_car_timing [index];
+  bool already_finished = p_car->m_finished;
+  p_car->update (current_time, distance, sector, new_sector, m_finished);
   if (new_sector)
-    update_position (current_time, index, sector);
+    update_position (p_car, current_time, sector, already_finished);
+
+  if (ma_car_timing [index]->current_lap () > m_laps)
+    m_finished = true;
 }
 
-void Timing_Info::update_position (double current_time, size_t index, size_t sector)
+void Timing_Info::update_position (Car_Timing* p_car,
+                                   double current_time,
+                                   size_t sector,
+                                   bool finished)
 {
   assert ((sector > 0) && (sector <= m_sectors));
-  Car_Timing* p_car = ma_car_timing [index];
-  const size_t nth_sector = m_sectors * (p_car->current_lap () - 1) + sector;
+  if ((p_car->previous_sector () == 0) || finished)
+    return;
+
+  const size_t nth_sector = m_sectors * (p_car->current_lap () - 1) + sector - 1;
 
   Timing_Info::Running_Order::iterator new_position = ma_running_order.begin ();
   double interval;
@@ -88,10 +115,9 @@ void Timing_Info::update_position (double current_time, size_t index, size_t sec
     {
       size_t p = ma_sector_position [nth_sector - 1]++;
       for (; p > 0; p--)
-        ++new_position;
+          ++new_position;
       interval = current_time - ma_sector_time [nth_sector - 1];
       ma_sector_time [nth_sector - 1] = current_time;
-  
     }
 
   // If this car has lost positions it will have been pushed down the running
@@ -105,6 +131,14 @@ void Timing_Info::update_position (double current_time, size_t index, size_t sec
       ma_running_order.erase (old_position);
     }
   p_car->m_interval = interval;
+
+  const double best = p_car->best_lap_time ();
+  if ((best != NO_TIME)
+      && ((m_fastest_lap == NO_TIME) || (best < m_fastest_lap)))
+    {
+      mp_fastest = p_car;
+      m_fastest_lap = best;
+    }
 }
 
 bool Timing_Info::is_new_sector (size_t index, size_t sector) const
@@ -116,6 +150,7 @@ bool Timing_Info::is_new_sector (size_t index, size_t sector) const
 
 Timing_Info::Car_Timing::Car_Timing (size_t position, size_t sectors, size_t laps)
   : m_grid_position (position),
+    m_total_laps (laps),
     m_current_time (0.0),
     m_distance (0.0),
     m_interval (NO_TIME),
@@ -124,9 +159,9 @@ Timing_Info::Car_Timing::Car_Timing (size_t position, size_t sectors, size_t lap
     m_last_sector (0),
     m_lap (0),
     m_best_lap_time (NO_TIME),
-    m_lap_delta (NO_TIME)
+    m_lap_delta (NO_TIME),
+    m_finished (false)
 {
-  //! use same vector for sector, lap times, lap count
   ma_lap_time.reserve (laps);
   ma_sector_time.reserve (m_sectors * laps);
   ma_best_sector_time.resize (m_sectors);
@@ -138,17 +173,41 @@ Timing_Info::Car_Timing::Car_Timing (size_t position, size_t sectors, size_t lap
     }
 }
 
+void Timing_Info::Car_Timing::reset ()
+{
+  m_interval = NO_TIME;
+  m_sector = 0;
+  m_last_sector = 0;
+  m_lap = 0;
+  m_best_lap_time = NO_TIME;
+  m_lap_delta = NO_TIME;
+  m_finished = false;
+
+  ma_lap_time.clear ();
+  ma_sector_time.clear ();
+  for (size_t sector = 0; sector < m_sectors; sector++)
+    {
+      ma_best_sector_time [sector] = NO_TIME;
+      ma_sector_delta [sector] = NO_TIME;
+    }
+}
+
 void Timing_Info::Car_Timing::update (double current_time, 
                                       double distance, 
                                       size_t sector,
-                                      bool new_sector)
+                                      bool new_sector,
+                                      bool finished)
 {
   m_current_time = current_time;
   m_distance = distance;
-  if (new_sector)
+  if (!m_finished && new_sector)
     {
       if (is_start_of_lap (sector))
-        update_lap_data (current_time);
+        {
+          update_lap_data (current_time);
+          if ((m_lap > m_total_laps) || finished)
+            m_finished = true;
+        }
       update_sector_data (current_time, sector);
     }
 }
@@ -204,6 +263,8 @@ void Timing_Info::Car_Timing::update_sector_data (double current_time, size_t se
 
 double Timing_Info::Car_Timing::lap_time () const
 {
+  if (m_finished)
+    return NO_TIME;
   return m_current_time - (ma_lap_time.size () == 0 ? 0.0 : ma_lap_time.back ());
 }
 
@@ -222,6 +283,8 @@ double Timing_Info::Car_Timing::previous_lap_time () const
 
 double Timing_Info::Car_Timing::sector_time () const
 {
+  if (m_finished)
+    return NO_TIME;
   return m_current_time - (ma_sector_time.size () == 0 ? 0.0 : ma_sector_time.back ());
 }
 

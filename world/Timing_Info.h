@@ -44,7 +44,8 @@ namespace Vamos_World
     /// Return the total number of laps specified at construction. May be
     /// zero. Fixed. 
     size_t total_laps () const { return m_laps; }
-    size_t total_time () const { return m_total_time; }
+    /// Return the time since the start of the session. Updated continuously.
+    double total_time () const { return m_total_time; }
     /// Reset the global timer and the cars' times.
     void reset ();
     /// Update the total time and the timing for the car with the specified index.
@@ -55,6 +56,8 @@ namespace Vamos_World
     const Car_Timing& timing_at_index (size_t index) const 
     { return *ma_car_timing [index]; }
 
+    const Car_Timing* fastest_lap_timing () const { return mp_fastest; }
+
     static const double NO_TIME; 
 
     class Car_Timing
@@ -63,6 +66,8 @@ namespace Vamos_World
 
     public:
       Car_Timing (size_t position, size_t sectors, size_t laps);
+
+      void reset ();
 
       /// The (incomplete) lap the car is currently on. It's 0 before the start
       /// of the session, 1 as soon as the timer starts. Updated each lap.
@@ -107,12 +112,17 @@ namespace Vamos_World
       double previous_sector_time_difference () const;
 
     private:
-      void update (double current_time, double distance, size_t sector, bool new_sector);
+      void update (double current_time, 
+                   double distance, 
+                   size_t sector, 
+                   bool new_sector,
+                   bool finished);
       bool is_start_of_lap (size_t sector) const;
       void update_lap_data (double current_time);
       void update_sector_data (double current_time, size_t sector);
 
       double m_grid_position;
+      size_t m_total_laps;
       double m_current_time;
       double m_distance;
       double m_interval;
@@ -126,11 +136,15 @@ namespace Vamos_World
       double m_lap_delta;
       std::vector <double> ma_sector_delta;
       std::vector <double> ma_sector_time;
+      bool m_finished;
     };
 
   private:
     bool is_new_sector (size_t index, size_t sector) const;
-    void update_position (double current_time, size_t index, size_t sector);
+    void update_position (Car_Timing* p_car, 
+                          double current_time,
+                          size_t sector,
+                          bool finished);
 
     size_t m_sectors;
     size_t m_laps;
@@ -140,6 +154,9 @@ namespace Vamos_World
     std::vector <size_t> ma_sector_position;
     std::vector <double> ma_sector_time;
     Running_Order ma_running_order;
+    Car_Timing* mp_fastest;
+    double m_fastest_lap;
+    bool m_finished;
   };
 }
 

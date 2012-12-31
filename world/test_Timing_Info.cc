@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE (second_sector)
 
 BOOST_AUTO_TEST_CASE (third_lap)
 {
-  Timing_Fixture f (1, 2, 2);
+  Timing_Fixture f (1, 2, 3);
   f.timing.update (5.0, 0, 100.0, 1);
   f.timing.update (11.0, 0, 200.0, 2);
   f.timing.update (25.0, 0, 2.0, 1);
@@ -152,4 +152,72 @@ BOOST_AUTO_TEST_CASE (third_lap)
   // sector 2
   BOOST_CHECK_EQUAL (f.car (1).previous_sector_time (), 13);
   BOOST_CHECK_EQUAL (f.car (1).previous_sector_time_difference (), -1);
+}
+
+BOOST_AUTO_TEST_CASE (end_of_race)
+{
+  Timing_Fixture f (3, 2, 2);
+  f.timing.update (10, 0, 100, 1);
+  f.timing.update (20, 1, 101, 1);
+  f.timing.update (30, 1, 202, 2);
+  f.timing.update (40, 0, 203, 2);
+  f.timing.update (50, 2, 104, 1);
+  f.timing.update (60, 1, 105, 1); // 1 starts 2nd lap
+  f.timing.update (70, 0, 106, 1); // 0 starts 2nd lap
+  f.timing.update (80, 1, 207, 2);
+  f.timing.update (90, 2, 208, 2); // 2 starts sector 2 of 1st lap
+  f.timing.update (95, 0, 208.5, 2); 
+  f.timing.update (100, 1, 109, 1); // 1 finishes race
+  f.timing.update (111, 2, 110, 1); // 2 finishes race 1 lap down
+  f.timing.update (120, 0, 111, 1); // 0 finishes race
+  // Further timing updates should be ignored.
+  f.timing.update (121, 0, 212, 2); // 0 passes after finish
+  f.timing.update (122, 1, 213, 2);
+  f.timing.update (123, 2, 214, 2);
+  f.timing.update (124, 2, 115, 1); // 2 sets fastest lap after finish
+  f.timing.update (170, 1, 116, 1);
+  f.timing.update (180, 0, 117, 1);
+
+  Timing_Info::Running_Order::const_iterator it = f.timing.running_order ().begin ();
+
+  // Total time keeps running. If race time is needed it could be provided by
+  // the winner's Car_Timing.
+  BOOST_CHECK_EQUAL (f.timing.total_time (), 180);
+
+  BOOST_CHECK_EQUAL (&(f.timing.timing_at_index (1)), *it);
+  BOOST_CHECK_EQUAL ((*it)->current_lap (), 3);
+  BOOST_CHECK_EQUAL ((*it)->interval (), Timing_Info::NO_TIME);
+  BOOST_CHECK_EQUAL ((*it)->lap_distance (), 116);
+  BOOST_CHECK_EQUAL ((*it)->lap_time (), Timing_Info::NO_TIME);
+  BOOST_CHECK_EQUAL ((*it)->previous_lap_time (), 40); // last race lap
+  BOOST_CHECK_EQUAL (f.timing.fastest_lap_timing (), *it);
+  BOOST_CHECK_EQUAL ((*it)->best_lap_time (), 40);
+  BOOST_CHECK_EQUAL ((*it)->current_sector (), 1);
+  BOOST_CHECK_EQUAL ((*it)->previous_sector (), 2);
+  BOOST_CHECK_EQUAL ((*it)->sector_time (), Timing_Info::NO_TIME);
+  BOOST_CHECK_EQUAL ((*it)->previous_sector_time (), 20); // last race sector
+
+  ++it;
+  BOOST_CHECK_EQUAL (&(f.timing.timing_at_index (0)), *it);
+  BOOST_CHECK_EQUAL ((*it)->current_lap (), 3);
+  BOOST_CHECK_EQUAL ((*it)->interval (), 20);
+  BOOST_CHECK_EQUAL ((*it)->lap_distance (), 117);
+  BOOST_CHECK_EQUAL ((*it)->lap_time (), Timing_Info::NO_TIME);
+  BOOST_CHECK_EQUAL ((*it)->previous_lap_time (), 50); // last race lap
+  BOOST_CHECK_EQUAL ((*it)->current_sector (), 1);
+  BOOST_CHECK_EQUAL ((*it)->previous_sector (), 2);
+  BOOST_CHECK_EQUAL ((*it)->sector_time (), Timing_Info::NO_TIME);
+  BOOST_CHECK_EQUAL ((*it)->previous_sector_time (), 25); // last race sector
+
+  ++it;
+  BOOST_CHECK_EQUAL (&(f.timing.timing_at_index (2)), *it);
+  BOOST_CHECK_EQUAL ((*it)->current_lap (), 2);
+  BOOST_CHECK_EQUAL ((*it)->interval (), 41);
+  BOOST_CHECK_EQUAL ((*it)->lap_distance (), 115);
+  BOOST_CHECK_EQUAL ((*it)->lap_time (), Timing_Info::NO_TIME);
+  BOOST_CHECK_EQUAL ((*it)->previous_lap_time (), 111); // last race lap
+  BOOST_CHECK_EQUAL ((*it)->current_sector (), 1);
+  BOOST_CHECK_EQUAL ((*it)->previous_sector (), 2);
+  BOOST_CHECK_EQUAL ((*it)->sector_time (), Timing_Info::NO_TIME);
+  BOOST_CHECK_EQUAL ((*it)->previous_sector_time (), 21); // last race sector
 }
