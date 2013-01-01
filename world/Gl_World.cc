@@ -48,12 +48,12 @@ format_time (double time)
   if (time == Timing_Info::NO_TIME) return "";
 
   int minutes = int (time / 60.0);
-  int seconds = int (time) % 60;
-  int milliseconds = int (1000 * (time - floor (time)));
+  double seconds = time - 60 * minutes;
 
   std::ostringstream os;
-  os << minutes << ':' << std::setfill ('0') << std::setw (2)
-     << seconds << '.' << std::setw (3) << milliseconds;
+  os << minutes << ':' 
+     << std::fixed << std::setfill ('0') << std::setw (6) << std::setprecision (3)
+     << seconds;
   return os.str ();
 }
 
@@ -64,10 +64,9 @@ format_time_difference (double delta_time)
 
   std::ostringstream os;
   if (delta_time > 0.0)
-    {
       os << '+';
-    }
-  os << std::setfill ('0') << std::setprecision (3) << delta_time;
+
+  os << std::fixed << std::setprecision (3) << delta_time;
   return os.str ();
 }
 
@@ -421,7 +420,6 @@ Gl_World::replay (double, double)
           it->car->chassis ().set_orientation (record.m_orientation);
         }
 
-      std::cerr << time << ' ' << real_time << std::endl;
       if (time >= real_time)
         display ();
       check_for_events ();
@@ -684,6 +682,7 @@ Gl_World::display ()
         set_world_view (position, chassis.cm_position (), 45.0);
         draw_track (true, position);
         draw_cars (true);
+        draw_timing_info ();
       }
       break;
     case MAP_VIEW:
@@ -692,6 +691,7 @@ Gl_World::display ()
       if (focused_car () != 0)
         {
           draw_cars (false);
+          draw_timing_info ();
         }
       break;
     case WORLD_VIEW:
@@ -705,6 +705,7 @@ Gl_World::display ()
             draw_track (true, mp_track->camera_position (camera));
           }
         draw_cars (true);
+        draw_timing_info ();
       }
       break;
     }
@@ -774,7 +775,7 @@ Gl_World::draw_timing_info ()
   draw_string (b_stream.str (), x, 6);
 
   b_stream.str ("");
-  b_stream << m_timer.get_frame_rate () << " frame/s";
+  b_stream << int (m_timer.get_frame_rate () + 0.5) << " frame/s";
   draw_string (b_stream.str (), x, 2);
 
   x = 75;
@@ -815,7 +816,7 @@ Gl_World::draw_timing_info ()
 void
 Gl_World::draw_leaderboard ()
 {
-  double x = 85;
+  double x = 2;
   double y = 95;
   std::ostringstream b_stream;
 
