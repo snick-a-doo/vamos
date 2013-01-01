@@ -120,6 +120,7 @@ bool get_options (int argc, char* argv [],
           break;
         case 'p':
           laps = atoi (optarg);
+          break;
         case 'z':
           performance = atoi (optarg) / 100.0 - 1.0;
           break;
@@ -336,7 +337,8 @@ int main (int argc, char* argv [])
           for (size_t i = 0; i < number_of_opponents; i++)
             {
               car = new Vamos_Body::Gl_Car (position, orientation);
-              car->read (data_dir, car_files [std::min (car_files.size () - 1, i + 1)]);
+              size_t index = (i + (demo ? 0 : 1)) % car_files.size ();
+              car->read (data_dir, car_files [index]);
               car->adjust_robot_parameters (performance, performance, performance);
               car->start_engine ();
               Robot_Driver* driver = new Robot_Driver (car, &track, world.get_gravity ());
