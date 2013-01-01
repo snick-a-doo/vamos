@@ -1,3 +1,19 @@
+Changes since 0.7.0
+	* world/Robot_Driver.cc:
+	Robots can now passe and be passed reasonably gracefully.
+
+	* vamos/vamos.cc, data/cars:
+	Robot cars now have different colors and performance
+	characteristics.
+
+	* world/Gl_World.cc:
+	Running order and intervals are displayed when multiple cars are
+	on track. If there's just one, the lap time history is shown.
+
+	* vamos/vamos.cc:
+	Added command-line options for setting the number of laps and the
+	performance level of the robot cars.
+
 -- 0.7.0 --
 2012-01-02  Sam Varner  <snick-a-doo@comcast.net>
 

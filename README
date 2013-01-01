@@ -2,15 +2,19 @@
 
 SYNOPSYS
 
-    vamos [-m|--map] 
-          [[-t|--track=] TRACK_FILE] [[-c|--car=] CAR_FILE]
-	      [[-w|--world=] WORLD_FILE] [[-a|--controls=] CONTROLS_FILE]
-	      [[-o|--opponents=] NUMBER_OF_OPPONENTS] [-d|--demo] 
-          [[-i|--focused-car=] FOCUSED_CAR_INDEX] 
-          [[-s|--volume=] VOLUME_PERCENT] 
+    vamos [-m|--map]
+          [[-t|--track=] TRACK_FILE]
+          [[-c|--car=] CAR_FILE]
+          [[-w|--world=] WORLD_FILE]
+          [[-a|--controls=] CONTROLS_FILE]
+          [[-o|--opponents=] NUMBER_OF_OPPONENTS]
+          [[-p|--laps=] NUMBER_OF_LAPS]
+          [[-z|--performance=] FACTOR]
+          [[-s|--volume=] VOLUME_PERCENT]
           [-f|--full-screen]
-	      [-n|--no-interaction] 
-          [-l|--show-line[=ARG]]
+          [-n|--no-interaction]
+          [-d|--demo]
+          [-l|--show-line[=ARG]  draw the racing line on the track [ARG=yes]]
 
 Vamos is an automotive simulation framework with an emphasis on
 thorough physical modeling and good C++ design. Vamos includes a
@@ -64,6 +68,7 @@ The track may be chosen with the `-t <track>'
 or `--track=<track>' option, where <track> is one of 
 * `default-track' (same as `Peanut')
 * Albert_Park
+* Americas
 * Bahrain
 * Catalunya
 * Curl
@@ -106,10 +111,6 @@ or `--track=<track>' option, where <track> is one of
 * Yas_Marina
 
 See the Texinfo documentation for more details.
-
-I've tried Vamos on GNU/Linux and Win32+CygWin.  The simulation is
-slow and textures are wrong on Win32.  I don't know where the problem
-is.
 
 Please let me know how it works for you.
 

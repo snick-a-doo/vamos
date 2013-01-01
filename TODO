@@ -3,7 +3,6 @@
 * Pending
 ** Bump function is not smooth across start of track.
 ** Don't let cars intersect.
-** Handle starting, passing, recovering, etc. with computer-controled cars.
 ** Check for memory leaks on reloading cars and tracks.
 ** Occasional track-to-world assert
 nico> ./vamos -o 6 -t Villeneuve -f -c F1
@@ -65,10 +64,7 @@ Aborted (core dumped)
 ** Handle starting grid.
 ** Handle pit placement.
 ** Add starting lights.
-** Decide how to show timing information.
 ** Make crash sound play consistently.
-** Show cars with different appearances
-** Use different performance levels for different cars.
 ** Randomize robots.
 
 * Post 1.0

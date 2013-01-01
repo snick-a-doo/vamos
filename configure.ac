@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(vamos, 0.7.0, snick-a-doo@comcast.net)
+AC_INIT(vamos, 0.7.1, snick-a-doo@comcast.net)
 AC_CONFIG_SRCDIR(world/World.cc)
 AC_CONFIG_AUX_DIR(config)
 
@@ -126,6 +126,7 @@ AC_CONFIG_FILES([Makefile
 				vamos/Makefile
 				data/Makefile
 				data/cars/Makefile
+				data/cars/F1/Makefile
 				data/cars/GT/Makefile
 				data/controls/Makefile
 				data/textures/Makefile
