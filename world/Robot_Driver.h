@@ -219,6 +219,14 @@ namespace Vamos_World
 
     void set_event (Event::Type type, double delay = 0);
     void handle_event ();
+
+    enum Track_Side
+      {
+        NO_SIDE = 0,
+        LEFT_SIDE = (1 << 0),
+        RIGHT_SIDE = (1 << 1)
+      };
+
     void drive ();
     double get_lane_shift () const;
 
@@ -254,7 +262,9 @@ namespace Vamos_World
                                              double delta_x, 
                                              double delta_v,
                                              size_t segment) const;
-    Vamos_Geometry::Direction get_block_side (double along, size_t segment) const;
+    Vamos_Geometry::Direction pass_side (double start, double delta, size_t n,
+                                         size_t segment) const;
+    Track_Side get_block_side (double along, size_t segment) const;
 
     Vamos_Geometry::Three_Vector lane_shift (const Vamos_Geometry::Three_Vector& target);
     void set_steering (double angle);

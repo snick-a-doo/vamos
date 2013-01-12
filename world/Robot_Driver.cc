@@ -620,8 +620,7 @@ Robot_Driver::find_gap (const Car_Information& car_2) const
 bool
 Robot_Driver::maybe_passable (double along, size_t segment) const
 {
-  return !((m_racing_line.from_center (along + 4*m_speed, segment)
-            * m_racing_line.from_center (along + 2*m_speed, segment)) < 0);
+  return (pass_side (along, m_speed, 4, segment) != NONE);
 }
 
 Direction
@@ -639,54 +638,47 @@ Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
   // We'll try to pass if the racing line stays on one side of the track far
   // enough ahead for us to pull alongside the opponent's car at our current
   // rate of closing, 'delta_v'.
-  double pass_distance = delta_x * m_speed / delta_v;
 
-  const Road& road = mp_track->get_road (m_road_index);
-  if (pass_distance > 0.5*road.length ())
+  //!! look ahead by time, not distance to compensate for closing under braking
+  double pass_distance = delta_x * m_speed / delta_v;
+  if (pass_distance > 500.0)
     return NONE;
 
-  // We'll sample the racing line's side at three positions
-  // 1. our current position
-  double near = along;
-  // 2. the position at which we'd be alongside
-  double far = along + pass_distance;
-  // 3. midway between
-  double mid = along + 0.5*pass_distance;
-
-  std::pair <Direction, Direction> far_side;
-  {
-    double across = m_racing_line.from_center (far, segment);
-    if (across > 0)
-      {
-        far_side.first = RIGHT;
-        far_side.second = LEFT;
-      }
-    else
-      {
-        far_side.first = LEFT;
-        far_side.second = RIGHT;
-      }
-  }
-
-  Direction mid_block = get_block_side (mid, segment);
-  Direction near_block = get_block_side (near, segment);
-
-  if ((mid_block != far_side.first) && (near_block != far_side.first))
-    return far_side.first;
-  if ((mid_block != far_side.second) && (near_block != far_side.second))
-    return far_side.second;
-  return NONE;
+  return pass_side (along, pass_distance/3, 4, segment);
 }
 
 Direction
+Robot_Driver::pass_side (double start, double delta, size_t n, size_t segment) const
+{
+  // The logic here requires that *_SIDE are all single bits. Don't use the
+  // Direction enum.
+  double x = start;
+  int block = (get_block_side (x, segment));
+  x += delta;
+  for (size_t i = 1; i < n; i++, x += delta)
+    block &= get_block_side (x, segment);
+
+  if (block & LEFT_SIDE)
+    return (block & RIGHT_SIDE) ? NONE : RIGHT;
+  if (block & RIGHT_SIDE)
+    return LEFT;
+
+  return (m_racing_line.from_center (x, segment) > 0.0) ? RIGHT : LEFT;
+}
+
+Robot_Driver::Track_Side
 Robot_Driver::get_block_side (double along, size_t segment) const
 {
+  const Road& road = mp_track->get_road (m_road_index);
+
+  // The logic here requires that *_SIDE are all single bits. Don't use the
+  // Direction enum.
   const double across = m_racing_line.from_center (along, segment);
-  if (across > mp_car->width ())
-    return LEFT;
-  else if (across < -mp_car->width ())
-    return RIGHT;
-  return NONE;
+  if (across < -road.right_road_width (along) + mp_car->width ())
+    return RIGHT_SIDE;
+  else if (across > road.left_road_width (along) - mp_car->width ())
+    return LEFT_SIDE;
+  return NO_SIDE;
 }
 
 //! Currently unused
