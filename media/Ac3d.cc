@@ -444,6 +444,7 @@ namespace Vamos_Media
 					return true;
 				  }
 			  }
+            // std::cerr << "not joined" << std::endl;
 		  }
 		else if (old_figure_type == Ac3d_Surface::QUADRILATERAL_STRIP)
 		  {

@@ -67,7 +67,7 @@ struct Vamos_Body::Suspension_Model
 	  y (position.y),
 	  z (position.z)
   {
-  };
+  }
 };
 
 //* Class Suspension
