@@ -369,6 +369,9 @@ namespace Vamos_Body
     void wind (const Vamos_Geometry::Three_Vector& wind_vector, 
                double densty);
 
+    /// The position of the chase-view camera.
+    Vamos_Geometry::Three_Vector chase_position () const;
+
     std::string name () const { return m_name; }
 
   protected:

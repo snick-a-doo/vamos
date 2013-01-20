@@ -13,7 +13,7 @@ using namespace Vamos_World;
 struct Timing_Fixture
 {
   Timing_Fixture (size_t n_cars, size_t n_sectors, size_t n_laps)
-    : timing (n_cars, n_sectors, n_laps) 
+    : timing (n_cars, n_sectors, n_laps, false) // Skip the start sequence. 
   {
   }
 

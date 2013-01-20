@@ -23,6 +23,8 @@
 #include "Constants.h"
 
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 
 // Windows' normal build config defines these as macros.
 // Undefine these to get real std::min() and std::max() usuable.
@@ -109,6 +111,18 @@ namespace Vamos_Geometry
   /// Return the real part of the square root of x.
   inline double real_sqrt (double x)
   { return x > 0.0 ? std::sqrt (x) : 0.0; }
+
+  /// Return a random number in the given range.
+  inline double random_in_range (double low, double high)
+  {
+    static bool seeded = false;
+    if (!seeded)
+      {
+        srand (time (0));
+        seeded = true;
+      }
+    return low + (high - low) * (double (rand ()) / RAND_MAX);
+  }
 }
 
 #endif

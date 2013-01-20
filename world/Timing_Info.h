@@ -38,8 +38,13 @@ namespace Vamos_World
     /// @param n_sectors The number of timing sectors per lap. Must be > 0. 
     /// @param n_laps The number of laps in the session. If 0 laps-to-go
     ///               information is not available. 
-    Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps);
+    /// @param do_start_sequence If true, do the countdown to the start of the
+    ///                          session. Otherwise start immediately. 
+    Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps, bool do_start_sequence);
     ~Timing_Info ();
+
+    /// Return the number of starting lights on leading up to the start of the race.
+    int lights () const { return m_lights; }
 
     /// Return the total number of laps specified at construction. May be
     /// zero. Fixed. 
@@ -140,15 +145,31 @@ namespace Vamos_World
     };
 
   private:
+    void next_state (double current_time);
     bool is_new_sector (size_t index, size_t sector) const;
     void update_position (Car_Timing* p_car, 
                           double current_time,
                           size_t sector,
                           bool finished);
 
+    enum Timing_State
+      {
+        STARTING, ///< The session has not yet begin.
+        RUNNING,  ///< The session has started.
+        FINISHED  ///< The session is over, but some cars may be on track.
+      };
+
     size_t m_sectors;
     size_t m_laps;
+    /// The number of starting lights on.
+    int m_lights;
+    /// The random delay after the last light has been on for a second and
+    /// before they all go out to signal the start of the race.
+    double m_start_delay;
+    Timing_State m_state;
     double m_total_time;
+    /// How long the timer has been in the current state.
+    double m_state_time;
 
     std::vector <Car_Timing*> ma_car_timing;
     std::vector <size_t> ma_sector_position;
@@ -156,7 +177,6 @@ namespace Vamos_World
     Running_Order ma_running_order;
     Car_Timing* mp_fastest;
     double m_fastest_lap;
-    bool m_finished;
   };
 }
 

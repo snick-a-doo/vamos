@@ -24,6 +24,7 @@
 #include "Driver.h"
 #include "../geometry/Constants.h"
 #include "../geometry/Linear_Interpolator.h"
+#include "../geometry/Numeric.h"
 #include "../geometry/PID.h"
 #include "../geometry/Three_Vector.h"
 
@@ -164,6 +165,11 @@ namespace Vamos_World
     void set_cars (const std::vector <Car_Information>* cars)
     { mp_cars = cars; }
 
+    /// Called to signal the start of the race.
+    virtual void start ();
+    /// True if start() has been called.
+    virtual bool is_started ();
+
     /// Set whether or not the robot should take other cars into account.
     /// Useful for comparing performance with collisions turned off. 
     void interact (bool do_interact) 
@@ -247,6 +253,9 @@ namespace Vamos_World
 
     // Return the speed-dependent performance parameters.
     double deceleration () const;
+
+    /// Return a random reaction time in seconds.
+    static double reaction_time () { return Vamos_Geometry::random_in_range (0.1, 0.3); }
 
     const std::vector <Car_Information>* mp_cars;
 

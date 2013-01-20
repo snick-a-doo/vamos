@@ -104,7 +104,10 @@ World::~World ()
 void
 World::start (size_t laps)
 {
-  mp_timing = new Timing_Info (m_cars.size (), mp_track->timing_lines (), laps);
+  mp_timing = new Timing_Info (m_cars.size (), 
+                               mp_track->timing_lines (), 
+                               laps,
+                               m_cars.size () > 1);
 }
 
 inline Three_Vector

@@ -67,33 +67,32 @@ void Vamos_World::
 Sounds::add_sample (std::string file, Sound_Type type, 
                     double volume, double pitch)
 {
-  Sample* sample = 0;
   file = m_data_dir + file;
   switch (type)
     {
     case TIRE_SQUEAL:
-      sample = mp_tire_squeal_sound = new Sample (file, volume, pitch, true);
+      mp_tire_squeal_sound = new Sample (file, volume, pitch, true);
       break;
     case KERB:
-      sample = mp_kerb_sound = new Sample (file, volume, pitch, true);
+      mp_kerb_sound = new Sample (file, volume, pitch, true);
       break;
     case GRASS:
-      sample = mp_grass_sound = new Sample (file, volume, pitch, true);
+      mp_grass_sound = new Sample (file, volume, pitch, true);
       break;
     case GRAVEL:
-      sample = mp_gravel_sound = new Sample (file, volume, pitch, true);
+      mp_gravel_sound = new Sample (file, volume, pitch, true);
       break;
     case SCRAPE:
-      sample = mp_scrape_sound = new Sample (file, volume, pitch, true);
+      mp_scrape_sound = new Sample (file, volume, pitch, true);
       break;
     case WIND:
-      sample = mp_wind_sound = new Sample (file, volume, pitch, true);
+      mp_wind_sound = new Sample (file, volume, pitch, true);
       break;
     case SOFT_CRASH:
-      sample = mp_soft_crash_sound = new Sample (file, volume, pitch, false);
+      mp_soft_crash_sound = new Sample (file, volume, pitch, false);
       break;
     case HARD_CRASH:
-      sample = mp_hard_crash_sound = new Sample (file, volume, pitch, false);
+      mp_hard_crash_sound = new Sample (file, volume, pitch, false);
       break;
     default:
       assert (false);

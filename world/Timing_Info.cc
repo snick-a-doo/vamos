@@ -24,14 +24,21 @@
 using namespace Vamos_World;
 
 const double Timing_Info::NO_TIME = std::numeric_limits <double>::min ();
+const int N_LIGHTS = 5;
 
-Timing_Info::Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps)
+Timing_Info::Timing_Info (size_t n_cars, 
+                          size_t n_sectors, 
+                          size_t n_laps,
+                          bool do_start_sequence)
   : m_sectors (n_sectors),
     m_laps (n_laps),
+    m_lights (0),
+    m_start_delay (Vamos_Geometry::random_in_range (0.0, 4.0)),
+    m_state (do_start_sequence ? STARTING : RUNNING),
     m_total_time (0.0),
+    m_state_time (0.0),
     mp_fastest (0),
-    m_fastest_lap (NO_TIME),
-    m_finished (false)
+    m_fastest_lap (NO_TIME)
 {
   assert (n_sectors > 0);
 
@@ -80,16 +87,58 @@ void Timing_Info::update (double current_time,
   assert (index < ma_car_timing.size ());
   assert (sector <= m_sectors);
 
-  m_total_time = current_time;
-  const bool new_sector = is_new_sector (index, sector);
-  Car_Timing* p_car = ma_car_timing [index];
-  bool already_finished = p_car->m_finished;
-  p_car->update (current_time, distance, sector, new_sector, m_finished);
-  if (new_sector)
-    update_position (p_car, current_time, sector, already_finished);
+  switch (m_state)
+    {
+    case STARTING:
+      {
+        const double t = current_time - m_state_time;
+        if (t > m_start_delay + N_LIGHTS)
+          {
+            m_lights = 0;
+            next_state (current_time);
+          }
+        else
+          m_lights = std::min (int (t), N_LIGHTS);
+        break;
+      }
+    case RUNNING:
+    case FINISHED:
+      {
+        m_total_time = current_time - m_state_time;
+        const bool new_sector = is_new_sector (index, sector);
+        Car_Timing* p_car = ma_car_timing [index];
+        bool already_finished = p_car->m_finished;
+        p_car->update (m_total_time, distance, sector, new_sector, 
+                       (m_state == FINISHED));
+        if (new_sector)
+          update_position (p_car, m_total_time, sector, already_finished);
 
-  if (ma_car_timing [index]->current_lap () > m_laps)
-    m_finished = true;
+        // Go to the FINISHED state when the first car has completed all of the
+        // laps. Timing must continue for the other cars, so we keep m_state_time.
+        if ((m_state == RUNNING) && (ma_car_timing [index]->current_lap () > m_laps))
+          next_state (m_state_time);
+        break;
+      }
+    }
+}
+
+void Timing_Info::next_state (double current_time)
+{
+  switch (m_state)
+   {
+   case STARTING:
+     m_state = RUNNING;
+     break;
+   case RUNNING:
+     m_state = FINISHED;
+     break;
+   case FINISHED:
+   default:
+     assert (false);
+     break;
+   }
+
+  m_state_time = current_time;
 }
 
 void Timing_Info::update_position (Car_Timing* p_car,

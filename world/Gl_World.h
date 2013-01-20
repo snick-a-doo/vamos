@@ -289,8 +289,10 @@ namespace Vamos_World
     Event_Repeat m_key_repeat;
 
     void check_for_events ();
-	void animate ();
+    void animate ();
     void update_car_timing ();
+    /// Set the starting lights at the beginning of the race.
+    void set_starting_lights ();
     void play_sounds ();
 
 	void display ();

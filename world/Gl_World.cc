@@ -453,6 +453,8 @@ Gl_World::update_car_timing ()
   for (size_t i = 0; i < m_cars.size (); i++)
     {
       Car_Information& car = m_cars [i];
+      if (!car.driver->is_started () && (mp_timing->total_time () > 0))
+        car.driver->start ();
       const double distance = 
         mp_track->track_coordinates (car.car->chassis ().position (), 
                                      car.road_index,
@@ -675,12 +677,10 @@ Gl_World::display ()
       break;
     case CHASE_VIEW:
       {
-        const Vamos_Body::Rigid_Body& chassis = focused_car ()->car->chassis ();
-        Three_Vector position = chassis.cm_position ()
-          - chassis.cm_velocity ().unit () * 15.0
-          + Three_Vector (0.0, 0.0, 5.0); 
-        set_world_view (position, chassis.cm_position (), 45.0);
-        draw_track (true, position);
+        const Vamos_Body::Car& car = *focused_car ()->car;
+        Three_Vector chase_pos = car.chase_position ();
+        set_world_view (chase_pos, car.chassis ().cm_position (), 45.0);
+        draw_track (true, chase_pos);
         draw_cars (true);
         draw_timing_info ();
       }
@@ -755,6 +755,8 @@ Gl_World::draw_timing_info ()
 
   gluOrtho2D (0, 100, 0, 100);
 
+  set_starting_lights (); //!!temporary
+
   if (mp_timing->running_order ().size () > 1 )
     draw_leaderboard ();
   else
@@ -811,6 +813,18 @@ Gl_World::draw_timing_info ()
   glEnable (GL_DEPTH_TEST);
   glEnable (GL_LIGHTING);
   glEnable (GL_TEXTURE_2D);
+}
+
+void
+Gl_World::set_starting_lights ()
+{
+  std::ostringstream b_stream;
+  for (int light = 0; light < mp_timing->lights (); light++)
+    b_stream << "o ";
+
+  glColor3f (1.0, 0.0, 0.0);
+  draw_string (b_stream.str (), 47, 60);
+  glColor3f (1.0, 1.0, 1.0);
 }
 
 void

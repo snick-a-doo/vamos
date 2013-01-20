@@ -22,7 +22,6 @@
 #include "../body/Wheel.h"
 #include "../geometry/Calculations.h"
 #include "../geometry/Constants.h"
-#include "../geometry/Numeric.h"
 #include "../geometry/Parameter.h"
 #include "../geometry/Three_Vector.h"
 #include "../track/Strip_Track.h"
@@ -72,6 +71,20 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_traction_control.set (m_target_slip);
 }
 
+void
+Robot_Driver::start ()
+{
+  set_brake (0.0);
+  m_state_time = -reaction_time ();
+  m_state = STARTING;
+}
+
+bool
+Robot_Driver::is_started ()
+{
+  return (m_state != PARKED);
+}
+
 void 
 Robot_Driver::propagate (double timestep) 
 {
@@ -91,9 +104,6 @@ Robot_Driver::State Robot_Driver::update_state ()
   switch (m_state)
     {
     case PARKED:
-      //! For now, wait for a second and then go. Eventually the start of the
-      //! race needs to be signaled.
-      static const double wait_time = 1.0;
       set_brake (1.0);
       mp_car->shift (0);
       mp_car->disengage_clutch (0.0);
@@ -102,30 +112,27 @@ Robot_Driver::State Robot_Driver::update_state ()
       set_gas (0.0);
 
       m_state_time += m_timestep;
-      if (m_state_time > wait_time)
-        {
-          set_brake (0.0);
-          m_state_time = 0.0;
-          m_state = STARTING;
-        }
       break;
 
     case STARTING:
-      // Operate the clutch while starting. Switch to the DRIVING state when the
-      // clutch is fully engaged.
-      static const double clutch_time = 3.0;
-      if (m_state_time == 0.0)
+      if (m_state_time > 0.0)
         {
-          mp_car->engage_clutch (clutch_time);
-          mp_car->shift (1);
-        }
+          // Operate the clutch while starting. Switch to the DRIVING state when the
+          // clutch is fully engaged.
+          static const double clutch_time = 3.0;
+          if (mp_car->gear () != 1)
+            {
+              mp_car->engage_clutch (clutch_time);
+              mp_car->shift (1);
+            }
 
-      m_state_time += m_timestep;
-      if (m_state_time > clutch_time)
-        {
-          m_state_time = 0.0;
-          m_state = DRIVING;
+          if (m_state_time > clutch_time)
+            {
+              m_state_time = 0.0;
+              m_state = DRIVING;
+            }
         }
+      m_state_time += m_timestep;
       break;
 
     case DRIVING:

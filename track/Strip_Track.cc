@@ -517,7 +517,7 @@ Racing_Line::build_list (const Road& road)
   for (size_t i = 0; i < mp_line->size (); i++)
     {
       Three_Vector world = (*mp_line) [i];
-      Three_Vector track = road.track_coordinates (world, segment);
+      road.track_coordinates (world, segment); // Find the segment index.
       glVertex3d (world.x, 
                   world.y, 
                   segment_list [segment]->world_elevation (world) + 0.04);

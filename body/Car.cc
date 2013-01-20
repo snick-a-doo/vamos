@@ -567,6 +567,19 @@ Car::wind (const Vamos_Geometry::Three_Vector& wind_vector,
 }
 
 Three_Vector
+Car::chase_position () const
+{
+  const Three_Vector v1 = m_chassis.cm_velocity ().unit ();
+  const double w1 = std::min (m_chassis.cm_velocity ().magnitude (), 1.0);
+  const Three_Vector v2 = m_chassis.rotate_to_world (Three_Vector::X);
+  const double w2 = 1.0 - w1;
+
+  return m_chassis.cm_position () 
+    - (w1 * v1 + w2 * v2) * 3.0 * length ()
+    + Three_Vector (0.0, 0.0, length ());
+}
+
+Three_Vector
 Car::Crash_Box::penetration (const Three_Vector& point,
                              const Three_Vector& velocity,
                              bool ignore_z) const
