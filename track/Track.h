@@ -51,6 +51,9 @@ namespace Vamos_Track
                         bool join_pit_lane,
                         int adjusted_pit_segments) = 0;
 
+    /// True if staring lights are rendered with the track.
+    virtual bool has_starting_lights () const { return false; }
+
 	// Add a sector timing line.
 	virtual void timing_line (double dist) = 0;
 

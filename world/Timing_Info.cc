@@ -24,7 +24,7 @@
 using namespace Vamos_World;
 
 const double Timing_Info::NO_TIME = std::numeric_limits <double>::min ();
-const int N_LIGHTS = 5;
+const int N_COUNTDOWN_START = 6;
 
 Timing_Info::Timing_Info (size_t n_cars, 
                           size_t n_sectors, 
@@ -32,7 +32,7 @@ Timing_Info::Timing_Info (size_t n_cars,
                           bool do_start_sequence)
   : m_sectors (n_sectors),
     m_laps (n_laps),
-    m_lights (0),
+    m_countdown (N_COUNTDOWN_START),
     m_start_delay (Vamos_Geometry::random_in_range (0.0, 4.0)),
     m_state (do_start_sequence ? STARTING : RUNNING),
     m_total_time (0.0),
@@ -91,14 +91,13 @@ void Timing_Info::update (double current_time,
     {
     case STARTING:
       {
-        const double t = current_time - m_state_time;
-        if (t > m_start_delay + N_LIGHTS)
+        double to_go = N_COUNTDOWN_START - (current_time - m_state_time);
+        m_countdown = std::max (int (to_go + 1), 1);
+        if (to_go < -m_start_delay)
           {
-            m_lights = 0;
+            m_countdown = 0;
             next_state (current_time);
           }
-        else
-          m_lights = std::min (int (t), N_LIGHTS);
         break;
       }
     case RUNNING:

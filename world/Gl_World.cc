@@ -755,7 +755,8 @@ Gl_World::draw_timing_info ()
 
   gluOrtho2D (0, 100, 0, 100);
 
-  set_starting_lights (); //!!temporary
+  if (!mp_track->has_starting_lights ())
+    set_starting_lights ();
 
   if (mp_timing->running_order ().size () > 1 )
     draw_leaderboard ();
@@ -818,13 +819,40 @@ Gl_World::draw_timing_info ()
 void
 Gl_World::set_starting_lights ()
 {
-  std::ostringstream b_stream;
-  for (int light = 0; light < mp_timing->lights (); light++)
-    b_stream << "o ";
+  const int count = mp_timing->countdown ();
+  if (count == 0)
+    return;
+
+  glPushAttrib (GL_CURRENT_BIT);
+  glPushMatrix ();
+  glLoadIdentity ();
+
+  const int width = mp_window->width ();
+  const int height = mp_window->height ();
+  gluOrtho2D (0, width, 0, height);
+
+  const double r = 0.01*height;
+  const int n_lights = 5;
+  glTranslatef (0.5*width + 6*r, 0.6*height, 0.0);
+
+  GLUquadricObj* disk = gluNewQuadric();
+  gluQuadricDrawStyle (disk, GLU_FILL);
+
+  glColor3f (0.2, 0.2, 0.2);
+  for (int light = 1; light <= n_lights; light++)
+    {
+      if (light >= count)
+        glColor3f (0.9, 0.0, 0.0);
+      glTranslatef (-2.5*r, 0.0, 0.0);
+      gluDisk (disk, 0.0, r, 32, 32);
+    }
 
   glColor3f (1.0, 0.0, 0.0);
-  draw_string (b_stream.str (), 47, 60);
-  glColor3f (1.0, 1.0, 1.0);
+
+  gluDeleteQuadric (disk);
+
+  glPopMatrix ();
+  glPopAttrib ();
 }
 
 void

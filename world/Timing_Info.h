@@ -43,8 +43,10 @@ namespace Vamos_World
     Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps, bool do_start_sequence);
     ~Timing_Info ();
 
-    /// Return the number of starting lights on leading up to the start of the race.
-    int lights () const { return m_lights; }
+    /// Return the number of counts until the start of the session. Intervals
+    /// are seconds except for 1 to 0 which has an extra random delay. The race
+    /// starts when the count reaches 0 and stays that way through the session.
+    int countdown () const { return m_countdown; }
 
     /// Return the total number of laps specified at construction. May be
     /// zero. Fixed. 
@@ -161,8 +163,7 @@ namespace Vamos_World
 
     size_t m_sectors;
     size_t m_laps;
-    /// The number of starting lights on.
-    int m_lights;
+    int m_countdown;
     /// The random delay after the last light has been on for a second and
     /// before they all go out to signal the start of the race.
     double m_start_delay;
