@@ -32,7 +32,7 @@ Timing_Info::Timing_Info (size_t n_cars,
                           bool do_start_sequence)
   : m_sectors (n_sectors),
     m_laps (n_laps),
-    m_countdown (N_COUNTDOWN_START),
+    m_countdown (do_start_sequence ? N_COUNTDOWN_START : 0),
     m_start_delay (Vamos_Geometry::random_in_range (0.0, 4.0)),
     m_state (do_start_sequence ? STARTING : RUNNING),
     m_total_time (0.0),

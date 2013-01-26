@@ -51,8 +51,8 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_segment_index (0),
   mp_track (track_in),
   m_shift_time (0.0),
-  m_state (PARKED),
-  m_state_time (0.0),
+  m_event (Event::PARK, 0.0),
+  m_is_started (false),
   m_timestep (1.0),
   m_lane_shift (10.0),
   m_lane_shift_timer (0.0),
@@ -71,18 +71,29 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_traction_control.set (m_target_slip);
 }
 
-void
-Robot_Driver::start ()
-{
-  set_brake (0.0);
-  m_state_time = -reaction_time ();
-  m_state = STARTING;
+double 
+Robot_Driver::reaction_time ()
+{ 
+  return Vamos_Geometry::random_in_range (0.1, 0.3);
 }
 
-bool
-Robot_Driver::is_started ()
+void
+Robot_Driver::start (double to_go)
 {
-  return (m_state != PARKED);
+  if (to_go <= 0.0)
+    set_event (Event::START, reaction_time ());
+  else if (to_go <= 1.0)
+    set_event (Event::REV);
+  else
+    set_event (Event::START_ENGINE);
+}
+
+void
+Robot_Driver::set_event (Event::Type type, double delay)
+{
+  // Ignore successive events of the same type.
+  if (type != m_event.type)
+    m_event = Event (type, delay);
 }
 
 void 
@@ -92,56 +103,54 @@ Robot_Driver::propagate (double timestep)
 
   // It's useful for other methods to know the size of the current timestep.
   m_timestep = timestep;
+  handle_event ();
   m_speed = mp_car->chassis ().cm_velocity ().magnitude();
 
-  if (update_state () != PARKED)
+  if (is_started ())
     drive ();
 }
 
-//* Update State
-Robot_Driver::State Robot_Driver::update_state ()
+void
+Robot_Driver::handle_event ()
 {
-  switch (m_state)
+  m_event.propagate (m_timestep);
+  if (!m_event.ready ())
+    return;
+
+  switch (m_event.type)
     {
-    case PARKED:
+    case Event::PARK:
       set_brake (1.0);
-      mp_car->shift (0);
       mp_car->disengage_clutch (0.0);
-      if (mp_car->engine ()->rotational_speed () < mp_car->engine ()->stall_speed ())
-        mp_car->start_engine ();
+      mp_car->shift (0);
+      mp_car->start_engine ();
       set_gas (0.0);
-
-      m_state_time += m_timestep;
+      m_is_started = false;
       break;
 
-    case STARTING:
-      if (m_state_time > 0.0)
-        {
-          // Operate the clutch while starting. Switch to the DRIVING state when the
-          // clutch is fully engaged.
-          static const double clutch_time = 3.0;
-          if (mp_car->gear () != 1)
-            {
-              mp_car->engage_clutch (clutch_time);
-              mp_car->shift (1);
-            }
-
-          if (m_state_time > clutch_time)
-            {
-              m_state_time = 0.0;
-              m_state = DRIVING;
-            }
-        }
-      m_state_time += m_timestep;
+    case Event::START_ENGINE:
+      mp_car->disengage_clutch (0.0);
+      mp_car->shift (0);
+      mp_car->start_engine ();
+      set_gas (0.0);
       break;
 
-    case DRIVING:
-      //! Go back to PARKED in pits or to retire.
+    case Event::REV:
+      mp_car->disengage_clutch (0.0);
+      mp_car->shift (1);
+      set_gas (0.5);
+      break;
+
+    case Event::START:
+      static const double clutch_time = 3.0;
+      mp_car->engage_clutch (clutch_time);
+      m_is_started = true;
+      break;
+
+    case Event::NO_EVENT:
       break;
     }
-
-  return m_state;
-}
+} 
 
 //* Drive
 void Robot_Driver::drive ()
@@ -275,7 +284,7 @@ Robot_Driver::target_slip_angle () const
 void
 Robot_Driver::choose_gear ()
 {
-  if (m_state == STARTING)
+  if (!mp_car->clutch ()->engaged ())
     return;
 
   // Avoid shifting too frequently.

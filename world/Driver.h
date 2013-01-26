@@ -24,9 +24,9 @@ namespace Vamos_World
 
     virtual void set_cars (const std::vector <Car_Information>* cars) {};
     /// Start driving.
-    virtual void start () {};
+    virtual void start (double to_go) {};
     /// True if the driver is driving.
-    virtual bool is_started () { return true; }
+    virtual bool is_started () const { return true; }
 
     virtual void reset () {};
     virtual void propagate (double time_step) {};

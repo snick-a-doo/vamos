@@ -453,8 +453,8 @@ Gl_World::update_car_timing ()
   for (size_t i = 0; i < m_cars.size (); i++)
     {
       Car_Information& car = m_cars [i];
-      if (!car.driver->is_started () && (mp_timing->total_time () > 0))
-        car.driver->start ();
+      if (!car.driver->is_started ())
+        car.driver->start (mp_timing->countdown ());
       const double distance = 
         mp_track->track_coordinates (car.car->chassis ().position (), 
                                      car.road_index,

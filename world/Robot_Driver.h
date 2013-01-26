@@ -166,9 +166,8 @@ namespace Vamos_World
     { mp_cars = cars; }
 
     /// Called to signal the start of the race.
-    virtual void start ();
-    /// True if start() has been called.
-    virtual bool is_started ();
+    virtual void start (double to_go);
+    virtual bool is_started () const { return m_is_started; }
 
     /// Set whether or not the robot should take other cars into account.
     /// Useful for comparing performance with collisions turned off. 
@@ -193,14 +192,33 @@ namespace Vamos_World
     void set_gravity (double g) { m_gravity = g; }
 
   private:
-    enum State
-      {
-        PARKED,
-        STARTING,
-        DRIVING
-      };
+    struct Event
+    {
+      enum Type
+        {
+          PARK,
+          START_ENGINE,
+          REV,
+          START,
+          NO_EVENT
+        };
 
-    State update_state ();
+      Event (Type e_type, double e_delay)
+        : type (e_type),
+          delay (e_delay),
+          time (0.0)
+      {}
+
+      void propagate (double time_step) { time += time_step; }
+      bool ready () const { return time >= delay; }
+
+      Type type;
+      double delay;
+      double time;
+    };
+
+    void set_event (Event::Type type, double delay = 0);
+    void handle_event ();
     void drive ();
     double get_lane_shift () const;
 
@@ -255,7 +273,7 @@ namespace Vamos_World
     double deceleration () const;
 
     /// Return a random reaction time in seconds.
-    static double reaction_time () { return Vamos_Geometry::random_in_range (0.1, 0.3); }
+    static double reaction_time ();
 
     const std::vector <Car_Information>* mp_cars;
 
@@ -277,8 +295,8 @@ namespace Vamos_World
     Vamos_Track::Strip_Track* mp_track;
     bool m_reset;
     double m_shift_time;
-    State m_state;
-    double m_state_time;
+    Event m_event;
+    bool m_is_started;
     double m_timestep;
     double m_lane_shift;
     // The fraction from the racing line to the edge of the track of
