@@ -43,7 +43,7 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_traction_control (0.5, 0.0, 0.0),
   m_brake_control (0.1, 0.0, 0.0),
   m_steer_control (0.5, 0.0, 0.0),
-  m_front_gap_control (0.2, 0.0, 0.2),
+  m_front_gap_control (0.5, 0.0, 0.2),
   m_target_slip (car_in->get_robot_parameters ().slip_ratio),
   m_speed (0.0),
   m_road_index (0),
@@ -142,9 +142,13 @@ Robot_Driver::handle_event ()
       break;
 
     case Event::START:
-      static const double clutch_time = 3.0;
-      mp_car->engage_clutch (clutch_time);
-      m_is_started = true;
+      static const double clutch_time = 1.5;
+      if (!m_is_started)
+        {
+          mp_car->shift (1);
+          mp_car->engage_clutch (clutch_time);
+          m_is_started = true;
+        }
       break;
 
     case Event::NO_EVENT:
@@ -473,53 +477,54 @@ Robot_Driver::avoid_collisions ()
 
   if (m_interact)
     {
-  // Loop through the other cars. Each time through the loop we potentially
-  // update 'min_forward_distance_gap', 'min_left_distance_gap',
-  // 'min_right_distance_gap', 'pass_side', 'crash_time'.
-  for (std::vector <Car_Information>::const_iterator it = mp_cars->begin ();
-       it != mp_cars->end ();
-       it++)
-    {
-      // Don't check for collisions with yourself.
-      if (it->car == mp_car)
-        continue;
-
-      size_t segment = it->segment_index;
-      size_t road_index = it->road_index;
-      const Three_Vector r2_track = 
-        mp_track->track_coordinates (it->car->center_position (), 
-                                     road_index, 
-                                     segment);
-
-      Three_Vector distance_gap = find_gap (*it);
-      switch (relative_position (m_track_position, r2_track))
+      // Loop through the other cars. Each time through the loop we potentially
+      // update 'min_forward_distance_gap', 'min_left_distance_gap',
+      // 'min_right_distance_gap', 'pass_side', 'crash_time'.
+      for (std::vector <Car_Information>::const_iterator it = mp_cars->begin ();
+           it != mp_cars->end ();
+           it++)
         {
-        case FORWARD:
-          if ((distance_gap.x > 0) && (distance_gap.x < min_forward_distance_gap))
+          // Don't check for collisions with yourself.
+          if (it->car == mp_car)
+            continue;
+
+          size_t segment = it->segment_index;
+          size_t road_index = it->road_index;
+          const Three_Vector r2_track = 
+            mp_track->track_coordinates (it->car->center_position (), 
+                                         road_index, 
+                                         segment);
+          Three_Vector distance_gap = find_gap (*it);
+          switch (relative_position (m_track_position, r2_track))
             {
-              min_forward_distance_gap = distance_gap.x;
-              m_follow_lengths = maybe_passable (m_track_position.x, segment) ? 1.0 : 2.0;
-              double dv = m_speed - it->car->chassis ().cm_velocity ().magnitude ();
-              crash_time = distance_gap.x / dv;
-              pass_side = get_pass_side (m_track_position.x, distance_gap.x, dv, segment);
+            case FORWARD:
+              if ((distance_gap.x > 0) && (distance_gap.x < min_forward_distance_gap))
+                {
+                  min_forward_distance_gap = distance_gap.x;
+                  m_follow_lengths
+                    = maybe_passable (m_track_position.x, segment) ? 1.0 : 2.0;
+                  double dv = m_speed - it->car->chassis ().cm_velocity ().magnitude ();
+                  crash_time = distance_gap.x / dv;
+                  pass_side
+                    = get_pass_side (m_track_position.x, distance_gap.x, dv, segment);
+                }
+              break;
+            case LEFT:
+              if ((distance_gap.y > 0) && (distance_gap.y < min_left_distance_gap))
+                {
+                  min_left_distance_gap = distance_gap.y;
+                }
+              break;
+            case RIGHT:
+              if ((distance_gap.y > 0) && (distance_gap.y < min_right_distance_gap))
+                {
+                  min_right_distance_gap = distance_gap.y;
+                }
+              break;
+            default:
+              break;
             }
-          break;
-        case LEFT:
-          if ((distance_gap.y > 0) && (distance_gap.y < min_left_distance_gap))
-            {
-              min_left_distance_gap = distance_gap.y;
-            }
-          break;
-        case RIGHT:
-          if ((distance_gap.y > 0) && (distance_gap.y < min_right_distance_gap))
-            {
-              min_right_distance_gap = distance_gap.y;
-            }
-          break;
-        default:
-          break;
-        }
-    }
+          }
     }
   const double shift_step = 0.3 * m_timestep;
 
@@ -639,7 +644,8 @@ Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
   // enough ahead for us to pull alongside the opponent's car at our current
   // rate of closing, 'delta_v'.
 
-  //!! look ahead by time, not distance to compensate for closing under braking
+  //!! Look ahead by time, not distance to compensate for closing under braking.
+  //!! Account for deceleration? 
   double pass_distance = delta_x * m_speed / delta_v;
   if (pass_distance > 500.0)
     return NONE;
@@ -652,8 +658,12 @@ Robot_Driver::pass_side (double start, double delta, size_t n, size_t segment) c
 {
   // The logic here requires that *_SIDE are all single bits. Don't use the
   // Direction enum.
+
+  //!! calls to get_block_side and from_center sometime increment the segment
+  //!! excessively. 
+
   double x = start;
-  int block = (get_block_side (x, segment));
+  int block = get_block_side (x, segment);
   x += delta;
   for (size_t i = 1; i < n; i++, x += delta)
     block &= get_block_side (x, segment);
