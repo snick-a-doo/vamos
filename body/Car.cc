@@ -316,6 +316,11 @@ Car::propagate (double time)
       mp_fuel_tank->consume (mp_drivetrain->engine ()->fuel_rate () * time);
     }
 
+  static bool going = false;
+  if ((mp_drivetrain->transmission ()->gear () != 0)
+      && (mp_drivetrain->clutch ()->pressure () != 0.0))
+    going = true;
+
   m_slide = 0.0;
   double right_wheel_speed = 0.0;
   double left_wheel_speed = 0.0;
@@ -331,6 +336,9 @@ Car::propagate (double time)
 
       // Apply the brakes.
       (*it)->brake (m_brake_key_control.value ()); 
+      if (!going)
+        (*it)->brake (1.0);
+        
       if (mp_drivetrain && (*it)->driven ())
         {
           // Apply the driving torque.
