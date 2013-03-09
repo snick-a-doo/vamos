@@ -5,7 +5,7 @@ import random
 import sys
 
 
-class random_track (vamos_track.vamos_track):
+class random_road (vamos_track.vamos_track):
     '''A track made from segments with random lengths, radii, and elevations'''
 
     # Adjustables
@@ -46,6 +46,6 @@ else:
 print seed
 random.seed (seed)
 
-track = random_track (10000)
+track = random_road (10000)
 track.construct ()
-track.write_track ('/tmp/random-track.xml')
+track.write_track ('/tmp/random-road.xml')
