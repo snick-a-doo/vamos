@@ -162,8 +162,7 @@ namespace Vamos_World
 
     /// Provide pointers to the other cars so the robot can pass or avoid
     /// collisions. 
-    void set_cars (const std::vector <Car_Information>* cars)
-    { mp_cars = cars; }
+    void set_cars (const std::vector <Car_Information>* cars);
 
     /// Called to signal the start of the race.
     virtual void start (double to_go);
@@ -216,6 +215,8 @@ namespace Vamos_World
       double delay;
       double time;
     };
+
+    const Car_Information& info () const { return (*mp_cars)[m_info_index]; }
 
     void set_event (Event::Type type, double delay = 0);
     void handle_event ();
@@ -286,6 +287,7 @@ namespace Vamos_World
     static double reaction_time ();
 
     const std::vector <Car_Information>* mp_cars;
+    size_t m_info_index;
 
     Vamos_Geometry::PID m_speed_control;
     Vamos_Geometry::PID m_traction_control;
@@ -297,11 +299,8 @@ namespace Vamos_World
     double m_target_slip;
 
     double m_speed;
-    Vamos_Geometry::Three_Vector m_track_position;
     Vamos_Track::Gl_Road_Segment* mp_segment;
-    size_t m_road_index;
     size_t m_target_segment;
-    size_t m_segment_index;//!! should use world's car info
     Vamos_Track::Strip_Track* mp_track;
     bool m_reset;
     double m_shift_time;

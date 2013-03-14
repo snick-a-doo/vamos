@@ -1,3 +1,5 @@
+## \file Common track-generation code.
+
 import random
 import math
 import sys
@@ -323,9 +325,10 @@ class vamos_track ():
         # For circuits, scale the elevation so it's back to zero at the start
         # line. 
         if self.close:
-            e_last = elevation[-1]
-            for e in elevation:
+            e_last = elevation[-2]
+            for e in elevation[:-1]:
                 e[1] -= e_last[1] * e[0]/e_last[0]
+            elevation[-1][1] = elevation[0][1]
 
         distance = 0.0
         i = 0
@@ -371,5 +374,8 @@ class vamos_track ():
             print '  <timing-line>%d</timing-line>' % 10
             print '  <timing-line>%d</timing-line>' % (self.length/3)
             print '  <timing-line>%d</timing-line>' % (2*self.length/3)
+        else:
+            for s in range (1000, int (self.length), 1000):
+                print '  <timing-line>%d</timing-line>' % s
         print '</track>'
         out.close ()

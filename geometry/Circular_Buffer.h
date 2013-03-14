@@ -33,12 +33,17 @@ namespace Vamos_Geometry
     Circular_Buffer (size_t size);
 
     /// Return the number of elements in the buffer.
-    size_t size () { return m_used; }
+    size_t size () const { return m_used; }
+    /// True if nothing is in the buffer.
+    bool empty () const { return size () == 0; }
     /// Put an element in the buffer.  If the buffer was already full, the
     /// oldest element is lost.
     void push_back (T element);
     /// Return an element.  The oldest element has index 0.
     const T& operator [] (size_t index);
+    /// Return the most recently added element.
+    const T& back () const
+    { return m_elements [(m_start_index == 0 ? m_elements.size () : m_start_index) - 1]; }
 
   private:
     std::vector <T> m_elements;
