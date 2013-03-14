@@ -39,15 +39,16 @@ namespace Vamos_World
   {
     Car_Information (Vamos_Body::Car* car_in, Driver* driver_in);
 
-    size_t road_index;
-    size_t segment_index;
-    Vamos_Body::Car* car;
-    Driver* driver;
-
     void reset ();
     void propagate (double time_step, 
                     double total_time,
                     const Vamos_Geometry::Three_Vector& track_position);
+    const Vamos_Geometry::Three_Vector& track_position () const;
+
+    size_t road_index;
+    size_t segment_index;
+    Vamos_Body::Car* car;
+    Driver* driver;
 
     struct Record
     {

@@ -652,12 +652,9 @@ Road::track_coordinates (const Three_Vector& world_pos,
 {
   // Find the distance along the track, distance from center, and elevation
   // for the world coordinates `world_pos.x' and `world_pos.y'.
-
-  size_t segment_index_guess = segment_index;
   Three_Vector track_pos;
   assert (segment_index < m_segments.size ());
   Gl_Road_Segment* segment = m_segments [segment_index];
-
   size_t i = 0;
   bool found = false;
   while (i < m_segments.size () + 1)
@@ -711,17 +708,6 @@ Road::track_coordinates (const Three_Vector& world_pos,
 
   assert (segment_index < m_segments.size ());
   track_pos.x += segment->start_distance ();
-
-  {
-    const size_t index_change = 
-      size_t (std::abs (int (segment_index) - int (segment_index_guess)));
-    if ((index_change > 1) && (index_change != m_segments.size () - 1))
-    {
-      // std::cerr << "Warning: Road::track_coordinates guess=" 
-      //           << segment_index_guess
-      //           << " found=" << segment_index << std::endl;
-    }
-  }
   return track_pos;
 }
 
@@ -1400,8 +1386,6 @@ Strip_Track::track_coordinates (const Three_Vector& world_pos,
 								size_t& road_index,
 								size_t& segment_index)
 {
-  const size_t segment_index_guess = segment_index;
-
   // Find the distance along the track, distance from center, and elevation
   // for the world coordinates `world_pos.x' and `world_pos.y'.
 
@@ -1409,7 +1393,9 @@ Strip_Track::track_coordinates (const Three_Vector& world_pos,
   const Segment_List* segments = &get_road (road_index).segments ();
   if (segment_index >= segments->size ())
     {
-      std::cerr << segment_index << ' ' << segments->size () << ' ' << road_index << std::endl;
+      std::cerr << segment_index << ' ' 
+                << segments->size () << ' ' 
+                << road_index << std::endl;
       assert (false);
     }
   Gl_Road_Segment* segment = (*segments)[segment_index];
@@ -1499,17 +1485,6 @@ Strip_Track::track_coordinates (const Three_Vector& world_pos,
   assert (segment_index < segments->size ());
   m_material = segment->material_at (track_pos.x, track_pos.y);
   track_pos.x += segment->start_distance ();
-
-  {
-    const size_t index_change = 
-      size_t (std::abs (int (segment_index) - int (segment_index_guess)));
-    if ((index_change > 1) && (index_change != segments->size () - 1))
-    {
-      std::cerr << "Warning: Strip_Track::track_coordinates guess=" 
-                << segment_index_guess
-                << " found=" << segment_index << std::endl;
-    }
-  }
   return track_pos;
 }
 

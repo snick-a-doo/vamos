@@ -39,6 +39,7 @@ using namespace Vamos_World;
 Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity) 
 : Driver (car_in),
   mp_cars (0),
+  m_info_index (0),
   m_speed_control (4.0, 0.0, 0.0),
   m_traction_control (0.5, 0.0, 0.0),
   m_brake_control (0.1, 0.0, 0.0),
@@ -46,9 +47,7 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_front_gap_control (0.2, 0.0, 0.2),
   m_target_slip (car_in->get_robot_parameters ().slip_ratio),
   m_speed (0.0),
-  m_road_index (0),
   m_target_segment (0),
-  m_segment_index (0),
   mp_track (track_in),
   m_shift_time (0.0),
   m_event (Event::PARK, 0.0),
@@ -58,10 +57,10 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_lane_shift_timer (0.0),
   m_interact (true),
   m_show_steering_target (false),
-  m_racing_line (mp_track->get_road (m_road_index),
+  m_racing_line (mp_track->get_road (0),
                  car_in->get_robot_parameters ().lateral_acceleration,
                  gravity),
-  m_braking (mp_track->get_road (m_road_index),
+  m_braking (mp_track->get_road (0),
              car_in->get_robot_parameters ().deceleration,
              gravity,
              m_racing_line),
@@ -69,6 +68,12 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_follow_lengths (3.0)
 {
   m_traction_control.set (m_target_slip);
+}
+
+void Robot_Driver::set_cars (const std::vector <Car_Information>* cars)
+{ 
+  mp_cars = cars;
+  m_info_index = cars->size () - 1;
 }
 
 double 
@@ -99,8 +104,6 @@ Robot_Driver::set_event (Event::Type type, double delay)
 void 
 Robot_Driver::propagate (double timestep) 
 {
-  // Step the driver forward in time.
-
   // It's useful for other methods to know the size of the current timestep.
   m_timestep = timestep;
   handle_event ();
@@ -155,10 +158,7 @@ Robot_Driver::handle_event ()
 //* Drive
 void Robot_Driver::drive ()
 {
-  m_track_position = mp_track->track_coordinates (mp_car->center_position (), 
-                                                  m_road_index, 
-                                                  m_segment_index);
-  mp_segment = mp_track->get_road (m_road_index).segments ()[m_segment_index];
+  mp_segment = mp_track->get_road (info ().road_index).segments ()[info ().segment_index];
 
   // Initialize the lane shift with the car's starting position.
   if (std::abs (m_lane_shift) > 1.0)
@@ -175,13 +175,14 @@ void Robot_Driver::drive ()
 double
 Robot_Driver::get_lane_shift () const
 {
-  double line_y = m_racing_line.from_center (m_track_position.x, m_segment_index);
-  const Road& road = mp_track->get_road (m_road_index);
-  const double edge = m_track_position.y > line_y
-    ? road.racing_line ().left_width (road, m_track_position.x)
-    : -road.racing_line ().right_width (road, m_track_position.x);
+  double line_y = m_racing_line.from_center (info ().track_position ().x,
+                                             info ().segment_index);
+  const Road& road = mp_track->get_road (info ().road_index);
+  const double edge = info ().track_position ().y > line_y
+    ? road.racing_line ().left_width (road, info ().track_position ().x)
+    : -road.racing_line ().right_width (road, info ().track_position ().x);
 
-  return (m_track_position.y - line_y)/(std::abs (edge - line_y));
+  return (info ().track_position ().y - line_y)/(std::abs (edge - line_y));
 }
 
 //** Steer
@@ -226,7 +227,8 @@ Robot_Driver::target_vector ()
 {
   /// Return a vector that points in the direction of the position of the point on
   /// the track that the driver aims for.
-  return lane_shift (m_racing_line.target (m_track_position.x, pointer_distance ()))
+  return lane_shift (m_racing_line.target (info ().track_position ().x, 
+                                           pointer_distance ()))
      - mp_car->center_position ();
 }
 
@@ -244,7 +246,7 @@ Robot_Driver::lane_shift (const Three_Vector& target)
   // values and the right edge.
 
   // Get the track coordinates of the target.
-  const Road& road = mp_track->get_road (m_road_index);
+  const Road& road = mp_track->get_road (info ().road_index);
   const Three_Vector track = road.track_coordinates (target, m_target_segment);
 
   // Convert the lane shift to a distance.
@@ -349,15 +351,17 @@ Robot_Driver::accelerate ()
   // Save some values that show up often in this method. The normal vector
   // calculation requires distance along the segment instead of distance along
   // the track.
-  const double along = m_track_position.x - mp_segment->start_distance ();
+  const double along = info ().track_position ().x - mp_segment->start_distance ();
   // The 'true' argument causes kerbs to be ignored when calculating the normal
   // for the racing line speed.
-  const Three_Vector normal = mp_segment->normal (along, m_track_position.y, false);
+  const Three_Vector normal = mp_segment->normal (along, 
+                                                  info ().track_position ().y, 
+                                                  false);
   const double drag = mp_car->chassis ().aerodynamic_drag ();
   const double lift = mp_car->chassis ().aerodynamic_lift ();
 
   double cornering_speed 
-    = m_racing_line.maximum_speed (m_track_position.x, 
+    = m_racing_line.maximum_speed (info ().track_position ().x, 
                                    m_lane_shift,
                                    lift,
                                    normal,
@@ -365,7 +369,7 @@ Robot_Driver::accelerate ()
 
   double braking_speed
     = m_braking.maximum_speed (m_speed,
-                               m_track_position.x,
+                               info ().track_position ().x,
                                m_lane_shift,
                                drag,
                                lift,
@@ -471,37 +475,43 @@ Robot_Driver::avoid_collisions ()
   Direction pass_side = NONE;
   double crash_time = 2*crash_time_limit;
 
-  if (m_interact)
-    {
   // Loop through the other cars. Each time through the loop we potentially
   // update 'min_forward_distance_gap', 'min_left_distance_gap',
   // 'min_right_distance_gap', 'pass_side', 'crash_time'.
+  //
+  // Break out immediately if the interact flag is false. We still need the lane
+  // shift code after the loop so the cars will get to the racing line after the
+  // start.  
   for (std::vector <Car_Information>::const_iterator it = mp_cars->begin ();
-       it != mp_cars->end ();
+       it != mp_cars->end () && m_interact;
        it++)
     {
       // Don't check for collisions with yourself.
       if (it->car == mp_car)
         continue;
 
-      size_t segment = it->segment_index;
-      size_t road_index = it->road_index;
-      const Three_Vector r2_track = 
-        mp_track->track_coordinates (it->car->center_position (), 
-                                     road_index, 
-                                     segment);
+      // Don't worry about cars that are far away.
+      if (std::abs (it->track_position ().x - info ().track_position ().x)
+          > 10 * mp_car->length ())
+        continue;
 
       Three_Vector distance_gap = find_gap (*it);
-      switch (relative_position (m_track_position, r2_track))
+      switch (relative_position (info ().track_position (), it->track_position ()))
         {
         case FORWARD:
           if ((distance_gap.x > 0) && (distance_gap.x < min_forward_distance_gap))
             {
               min_forward_distance_gap = distance_gap.x;
-              m_follow_lengths = maybe_passable (m_track_position.x, segment) ? 1.0 : 2.0;
+              m_follow_lengths = (maybe_passable (info ().track_position ().x, 
+                                                 it->segment_index) 
+                                  ? 1.0 
+                                  : 2.0);
               double dv = m_speed - it->car->chassis ().cm_velocity ().magnitude ();
               crash_time = distance_gap.x / dv;
-              pass_side = get_pass_side (m_track_position.x, distance_gap.x, dv, segment);
+              pass_side = get_pass_side (info ().track_position ().x, 
+                                         distance_gap.x, 
+                                         dv, 
+                                         it->segment_index);
             }
           break;
         case LEFT:
@@ -520,7 +530,7 @@ Robot_Driver::avoid_collisions ()
           break;
         }
     }
-    }
+
   const double shift_step = 0.3 * m_timestep;
 
   if (m_lane_shift != 0.0)
@@ -592,8 +602,8 @@ Robot_Driver::find_gap (const Car_Information& car_2) const
   //! Is car info the right place to calculate track coordinates?
 
   //! Need the cars' pointers' track positions.
-  size_t road_index = 0;
-  size_t segment = m_segment_index;
+  size_t road_index = info ().road_index;
+  size_t segment = info ().segment_index;
   Three_Vector r1_track 
     = mp_track->track_coordinates (mp_car->center_position () + pointer_vector (),
                                    road_index,
@@ -605,7 +615,7 @@ Robot_Driver::find_gap (const Car_Information& car_2) const
   Three_Vector p = car_2.car->chassis ().transform_to_world (Three_Vector (d, 0.0, 0.0))
     - car_2.car->chassis ().position ();
   segment = car_2.segment_index;
-  road_index = 0;
+  road_index = car_2.road_index;
   Three_Vector r2_track 
     = mp_track->track_coordinates (car_2.car->center_position () + p,
                                    road_index,
@@ -641,8 +651,7 @@ Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
   // rate of closing, 'delta_v'.
   double pass_distance = delta_x * m_speed / delta_v;
 
-  const Road& road = mp_track->get_road (m_road_index);
-  if (pass_distance > 0.5*road.length ())
+  if (pass_distance > 2 * m_follow_lengths)
     return NONE;
 
   // We'll sample the racing line's side at three positions

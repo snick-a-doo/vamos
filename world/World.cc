@@ -41,9 +41,7 @@ Car_Information::Car_Information (Car* car_in, Driver* driver_in)
 {
 }
 
-//-----------------------------------------------------------------------------
-void 
-Car_Information::reset ()
+void Car_Information::reset ()
 {
   road_index = 0;
   segment_index = 0;
@@ -52,17 +50,21 @@ Car_Information::reset ()
   car->reset ();
 }
 
-//-----------------------------------------------------------------------------
-void 
-Car_Information::propagate (double time_step,
-                            double total_time,
-                            const Three_Vector& track_position)
+void Car_Information::propagate (double time_step,
+                                 double total_time,
+                                 const Three_Vector& track_position)
 {
+  m_record.push_back (Record (total_time, car, track_position));
   if (driver != 0)
     driver->propagate (time_step);
-
   car->propagate (time_step);
-  m_record.push_back (Record (total_time, car, track_position));
+}
+
+const Three_Vector& Car_Information::track_position () const
+{
+  if (m_record.size () == 0)
+    return Three_Vector::ZERO;
+  return m_record.back ().m_track_position; 
 }
 
 //-----------------------------------------------------------------------------
@@ -195,12 +197,8 @@ World::slipstream_air_density_factor (Car_Information& car1, Car_Information& ca
   if (car1.road_index != car2.road_index)
     return factor;
 
-  Three_Vector p1 = mp_track->track_coordinates (car1.car->center_position (),
-                                                 car1.road_index,
-                                                 car1.segment_index);
-  Three_Vector p2 = mp_track->track_coordinates (car2.car->center_position (),
-                                                 car2.road_index,
-                                                 car2.segment_index);
+  const Three_Vector& p1 = car1.track_position ();
+  const Three_Vector& p2 = car2.track_position ();
 
   const Vamos_Track::Road& road = mp_track->get_road (car1.road_index);
 
@@ -469,10 +467,10 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
 void 
 World::add_car (Car* car, Driver* driver, const Road& road, bool controlled)
 {
-  if (driver != 0)
-    driver->set_cars (&m_cars);
   car->chassis ().gravity (Three_Vector (0.0, 0.0, -m_gravity));
   m_cars.push_back (Car_Information (car, driver));
+  if (driver != 0)
+    driver->set_cars (&m_cars);
 
   place_car (car, car->chassis ().position (), road);
 
