@@ -145,7 +145,7 @@ Robot_Driver::handle_event ()
       break;
 
     case Event::START:
-      static const double clutch_time = 1.5;
+      static const double clutch_time = 2.0;
       if (!m_is_started)
         {
           mp_car->shift (1);
@@ -186,7 +186,10 @@ Robot_Driver::get_lane_shift () const
     ? road.racing_line ().left_width (road, info ().track_position ().x)
     : -road.racing_line ().right_width (road, info ().track_position ().x);
 
-  return (info ().track_position ().y - line_y)/(std::abs (edge - line_y));
+  // Keep the lane shift value between -1.0 and 1.0.
+  const double top = info ().track_position ().y - line_y;
+  const double bottom = std::abs (edge - line_y);
+  return (std::abs (top) >= bottom) ? sign (top) : top/bottom;
 }
 
 //** Steer
