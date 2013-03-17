@@ -28,6 +28,13 @@
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 
+// Define an OpenAL exit handler so resources will be freed when the sound
+// object is destroyed.
+void exit_alut ()
+{
+  alutExit ();
+}
+
 Vamos_World::
 Sounds::Sounds () :
   mp_tire_squeal_sound (0),
@@ -42,6 +49,8 @@ Sounds::Sounds () :
   alutInit (0, 0);
   alDistanceModel (AL_INVERSE_DISTANCE);
   master_volume (1.0);
+  // Register the exit handler.
+  atexit (exit_alut);
 }
 
 Vamos_World::
