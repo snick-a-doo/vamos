@@ -174,7 +174,7 @@ World::propagate_cars (double time_step)
               if (j == i)
                 continue;
 
-               Car_Information& other = m_cars [j];
+              Car_Information& other = m_cars [j];
               collide (&info, &other);
               air_density_factor = std::min (air_density_factor, 
                                              slipstream_air_density_factor (info, other));
@@ -192,28 +192,33 @@ World::propagate_cars (double time_step)
 double 
 World::slipstream_air_density_factor (Car_Information& car1, Car_Information& car2)
 {
-  double factor = 1.0;
-
   if (car1.road_index != car2.road_index)
-    return factor;
+    return 1.0;
 
   const Three_Vector& p1 = car1.track_position ();
   const Three_Vector& p2 = car2.track_position ();
 
   const Vamos_Track::Road& road = mp_track->get_road (car1.road_index);
-
   if (road.distance (p1.x, p2.x) > 0.0)
-    return factor;
+   return 1.0;
 
+  const double now = mp_timing->total_time ();
+
+  // Go through car2's history starting with the most recent event to find out
+  // how long ago car2 was at car1's position. Calculate the reduction in air
+  // density as a function of that time and distance across the track.
   for (size_t i = car2.m_record.size (); i > 0; i--)
     {
+      const double arg = (now - car2.m_record [i - 1].m_time) / slipstream_time_constant;
+      // If we're more than 5 time constants behind the density factor would be
+      // at least 1-exp(-5) ~ 0.993. Not far enough away from 1.0 to worry about.
+      if (arg > 5.0)
+        break;
+
       const Three_Vector& p2 = car2.m_record [i - 1].m_track_position;
       if (road.distance (p1.x, p2.x) > 0.0)
         {
-          const double now = mp_timing->total_time ();
-          const double longitudinal 
-            = std::exp ((car2.m_record [i - 1].m_time - now)
-                        / slipstream_time_constant);
+          const double longitudinal = std::exp (-arg);
           const double transverse = longitudinal
             * std::max (1.0 - std::abs (p2.y - p1.y) / car2.car->width (),
                         0.0);
@@ -221,7 +226,7 @@ World::slipstream_air_density_factor (Car_Information& car1, Car_Information& ca
         }
     }
 
-  return factor;
+  return 1.0;
 }
 
 void 
