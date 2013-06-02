@@ -251,7 +251,13 @@ Gl_World::add_car (Vamos_Body::Car* car,
 {
   if (car == 0) return;
   World::add_car (car, driver, road, controlled);
-  m_view = BODY_VIEW;
+
+  // If there's a controlled car, show the view from inside it. Otherwise show
+  // the view from the trackside cameras.
+  if (controlled)
+    m_view = BODY_VIEW;
+  else if (m_view != BODY_VIEW)
+    m_view = WORLD_VIEW;
 }
 
 // Read the definition file.
