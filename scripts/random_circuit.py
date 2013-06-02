@@ -15,6 +15,7 @@ import vamos_track
 import random
 import sys
 import math
+import copy
 
 def distance (p1, p2):
     return math.sqrt ((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
@@ -25,10 +26,12 @@ class Point ():
         self.y = y
 
 class Random_Curve ():
+    min_radius = 25
+
     def __init__ (self):
         self.x = random.uniform (-500, 500)
         self.y = random.uniform (-500, 500)
-        self.r = random.uniform (25, 150)
+        self.r = random.uniform (self.min_radius, 150)
 
         self.start_angle = 0
         self.end_angle = 2*math.pi
@@ -67,15 +70,27 @@ class Random_Curve ():
     def arc_end_point (self):
         return self._edge_point (self.end_angle)
 
-    def arc_length (self):
+    def angle (self):
         delta = self.direction * (self.end_angle - self.start_angle)
         while delta > 2*math.pi: delta -= 2*math.pi
         while delta < 0: delta += 2*math.pi
-        return self.r * delta
+        return delta
+
+    def arc_length (self):
+        return self.r * self.angle ()
 
     def signed_r (self):
         assert (self.direction != 0)
         return self.r * self.direction
+
+    def reduce_radius (self, point):
+        '''Shrink the radius by a random amount keeping the given point fixed.'''
+        r = self.r
+        self.r = random.uniform (self.min_radius, 0.9*self.r)
+        a = self.r/r
+        b = 1.0 - a
+        self.x = a*self.x + b*point.x
+        self.y = a*self.y + b*point.y
 
 def overlap (new_c, curves):
     '''True if new_c overlaps any curve in curves.'''
@@ -85,6 +100,7 @@ def overlap (new_c, curves):
     return False
 
 def turn (c1, c2, c3):
+    '''Helper function for set_directions() below.'''
     x1 = c1.x - c2.x
     y1 = c1.y - c2.y
     x2 = c3.x - c2.x
@@ -107,6 +123,8 @@ def turn (c1, c2, c3):
         return (-1, hidden)
 
 def set_directions (curves):
+    '''For each circle, determine if the road should go around clockwise or
+    counterclockwise.'''
     last_directed = -1
     for i in range (0, len (curves)):
         c1 = curves [(i-1) % len (curves)]
@@ -115,7 +133,9 @@ def set_directions (curves):
         (c2.direction, c2.hidden) = turn (c1, c2, c3)
         if not c2.hidden:
             last_directed = i
+    # Should not be possible to have all curves hidden.
     assert (last_directed != -1)
+    # Start threading from a non-hidden curve.
     for i in range (last_directed + 1, len (curves) + last_directed):
         c1 = curves [(i-1) % len (curves)]
         c2 = curves [i % len (curves)]
@@ -123,6 +143,13 @@ def set_directions (curves):
         if c2.hidden and c3.direction == c1.direction:
             c2.direction = -c1.direction
     return curves
+
+def split_curve (c):
+    '''Turn one curve into two curves with smaller radii.'''
+    c2 = copy.copy (c)
+    c.reduce_radius (c.arc_start_point ())
+    c2.reduce_radius (c.arc_end_point ())
+    return c2
 
 def connect_curves (curves):
     '''Find the endpoints of the straights that connect the curves.'''
@@ -136,7 +163,10 @@ def connect_curves (curves):
             r -= c2.r
         else:
             r += c2.r
-        phi = math.acos (r/c1.distance (c2))
+        phi = 0
+
+        if abs (r) < c1.distance (c2):
+            phi = math.acos (r/c1.distance (c2))
 
         if c1.direction < 0:
             angle += phi
@@ -147,26 +177,45 @@ def connect_curves (curves):
         if c2.direction != c1.direction:
             angle += math.pi
         c2.set_start_angle (angle)
-    return curves
+
+    split_curves = []
+    for c in curves:
+        # Remove any nearly full-circle curves.
+        if c.angle () < 0.9*2.0*math.pi:
+            split_curves.append (c)
+            # Turn > 180 curves into double-apex curves.
+            if c.angle () > math.pi:
+                split_curves.append (split_curve (c))
+
+    return split_curves
 
 class Random_Circuit (vamos_track.vamos_track):
+    '''Generates and writes a closed circuit. Overrides vamos_track.build_track().'''
     def __init__ (self):
+        '''Pick clockwise or counterclockwise, and generate a list of curves.'''
         vamos_track.vamos_track.__init__ (self, True)
+        # 1: increasing angle (counterclockwise), -1: decreasing angle (clockwise)
         self.direction = random.choice ([-1, 1])
-        self.corners = random.randint (6, 10)
-        self.curves = connect_curves (
-            set_directions (self.generate_curves (self.corners)))
+        self.curves = set_directions (self.generate_curves (random.randint (6, 10)))
+        changed = True
+        while changed:
+            n_curves = len (self.curves)
+            self.curves = connect_curves (self.curves)
+            changed = len (self.curves) != n_curves
 
     def circle_less (self, c1, c2):
+        '''Circles are ordered by angle from origin to center.'''
         a1 = math.atan2 (c1.y, c1.x)
         a2 = math.atan2 (c2.y, c2.x)
-        if a1 > a2: return self.direction
-        elif a1 < a2: return -self.direction
-        else: return 0
+        if a2 < a1: return self.direction
+        else: return -self.direction
 
-    def generate_curves (self, n):
+    def generate_curves (self, corners):
+        '''Generate circles with random positions and radii. Discard circles
+        that overlap any already generated. Sort the circles by angle from the
+        center of the field to center of circle.'''
         curves = []
-        for i in range (n):
+        for i in range (corners):
             c = Random_Curve ()
             while (overlap (c, curves)):
                 c = Random_Curve ()
@@ -175,6 +224,9 @@ class Random_Circuit (vamos_track.vamos_track):
         return curves
 
     def build_track (self):
+        '''Build the track by adding curves from the start to end points of each
+        circle. Add straights between the end and start points of neighboring
+        circles.'''
         # Find the longest straight so it can be at the start/finish.
         max_index = 0
         max_d = 0.0
