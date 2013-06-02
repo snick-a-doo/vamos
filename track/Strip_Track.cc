@@ -1611,9 +1611,10 @@ Strip_Track::get_camera (double distance) const
   
   // See if we're near the end of the track and should be picked up by
   // the first camera.
+  double first = m_cameras.begin ()->position.x - m_cameras.begin ()->range;
   if (mp_track->is_closed ()
-      && (m_cameras.begin ()->position.x < m_cameras.begin ()->range)
-      && (distance > camera_range (*m_cameras.begin ())))
+      && (first < 0.0)
+      && (distance > wrap (first, mp_track->length ())))
     return *m_cameras.begin ();
 
   for (std::vector <Camera>::const_reverse_iterator rit = m_cameras.rbegin ();

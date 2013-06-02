@@ -202,8 +202,6 @@ def angle_to_radius (angle, length):
 def random_in_range (limits):
     return random.uniform (limits [0], limits [1])
 
-
-
 class road_segment:
     '''A straight or curved segment of track'''
 
@@ -228,13 +226,19 @@ class road_segment:
                 self.name = 'right turn'
         self.elevation = []
         self.braking_marker_side = None
-        self.camera_distance = None
+        self.camera_position = None
+        self.camera_range = None
 
     def add_elevation (self, distance, elevation):
         self.elevation.append ([distance, elevation])
 
-    def add_camera (self, distance):
-        self.camera_distance = distance
+    def add_camera (self, position, camera_range):
+        self.camera_position = position
+        self.camera_range = camera_range
+        # Put the camera on the outside of the turn for greatest visibility of
+        # the adjoining straights.
+        if self.radius > 0.0:
+            self.camera_position[1] *= -1.0
 
     def add_braking_markers (self, side):
         self.braking_marker_side = side
@@ -262,11 +266,14 @@ class road_segment:
       <offset>[ 2.0, 0.0 ]</offset>
       <side>%s</side>
     </braking-marker>''' % (distance, distance, self.braking_marker_side)
-        if self.camera_distance != None:
+        if self.camera_position != None:
             print '''    <camera>
-      <position>[ %.1f, 20.0, 5.0 ]</position>
+      <position>[ %.1f, %.1f, %.1f ]</position>
       <range>%.1f</range>
-    </camera>''' % (self.camera_distance / 2, self.camera_distance)
+    </camera>''' % (self.camera_position[0], 
+                    self.camera_position[1], 
+                    self.camera_position[2],
+                    self.camera_range)
         print '  </road>\n'
 
 class vamos_track ():
@@ -274,7 +281,6 @@ class vamos_track ():
     elevation_change_range = [-1.0, 1.0]
     elevation_vertical_factor = 0.1
     first_segment_length = 200.0
-    camera_interval = 200.0
 
     def  __init__ (self, close):
         self.close = close
@@ -287,7 +293,7 @@ class vamos_track ():
         self.elevation;
         self.e_start = 0 # The indices of the elevation array
         self.e_end = 0   # to be used for a given segment.
-        self.camera_to_go = self.camera_interval
+        self.camera_distance = 0.0
 
     def construct (self):
         self.build_track ()
@@ -346,11 +352,14 @@ class vamos_track ():
 
     def add_segment (self, length, radius):
         s = road_segment (length, radius)
+        self.camera_distance += length/2.0
 
-        self.camera_to_go -= length
-        if self.camera_to_go < 0:
-            s.add_camera (self.camera_to_go + length)
-            self.camera_to_go = self.camera_interval
+        # On each turn, add a camera halfway through. Switch to that camera
+        # halfway between this camera and the last camera. 
+        if s.radius != 0.0:
+            s.add_camera ([length/2.0, 20.0, 5.0], self.camera_distance/2.0)
+            self.camera_distance = 0.0
+        self.camera_distance += length/2.0
 
         self.segments.append (s)
         self.e_start = self.e_end
