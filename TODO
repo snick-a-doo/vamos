@@ -1,4 +1,7 @@
 -*-org-*-
+Gl_Car.cc:576:52: warning: narrowing conversion of 'x.Vamos_Geometry::Three_Vector::x' from 'double' to 'float' inside { } is ill-formed in C++11 [-Wnarrowing]
+Gl_World.cc:596:76: warning: narrowing conversion of 'direction.Vamos_Geometry::Three_Vector::x' from 'double' to 'float' inside { } is ill-formed in C++11 [-Wnarrowing]
+Gl_World.cc:1248:56: warning: narrowing conversion of 'pos.Vamos_Geometry::Three_Vector::x' from 'double' to 'GLfloat {aka float}' inside { } is ill-formed in C++11 [-Wnarrowing]
 
 * Pending
 ** Bump function is not smooth across start of track.

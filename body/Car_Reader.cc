@@ -249,11 +249,12 @@ Car_Reader::on_start_tag (const Vamos_Media::XML_Tag& tag)
     }
   else if (label () == "wheel")
     {
-      if (m_doubles.size () != 23)
+      if (m_doubles.size () != 24)
         {
-          m_doubles.resize (23);
+          m_doubles.resize (24);
           m_doubles [8] = 0.0;
           m_doubles [20] = 0.0;
+          m_doubles [23] = 1.0;
           m_long_parameters.resize (11);
           m_trans_parameters.resize (15);
           m_align_parameters.resize (18);
@@ -621,7 +622,7 @@ Car_Reader::on_end_tag (const Vamos_Media::XML_Tag& tag)
       Tire_Friction friction (m_long_parameters, m_trans_parameters,
                               m_align_parameters);
       Tire tire (m_doubles [9], m_doubles [10], m_doubles [11], friction,
-                 m_doubles [12]);
+                 m_doubles [23], m_doubles [12]);
 
       double bias = m_doubles [17];
       if (m_strings [1] == "rear")
@@ -892,6 +893,8 @@ Car_Reader::on_data (std::string data)
           is >> delim >> *it;
         }
     }
+  else if (path () == "/car/wheel/tire/hardness")
+    is >> m_doubles [23];
 
   // Brakes
   else if (path () == "/car/wheel/brakes/friction")

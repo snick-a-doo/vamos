@@ -353,7 +353,7 @@ Car::propagate (double time)
       // Sum the sliding speeds of the tires.
       m_slide += (*it)->slide ();
     }
-  m_slide /= m_wheels.size ();
+  m_slide = std::min (1.0, m_slide / m_wheels.size ());
 
   // Update the drivetrain.
   if (mp_drivetrain)
@@ -585,6 +585,16 @@ Car::chase_position () const
   return m_chassis.cm_position () 
     - (w1 * v1 + w2 * v2) * 3.0 * length ()
     + Three_Vector (0.0, 0.0, length ());
+}
+
+double Car::grip () const
+{
+  double g = 0.0;
+  for (std::vector <Wheel*>::const_iterator it = m_wheels.begin ();
+       it != m_wheels.end ();
+       it++)
+    g += (*it)->grip ();
+  return g / m_wheels.size ();
 }
 
 Three_Vector

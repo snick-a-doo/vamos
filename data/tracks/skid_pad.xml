@@ -89,6 +89,8 @@
 	<bank>0.0</bank>
   </road>
 
+  <timing-line>10.0</timing-line>
+
   <!-- Force the track to close.-->
   <circuit segments="1" />
 </track>

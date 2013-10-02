@@ -112,7 +112,7 @@
   <!-- Clutch -->
   <bind>
     <function>initial clutch</function>
-	<axis>2</axis>
+	<axis>3</axis>
 	<factor>0.5</factor>
 	<offset>0.5</offset>
 	<minimum>0.0</minimum>

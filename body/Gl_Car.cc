@@ -533,11 +533,21 @@ Gl_Car::draw_dashboard_extras ()
                  1.0, 0.0, 1.0,
                  throttle_fraction ());
 
-  dashboard_text (2.8, 1.8, "Slip Ratios (%)");
-  dashboard_text (2.8, 1.4, "", m_wheels [0]->slip ().x, "", 3);
-  dashboard_text (3.6, 1.4, "", m_wheels [1]->slip ().x, "", 3);
-  dashboard_text (2.8, 1.0, "", m_wheels [2]->slip ().x, "", 3);
-  dashboard_text (3.6, 1.0, "", m_wheels [3]->slip ().x, "", 3);
+  dashboard_text (2.8, 1.8, "Tire Temperature, Wear, Grip");
+  //!fixme Assume wheels are defined in the order: right front, left front,
+  // right rear, left rear.
+  dashboard_text (2.8, 1.4, "", m_wheels [1]->temperature (), "", 0);
+  dashboard_text (3.2, 1.4, "", m_wheels [1]->wear (), "", 2);
+  dashboard_text (3.6, 1.4, "", m_wheels [1]->grip (), "", 2);
+  dashboard_text (4.0, 1.4, "", m_wheels [0]->temperature (), "", 0);
+  dashboard_text (4.4, 1.4, "", m_wheels [0]->wear (), "", 2);
+  dashboard_text (4.8, 1.4, "", m_wheels [0]->grip (), "", 2);
+  dashboard_text (2.8, 1.0, "", m_wheels [3]->temperature (), "", 0);
+  dashboard_text (3.2, 1.0, "", m_wheels [3]->wear (), "", 2);
+  dashboard_text (3.6, 1.0, "", m_wheels [3]->grip (), "", 2);
+  dashboard_text (4.0, 1.0, "", m_wheels [2]->temperature (), "", 0);
+  dashboard_text (4.4, 1.0, "", m_wheels [2]->wear (), "", 2);
+  dashboard_text (4.8, 1.0, "", m_wheels [2]->grip (), "", 2);
 
   dashboard_text (2.8, 0.6, "Fuel", mp_fuel_tank->fuel (), "L", 1);
   dashboard_text (2.8, bottom, "Air Density", m_air_density, "kg/m^3", 3);

@@ -173,6 +173,10 @@ namespace Vamos_Body
 	// Fill in the slip ratios for the wheel's tire;
     Vamos_Geometry::Two_Vector slip () const;
 
+    double grip () const { return m_tire.grip (); }
+    double temperature () const { return m_tire.temperature (); }
+    double wear () const { return m_tire.wear (); }
+
     // Return the slip ratio that gives maximum force.
     double peak_slip_ratio () const { return m_tire.peak_slip_ratio (); }
     // Return the slip angle that gives maximum force.

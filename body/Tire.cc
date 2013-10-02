@@ -1,6 +1,6 @@
 //  Tire.cc - the tire for a wheel.
 //
-//  Copyright (C) 2001--2004 Sam Varner
+//  Copyright (C) 2001--2013 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
@@ -21,6 +21,7 @@
 #include "Tire.h"
 #include "../geometry/Conversions.h"
 #include "../geometry/Numeric.h"
+#include "../geometry/Parameter.h"
 
 #include <algorithm>
 #include <cassert>
@@ -31,6 +32,7 @@ using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 
 const double epsilon = 1.0e-12;
+const double ambient_temperature = 300.0;
 
 // The magic equation.  Slip is a percentage for longitudinal force,
 // an angle in degrees for transverse force and aligning torque.
@@ -193,8 +195,8 @@ Tire_Friction::friction_forces (double normal_force, double friction_factor,
   if (slip_xz > epsilon)
       Mz *= slip.z / slip_xz;
 
-  // Set the volume of the tire squeal sound. 
-  m_slide = (hub_velocity.magnitude () < 0.1) ? 0.0 : std::min (slip_xy, 1.0);
+  // Set the volume of the tire squeal sound.
+  m_slide = (hub_velocity.magnitude () < 0.1) ? 0.0 : slip_xy;
 
   // Construct the friction vector.  The z-component is the aligning
   // torque.
@@ -208,7 +210,8 @@ Vamos_Body::
 Tire::Tire (double radius, 
             double rolling_resistance_1,
 			double rolling_resistance_2, 
-            const Tire_Friction& friction, 
+            const Tire_Friction& friction,
+            double hardness,
 			double inertia,
             const Frame* parent) 
   : Particle (0.0, parent),
@@ -220,6 +223,9 @@ Tire::Tire (double radius,
     m_rotational_speed (0.0),
     m_last_rotational_speed (0.0),
     m_slide (0.0),
+    m_hardness (hardness),
+    m_temperature (345.0),
+    m_wear (0.0),
     m_velocity (0.0, 0.0, 0.0),
     m_normal_angular_velocity (0.0),
     m_normal_force (0.0),
@@ -288,9 +294,12 @@ Tire::find_forces ()
 
   // Get the friction force (components 0 and 1) and the aligning
   // torque (component 2).
-  Three_Vector friction_force = m_tire_friction.
-	friction_forces (m_normal_force, m_surface_material.friction_factor (),
-					 m_velocity, speed(), m_camber);
+  Three_Vector friction_force =
+    m_tire_friction.friction_forces (m_normal_force * grip (),
+                                     m_surface_material.friction_factor (),
+                                     m_velocity, 
+                                     speed(), 
+                                     m_camber);
 
   // the frictional force opposing the motion of the contact patch.
   set_force (Three_Vector (friction_force.x, friction_force.y, 0.0));
@@ -337,12 +346,42 @@ Tire::propagate (double time)
   if (m_is_locked)
 	{
 	  // This causes speed() to return 0.0.
-	  m_rotational_speed = 0.0;
+      m_rotational_speed = 0.0;
 	}
   else
 	{
 	  m_rotational_speed += m_applied_torque * time / m_inertia;
 	}
+
+  // My made-up model of tire heating and wear.
+  static const double stress_heating = 2e-4;
+  static const double abrasion_heating = 1e-1;
+  static const double wear = 1e-8;
+  static const double cooling = 5e-3;
+
+  const double dT = m_temperature - ambient_temperature;
+  if (m_slide > 0.0)
+    {
+      // Forces applied through the tire flex, stretch, and compress the rubber
+      // heating it up.  Slipping results in heating due to sliding friction.
+      const double F = (force () + m_normal_force * Three_Vector::Z).magnitude ();
+      const double friction = m_slide * m_surface_material.friction_factor ();
+      const double heat = time * (stress_heating * F / m_hardness 
+                                  + abrasion_heating * friction);
+      m_temperature += heat;
+
+      // Slipping wears the tire through abrasion.  The tire wears more quickly
+      // at high temperature.
+      m_wear += time * wear * friction * pow (dT, 2);
+    }
+
+  // Cooling is proportional to difference from ambient.
+  m_temperature -= time * cooling * dT;
+}
+
+double Tire::grip () const
+{
+  return std::max (m_temperature / 380.0 - m_wear, 0.3);
 }
 
 void

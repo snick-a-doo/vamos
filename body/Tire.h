@@ -1,6 +1,6 @@
 //  Tire.h - the tire for a wheel.
 //
-//  Copyright (C) 2001 Sam Varner
+//  Copyright (C) 2001--2013 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
@@ -29,31 +29,9 @@
 
 namespace Vamos_Body
 {
-  //* The frictional properties of the tire.
+  /// The frictional properties of the tire.
   class Tire_Friction
   {
-	// The parameters of the longitudinal magic equation.
-	std::vector <double> m_longitudital_parameters;
-
-	// The parameters of the transverse magic equation.
-	std::vector <double> m_transverse_parameters;
-
-	// The parameters of the magic equation for aligning torque.
-	std::vector <double> m_aligning_parameters;
-
-    // The slip that gives the maximum longitudinal force.
-    double m_peak_slip;
-
-    // The slip angle that gives the maximum transverse force.
-    double m_peak_slip_angle;
-
-    // The slip angle that gives the maximum aligning torque.
-    double m_peak_aligning_angle;
-
-	// A parameter that is used to set the volume of the tire squeal
-	// sound. 
-	double m_slide;
-
   public:
 	//** Constructor
 	Tire_Friction (const std::vector <double>& long_parameters,
@@ -82,65 +60,40 @@ namespace Vamos_Body
     double peak_slip_ratio () const { return m_peak_slip; }
     // Return the slip angle that gives maximum force.
     double peak_slip_angle () const { return m_peak_slip_angle; }
+
+  private:
+    /// The parameters of the longitudinal magic equation.
+	std::vector <double> m_longitudital_parameters;
+
+	/// The parameters of the transverse magic equation.
+	std::vector <double> m_transverse_parameters;
+
+	/// The parameters of the magic equation for aligning torque.
+	std::vector <double> m_aligning_parameters;
+
+    /// The slip that gives the maximum longitudinal force.
+    double m_peak_slip;
+
+    /// The slip angle that gives the maximum transverse force.
+    double m_peak_slip_angle;
+
+    /// The slip angle that gives the maximum aligning torque.
+    double m_peak_aligning_angle;
+
+	/// A parameter that is used to set the volume of the tire squeal sound.
+	double m_slide;
   };
+
 
-  //* The tire for a wheel.
+  /// The tire for a wheel.
   class Tire : public Particle
   {
-	// The radius of the tire.
-	double m_radius;
-
-	// Linear rolling resistance on a hard surface.
-	double m_rolling_resistance_1;
-
-	// Quadratic rolling resistance on a hard surface.
-	double m_rolling_resistance_2;
-
-	Tire_Friction m_tire_friction;
-
-	// The rotational inertia of the tire.
-	double m_inertia;
-
-	// The rotational speed of the tire in radians per second.
-	double m_rotational_speed;
-
-	double m_last_rotational_speed;
-
-	// How fast the tire is sliding.
-	double m_slide;
-
-	//// Input paremeters provided by the wheel.
-
-	// The velocity of the wheel relative to the road.
-	Vamos_Geometry::Three_Vector m_velocity;
-
-	// The angular velocity about the normal to the surface.
-	double m_normal_angular_velocity;
-
-	// The force perpendicular to the surface.
-	double m_normal_force;
-
-	// The current camber, supplied by the wheel.
-	double m_camber;
-
-	// The torque on the wheel due to acceleration or braking.
-	double m_applied_torque;
-
-	// True if the brake for this wheel is locked.
-	bool m_is_locked;
-
-	// The surface that the tire is currently on.
-	Vamos_Geometry::Material m_surface_material;
-
-	// Orient the tire's z-axis with the normal force.
-	void orient_frame_with_unit_vector (const Vamos_Geometry::
-										Three_Vector& normal_unit_vector);
-
   public:
 	Tire (double radius, 
           double rolling_resistance_1,
 		  double rolling_resistance_2, 
-          const Tire_Friction& friction, 
+          const Tire_Friction& friction,
+          double hardness,
 		  double inertia,
           const Frame* parent = 0);
 
@@ -172,6 +125,11 @@ namespace Vamos_Body
     // Fill in the longitudinal (sigma) and transverse (alpha) slip ratios.
     void slip (double* sigma, double* alpha) const;
 
+    double temperature () const { return m_temperature - 273.15; }
+    /// A traction factor that depends on tire temperature and wear.
+    double wear () const { return m_wear; }
+    double grip () const;
+
 	// Return the linear sliding speed. 
 	double slide () const { return m_slide; }
 
@@ -189,7 +147,69 @@ namespace Vamos_Body
 
 	// Set the tire to its initial conditions.
 	void reset ();
+
+  private:
+	/// Orient the tire's z-axis with the normal force.
+	void orient_frame_with_unit_vector (const Vamos_Geometry::
+										Three_Vector& normal_unit_vector);
+
+
+ 	/// The radius of the tire.
+	double m_radius;
+
+	/// Linear rolling resistance on a hard surface.
+	double m_rolling_resistance_1;
+
+	/// Quadratic rolling resistance on a hard surface.
+	double m_rolling_resistance_2;
+
+    /// Object for calculating friction.
+	Tire_Friction m_tire_friction;
+
+	/// The rotational inertia of the tire.
+	double m_inertia;
+
+	/// The rotational speed of the tire in radians per second.
+	double m_rotational_speed;
+
+	/// The rotational speed of in the previous time step.
+	double m_last_rotational_speed;
+
+	/// How fast the tire is sliding.
+	double m_slide;
+
+    /// How much the tire heats up due to applied forces.
+    double m_hardness;
+
+    /// The temperature of the tire.
+    double m_temperature;
+
+    /// How much grip has been lost to tire wear.
+    double m_wear;
+
+	//* Input paremeters provided by the wheel.
+
+	/// The velocity of the wheel relative to the road.
+	Vamos_Geometry::Three_Vector m_velocity;
+
+	/// The angular velocity about the normal to the surface.
+	double m_normal_angular_velocity;
+
+	/// The force perpendicular to the surface.
+	double m_normal_force;
+
+	/// The current camber, supplied by the wheel.
+	double m_camber;
+
+	/// The torque on the wheel due to acceleration or braking.
+	double m_applied_torque;
+
+	/// True if the brake for this wheel is locked.
+	bool m_is_locked;
+
+	/// The surface that the tire is currently on.
+	Vamos_Geometry::Material m_surface_material;
   };
 }
 
-#endif // !_TIRE_H_
+#endif // not _TIRE_H_

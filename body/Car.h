@@ -374,6 +374,8 @@ namespace Vamos_Body
 
     std::string name () const { return m_name; }
 
+    double grip () const;
+
   protected:
     Rigid_Body m_chassis;
 

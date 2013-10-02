@@ -35,6 +35,11 @@ using namespace Vamos_Geometry;
 using namespace Vamos_Track;
 using namespace Vamos_World;
 
+// Maximum allowed speed may be scaled.  Make sure we don't exceed the exceed
+// the max double if we multiply the maximum speed by a small number.
+static const double UNLIMITED_SPEED = 0.01 * std::numeric_limits <double>::max ();
+
+
 //-----------------------------------------------------------------------------
 Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity) 
 : Driver (car_in),
@@ -394,9 +399,8 @@ Robot_Driver::set_speed (double target_speed)
   // wheel spin. Nothing prevents the gas and brake from being applied
   // simultaneously, but with only P terms of the PID controllers being used it
   // does not happen in practice.
-
   // Speed may be modulated to avoid running into the back of the car in front.
-  target_speed *= m_speed_factor;
+  target_speed *= (m_speed_factor * mp_car->grip ());
   m_speed_control.set (target_speed);
   double d1 = m_speed_control.propagate (m_speed, m_timestep);
   double d2 = m_traction_control.propagate (total_slip (), m_timestep);
@@ -934,7 +938,7 @@ Braking_Operation::maximum_speed (double speed,
 
   // No need to start braking yet.
   if (!found_min)
-    return std::numeric_limits <double>::max ();
+    return UNLIMITED_SPEED;
 
   // Build the speed vs. distance curve by working backwards from the minimum
   // speed.  Start one interval beyond the end; end one interval before the
@@ -1004,7 +1008,7 @@ Braking_Operation::maximum_speed (double speed,
   start (distance, minimum_speed_vs_distance.x);
   // No need to restrict speed yet.  Next call will get it from the newly
   // calculated speed vs. distance curve.
-  return std::numeric_limits <double>::max ();
+  return UNLIMITED_SPEED;
 }
 
 //-----------------------------------------------------------------------------
@@ -1049,7 +1053,7 @@ Robot_Racing_Line::maximum_speed (double distance,
   if (lower > 1e-9)
     return std::sqrt (upper / lower);
   else
-    return std::numeric_limits <double>::max ();
+    return UNLIMITED_SPEED;
 }
 
 Three_Vector
