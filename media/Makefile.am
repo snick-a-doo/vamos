@@ -4,12 +4,14 @@ libvamos_media_la_SOURCES = \
 	Ac3d.cc \
 	Sample.cc \
 	Texture_Image.cc \
+	Two_D.cc \
 	XML_Parser.cc
 
 pkginclude_HEADERS = \
 	Ac3d.h \
 	Sample.h \
 	Texture_Image.h \
+	Two_D.h \
 	XML_Parser.h
 
 pkgincludedir = $(includedir)/@PACKAGE@/media

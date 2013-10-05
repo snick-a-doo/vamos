@@ -21,6 +21,7 @@
 #include "Dashboard.h"
 #include "Wheel.h"
 #include "../media/Ac3d.h"
+#include "../media/Two_D.h"
 #include "../geometry/Numeric.h"
 #include "../geometry/Rectangle.h"
 
@@ -438,80 +439,12 @@ Gl_Car::draw_dashboard ()
 }
 
 void 
-draw_string (const std::string& str, double x, double y)
-{
-  glRasterPos2d (x, y);
-  for (std::string::const_iterator it = str.begin (); it != str.end (); it++)
-	{
-	  glutBitmapCharacter (GLUT_BITMAP_8_BY_13, *it);
-	}
-}
-
-void
-dashboard_text (double x, double y, const std::string& text, std::string text2 = "")
-{
-  glColor3f (1.0, 1.0, 1.0);
-  std::ostringstream os;
-  os << text << ' ' << text2;
-  draw_string (os.str (), x, y);
-}
-
-void
-dashboard_text (double x, double y, 
-                std::string label, double value, std::string units = "",
-                int precision = 0)
-{
-  glColor3f (1.0, 1.0, 1.0);
-  std::ostringstream os;
-  os.setf (std::ios::fixed);
-  os << std::setprecision (precision) << label << ' ' << value << ' ' << units;
-  draw_string (os.str (), x, y);
-}
-
-void
-dashboard_bar (const Rectangle& box, 
-               double red, double green, double blue,
-               double fraction)
-{
-  glColor3f (red, green, blue);
-
-  // border
-  glBegin (GL_LINE_LOOP);
-  glVertex2f (box.left (), box.bottom ());
-  glVertex2f (box.left (), box.top ());
-  glVertex2f (box.right (), box.top ());
-  glVertex2f (box.right (), box.bottom ());
-  glEnd ();
-
-  // fill
-  glBegin (GL_QUADS);
-  const double top = fraction * box.height () + box.bottom ();
-  glVertex2f (box.left (), box.bottom ());
-  glVertex2f (box.left (), top);
-  glVertex2f (box.right (), top);
-  glVertex2f (box.right (), box.bottom ());
-  glEnd ();
-}
-
-void 
 Gl_Car::draw_dashboard_extras ()
 { 
-  glMatrixMode (GL_PROJECTION);
-  glPushMatrix ();
-  glLoadIdentity ();
-
-  // Set the dimensions of the drawing area.
-  gluOrtho2D (0, 10, 0, 10);
-  glMatrixMode (GL_MODELVIEW);
-  glPushMatrix ();
-  glLoadIdentity ();
+  Two_D screen;
   
-  glDisable (GL_DEPTH_TEST);
-  glDisable (GL_LIGHTING);
-  glDisable (GL_TEXTURE_2D);
-  
-  const double bottom = 0.2;
-  const double top = 2.0;
+  const double bottom = 2;
+  const double top = 20;
 
   std::string gear = "N";
   if (transmission ()->gear () == -1)
@@ -519,47 +452,38 @@ Gl_Car::draw_dashboard_extras ()
   else if (transmission ()->gear () > 0)
     gear = std::string (1, transmission ()->gear () + '0');
 
-  dashboard_text (0.4, 1.8, "RPM", rad_s_to_rpm (engine ()->rotational_speed ()));
-  dashboard_text (0.4, 1.4, "Torque", engine ()->drive_torque (), "Nm");
-  dashboard_text (0.4, 1.0, "Speed", m_s_to_km_h (wheel (2)->speed ()), "km/h");
-  dashboard_text (0.4, 0.6, "Mass", m_chassis.mass (), "kg");
-  dashboard_text (0.4, 0.2, "Gear", gear);
+  screen.text (4, 18, "RPM", rad_s_to_rpm (engine ()->rotational_speed ()));
+  screen.text (4, 14, "Torque", engine ()->drive_torque (), "Nm");
+  screen.text (4, 10, "Speed", m_s_to_km_h (wheel (2)->speed ()), "km/h");
+  screen.text (4, 6, "Mass", m_chassis.mass (), "kg");
+  screen.text (4, 2, "Gear", gear);
 
-  dashboard_bar (Rectangle (1.9, bottom, 0.2, top - bottom),
-                 0.0, 1.0, 1.0,
-                 brake_fraction ());
+  screen.bar (Rectangle (19, bottom, 2, top - bottom),
+              0.0, 1.0, 1.0,
+              brake_fraction ());
 
-  dashboard_bar (Rectangle (2.2, bottom, 0.2, top - bottom),
-                 1.0, 0.0, 1.0,
-                 throttle_fraction ());
+  screen.bar (Rectangle (22, bottom, 2, top - bottom),
+              1.0, 0.0, 1.0,
+              throttle_fraction ());
 
-  dashboard_text (2.8, 1.8, "Tire Temperature, Wear, Grip");
+  screen.text (28, 18, "Tire Temperature, Wear, Grip");
   //!fixme Assume wheels are defined in the order: right front, left front,
   // right rear, left rear.
-  dashboard_text (2.8, 1.4, "", m_wheels [1]->temperature (), "", 0);
-  dashboard_text (3.2, 1.4, "", m_wheels [1]->wear (), "", 2);
-  dashboard_text (3.6, 1.4, "", m_wheels [1]->grip (), "", 2);
-  dashboard_text (4.0, 1.4, "", m_wheels [0]->temperature (), "", 0);
-  dashboard_text (4.4, 1.4, "", m_wheels [0]->wear (), "", 2);
-  dashboard_text (4.8, 1.4, "", m_wheels [0]->grip (), "", 2);
-  dashboard_text (2.8, 1.0, "", m_wheels [3]->temperature (), "", 0);
-  dashboard_text (3.2, 1.0, "", m_wheels [3]->wear (), "", 2);
-  dashboard_text (3.6, 1.0, "", m_wheels [3]->grip (), "", 2);
-  dashboard_text (4.0, 1.0, "", m_wheels [2]->temperature (), "", 0);
-  dashboard_text (4.4, 1.0, "", m_wheels [2]->wear (), "", 2);
-  dashboard_text (4.8, 1.0, "", m_wheels [2]->grip (), "", 2);
+  screen.text (28, 14, "", m_wheels [1]->temperature (), "", 0);
+  screen.text (32, 14, "", m_wheels [1]->wear (), "", 2);
+  screen.text (36, 14, "", m_wheels [1]->grip (), "", 2);
+  screen.text (40, 14, "", m_wheels [0]->temperature (), "", 0);
+  screen.text (44, 14, "", m_wheels [0]->wear (), "", 2);
+  screen.text (48, 14, "", m_wheels [0]->grip (), "", 2);
+  screen.text (28, 10, "", m_wheels [3]->temperature (), "", 0);
+  screen.text (32, 10, "", m_wheels [3]->wear (), "", 2);
+  screen.text (36, 10, "", m_wheels [3]->grip (), "", 2);
+  screen.text (40, 10, "", m_wheels [2]->temperature (), "", 0);
+  screen.text (44, 10, "", m_wheels [2]->wear (), "", 2);
+  screen.text (48, 10, "", m_wheels [2]->grip (), "", 2);
 
-  dashboard_text (2.8, 0.6, "Fuel", mp_fuel_tank->fuel (), "L", 1);
-  dashboard_text (2.8, bottom, "Air Density", m_air_density, "kg/m^3", 3);
-
-  glEnable (GL_DEPTH_TEST);
-  glEnable (GL_LIGHTING);
-  glEnable (GL_TEXTURE_2D);
-
-  glMatrixMode (GL_PROJECTION);
-  glPopMatrix ();
-  glMatrixMode (GL_MODELVIEW);
-  glPopMatrix ();
+  screen.text (28, 6, "Fuel", mp_fuel_tank->fuel (), "L", 1);
+  screen.text (28, bottom, "Air Density", m_air_density, "kg/m^3", 3);
 }
 
 // Perform the transformations for the driver's view.
@@ -573,7 +497,8 @@ Gl_Car::view ()
   Three_Vector z = m_chassis.rotate_to_world (Three_Vector (0.0, 0.0, 1.0));
   Three_Vector x = m_chassis.rotate_to_world
     (Three_Vector (1.0, 0.0, 0.0).rotate (pan * Three_Vector::Z));
-  float at_up [6] = { x.x, x.y, x.z, z.x, z.y, z.z };
+  float at_up [6] = { float (x.x), float (x.y), float (x.z),
+                      float (z.x), float (z.y), float (z.z) };
 
   Three_Vector pos = view_position ();
   alListener3f (AL_POSITION, pos.x, pos.y, pos.z);

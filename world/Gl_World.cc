@@ -19,6 +19,7 @@
 #include "../body/Fuel_Tank.h"
 #include "../body/Wheel.h"
 #include "../geometry/Conversions.h"
+#include "../media/Two_D.h"
 #include "../track/Track.h"
 #include "Gl_World.h"
 #include "Sounds.h"
@@ -593,11 +594,12 @@ Gl_World::set_world_view (const Vamos_Geometry::Three_Vector& camera_position,
              0.0, 0.0, 1.0); // up direction
 
   Three_Vector direction (target_position - camera_position);
-  float at_up [6] = { direction.x, direction.y, direction.z, 0.0, 0.0, 1.0 };
+  float at_up [6] = { float (direction.x), float (direction.y), float (direction.z),
+                      0.0f, 0.0f, 1.0f };
 
   alListener3f (AL_POSITION, 
                 camera_position.x, camera_position.y, camera_position.z);
-  alListener3f (AL_VELOCITY, 0.0, 0.0, 0.0);
+  alListener3f (AL_VELOCITY, 0.0f, 0.0f, 0.0f);
   alListenerfv (AL_ORIENTATION, at_up);
 }
 
@@ -730,93 +732,36 @@ Gl_World::reshape (int width, int height)
 }
 
 void 
-Gl_World::draw_string (const std::string& str, double x, double y)
-{
-  glRasterPos2d (x, y);
-  for (std::string::const_iterator it = str.begin (); it != str.end (); it++)
-    {
-      glutBitmapCharacter (GLUT_BITMAP_8_BY_13, *it);
-    }
-}
-
-void 
 Gl_World::draw_timing_info ()
 {
-  glDisable (GL_DEPTH_TEST);
-  glDisable (GL_LIGHTING);
-  glDisable (GL_TEXTURE_2D);
-
-  glColor3f (1.0, 1.0, 1.0);
-  
-  glMatrixMode (GL_PROJECTION);
-  glLoadIdentity ();
-  glMatrixMode (GL_MODELVIEW);
-  glLoadIdentity ();
-  
-  std::ostringstream b_stream;
-  double x = 55;
-
-  gluOrtho2D (0, 100, 0, 100);
-
   if (!mp_track->has_starting_lights ())
     set_starting_lights ();
 
+  Vamos_Media::Two_D screen;
+
   if (mp_timing->running_order ().size () > 1 )
-    draw_leaderboard ();
+    draw_leaderboard (screen);
   else
-    draw_lap_times ();
+    draw_lap_times (screen);
 
   const Timing_Info::Car_Timing& car = mp_timing->timing_at_index (m_focused_car_index);
-  b_stream << "Lap Time " << format_time (car.lap_time ());
-  draw_string (b_stream.str (), x, 14);
 
-  b_stream.str ("");
-  b_stream << "    Last " << format_time (car.previous_lap_time ()) 
-           << " " 
-           << format_time_difference (car.lap_time_difference ());
-  draw_string (b_stream.str (), x, 10);
-
-  b_stream.str ("");
-  b_stream << "    Best " << format_time (car.best_lap_time ());
-  draw_string (b_stream.str (), x, 6);
-
-  b_stream.str ("");
-  b_stream << int (m_timer.get_frame_rate () + 0.5) << " frame/s";
-  draw_string (b_stream.str (), x, 2);
+  double x = 55;
+  screen.text (x, 14, "Lap Time", format_time (car.lap_time ()));
+  screen.text (x, 10, "    Last", format_time (car.previous_lap_time ()),
+               format_time_difference (car.lap_time_difference ()));
+  screen.text (x, 6, "    Best", format_time (car.best_lap_time ()));
+  screen.text (x, 2, "frames/s", int (m_timer.get_frame_rate () + 0.5));
 
   x = 75;
+  screen.text (x, 14, "     Sector", format_time (car.sector_time ()));
+  screen.text (x, 10, "       Best",
+               car.current_sector () == 0 ? "" : format_time (car.best_sector_time ()));
+  screen.text (x, 6, "Last Sector",
+               format_time (car.previous_sector_time ()) + "  " 
+               + format_time_difference (car.previous_sector_time_difference ()));
 
-  size_t sector = car.current_sector ();
-  b_stream.str ("");
-  b_stream << "   Sector ";
-  b_stream << sector << " " << format_time (car.sector_time ());
-  draw_string (b_stream.str (), x, 14);
-
-  b_stream.str ("");
-  b_stream << "       Best "; 
-  if (sector != 0)
-    {
-      b_stream << format_time (car.best_sector_time ());
-    }
-  draw_string (b_stream.str (), x, 10);
-
-  b_stream.str ("");
-  b_stream << "Last Sector ";
-  if (car.previous_sector () != 0)
-    {
-      b_stream << format_time (car.previous_sector_time ()) << "  " 
-               << format_time_difference 
-        (car.previous_sector_time_difference ());
-    }
-  draw_string (b_stream.str (), x, 6);
-
-  b_stream.str ("");
-  b_stream << "Distance " << int (car.lap_distance ()) << " m";
-  draw_string (b_stream.str (), x, 2);
-
-  glEnable (GL_DEPTH_TEST);
-  glEnable (GL_LIGHTING);
-  glEnable (GL_TEXTURE_2D);
+  screen.text (x, 2, "Distance", int (car.lap_distance ()), " m");
 }
 
 void
@@ -859,11 +804,10 @@ Gl_World::set_starting_lights ()
 }
 
 void
-Gl_World::draw_leaderboard ()
+Gl_World::draw_leaderboard (Vamos_Media::Two_D& screen)
 {
   double x = 2;
   double y = 95;
-  std::ostringstream b_stream;
 
   const Timing_Info::Running_Order& order = mp_timing->running_order ();
   Timing_Info::Running_Order::const_iterator it = order.begin ();
@@ -873,58 +817,43 @@ Gl_World::draw_leaderboard ()
       const size_t lap = (*it)->current_lap ();
       const size_t total_laps = mp_timing->total_laps ();
       if (lap <= total_laps)
-        b_stream << "Lap " << lap << '/' << total_laps;
+        {
+          std::ostringstream os;
+          os << lap << '/' << total_laps;
+          screen.text (x, y, "Lap", os.str ());
+        }
       else
-        b_stream << "Finish";
-      draw_string (b_stream.str (), x, y);
+        screen.text (x, y, "Finish");
     }
 
   y -= 3;
-  b_stream.str ("");
-  b_stream << m_cars [(*it)->grid_position () - 1].car->name () << ' ';
-  double time = (*it)->previous_lap_time ();
-  if (time != Timing_Info::NO_TIME)
-    b_stream << format_time (time);
-  draw_string (b_stream.str (), x, y);
+  screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (),
+               format_time ((*it)->previous_lap_time ()));
 
   while (++it != order.end ())
     {
       y -= 3;
-      b_stream.str ("");
-      b_stream << m_cars [(*it)->grid_position () - 1].car->name () << ' ';
-      double interval = (*it)->interval ();
-      if (interval != Timing_Info::NO_TIME)
-        b_stream << format_time_difference (interval);
-      draw_string (b_stream.str (), x, y);
+      screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (),
+                   format_time_difference ((*it)->interval ()));
     }
 
   if (mp_track->get_road (0).is_closed ())
     {
       y -= 3;
-      b_stream.str ("");
-      b_stream << "Fastest Lap"; 
-      draw_string (b_stream.str (), x, y);
+      screen.text (x, y, "Fastest Lap");
       y -= 2;
-      b_stream.str ("");
       const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
-      if (p_fastest)
+      if (p_fastest && (p_fastest->best_lap_time () != Timing_Info::NO_TIME))
         {
-          time = p_fastest->best_lap_time ();
-          if (time != Timing_Info::NO_TIME)
-            b_stream << m_cars [p_fastest->grid_position () - 1].car->name () << ' '
-                     << format_time (p_fastest->best_lap_time ());
-    }
-      draw_string (b_stream.str (), x, y);
+          screen.text (x, y, m_cars [p_fastest->grid_position () - 1].car->name (),
+                       format_time (p_fastest->best_lap_time ()));
+        }
     }
 }
 
 void
-Gl_World::draw_lap_times ()
+Gl_World::draw_lap_times (Vamos_Media::Two_D& screen)
 {
-  double x = 85;
-  double y = 95;
-  std::ostringstream b_stream;
-
   const Timing_Info::Running_Order& order = mp_timing->running_order ();
   Timing_Info::Running_Order::const_iterator it = order.begin ();
 
@@ -936,12 +865,11 @@ Gl_World::draw_lap_times ()
       && (lap - 1) > a_time.size ())
     a_time.push_back (lap_time);
 
-  for (size_t i = 0; i < a_time.size (); i++)
+  double x = 85;
+  double y = 95;
+  for (size_t i = 0; i < a_time.size (); i++, y -= 3)
     {
-      b_stream.str ("");
-      b_stream << i + 1 << ' ' << format_time (a_time [i]);
-      draw_string (b_stream.str (), x, y);
-      y -= 3;
+      screen.text (x, y, i + 1, format_time (a_time [i]));
     }
 }
 
@@ -1245,14 +1173,14 @@ World_Reader::on_data (std::string data)
     {
       Three_Vector pos;
       is >> pos;
-      GLfloat position [] = { pos.x, pos.y, pos.z, 0.0 };
+      GLfloat position [] = { float (pos.x), float (pos.y), float (pos.z), 0.0f };
       glLightfv (GL_LIGHT0, GL_POSITION, position);
     }
   else if (path () == "/world/lighting/ambient")
     {
       Three_Vector amb;
       is >> amb;
-      GLfloat ambient [] = { amb.x, amb.y, amb.z, 1.0 };
+      GLfloat ambient [] = { float (amb.x), float (amb.y), float (amb.z), 1.0f };
       glLightfv (GL_LIGHT0, GL_AMBIENT, ambient);
     }
 }

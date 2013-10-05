@@ -29,6 +29,11 @@
 
 #include <SDL_events.h>
 
+namespace Vamos_Media
+{
+  class Two_D;
+}
+
 namespace Vamos_World
 {
   class Sounds;
@@ -232,9 +237,8 @@ namespace Vamos_World
 
   private:
 	virtual void draw_timing_info ();
-    void draw_leaderboard ();
-    void draw_lap_times ();
-	void draw_string (const std::string& str, double x, double y);
+    void draw_leaderboard (Vamos_Media::Two_D& screen);
+    void draw_lap_times (Vamos_Media::Two_D& screen);
 
 	friend class World_Reader;
 	friend class Controls_Reader;

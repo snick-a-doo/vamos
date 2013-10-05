@@ -96,7 +96,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libvamos_media_la_LIBADD =
 am_libvamos_media_la_OBJECTS = Ac3d.lo Sample.lo Texture_Image.lo \
-	XML_Parser.lo
+	Two_D.lo XML_Parser.lo
 libvamos_media_la_OBJECTS = $(am_libvamos_media_la_OBJECTS)
 @DO_UNIT_TESTS_TRUE@am__EXEEXT_1 = test_XML_Parser$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
@@ -242,12 +242,14 @@ libvamos_media_la_SOURCES = \
 	Ac3d.cc \
 	Sample.cc \
 	Texture_Image.cc \
+	Two_D.cc \
 	XML_Parser.cc
 
 pkginclude_HEADERS = \
 	Ac3d.h \
 	Sample.h \
 	Texture_Image.h \
+	Two_D.h \
 	XML_Parser.h
 
 EXTRA_DIST = $(pkginclude_HEADERS)
@@ -346,6 +348,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Ac3d.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Sample.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Texture_Image.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Two_D.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/XML_Parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_XML_Parser.Po@am__quote@
 
