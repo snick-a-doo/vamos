@@ -257,7 +257,8 @@ namespace Vamos_World
                        const Vamos_Geometry::Three_Vector& r2_track) const;
 
     Vamos_Geometry::Three_Vector 
-    find_gap (const Car_Information& car_2) const;
+    find_gap (const Vamos_Geometry::Three_Vector& r1_track,
+              const Vamos_Geometry::Three_Vector& r2_track) const;
     bool maybe_passable (double along, size_t segment) const;
     Vamos_Geometry::Direction get_pass_side (double along, 
                                              double delta_x, 
@@ -323,6 +324,9 @@ namespace Vamos_World
 
     double m_speed_factor;
     double m_follow_lengths;
+
+    //! debugging
+    double m_gap [3];
   };
 }
 

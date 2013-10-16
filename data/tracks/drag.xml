@@ -136,7 +136,7 @@
   <start-direction>0</start-direction>
   <road segment="straight">
     <resolution>10.0</resolution>
-    <length>1000.0</length>
+    <length>10000.0</length>
 	<left-width>[ 0.0, 25.0 ]</left-width>
 	<right-width>[ 0.0, 25.0 ]</right-width>
 	<left-road-width>[ 0.0, 8.0 ]</left-road-width>

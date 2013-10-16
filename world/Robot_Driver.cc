@@ -24,6 +24,7 @@
 #include "../geometry/Constants.h"
 #include "../geometry/Parameter.h"
 #include "../geometry/Three_Vector.h"
+#include "../media/Two_D.h"
 #include "../track/Strip_Track.h"
 #include "World.h"
 
@@ -32,6 +33,7 @@
 
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
+using namespace Vamos_Media;
 using namespace Vamos_Track;
 using namespace Vamos_World;
 
@@ -73,6 +75,8 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_follow_lengths (3.0)
 {
   m_traction_control.set (m_target_slip);
+  for (int i = 0; i < 3; i++)
+    m_gap [i] = 0;
 }
 
 void Robot_Driver::set_cars (const std::vector <Car_Information>* cars)
@@ -506,7 +510,10 @@ Robot_Driver::avoid_collisions ()
           > 10 * mp_car->length ())
         continue;
 
-      Three_Vector distance_gap = find_gap (*it);
+      Three_Vector delta_v = (it->car->chassis ().cm_velocity ()
+                              - mp_car->chassis ().cm_velocity ());
+      Three_Vector distance_gap = find_gap (info ().track_position (),
+                                            it->track_position ());
       switch (relative_position (info ().track_position (), it->track_position ()))
         {
         case FORWARD:
@@ -529,12 +536,14 @@ Robot_Driver::avoid_collisions ()
           if ((distance_gap.y > 0) && (distance_gap.y < min_left_distance_gap))
             {
               min_left_distance_gap = distance_gap.y;
+              crash_time = -distance_gap.y / delta_v.y;
             }
           break;
         case RIGHT:
           if ((distance_gap.y > 0) && (distance_gap.y < min_right_distance_gap))
             {
               min_right_distance_gap = distance_gap.y;
+              crash_time = distance_gap.y / delta_v.y;
             }
           break;
         default:
@@ -564,9 +573,13 @@ Robot_Driver::avoid_collisions ()
         }
     }
 
+  m_gap [0] = min_forward_distance_gap;
+  m_gap [1] = min_left_distance_gap;
+  m_gap [2] = min_right_distance_gap;
+
   // Let the car get close if we're passing.
   if ((m_lane_shift_timer > 0.0) && (m_lane_shift_timer < 2.0))
-    m_follow_lengths = 0.1;
+    m_follow_lengths = 0.2;
 
   if (min_right_distance_gap < 0.5*mp_car->width ())
     {
@@ -597,44 +610,25 @@ Direction
 Robot_Driver::relative_position (const Three_Vector& r1_track,
                                  const Three_Vector& r2_track) const
 {
-  const Three_Vector delta = r2_track - r1_track;
-  if ((delta.x < 1.2 * mp_car->length () && delta.x > -mp_car->length ())
-      && (std::abs (delta.y) < 3 * mp_car->width ()))
-    return (delta.y > 0) ? LEFT : RIGHT;
-  else if (std::abs (delta.y) < 3 * mp_car->width ())
-    return (delta.x > 0) ? FORWARD : BACKWARD;
-  else
+  const double corner = mp_car->width () / mp_car->length ();
+  Three_Vector delta = r2_track - r1_track;
+  const double slope = delta.y / delta.x;
+
+  if ((std::abs (delta.x) > 1.5 * mp_car->length ())
+      && (std::abs (delta.y) > 1.5 * mp_car->width ()))
     return NONE;
+  if (std::abs (slope) < corner)
+    return (delta.x > 0) ? FORWARD : NONE;
+
+  return (delta.y > 0) ? LEFT : RIGHT;
 }
 
 Three_Vector
-Robot_Driver::find_gap (const Car_Information& car_2) const
+Robot_Driver::find_gap (const Three_Vector& r1_track,
+                        const Three_Vector& r2_track) const
 {
-  //! Is car info the right place to calculate track coordinates?
-
-  //! Need the cars' pointers' track positions.
-  size_t road_index = info ().road_index;
-  size_t segment = info ().segment_index;
-  Three_Vector r1_track 
-    = mp_track->track_coordinates (mp_car->center_position () + pointer_vector (),
-                                   road_index,
-                                   segment);
-
-  //! Duplicate pointer position calculation for now.
-  double d = 2.0 * car_2.car->length () 
-    + 0.2 * car_2.car->chassis ().cm_velocity ().magnitude();
-  Three_Vector p = car_2.car->chassis ().transform_to_world (Three_Vector (d, 0.0, 0.0))
-    - car_2.car->chassis ().position ();
-  segment = car_2.segment_index;
-  road_index = car_2.road_index;
-  Three_Vector r2_track 
-    = mp_track->track_coordinates (car_2.car->center_position () + p,
-                                   road_index,
-                                   segment);
-
-  double delta_y = r2_track.y - r1_track.y;
   return Three_Vector (r2_track.x - r1_track.x - mp_car->length (),
-                       std::abs (delta_y) - mp_car->width (),
+                       std::abs (r2_track.y - r1_track.y) - mp_car->width (),
                        0.0);
 }
 
@@ -730,6 +724,14 @@ Robot_Driver::slip_excess () const
 void
 Robot_Driver::draw ()
 {
+  {
+    double y = 94;
+    Two_D screen;
+    screen.text (20, y -= 2, "ahead ", m_gap [0], "m", 1);
+    screen.text (20, y -= 2, " left ", m_gap [1], "m", 1);
+    screen.text (20, y -= 2, "right ", m_gap [2], "m", 1);
+  }
+
   /// Optionally show the target and vector as green and red squares.
   if (!m_show_steering_target)
     return;

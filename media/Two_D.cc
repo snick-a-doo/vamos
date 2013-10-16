@@ -1,4 +1,4 @@
-//  2D - Convenience functions for 2D OpenGl rendering. 
+//  Two_D.cc - Convenience functions for 2D OpenGl rendering. 
 //
 //	Vamos Automotive Simulator
 //  Copyright (C) 2013 Sam Varner
