@@ -771,36 +771,13 @@ Gl_World::set_starting_lights ()
   if (count == 0)
     return;
 
-  glPushAttrib (GL_CURRENT_BIT);
-  glPushMatrix ();
-  glLoadIdentity ();
-
   const int width = mp_window->width ();
   const int height = mp_window->height ();
-  gluOrtho2D (0, width, 0, height);
-
-  const double r = 0.01*height;
-  const int n_lights = 5;
-  glTranslatef (0.5*width + 6*r, 0.6*height, 0.0);
-
-  GLUquadricObj* disk = gluNewQuadric();
-  gluQuadricDrawStyle (disk, GLU_FILL);
-
-  glColor3f (0.2, 0.2, 0.2);
-  for (int light = 1; light <= n_lights; light++)
-    {
-      if (light >= count)
-        glColor3f (0.9, 0.0, 0.0);
-      glTranslatef (-2.5*r, 0.0, 0.0);
-      gluDisk (disk, 0.0, r, 32, 32);
-    }
-
-  glColor3f (1.0, 0.0, 0.0);
-
-  gluDeleteQuadric (disk);
-
-  glPopMatrix ();
-  glPopAttrib ();
+  Vamos_Media::Two_D screen (width, height);
+  screen.lights (0.5*width, 0.6*height, 0.01*height, 
+                 5, count,
+                 0.9, 0.0, 0.0,
+                 0.23, 0.2, 0.2);
 }
 
 void

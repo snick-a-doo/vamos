@@ -23,13 +23,13 @@
 
 using namespace Vamos_Media;
 
-Two_D::Two_D ()
+Two_D::Two_D (int width, int height)
 {
   glMatrixMode (GL_PROJECTION);
   glPushMatrix ();
   glLoadIdentity ();
 
-  gluOrtho2D (0, 100, 0, 100);
+  gluOrtho2D (0, width, 0, height);
   glMatrixMode (GL_MODELVIEW);
   glPushMatrix ();
   glLoadIdentity ();
@@ -85,3 +85,23 @@ void Two_D::bar (const Vamos_Geometry::Rectangle& box,
   glEnd ();
 }
 
+void Two_D::lights (double x, double y, double r, int n, int n_on,
+                    double red_on, double green_on, double blue_on,
+                    double red_off, double green_off, double blue_off)
+{
+  glTranslatef (x + 6*r, y, 0.0);
+
+  GLUquadricObj* disk = gluNewQuadric();
+  gluQuadricDrawStyle (disk, GLU_FILL);
+
+  glColor3f (red_off, green_off, blue_off);
+  for (int light = 1; light <= n; light++)
+    {
+      if (light >= n_on)
+        glColor3f (red_on, green_on, blue_on);
+      glTranslatef (-2.5*r, 0.0, 0.0);
+      gluDisk (disk, 0.0, r, 32, 32);
+    }
+
+  gluDeleteQuadric (disk);
+}
