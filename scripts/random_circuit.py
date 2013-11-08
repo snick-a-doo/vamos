@@ -210,6 +210,9 @@ class Random_Circuit (vamos_track.vamos_track):
         if a2 < a1: return self.direction
         else: return -self.direction
 
+    def circle_angle (self, c):
+        return math.atan2 (c.y, c.x)
+
     def generate_curves (self, corners):
         '''Generate circles with random positions and radii. Discard circles
         that overlap any already generated. Sort the circles by angle from the
@@ -220,7 +223,7 @@ class Random_Circuit (vamos_track.vamos_track):
             while (overlap (c, curves)):
                 c = Random_Curve ()
             curves.append (c)
-        curves.sort (self.circle_less)
+        curves.sort (key = self.circle_angle)
         return curves
 
     def build_track (self):
@@ -341,8 +344,8 @@ if len (sys.argv) > 0:
     seed = int (sys.argv [0])
     sys.argv = sys.argv [1:]
 else:
-    seed = random.randint (0, sys.maxint)
-print seed
+    seed = random.randrange (0, 2**64)
+print (seed)
 
 random.seed (seed)
 

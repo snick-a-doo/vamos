@@ -246,35 +246,35 @@ class road_segment:
     def print_segment (self, first, turn = None):
         '''Print the XML for this segment'''
         if turn != None:
-            print '  <!-- Turn %d -->' % turn
-        print '''  <road segment="%s">
+            print ('  <!-- Turn %d -->' % turn)
+        print ('''  <road segment="%s">
     <resolution>2</resolution>
     <length>%.1f</length>
-    <radius>%.1f</radius>''' % (self.name, self.length, self.radius)
+    <radius>%.1f</radius>''' % (self.name, self.length, self.radius))
         if first:
-            print first_segment_extras
+            print (first_segment_extras)
         for e in self.elevation:
-            print '    <elevation>[ %.1f, %.1f ]</elevation>' % (e[0], e[1])
+            print ('    <elevation>[ %.1f, %.1f ]</elevation>' % (e[0], e[1]))
         if self.braking_marker_side != None:
             for distance in [ 50, 100, 150 ]:
                 if distance > self.length:
                     break;
-                print '''    <braking-marker>
+                print ('''    <braking-marker>
       <file>textures/%d.png</file>
       <distance>%d.0</distance>
       <size>[ 1.4, 0.7 ]</size>
       <offset>[ 2.0, 0.0 ]</offset>
       <side>%s</side>
-    </braking-marker>''' % (distance, distance, self.braking_marker_side)
+    </braking-marker>''' % (distance, distance, self.braking_marker_side))
         if self.camera_position != None:
-            print '''    <camera>
+            print ('''    <camera>
       <position>[ %.1f, %.1f, %.1f ]</position>
       <range>%.1f</range>
     </camera>''' % (self.camera_position[0], 
                     self.camera_position[1], 
                     self.camera_position[2],
-                    self.camera_range)
-        print '  </road>\n'
+                    self.camera_range))
+        print ('  </road>\n')
 
 class vamos_track ():
     elevation_distance_range = [30.0, 400.0]
@@ -368,7 +368,7 @@ class vamos_track ():
     def write_track (self, output_file):
         out = open (output_file, 'w')
         sys.stdout = out
-        print header
+        print (header)
         first = True
         turn = 0
         for s in self.segments:
@@ -379,12 +379,12 @@ class vamos_track ():
                 s.print_segment (first)
             first = False
         if self.close:
-            print '  <circuit/>'
-            print '  <timing-line>%d</timing-line>' % 10
-            print '  <timing-line>%d</timing-line>' % (self.length/3)
-            print '  <timing-line>%d</timing-line>' % (2*self.length/3)
+            print ('  <circuit/>')
+            print ('  <timing-line>%d</timing-line>' % 10)
+            print ('  <timing-line>%d</timing-line>' % (self.length/3))
+            print ('  <timing-line>%d</timing-line>' % (2*self.length/3))
         else:
             for s in range (1000, int (self.length), 1000):
-                print '  <timing-line>%d</timing-line>' % s
-        print '</track>'
+                print ('  <timing-line>%d</timing-line>' % s)
+        print ('</track>')
         out.close ()

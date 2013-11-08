@@ -40,10 +40,11 @@ class random_road (vamos_track.vamos_track):
 
 seed = 0
 if len (sys.argv) == 2:
+    print (sys.argv)
     seed = int (sys.argv [1])
 else:
-    seed = random.randint (0, sys.maxint)
-print seed
+    seed = random.randrange (0, 2**64)
+print (seed)
 random.seed (seed)
 
 track = random_road (10000)
