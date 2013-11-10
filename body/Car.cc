@@ -587,6 +587,14 @@ Car::chase_position () const
     + Three_Vector (0.0, 0.0, length ());
 }
 
+Three_Vector Car::target_position () const
+{
+  double speed = m_chassis.cm_velocity ().magnitude();
+  double target_distance = 2.0 * length () + 0.2 * speed;
+  return m_chassis.transform_to_world (center () 
+                                       + Three_Vector (target_distance, 0.0, 0.0));
+}
+
 double Car::grip () const
 {
   double g = 0.0;

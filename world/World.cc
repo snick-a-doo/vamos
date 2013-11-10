@@ -161,7 +161,7 @@ World::propagate_cars (double time_step)
       Car_Information& info = m_cars [i];
       info.propagate (time_step, 
                       mp_timing->total_time (),
-                      mp_track->track_coordinates (info.car->center_position (),
+                      mp_track->track_coordinates (info.car->target_position (),
                                                    info.road_index,
                                                    info.segment_index));
       interact (info.car, info.road_index, info.segment_index);

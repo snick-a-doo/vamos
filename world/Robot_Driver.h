@@ -236,10 +236,6 @@ namespace Vamos_World
     void accelerate ();
     void avoid_collisions ();
 
-    // The point that is kept on the racing line is this far ahead of the
-    // car.
-    double pointer_distance () const;
-
     /// Return a vector that points in the direction of the position of the
     /// point that the driver tries to keep on the racing line.
     Vamos_Geometry::Three_Vector pointer_vector () const;
@@ -324,6 +320,7 @@ namespace Vamos_World
 
     double m_speed_factor;
     double m_follow_lengths;
+    bool m_passing;
 
     //! debugging
     double m_gap [3];

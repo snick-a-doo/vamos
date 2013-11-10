@@ -51,7 +51,7 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_traction_control (0.5, 0.0, 0.0),
   m_brake_control (0.1, 0.0, 0.0),
   m_steer_control (0.5, 0.0, 0.0),
-  m_front_gap_control (0.5, 0.0, 0.2),
+  m_front_gap_control (0.1, 0.0, 0.2),
   m_target_slip (car_in->get_robot_parameters ().slip_ratio),
   m_speed (0.0),
   m_target_segment (0),
@@ -72,7 +72,8 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
              gravity,
              m_racing_line),
   m_speed_factor (1.0),
-  m_follow_lengths (3.0)
+  m_follow_lengths (3.0),
+  m_passing (false)
 {
   m_traction_control.set (m_target_slip);
   for (int i = 0; i < 3; i++)
@@ -224,18 +225,7 @@ Robot_Driver::pointer_vector () const
 {
   // Return a vector that points in the direction of the point that the driver
   // tries to keep on the racing line.
-  return mp_car->chassis ()
-    .transform_to_world (Three_Vector (pointer_distance (), 0.0, 0.0))
-    - mp_car->chassis ().position ();
-}
-
-double 
-Robot_Driver::pointer_distance () const
-{
-  // Return the distance from the center of the car to the steering pointer.
-  // Move the pointer farther away as speed increases to avoid high-speed
-  // instability.
-  return 2.0 * mp_car->length () + 0.2 * m_speed;
+  return mp_car->target_position () - mp_car->center_position ();
 }
 
 Three_Vector
@@ -243,8 +233,7 @@ Robot_Driver::target_vector ()
 {
   /// Return a vector that points in the direction of the position of the point on
   /// the track that the driver aims for.
-  return lane_shift (m_racing_line.target (info ().track_position ().x, 
-                                           pointer_distance ()))
+  return lane_shift (m_racing_line.target (info ().track_position ().x, 0.0))
      - mp_car->center_position ();
 }
 
@@ -487,8 +476,8 @@ Robot_Driver::avoid_collisions ()
   double min_forward_distance_gap = 100;
   double min_left_distance_gap = 100;
   double min_right_distance_gap = 100;
-  Direction pass_side = NONE;
   double crash_time = 2*crash_time_limit;
+  Direction pass_side = NONE;
 
   // Loop through the other cars. Each time through the loop we potentially
   // update 'min_forward_distance_gap', 'min_left_distance_gap',
@@ -520,10 +509,15 @@ Robot_Driver::avoid_collisions ()
           if ((distance_gap.x > 0) && (distance_gap.x < min_forward_distance_gap))
             {
               min_forward_distance_gap = distance_gap.x;
-              m_follow_lengths = (maybe_passable (info ().track_position ().x, 
-                                                 it->segment_index) 
-                                  ? 1.0 
-                                  : 2.0);
+              if (m_passing)
+                m_follow_lengths = 0.0;
+              else if (distance_gap.x < 1.1*mp_car->length () && m_lane_shift < 0.1)
+                m_follow_lengths = 2.0;
+              else
+                m_follow_lengths = (maybe_passable (info ().track_position ().x, 
+                                                    it->segment_index) 
+                                    ? 1.0 
+                                    : 2.0);
               double dv = m_speed - it->car->chassis ().cm_velocity ().magnitude ();
               crash_time = distance_gap.x / dv;
               pass_side = get_pass_side (info ().track_position ().x, 
@@ -556,23 +550,6 @@ Robot_Driver::avoid_collisions ()
   if (m_lane_shift != 0.0)
     m_lane_shift_timer += m_timestep;
 
-  if ((crash_time > 0.0) && (crash_time < crash_time_limit))
-    {
-      switch (pass_side)
-        {
-        case LEFT:
-          m_lane_shift = std::min (1.0, m_lane_shift + shift_step);
-          m_lane_shift_timer = 0.0;
-          break;
-        case RIGHT:
-          m_lane_shift = std::max (-1.0, m_lane_shift - shift_step);
-          m_lane_shift_timer = 0.0;
-          break;
-        default:
-          break;
-        }
-    }
-
   m_gap [0] = min_forward_distance_gap;
   m_gap [1] = min_left_distance_gap;
   m_gap [2] = min_right_distance_gap;
@@ -593,10 +570,30 @@ Robot_Driver::avoid_collisions ()
     }
   else if (m_lane_shift_timer > 2.0)
     { // No danger of collision.  Get back to the racing line.
+      m_passing = false;
       if ((m_lane_shift > 0.0) && (min_right_distance_gap > 0.5*mp_car->width ()))
         m_lane_shift = std::max (0.0, m_lane_shift - 0.5*shift_step);
       else if ((m_lane_shift < 0.0) && (min_left_distance_gap > 0.5*mp_car->width ()))
         m_lane_shift = std::min (0.0, m_lane_shift + 0.5*shift_step);
+    }
+
+  if ((crash_time > 0.0) && (crash_time < crash_time_limit))
+    {
+      switch (pass_side)
+        {
+        case LEFT:
+          m_passing = true;
+          m_lane_shift = std::min (1.0, m_lane_shift + shift_step);
+          m_lane_shift_timer = 0.0;
+          break;
+        case RIGHT:
+          m_passing = true;
+          m_lane_shift = std::max (-1.0, m_lane_shift - shift_step);
+          m_lane_shift_timer = 0.0;
+          break;
+        default:
+          break;
+        }
     }
 
   m_front_gap_control.set (std::min (m_follow_lengths*mp_car->length (), 0.5*m_speed));
