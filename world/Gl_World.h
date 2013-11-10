@@ -106,7 +106,7 @@ namespace Vamos_World
 
     /// Return the number of times to propagate the simulation before
     /// rendering.
-    int steps_per_frame () const { return 2; }
+    int steps_per_frame () const { return 3; }
 
     /// Return the current frame rate.
     double get_frame_rate () const

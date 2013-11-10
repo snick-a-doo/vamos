@@ -372,6 +372,8 @@ namespace Vamos_Body
     /// The position of the chase-view camera.
     Vamos_Geometry::Three_Vector chase_position () const;
 
+    Vamos_Geometry::Three_Vector target_position () const;
+
     std::string name () const { return m_name; }
 
     double grip () const;

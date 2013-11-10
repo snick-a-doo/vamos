@@ -639,8 +639,6 @@ Gl_World::draw_cars (bool draw_interior, bool draw_focused_car)
       if (it->car != focused_car ()->car)
         {
           it->car->draw ();
-          if (it->driver != 0)
-            it->driver->draw ();
         }
     }
   if (draw_focused_car)

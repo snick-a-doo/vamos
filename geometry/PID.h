@@ -41,6 +41,8 @@ namespace Vamos_Geometry
     PID (double p, double i, double d, double integral_decay = 0.0);
     /// Give a new setpoint.
     void set (double setpoint);
+    /// @return The current setpoint.
+    double setpoint () const { return m_setpoint; }
     /// Zero the integral and cumulative time.
     void reset ();
     /// Get the controller output.
