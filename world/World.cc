@@ -52,9 +52,11 @@ void Car_Information::reset ()
 
 void Car_Information::propagate (double time_step,
                                  double total_time,
-                                 const Three_Vector& track_position)
+                                 const Three_Vector& track_position,
+                                 const Three_Vector& pointer_position)
 {
   m_record.push_back (Record (total_time, car, track_position));
+  m_pointer_position = pointer_position;
   if (driver != 0)
     driver->propagate (time_step);
   car->propagate (time_step);
@@ -161,6 +163,9 @@ World::propagate_cars (double time_step)
       Car_Information& info = m_cars [i];
       info.propagate (time_step, 
                       mp_timing->total_time (),
+                      mp_track->track_coordinates (info.car->center_position (),
+                                                   info.road_index,
+                                                   info.segment_index),
                       mp_track->track_coordinates (info.car->target_position (),
                                                    info.road_index,
                                                    info.segment_index));

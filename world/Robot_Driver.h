@@ -188,8 +188,6 @@ namespace Vamos_World
     /// Draw the steering target if requested.
     virtual void draw ();
 
-    void set_gravity (double g) { m_gravity = g; }
-
   private:
     struct Event
     {
@@ -230,6 +228,7 @@ namespace Vamos_World
 
     void drive ();
     double get_lane_shift () const;
+    double get_offline_distance () const;
 
     void steer ();
     void choose_gear ();
@@ -264,7 +263,6 @@ namespace Vamos_World
                                          size_t segment) const;
     Track_Side get_block_side (double along, size_t segment) const;
 
-    Vamos_Geometry::Three_Vector lane_shift (const Vamos_Geometry::Three_Vector& target);
     void set_steering (double angle);
     void set_gas (double gas);
     void set_brake (double brake);
@@ -305,9 +303,6 @@ namespace Vamos_World
     bool m_is_started;
     double m_timestep;
     double m_lane_shift;
-    // The fraction from the racing line to the edge of the track of
-    // the path the car is currently following. 1 -> left edge, -1 ->
-    // right edge, 0 -> on racing line.
     double m_lane_shift_timer;
     double m_air_density_factor;
     bool m_interact;
@@ -316,14 +311,11 @@ namespace Vamos_World
     Robot_Racing_Line m_racing_line;
     Braking_Operation m_braking;
 
-    double m_gravity;
-
     double m_speed_factor;
-    double m_follow_lengths;
     bool m_passing;
 
     //! debugging
-    double m_gap [3];
+    double m_gap [10];
   };
 }
 

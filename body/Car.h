@@ -373,6 +373,7 @@ namespace Vamos_Body
     Vamos_Geometry::Three_Vector chase_position () const;
 
     Vamos_Geometry::Three_Vector target_position () const;
+    double target_distance () const;
 
     std::string name () const { return m_name; }
 

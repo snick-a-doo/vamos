@@ -42,13 +42,15 @@ namespace Vamos_World
     void reset ();
     void propagate (double time_step, 
                     double total_time,
-                    const Vamos_Geometry::Three_Vector& track_position);
+                    const Vamos_Geometry::Three_Vector& track_position,
+                    const Vamos_Geometry::Three_Vector& pointer_position);
     const Vamos_Geometry::Three_Vector& track_position () const;
 
     size_t road_index;
     size_t segment_index;
     Vamos_Body::Car* car;
     Driver* driver;
+    Vamos_Geometry::Three_Vector m_pointer_position;
 
     struct Record
     {
