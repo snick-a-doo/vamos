@@ -870,10 +870,7 @@ Gl_World::start (size_t laps)
 
       if (m_paused)
         {
-          if (m_key_repeat.is_active ())
-              m_key_repeat.repeat ();
-          else
-            SDL_Delay (100);
+          SDL_Delay (100);
         }
       else
         {
@@ -919,14 +916,10 @@ Gl_World::check_for_events ()
           if (driver != 0)
             driver->m_keyboard.press (event.key.keysym.sym);
           if (m_view == MAP_VIEW)
-            {
-              m_key_repeat.set (event, 100);
-              m_map.m_keyboard.press (event.key.keysym.sym);
-            }
-          break;                
+            m_map.m_keyboard.press (event.key.keysym.sym);
+          break;
         case SDL_KEYUP:
           m_keyboard.release (event.key.keysym.sym);
-          m_key_repeat.cancel ();
           if (driver != 0)
             driver->m_keyboard.release (event.key.keysym.sym);
           if (m_view == MAP_VIEW)
@@ -977,27 +970,7 @@ Gl_World::set_focused_car (size_t index)
     }
 }
 
-void 
-Gl_World::Event_Repeat::set (const SDL_Event& event, int delay_ms)
-{
-  if (!m_is_active)
-    m_repeat_count = 0;
-
-  m_is_active = true;
-  m_event = event;
-  m_delay_ms = delay_ms;
-}
-
-void
-Gl_World::Event_Repeat::repeat ()
-{
-  if (m_is_active)
-    {
-      m_repeat_count++;
-      SDL_Delay (m_delay_ms);
-      SDL_PushEvent (&m_event);
-    }
-}
+//-----------------------------------------------------------------------------
 
 Map::Map ()
 {

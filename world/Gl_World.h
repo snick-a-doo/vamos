@@ -273,25 +273,6 @@ namespace Vamos_World
     bool m_done;
     Map m_map;
 
-    class Event_Repeat
-    {
-    public:
-      Event_Repeat () : m_is_active (false) {};
-
-      void set (const SDL_Event& event, int delay_ms);
-      void cancel () { m_is_active = false; }
-      void repeat ();
-      bool is_active () const { return m_is_active; }
-
-    private:
-      bool m_is_active;
-      SDL_Event m_event;
-      int m_delay_ms;
-      int m_repeat_count;
-    };
-
-    Event_Repeat m_key_repeat;
-
     void check_for_events ();
     void animate ();
     void update_car_timing ();

@@ -218,8 +218,6 @@
     <length>62.0</length>
     <radius>-50.0</radius>
     <left-width>[ 60.0, 25.0 ]</left-width>
-    <left-road-width>[ 0.01, 25.0 ]</left-road-width>
-    <left-road-width>[ 70.0, 6.5 ]</left-road-width>
 	<elevation>[ 50.0, -15.0 ]</elevation>
 	<right-kerb>
 	  <start>
