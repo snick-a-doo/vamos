@@ -109,6 +109,7 @@ namespace Vamos_World
 
     double maximum_speed (double speed,
                           double distance,
+                          double stretch,
                           double lane_shift,
                           double drag,
                           double lift,
@@ -159,6 +160,7 @@ namespace Vamos_World
     Robot_Driver (Vamos_Body::Car* car_in, 
                   Vamos_Track::Strip_Track* track_in,
                   double gravity);
+    virtual ~Robot_Driver () {};
 
     /// Provide pointers to the other cars so the robot can pass or avoid
     /// collisions. 
@@ -172,12 +174,6 @@ namespace Vamos_World
     /// Useful for comparing performance with collisions turned off. 
     void interact (bool do_interact) 
     { m_interact = do_interact; }
-
-    /// Update the air density factor.  It will be 1 in clear air, < 1 in
-    /// another car's slipstream.  Lets the robot account for drag and
-    /// downforce. 
-    virtual void set_air_density_factor (double factor) 
-    { m_air_density_factor = factor; }
 
     /// Step the driver forward in time by 'timestep' seconds.
     virtual void propagate (double timestep);
@@ -228,7 +224,9 @@ namespace Vamos_World
 
     void drive ();
     double get_lane_shift () const;
+    double lane_shift (const Vamos_Geometry::Three_Vector& track) const;
     double get_offline_distance () const;
+    double offline_distance (double along, double lane_shift) const; 
 
     void steer ();
     void choose_gear ();
@@ -244,8 +242,6 @@ namespace Vamos_World
 
     double target_slip_ratio () const;
     double target_slip_angle () const;
-    /// Return the difference between the actual slip and the target.
-    double slip_excess () const;
 
     Vamos_Geometry::Direction 
     relative_position (const Vamos_Geometry::Three_Vector& r1_track,
@@ -304,10 +300,10 @@ namespace Vamos_World
     double m_timestep;
     double m_lane_shift;
     double m_lane_shift_timer;
-    double m_air_density_factor;
     bool m_interact;
     bool m_show_steering_target;
 
+    const Vamos_Track::Road& m_road;
     Robot_Racing_Line m_racing_line;
     Braking_Operation m_braking;
 
@@ -315,7 +311,7 @@ namespace Vamos_World
     bool m_passing;
 
     //! debugging
-    double m_gap [10];
+    mutable double m_gap [10];
   };
 }
 

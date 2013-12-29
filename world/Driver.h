@@ -20,18 +20,19 @@ namespace Vamos_World
     Driver (Vamos_Body::Car* car_in) 
       : mp_car (car_in)
     {
-    };
+    }
 
-    virtual void set_cars (const std::vector <Car_Information>* cars) {};
+    virtual ~Driver () {}
+
+    virtual void set_cars (const std::vector <Car_Information>* cars) {}
     /// Start driving.
-    virtual void start (double to_go) {};
+    virtual void start (double to_go) {}
     /// True if the driver is driving.
     virtual bool is_started () const { return true; }
 
-    virtual void reset () {};
-    virtual void propagate (double time_step) {};
-    virtual void set_air_density_factor (double factor) {};
-    virtual void draw () {};
+    virtual void reset () {}
+    virtual void propagate (double time_step) {}
+    virtual void draw () {}
 
     Vamos_Body::Car* mp_car;
   };

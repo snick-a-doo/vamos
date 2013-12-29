@@ -189,7 +189,6 @@ World::propagate_cars (double time_step)
       // Handle air resistance.
       info.car->wind (mp_atmosphere->velocity (), 
                       mp_atmosphere->density () * air_density_factor);
-      info.driver->set_air_density_factor (air_density_factor);
     }
 }
 

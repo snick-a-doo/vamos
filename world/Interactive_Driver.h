@@ -29,6 +29,7 @@ namespace Vamos_World
   {
   public:
     Interactive_Driver (Vamos_Body::Car* car_in);
+    virtual ~Interactive_Driver () {};
 
     virtual Control& joystick () { return m_joystick; }
     virtual Control& keyboard () { return m_keyboard; }
