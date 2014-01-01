@@ -34,6 +34,8 @@ namespace Vamos_World
     virtual void propagate (double time_step) {}
     virtual void draw () {}
 
+    virtual void is_interactive () const { return true; }
+
     Vamos_Body::Car* mp_car;
   };
 }

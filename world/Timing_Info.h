@@ -79,6 +79,8 @@ namespace Vamos_World
       /// The (incomplete) lap the car is currently on. It's 0 before the start
       /// of the session, 1 as soon as the timer starts. Updated each lap.
       size_t current_lap () const { return m_lap; }
+      /// Return the number of completed laps.
+      size_t laps_complete () const { return (m_lap == 0) ? 0 : m_lap - 1; }
       /// The car's position at the start. Fixed.
       size_t grid_position () const { return m_grid_position; }
       /// Return the time interval to the car ahead. -1 is returned for the

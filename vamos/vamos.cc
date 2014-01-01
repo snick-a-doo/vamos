@@ -51,6 +51,7 @@ bool get_options (int argc, char* argv [],
                   bool& no_mirrors,
                   bool& demo,
                   bool& show_line,
+                  std::string& input_file,
                   std::vector <double>& parameter)
 {
   // Set the default options.
@@ -70,6 +71,7 @@ bool get_options (int argc, char* argv [],
   show_line = false;
 
   bool error = false;
+  int option_index = 0;
 
   while (true)
     {
@@ -93,7 +95,6 @@ bool get_options (int argc, char* argv [],
           { 0, 0, 0, 0 }
         };
 
-      int option_index = 0;
       int c = getopt_long (argc, argv, "c:t:w:a:o:p:z:s:l::mdfnrv", 
                            long_options, &option_index);
       if (c == -1)
@@ -155,8 +156,8 @@ bool get_options (int argc, char* argv [],
 
   // Assume the rest of the arguments are values of adjustable
   // parameters.
-  for (int index = optind; index < argc; index++)
-    parameter.push_back (atof (argv [index]));
+  if (optind < argc)
+    input_file = argv [optind];
 
   if (demo)
     number_of_opponents = std::max (size_t (1), number_of_opponents);
@@ -209,6 +210,43 @@ get_car_files (const std::string& car_file)
   return car_files;
 }
 
+struct Entry
+{
+  Entry (const std::string& file_in, bool interactive_in, double time_in)
+    : file (file_in),
+      interactive (interactive_in),
+      time (time_in)
+  {}
+
+  std::string file;
+  bool interactive;
+  double time;
+
+  static bool quicker (const Entry& e1, const Entry& e2) { return (e1.time < e2.time); }
+};
+
+void read_input (const std::string& input_file, 
+                 std::string& track_file, 
+                 std::vector <Entry>& entries)
+{
+  std::ifstream in (input_file.c_str ());
+  in >> track_file;
+  int lap;
+  double time;
+  in >> lap >> lap >> time;
+
+  std::vector <Car_Time> times;
+  while (true)
+    {
+      std::string file, name, type;
+      in >> file >> name >> type >> lap >> time;
+      if (!in)
+        break;
+      entries.push_back (Entry (file, type == "interactive", time));
+    }
+  std::sort (entries.begin (), entries.end (), Entry::quicker);
+}
+
 int main (int argc, char* argv [])
 {
   std::string car_file;
@@ -225,9 +263,10 @@ int main (int argc, char* argv [])
   bool no_mirrors;
   bool demo;
   bool show_line;
+  std::string input_file;
   std::vector <double> parameter;
 
-  bool error = get_options (argc, argv,
+  bool index = get_options (argc, argv,
                             car_file, track_file, 
                             world_file, controls_file,
                             number_of_opponents,
@@ -240,9 +279,10 @@ int main (int argc, char* argv [])
                             no_mirrors,
                             demo,
                             show_line,
+                            input_file,
                             parameter);
 
-  if (error)
+  if (index < 0)
     {
       std::cerr << "Usage: vamos "
                 << "[-m|--map] "
@@ -261,10 +301,8 @@ int main (int argc, char* argv [])
                 << std::endl;
       std::exit (EXIT_FAILURE);
     }
-
+  
   Parameter::set (parameter);
-
-  Atmosphere air (1.2, Three_Vector (0.0, 0.0, 0.0));
 
   // Check the source directory for data files.
   std::string data_dir = "../data/";
@@ -288,8 +326,6 @@ int main (int argc, char* argv [])
         }
     }
 
-  Vamos_Track::Strip_Track track;
-  // Need to initialize GL by constructing Gl_World before reading the track.
   Sounds* sounds = 0;
   if (!map_mode)
     {
@@ -305,12 +341,28 @@ int main (int argc, char* argv [])
         }
       sounds->master_volume (volume);
     }
+
+  // Need to initialize GL by constructing Gl_World before reading the track.
+  Vamos_Track::Strip_Track track;
+  Atmosphere air (1.2, Three_Vector (0.0, 0.0, 0.0));
   Gl_World world (argc, argv, &track, &air, sounds, full_screen, !no_mirrors);
   world.cars_can_interact (!no_interaction);
 
+
+  std::vector <Entry> entries;
   try
     {
-      track.read (data_dir, get_path (track_file, "tracks"));
+      if (!input_file.empty ())
+        {
+          read_input ("qualifying", track_file, entries);
+          track.read (data_dir, track_file);
+          number_of_opponents = car_files.size ();
+        }
+      else
+        {
+          track.read (data_dir, get_path (track_file, "tracks"));
+          car_files = get_entries (entries);
+        }
     }
   catch (XML_Exception& error)
     {
@@ -318,8 +370,6 @@ int main (int argc, char* argv [])
       std::exit (EXIT_FAILURE);
     }
   track.show_racing_line (show_line);
-
-  std::vector <std::string> car_files = get_car_files (car_file);
 
   Vamos_Body::Gl_Car* car = 0;
   if (!map_mode)

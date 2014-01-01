@@ -184,6 +184,8 @@ namespace Vamos_World
     /// Draw the steering target if requested.
     virtual void draw ();
 
+    virtual bool is_interactive () const { return false; }
+
   private:
     struct Event
     {

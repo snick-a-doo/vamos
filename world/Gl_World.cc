@@ -312,6 +312,7 @@ Gl_World::pause (double, double)
 bool 
 Gl_World::quit (double, double)
 {
+  print_results ();
   m_done = true;
   return true;
 }

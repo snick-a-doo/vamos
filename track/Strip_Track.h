@@ -490,6 +490,8 @@ namespace Vamos_Track
 
     void build_racing_line (bool unconditional = false) 
     { mp_track->build_racing_line (unconditional); }
+
+    const std::string& track_file () const { return m_track_file; }
   };
 
   class Strip_Track_Reader : public Vamos_Media::XML_Parser
