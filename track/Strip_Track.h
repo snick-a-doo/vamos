@@ -278,7 +278,7 @@ namespace Vamos_Track
                        bool forward_only = false) const;
     const Gl_Road_Segment* segment_at (double along) const;
 
-    void build_racing_line (bool unconditional = false);
+    void build_racing_line ();
 
     const Racing_Line& racing_line () const { return m_racing_line; }
 
@@ -488,10 +488,11 @@ namespace Vamos_Track
     // Return object that need collision checking.
     const std::vector <Track_Object>& objects () const { return m_objects; }
 
-    void build_racing_line (bool unconditional = false) 
-    { mp_track->build_racing_line (unconditional); }
+    void build_racing_line () { mp_track->build_racing_line (); }
 
     const std::string& track_file () const { return m_track_file; }
+
+    Vamos_Geometry::Three_Vector grid_position (int place) const;
   };
 
   class Strip_Track_Reader : public Vamos_Media::XML_Parser

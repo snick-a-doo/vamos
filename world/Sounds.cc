@@ -36,7 +36,7 @@ void exit_alut ()
 }
 
 Vamos_World::
-Sounds::Sounds () :
+Sounds::Sounds (double volume) :
   mp_tire_squeal_sound (0),
   mp_kerb_sound (0),
   mp_grass_sound (0),
@@ -48,7 +48,7 @@ Sounds::Sounds () :
 {
   alutInit (0, 0);
   alDistanceModel (AL_INVERSE_DISTANCE);
-  master_volume (1.0);
+  master_volume (volume);
   // Register the exit handler.
   atexit (exit_alut);
 }

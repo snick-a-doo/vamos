@@ -15,7 +15,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#include "../body/Car.h"
+#include "../body/Gl_Car.h"
 #include "../body/Fuel_Tank.h"
 #include "../body/Wheel.h"
 #include "../geometry/Conversions.h"
@@ -24,6 +24,7 @@
 #include "Gl_World.h"
 #include "Sounds.h"
 #include "Interactive_Driver.h"
+#include "Robot_Driver.h"
 #include "Timing_Info.h"
 
 #include <SDL.h>
@@ -181,11 +182,9 @@ Gl_World::Gl_World (int argc, char** argv,
                     Vamos_Track::Strip_Track* track, 
                     Atmosphere* atmosphere,
                     Sounds* sounds,
-                    bool full_screen,
-                    bool show_mirror_views)
+                    bool full_screen)
   : World (track, atmosphere),
     m_timer (100, 10),
-    m_show_mirror_views (show_mirror_views),
     mp_sounds (sounds),
     mp_window (0),
     m_view (MAP_VIEW),
@@ -227,11 +226,8 @@ Gl_World::set_attributes ()
   // Allow viewports.
   glEnable (GL_SCISSOR_TEST);
   // Allow masking.
-  if (m_show_mirror_views)
-    {
-      glEnable (GL_STENCIL_TEST);
-      glClearStencil (0);
-    }
+  glEnable (GL_STENCIL_TEST);
+  glClearStencil (0);
   // Allow lighting.
   glEnable (GL_LIGHTING);
   glEnable (GL_LIGHT0);
@@ -263,26 +259,15 @@ Gl_World::add_car (Vamos_Body::Car* car,
 
 // Read the definition file.
 void 
-Gl_World::read (std::string data_dir, 
-                std::string world_file,
+Gl_World::read (std::string world_file,
                 std::string controls_file)
 {
-  // Remember the file name for re-reading.
-  if (data_dir != "")
-    {
-      m_data_dir = data_dir;
-    }
-  if (world_file != "")
-    {
-      m_world_file = world_file;
-    }
-  if (controls_file != "")
-    {
-      m_controls_file = controls_file;
-    }
+  // Remember the file names for re-reading.
+  m_world_file = world_file;
+  m_controls_file = controls_file;
 
-  World_Reader w_reader (m_world_file, this);
-  Controls_Reader c_reader (m_controls_file, this);
+  World_Reader (m_world_file, this);
+  Controls_Reader (m_controls_file, this);
 }
 
 void 
@@ -676,8 +661,7 @@ Gl_World::display ()
       draw_track (true, focused_car ()->car->view_position ());
       draw_cars (true);
       draw_timing_info ();
-      if (m_show_mirror_views)
-        draw_mirror_views ();
+      draw_mirror_views ();
       break;
     case CHASE_VIEW:
       {

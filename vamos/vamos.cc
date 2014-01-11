@@ -1,5 +1,5 @@
 //  Vamos Automotive Simulator
-//  Copyright (C) 2001--2004 Sam Varner
+//  Copyright (C) 2001--2014 Sam Varner
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -15,15 +15,9 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#include <cstdlib>
-#include <getopt.h>
-
-#include <GL/glut.h>
-
 #include <boost/filesystem.hpp>
 
 #include "../body/Gl_Car.h"
-#include "../geometry/Parameter.h"
 #include "../media/Texture_Image.h"
 #include "../media/Ac3d.h"
 #include "../track/Strip_Track.h"
@@ -31,184 +25,14 @@
 #include "../world/Sounds.h"
 #include "../world/Interactive_Driver.h"
 #include "../world/Robot_Driver.h"
+#include "Options.h"
 
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
+using namespace Vamos_Track;
 using namespace Vamos_World;
 
-bool get_options (int argc, char* argv [],
-                  std::string& car_file,
-                  std::string& track_file,
-                  std::string& world_file,
-                  std::string& controls_file,
-                  size_t& number_of_opponents,
-                  size_t& laps,
-                  double& performance,
-                  double& volume,
-                  bool& map_mode,
-                  bool& full_screen,
-                  bool& no_interaction,
-                  bool& no_mirrors,
-                  bool& demo,
-                  bool& show_line,
-                  std::string& input_file,
-                  std::vector <double>& parameter)
-{
-  // Set the default options.
-  car_file = "default-car";
-  track_file = "default-track";
-  world_file = "default-world";
-  controls_file = "default-controls";
-  number_of_opponents = 0;
-  laps = 5;
-  performance = 0.0;
-  volume = 1.0;
-  map_mode = false;
-  full_screen = false;
-  no_interaction = false;
-  no_mirrors = false;
-  demo = false;
-  show_line = false;
-
-  bool error = false;
-  int option_index = 0;
-
-  while (true)
-    {
-      static struct option long_options [] =
-        {
-          { "car", required_argument, 0, 'c' },
-          { "track", required_argument, 0, 't' },
-          { "world", required_argument, 0, 'w' },
-          { "controls", required_argument, 0, 'a' },
-          { "opponents", required_argument, 0, 'o' },
-          { "laps", required_argument, 0, 'p' },
-          { "performance", required_argument, 0, 'z' },
-          { "volume", required_argument, 0, 's' },
-          { "show-line", optional_argument, 0, 'l' },
-          { "map", no_argument, 0, 'm' },
-          { "demo", no_argument, 0, 'd' },
-          { "full-screen", no_argument, 0, 'f' },
-          { "no-interaction", no_argument, 0, 'n' },
-          { "no-mirrors", no_argument, 0, 'r' },
-          { "version", no_argument, 0, 'v' },
-          { 0, 0, 0, 0 }
-        };
-
-      int c = getopt_long (argc, argv, "c:t:w:a:o:p:z:s:l::mdfnrv", 
-                           long_options, &option_index);
-      if (c == -1)
-        break;
-
-      switch (c)
-        {
-        case 0:
-          break;
-        case 'c':
-          car_file = optarg;
-          break;
-        case 't':
-          track_file = optarg;
-          break;
-        case 'w':
-          world_file = optarg;
-          break;
-        case 'a':
-          controls_file = optarg;
-          break;
-        case 'o':
-          number_of_opponents = atoi (optarg);
-          break;
-        case 'p':
-          laps = atoi (optarg);
-          break;
-        case 'z':
-          performance = atoi (optarg) / 100.0 - 1.0;
-          break;
-        case 's':
-          volume = atoi (optarg) / 100.0;
-          break;
-        case 'l':
-          show_line = (optarg == NULL) ? true : (strcmp (optarg, "yes") == 0);
-          break;
-        case 'm':
-          map_mode = true;
-          break;
-        case 'd':
-          demo = true;
-          break;
-        case 'f':
-          full_screen = true;
-          break;
-        case 'n':
-          no_interaction = true;
-          break;
-        case 'r':
-          no_mirrors = true;
-          break;
-        case 'v':
-          std::cout << PACKAGE_STRING << std::endl;
-          std::exit (EXIT_SUCCESS);
-        case '?':
-          error = true;
-        }
-    }
-
-  // Assume the rest of the arguments are values of adjustable
-  // parameters.
-  if (optind < argc)
-    input_file = argv [optind];
-
-  if (demo)
-    number_of_opponents = std::max (size_t (1), number_of_opponents);
-
-  return error;
-}
-
-std::string
-get_path (std::string file, std::string section, bool extend = true)
-{
-  std::string path = "../data/" + section + "/" + file + (extend ? ".xml" : "");
-
-  {
-    std::ifstream check (path.c_str ());
-    if (check)
-      return path;
-  }
-  path = DATADIR "/" + section + "/" + file + (extend ? ".xml" : "");
-  {
-    std::ifstream check (path.c_str ());
-    if (check)
-      return path;
-  }
-
-  return file;
-}
-
-std::vector <std::string>
-get_car_files (const std::string& car_file)
-{
-  using namespace boost::filesystem;
-
-  std::vector <std::string> car_files;
-
-  path car_path (get_path (car_file, "cars", false));
-  if (is_directory (car_path))
-    {
-      for (directory_iterator it = directory_iterator (car_path);
-           it != directory_iterator ();
-           it++)
-        {
-          if (it->path ().extension () == ".xml")
-            car_files.push_back (it->path ().native ());
-        }
-      std::sort (car_files.begin (), car_files.end ());
-    }
-  else
-      car_files.push_back (get_path (car_file, "cars"));
-
-  return car_files;
-}
+namespace fs = boost::filesystem;
 
 struct Entry
 {
@@ -225,17 +49,30 @@ struct Entry
   static bool quicker (const Entry& e1, const Entry& e2) { return (e1.time < e2.time); }
 };
 
-void read_input (const std::string& input_file, 
-                 std::string& track_file, 
-                 std::vector <Entry>& entries)
+typedef std::vector <Entry> Entry_List;
+
+std::string
+get_path (std::string file, std::string section, bool extend)
 {
-  std::ifstream in (input_file.c_str ());
-  in >> track_file;
+  std::string path ("../data/" + section + "/" + file + (extend ? ".xml" : ""));
+  if (fs::exists (path))
+    return path;
+
+  path = DATADIR "/" + section + "/" + file + (extend ? ".xml" : "");
+  if (fs::exists (path))
+    return path;
+
+  return file;
+}
+
+void read_input (Options& opt, Entry_List& entries)
+{
+  std::ifstream in (opt.input_file.c_str ());
+  in >> opt.track_file;
   int lap;
   double time;
   in >> lap >> lap >> time;
 
-  std::vector <Car_Time> times;
   while (true)
     {
       std::string file, name, type;
@@ -244,203 +81,129 @@ void read_input (const std::string& input_file,
         break;
       entries.push_back (Entry (file, type == "interactive", time));
     }
+
   std::sort (entries.begin (), entries.end (), Entry::quicker);
+}
+
+void get_entries (Options& opt, Entry_List& entries)
+{
+  if (!opt.input_file.empty ())
+    return read_input (opt, entries);
+
+  opt.track_file = get_path (opt.track_file, "tracks", true);
+
+  std::vector <std::string> car_files;
+
+  fs::path car_path (get_path (opt.car_file, "cars", false));
+  if (fs::is_directory (car_path))
+    {
+      for (fs::directory_iterator it = fs::directory_iterator (car_path);
+           (it != fs::directory_iterator ())
+             && (car_files.size () < opt.number_of_cars);
+           it++)
+        {
+          if (it->path ().extension () == ".xml")
+            car_files.push_back (it->path ().native ());
+        }
+      std::sort (car_files.begin (), car_files.end ());
+    }
+  else
+      car_files.push_back (get_path (opt.car_file, "cars", true));
+
+  std::sort (car_files.begin (), car_files.end ());
+  std::vector <std::string>::const_iterator it = car_files.begin ();
+  while (entries.size () < opt.number_of_cars)
+    {
+      entries.push_back (Entry (*it, false, 0));
+
+      if (++it == car_files.end ())
+        it = car_files.begin ();
+    }
+
+  if (!opt.demo)
+    entries.back ().interactive = true;
 }
 
 int main (int argc, char* argv [])
 {
-  std::string car_file;
-  std::string track_file;
-  std::string world_file;
-  std::string controls_file;
-  size_t number_of_opponents;
-  size_t laps;
-  double performance;
-  double volume;
-  bool map_mode;
-  bool full_screen;
-  bool no_interaction;
-  bool no_mirrors;
-  bool demo;
-  bool show_line;
-  std::string input_file;
-  std::vector <double> parameter;
+  Options opt (argc, argv);
+  if (!opt)
+    std::exit (opt.exit_status ());
 
-  bool index = get_options (argc, argv,
-                            car_file, track_file, 
-                            world_file, controls_file,
-                            number_of_opponents,
-                            laps,
-                            performance,
-                            volume,
-                            map_mode,
-                            full_screen,
-                            no_interaction,
-                            no_mirrors,
-                            demo,
-                            show_line,
-                            input_file,
-                            parameter);
-
-  if (index < 0)
-    {
-      std::cerr << "Usage: vamos "
-                << "[-m|--map] "
-                << "[[-t|--track=] TRACK_FILE] "
-                << "[[-c|--car=] CAR_FILE] "
-                << "[[-w|--world=] WORLD_FILE] "
-                << "[[-a|--controls=] CONTROLS_FILE] "
-                << "[[-o|--opponents=] NUMBER_OF_OPPONENTS] "
-                << "[[-p|--laps=] NUMBER_OF_LAPS] "
-                << "[[-z|--performance=] FACTOR] "
-                << "[[-s|--volume=] VOLUME_PERCENT] "
-                << "[-f|--full-screen] "
-                << "[-n|--no-interaction] "
-                << "[-d|--demo] "
-                << "[-l|--show-line[=ARG]  draw the racing line on the track [ARG=yes]]"
-                << std::endl;
-      std::exit (EXIT_FAILURE);
-    }
-  
-  Parameter::set (parameter);
-
-  // Check the source directory for data files.
-  std::string data_dir = "../data/";
-  try
-    {
-      Texture_Image test_tex (data_dir + "textures/wall.png");
-    }
-  catch (Missing_Texture_File)
-    {
-      // They're not there.  Maybe this is an installed version.
-      data_dir = DATADIR "/";
-      try
-        {
-          Texture_Image test_tex (data_dir + "textures/wall.png");
-        }
-      catch (Missing_Texture_File)
-        {
-          std::cerr << "Couldn't find the data direcory, ../data or "
-                    << DATADIR "/." << std::endl;
-          std::exit (EXIT_FAILURE);
-        }
-    }
-
-  Sounds* sounds = 0;
-  if (!map_mode)
-    {
-      sounds = new Sounds ();
-      try
-        {
-          sounds->read (data_dir + "sounds/", "default-sounds.xml");
-        }
-      catch (XML_Exception& error)
-        {
-          std::cerr << error.message () << std::endl;
-          std::exit (EXIT_FAILURE);
-        }
-      sounds->master_volume (volume);
-    }
-
-  // Need to initialize GL by constructing Gl_World before reading the track.
-  Vamos_Track::Strip_Track track;
+  Strip_Track track;
   Atmosphere air (1.2, Three_Vector (0.0, 0.0, 0.0));
-  Gl_World world (argc, argv, &track, &air, sounds, full_screen, !no_mirrors);
-  world.cars_can_interact (!no_interaction);
+  Sounds sounds (opt.volume);
+  Gl_World world (argc, argv, &track, &air, &sounds, opt.full_screen);
 
-
-  std::vector <Entry> entries;
   try
     {
-      if (!input_file.empty ())
-        {
-          read_input ("qualifying", track_file, entries);
-          track.read (data_dir, track_file);
-          number_of_opponents = car_files.size ();
-        }
-      else
-        {
-          track.read (data_dir, get_path (track_file, "tracks"));
-          car_files = get_entries (entries);
-        }
-    }
-  catch (XML_Exception& error)
-    {
-      std::cerr << error.message () << std::endl;
-      std::exit (EXIT_FAILURE);
-    }
-  track.show_racing_line (show_line);
+      Entry_List entries;
+      get_entries (opt, entries);
+      track.read (opt.data_dir, opt.track_file);
 
-  Vamos_Body::Gl_Car* car = 0;
-  if (!map_mode)
-    {
-      try
+      if (!opt.map_mode)
         {
           const Vamos_Track::Road& road = track.get_road (0);
-          const double grid_interval = 8.0;
-          const size_t number_of_cars = number_of_opponents + (demo ? 0 : 1);
-          Three_Vector position (grid_interval * number_of_cars, 3.0, 0.0);
+          bool robots = false;
+          bool interactive = false;
           Three_Matrix orientation;
 
-          // Place cars on the grid from front to back. Avoid putting cars off
-          // the end of the first segment.
-          for (size_t i = 0; i < number_of_opponents; i++)
+          for (Entry_List::const_iterator itEntry = entries.begin ();
+               itEntry != entries.end ();
+               ++itEntry)
             {
-              car = new Vamos_Body::Gl_Car (position, orientation);
-              size_t index = (i + (demo ? 0 : 1)) % car_files.size ();
-              car->read (data_dir, car_files [index]);
-              car->adjust_robot_parameters (performance, performance, performance);
+              const int place = itEntry - entries.begin ();
+              Vamos_Body::Gl_Car* car 
+                = new Vamos_Body::Gl_Car (track.grid_position (place), orientation);
+              car->read (opt.data_dir, itEntry->file);
               car->start_engine ();
-              Robot_Driver* driver = new Robot_Driver (car, &track, world.get_gravity ());
-              driver->interact (!no_interaction);
-              driver->show_steering_target (show_line);
-              world.add_car (car, driver, road);
-
-              position.x -= grid_interval;
-              position.y *= -1.0;
+              if (itEntry->interactive)
+                {
+                  interactive = true;
+                  world.add_car (car, new Interactive_Driver (car), road, true);
+                  world.set_focused_car (place);
+                }
+              else
+                {
+                  robots = true;
+                  car->adjust_robot_parameters (opt.performance, 
+                                                opt.performance,
+                                                opt.performance);
+                  Robot_Driver* driver
+                    = new Robot_Driver (car, &track, world.get_gravity ());
+                  driver->interact (opt.interact);
+                  driver->show_steering_target (opt.show_line);
+                  world.add_car (car, driver, road, false);
+                }
             }
-          if (!demo)
-            {
-              car = new Vamos_Body::Gl_Car (position, orientation);
-              car->read (data_dir, car_files [0]);
-              car->start_engine ();
-              world.add_car (car, new Interactive_Driver (car), road, true);
-            }
 
-          if (car != 0)
-            {
-              world.set_focused_car (number_of_cars - 1);
-              track.build_racing_line (number_of_opponents >= 1);
-            }
+          if (robots && !interactive)
+            world.set_focused_car (0);
+          world.cars_can_interact (opt.interact);
         }
-      catch (XML_Exception& error)
-        {
-          std::cerr << error.message () << std::endl;
-          std::exit (EXIT_FAILURE);
-        }
-      catch (Vamos_Media::Ac3d_Exception& error)
-        {
-          std::cerr << error.message () << std::endl;
-          std::exit (EXIT_FAILURE);
-        }
-    }
 
-  track.build_racing_line (!map_mode && (number_of_opponents > 0));
-
-  try
-    {
-      world.read (data_dir, 
-                  get_path (world_file, "worlds"), 
-                  get_path (controls_file, "controls"));
+      world.read (get_path (opt.world_file, "worlds", true), 
+                  get_path (opt.controls_file, "controls", true));
+      if (!opt.map_mode)
+          sounds.read (opt.data_dir + "sounds/", "default-sounds.xml");
     }
   catch (XML_Exception& error)
     {
       std::cerr << error.message () << std::endl;
       std::exit (EXIT_FAILURE);
     }
-  world.start (laps);
+  catch (Vamos_Media::Ac3d_Exception& error)
+    {
+      std::cerr << error.message () << std::endl;
+      std::exit (EXIT_FAILURE);
+    }
 
-  delete sounds;
+  if (opt.show_line || opt.demo || (opt.number_of_cars > 1))
+    {
+      track.build_racing_line ();
+      track.show_racing_line (opt.show_line);
+    }
+  world.start (opt.laps);
 
   return EXIT_SUCCESS;
 }

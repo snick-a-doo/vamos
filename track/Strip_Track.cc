@@ -758,10 +758,9 @@ Road::segment_at (double along) const
 }
 
 void 
-Road::build_racing_line (bool unconditional /* = false */) 
+Road::build_racing_line ()
 {   
-  if (m_draw_racing_line || unconditional)
-    m_racing_line.build (*this, m_is_closed); 
+  m_racing_line.build (*this, m_is_closed); 
 }
 
 void
@@ -1641,4 +1640,10 @@ const Rectangle&
 Strip_Track::bounds () const
 {
   return Rectangle (mp_track->bounds ()).enclose (mp_pit_lane->bounds ());
+}
+
+Three_Vector Strip_Track::grid_position (int place) const
+{
+  static const double grid_interval = 8.0;
+  return Three_Vector (-grid_interval * place, 3.0 * std::pow (-1, place), 0.0);
 }

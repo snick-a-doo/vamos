@@ -375,7 +375,8 @@ namespace Vamos_Body
     Vamos_Geometry::Three_Vector target_position () const;
     double target_distance () const;
 
-    std::string name () const { return m_name; }
+    const std::string& car_file () const { return m_car_file; }
+    const std::string& name () const { return m_name; }
 
     double grip () const;
 

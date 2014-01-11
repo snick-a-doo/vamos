@@ -64,7 +64,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_vamos_OBJECTS = vamos.$(OBJEXT)
+am_vamos_OBJECTS = Options.$(OBJEXT) vamos.$(OBJEXT)
 vamos_OBJECTS = $(am_vamos_OBJECTS)
 vamos_DEPENDENCIES = $(top_srcdir)/world/libvamos-world.la \
 	$(top_srcdir)/body/libvamos-body.la \
@@ -206,7 +206,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-vamos_SOURCES = vamos.cc
+vamos_SOURCES = Options.cc vamos.cc
 vamos_LDADD = \
 	$(top_srcdir)/world/libvamos-world.la \
 	$(top_srcdir)/body/libvamos-body.la \
@@ -307,6 +307,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Options.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vamos.Po@am__quote@
 
 .cc.o:

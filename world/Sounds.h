@@ -71,7 +71,7 @@ namespace Vamos_World
                      double volume, double pitch);
 
   public:
-    Sounds ();
+    Sounds (double volume);
 
     ~Sounds ();
 

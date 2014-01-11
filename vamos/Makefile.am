@@ -1,6 +1,6 @@
 bin_PROGRAMS = vamos
 
-vamos_SOURCES = vamos.cc
+vamos_SOURCES = Options.cc vamos.cc
 
 vamos_LDADD = \
 	$(top_srcdir)/world/libvamos-world.la \

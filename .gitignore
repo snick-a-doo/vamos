@@ -12,6 +12,7 @@ cscope.out
 libtool
 caelum
 vamos
+!vamos/
 magic-eq
 out
 *.pyc

@@ -193,19 +193,16 @@ namespace Vamos_World
 			  Vamos_Track::Strip_Track* track, 
 			  Atmosphere* atmosphere,
 			  Sounds* sounds,
-              bool full_screen,
-              bool show_mirror_views);
+              bool full_screen);
 	~Gl_World ();
 
     virtual void add_car (Vamos_Body::Car* car,
                           Driver* driver,
                           const Vamos_Track::Road& road,
-                          bool fcontrolled = false);
+                          bool fcontrolled);
 
 	// Read the world definition file.
-	void read (std::string data_dir = "", 
-			   std::string world_file = "",
-			   std::string controls_file = "");
+	void read (std::string world_file = "", std::string controls_file = "");
 
 	virtual void start (size_t laps);
 
@@ -243,14 +240,12 @@ namespace Vamos_World
 	friend class World_Reader;
 	friend class Controls_Reader;
 
-	Timer m_timer;
-    bool m_show_mirror_views;
-
-	std::string m_data_dir;
 	std::string m_world_file;
 	std::string m_controls_file;
 
+	Timer m_timer;
 	Sounds* mp_sounds;
+
     Control m_keyboard;
     Control m_joystick;
     Control m_mouse;

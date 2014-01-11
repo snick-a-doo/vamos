@@ -526,20 +526,22 @@ World::controlled_car ()
 void
 World::print_results () const
 {
+  const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
+
   std::cout << mp_track->track_file () << std::endl
-            << mp_timing->fastest_lap_timing ()->laps_complete () << std::endl
+            << (p_fastest ? p_fastest->laps_complete () : 0) << std::endl
             << mp_timing->total_laps () << std::endl
-            << mp_timing->fastest_lap_timing ()->best_lap_time () << std::endl;
+            << (p_fastest ? p_fastest->best_lap_time () : 0) << std::endl;
 
   const Timing_Info::Running_Order& order = mp_timing->running_order ();
   for (Timing_Info::Running_Order::const_iterator it = order.begin ();
        it != order.end ();
        ++it)
     {
-      const Car* car = m_cars [(*it)->grid_position () - 1].car;
-      std::cout << car->car_file () << '\t'
-                << car->name () << '\t'
-                << car_info.driver->is_interactive () ? "interactive" : "robot" << '\t'
+      const Car_Information& info = m_cars [(*it)->grid_position () - 1];
+      std::cout << info.car->car_file () << '\t'
+                << info.car->name () << '\t'
+                << (info.driver->is_interactive () ? "interactive" : "robot") << '\t'
                 << (*it)->laps_complete () << '\t'
                 << (*it)->best_lap_time () << std::endl;
     }
