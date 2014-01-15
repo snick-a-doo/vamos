@@ -582,9 +582,19 @@ Car::chase_position () const
   const Three_Vector v2 = m_chassis.rotate_to_world (Three_Vector::X);
   const double w2 = 1.0 - w1;
 
-  return m_chassis.cm_position () 
+  return center_position () 
     - (w1 * v1 + w2 * v2) * 3.0 * length ()
     + Three_Vector (0.0, 0.0, length ());
+}
+
+Three_Vector Car::front_position () const
+{
+  return m_chassis.transform_to_world (front ());
+}
+
+void Car::set_front_position (const Three_Vector& pos)
+{
+  m_chassis.set_position (pos - m_chassis.rotate_to_world (front ()));
 }
 
 Three_Vector Car::target_position () const

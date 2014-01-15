@@ -152,16 +152,17 @@ int main (int argc, char* argv [])
                itEntry != entries.end ();
                ++itEntry)
             {
-              const int place = itEntry - entries.begin ();
+              const int place = itEntry - entries.begin () + 1;
               Vamos_Body::Gl_Car* car 
-                = new Vamos_Body::Gl_Car (track.grid_position (place), orientation);
+                = new Vamos_Body::Gl_Car (track.grid_position (place, opt.number_of_cars),
+                                          orientation);
               car->read (opt.data_dir, itEntry->file);
               car->start_engine ();
               if (itEntry->interactive)
                 {
                   interactive = true;
                   world.add_car (car, new Interactive_Driver (car), road, true);
-                  world.set_focused_car (place);
+                  world.set_focused_car (place - 1);
                 }
               else
                 {

@@ -492,7 +492,7 @@ namespace Vamos_Track
 
     const std::string& track_file () const { return m_track_file; }
 
-    Vamos_Geometry::Three_Vector grid_position (int place) const;
+    Vamos_Geometry::Three_Vector grid_position (int place, int total) const;
   };
 
   class Strip_Track_Reader : public Vamos_Media::XML_Parser

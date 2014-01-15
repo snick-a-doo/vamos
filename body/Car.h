@@ -352,9 +352,16 @@ namespace Vamos_Body
     };
 
     // The vector from the car's origin to the center of the crash box.
-    Vamos_Geometry::Three_Vector center () const 
-    { 
+    Vamos_Geometry::Three_Vector center () const
+    {
       return Vamos_Geometry::Three_Vector ((m_crash_box.front + m_crash_box.back) / 2.0,
+                                           (m_crash_box.left + m_crash_box.right) / 2.0,
+                                           (m_crash_box.top + m_crash_box.bottom) / 2.0);
+    }
+
+    Vamos_Geometry::Three_Vector front () const
+    {
+      return Vamos_Geometry::Three_Vector (m_crash_box.front,
                                            (m_crash_box.left + m_crash_box.right) / 2.0,
                                            (m_crash_box.top + m_crash_box.bottom) / 2.0);
     }
@@ -372,7 +379,14 @@ namespace Vamos_Body
     /// The position of the chase-view camera.
     Vamos_Geometry::Three_Vector chase_position () const;
 
+    /// The position of the font centerline in world coordinates.
+    Vamos_Geometry::Three_Vector front_position () const;
+
+    void set_front_position (const Vamos_Geometry::Three_Vector& pos);
+
+    /// The position of a point ahead of the car.  Used for steering.
     Vamos_Geometry::Three_Vector target_position () const;
+    /// How far the target is ahead of the center of the car.
     double target_distance () const;
 
     const std::string& car_file () const { return m_car_file; }

@@ -163,7 +163,7 @@ World::propagate_cars (double time_step)
       Car_Information& info = m_cars [i];
       info.propagate (time_step, 
                       mp_timing->total_time (),
-                      mp_track->track_coordinates (info.car->center_position (),
+                      mp_track->track_coordinates (info.car->front_position (),
                                                    info.road_index,
                                                    info.segment_index),
                       mp_track->track_coordinates (info.car->target_position (),
@@ -446,9 +446,6 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
 
   car->chassis ().reset (0.0);
 
-  // Move the car to its initial x-y position.
-  car->chassis ().set_position (road.position (track_pos.x, track_pos.y));
-
   // Orient the car to be level with the track.
   {
     Three_Matrix orientation;
@@ -470,6 +467,8 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
       Three_Vector p = car->chassis ().transform_to_world ((*it)->contact_position ());
       gap = std::min (gap, p.z - segment.world_elevation (p));
     }
+  // Move the car to its initial x-y position.
+  car->set_front_position (road.position (track_pos.x, track_pos.y));
   car->chassis ().translate (Three_Vector (0.0, 0.0, track_pos.z - gap));
 }
 
