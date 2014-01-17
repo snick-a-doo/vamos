@@ -51,7 +51,10 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity) 
+Robot_Driver::Robot_Driver (Car* car_in, 
+                            Strip_Track* track_in,
+                            double gravity,
+                            bool qualify) 
 : Driver (car_in),
   mp_cars (0),
   m_info_index (0),
@@ -72,6 +75,7 @@ Robot_Driver::Robot_Driver (Car* car_in, Strip_Track* track_in, double gravity)
   m_lane_shift_timer (0.0),
   m_interact (true),
   m_show_steering_target (false),
+  m_qualify (qualify),
   m_road (mp_track->get_road (0)),
   m_racing_line (m_road,
                  car_in->get_robot_parameters ().lateral_acceleration,
@@ -103,7 +107,14 @@ Robot_Driver::reaction_time ()
 void
 Robot_Driver::start (double to_go)
 {
-  if (to_go <= 0.0)
+  if (m_qualify)
+    {
+      if (m_event.type == Event::START_ENGINE)
+        set_event (Event::WAIT);
+      else
+        set_event (Event::START_ENGINE);
+    }
+  else if (to_go <= 0.0)
     set_event (Event::START, reaction_time ());
   else if (to_go <= 1.0)
     set_event (Event::REV);
@@ -157,6 +168,10 @@ Robot_Driver::handle_event ()
       set_gas (0.0);
       break;
 
+    case Event::WAIT:
+      set_event (Event::START, Vamos_Geometry::random_in_range (10, 30));
+      break;
+
     case Event::REV:
       mp_car->disengage_clutch (0.0);
       mp_car->shift (1);
@@ -165,7 +180,7 @@ Robot_Driver::handle_event ()
 
     case Event::START:
       static const double clutch_time = 2.0;
-      if (!m_is_started)
+      if (!m_is_started && (!m_qualify || has_gap ()))
         {
           mp_car->shift (1);
           mp_car->engage_clutch (clutch_time);
@@ -176,6 +191,11 @@ Robot_Driver::handle_event ()
     case Event::NO_EVENT:
       break;
     }
+}
+
+bool Robot_Driver::has_gap () const
+{
+  return true;
 }
 
 //* Drive

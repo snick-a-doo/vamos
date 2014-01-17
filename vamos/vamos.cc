@@ -154,7 +154,9 @@ int main (int argc, char* argv [])
             {
               const int place = itEntry - entries.begin () + 1;
               Vamos_Body::Gl_Car* car 
-                = new Vamos_Body::Gl_Car (track.grid_position (place, opt.number_of_cars),
+                = new Vamos_Body::Gl_Car (track.grid_position (place, 
+                                                               opt.number_of_cars,
+                                                               opt.qualifying),
                                           orientation);
               car->read (opt.data_dir, itEntry->file);
               car->start_engine ();
@@ -170,8 +172,10 @@ int main (int argc, char* argv [])
                   car->adjust_robot_parameters (opt.performance, 
                                                 opt.performance,
                                                 opt.performance);
-                  Robot_Driver* driver
-                    = new Robot_Driver (car, &track, world.get_gravity ());
+                  Robot_Driver* driver = new Robot_Driver (car, 
+                                                           &track,
+                                                           world.get_gravity (),
+                                                           opt.qualifying);
                   driver->interact (opt.interact);
                   driver->show_steering_target (opt.show_line);
                   world.add_car (car, driver, road, false);
@@ -204,6 +208,7 @@ int main (int argc, char* argv [])
       track.build_racing_line ();
       track.show_racing_line (opt.show_line);
     }
+  world.do_start_sequence (!opt.qualifying);
   world.start (opt.laps);
 
   return EXIT_SUCCESS;

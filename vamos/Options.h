@@ -42,6 +42,7 @@ public:
   bool full_screen;
   bool interact;
   bool demo;
+  bool qualifying;
   bool show_line;
   std::string input_file;
   std::vector <double> parameter;

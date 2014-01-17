@@ -159,8 +159,11 @@ namespace Vamos_World
     /// Provide pointers to the robot's car and the track.
     Robot_Driver (Vamos_Body::Car* car_in, 
                   Vamos_Track::Strip_Track* track_in,
-                  double gravity);
+                  double gravity,
+                  bool qualify);
     virtual ~Robot_Driver () {};
+
+    void qualify ();
 
     /// Provide pointers to the other cars so the robot can pass or avoid
     /// collisions. 
@@ -193,6 +196,7 @@ namespace Vamos_World
         {
           PARK,
           START_ENGINE,
+          WAIT,
           REV,
           START,
           NO_EVENT
@@ -216,6 +220,7 @@ namespace Vamos_World
 
     void set_event (Event::Type type, double delay = 0);
     void handle_event ();
+    bool has_gap () const;
 
     enum Track_Side
       {
@@ -304,6 +309,7 @@ namespace Vamos_World
     double m_lane_shift_timer;
     bool m_interact;
     bool m_show_steering_target;
+    bool m_qualify;
 
     const Vamos_Track::Road& m_road;
     Robot_Racing_Line m_racing_line;

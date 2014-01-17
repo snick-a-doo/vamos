@@ -87,6 +87,7 @@ World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere)
     m_gravity (9.8),
     mp_timing (0),
     m_focused_car_index (0),
+    m_start_sequence (false),
     m_cars_can_interact (true),
     m_has_controlled_car (false),
     m_controlled_car_index (0)
@@ -111,7 +112,7 @@ World::start (size_t laps)
   mp_timing = new Timing_Info (m_cars.size (), 
                                mp_track->timing_lines (), 
                                laps,
-                               m_cars.size () > 1);
+                               m_start_sequence);
 }
 
 inline Three_Vector

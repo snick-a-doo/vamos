@@ -41,6 +41,7 @@ Options::Options (int argc, char* argv [])
     full_screen (false),
     interact (true),
     demo (false),
+    qualifying (false),
     show_line (false),
     m_exit_status (EXIT_SUCCESS),
     m_exit (false)
@@ -62,13 +63,14 @@ Options::Options (int argc, char* argv [])
           { "show-line", optional_argument, 0, 'l' },
           { "map", no_argument, 0, 'm' },
           { "demo", no_argument, 0, 'd' },
+          { "qualifying", no_argument, 0, 'q' },
           { "full-screen", no_argument, 0, 'f' },
           { "no-interaction", no_argument, 0, 'n' },
           { "version", no_argument, 0, 'v' },
           { 0, 0, 0, 0 }
         };
 
-      int c = getopt_long (argc, argv, "c:t:w:a:o:p:z:s:l::mdfnv", 
+      int c = getopt_long (argc, argv, "c:t:w:a:o:p:z:s:l::mdqfnv", 
                            long_options, &option_index);
       if (c == -1)
         break;
@@ -109,6 +111,9 @@ Options::Options (int argc, char* argv [])
           break;
         case 'd':
           demo = true;
+          break;
+        case 'q':
+          qualifying = true;
           break;
         case 'f':
           full_screen = true;
@@ -179,6 +184,7 @@ void Options::show_usage () const
             << "[-f|--full-screen] "
             << "[-n|--no-interaction] "
             << "[-d|--demo] "
+            << "[-q|--qualifying] "
             << "[-l|--show-line[=ARG]  draw the racing line on the track [ARG=yes]]"
             << std::endl;
 }
@@ -198,6 +204,7 @@ std::ostream& operator << (std::ostream& os, const Options& opt)
      << "full_screen\t" << opt.full_screen << '\n'
      << "interact\t" << opt.interact << '\n'
      << "demo\t" << opt.demo << '\n'
+     << "qualifying\t" << opt.qualifying << '\n'
      << "show_line\t" << opt.show_line << '\n'
      << "input_file\t" << opt.input_file << '\n'
      << "parameters\t[ ";
