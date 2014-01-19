@@ -210,6 +210,10 @@ int main (int argc, char* argv [])
       track.show_racing_line (opt.show_line);
     }
   world.start (opt.qualifying, opt.laps);
+  std::ostringstream name;
+  name << (opt.qualifying ? "qualifying" : "race") << "-results";
+  std::ofstream os (name.str ().c_str ());
+  world.write_results (os);
 
   return EXIT_SUCCESS;
 }

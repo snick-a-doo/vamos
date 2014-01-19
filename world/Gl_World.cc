@@ -301,7 +301,6 @@ Gl_World::pause (double, double)
 bool 
 Gl_World::quit (double, double)
 {
-  print_results ();
   m_done = true;
   return true;
 }
@@ -455,6 +454,8 @@ Gl_World::update_car_timing ()
       const double distance = car.track_position ().x;
       const int sector = mp_track->sector (distance);
       mp_timing->update (m_timer.get_current_time (), i, distance, sector);
+      if (mp_timing->timing_at_index (i).is_finished ())
+        car.driver->finish ();
     }
 }
 

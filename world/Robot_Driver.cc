@@ -122,6 +122,12 @@ Robot_Driver::start (double to_go)
 }
 
 void
+Robot_Driver::finish ()
+{
+  set_event (Event::DONE);
+}
+
+void
 Robot_Driver::set_event (Event::Type type, double delay)
 {
   // Ignore successive events of the same type.
@@ -137,7 +143,7 @@ Robot_Driver::propagate (double timestep)
   handle_event ();
   m_speed = mp_car->chassis ().cm_velocity ().magnitude();
 
-  if (m_state == DRIVING)
+  if (is_driving ())
     drive ();
 }
 
@@ -186,7 +192,17 @@ Robot_Driver::handle_event ()
         }
       break;
 
+    case Event::DONE:
+      m_state = COOL_DOWN;
+      m_traction_control.set (m_target_slip * 0.5);
+      m_braking.scale (0.5);
+      break;
+
     case Event::NO_EVENT:
+      break;
+
+    default:
+      assert (false);
       break;
     }
 }
@@ -212,6 +228,11 @@ bool Robot_Driver::has_gap () const
         }
     }
   return true;
+}
+
+bool Robot_Driver::is_driving () const
+{
+  return (m_state == DRIVING || m_state == COOL_DOWN);
 }
 
 //* Drive
@@ -383,7 +404,8 @@ Robot_Driver::choose_gear ()
     }
   // Shift down if there's more power 2 gears down.
   else if ((down2_power > power)
-           && (gear > 2))
+           && (gear > 2)
+           && ((m_state != COOL_DOWN) || (gear > 3)))
     {
       mp_car->shift_down ();
     }
@@ -422,7 +444,7 @@ Robot_Driver::accelerate ()
   double braking_speed
     = m_braking.maximum_speed (m_speed,
                                along,
-                               (m_speed_factor < 1.0) ? 2.0*mp_car->length () : 0.0,
+                               (m_speed_factor < 1.0) ? lengths (2.0) : 0.0,
                                m_lane_shift,
                                drag,
                                lift,
@@ -458,6 +480,8 @@ Robot_Driver::set_speed (double target_speed)
 
   if (gas >= 1.0)
     gas *= m_speed_factor;
+  if (m_state == COOL_DOWN)
+    gas = std::min (gas, 0.5);
   set_gas (gas * m_speed_factor);
 
   m_brake_control.set (std::min (target_speed, m_speed));
@@ -527,9 +551,11 @@ Robot_Driver::avoid_collisions ()
   double min_left_distance_gap = 100;
   double min_right_distance_gap = 100;
   double along = info ().track_position ().x;
-  double follow_lengths = (maybe_passable (along, info ().segment_index) 
-                           ? 0.5 
-                           : 1.5);
+  double follow_lengths = ((m_state == COOL_DOWN)
+                           ? 3.0
+                           : (maybe_passable (along, info ().segment_index) 
+                              ? 0.5 
+                              : 1.5));
   double crash_time = 2.0*CRASH_TIME_LIMIT;
   Direction pass_side = NONE;
   Three_Vector v1
@@ -547,7 +573,7 @@ Robot_Driver::avoid_collisions ()
         continue;
 
       // Don't worry about cars that are far away.
-      if (std::abs (it->track_position ().x - along) > 10 * mp_car->length ())
+      if (std::abs (it->track_position ().x - along) > lengths (10))
         continue;
 
       Three_Vector v2 
@@ -656,10 +682,10 @@ Robot_Driver::avoid_collisions ()
   m_gap [0] = min_forward_distance_gap;
   m_gap [1] = min_left_distance_gap;
   m_gap [2] = min_right_distance_gap;
-  m_gap [3] = std::min (follow_lengths*mp_car->length (), 0.5*m_speed);
+  m_gap [3] = std::min (lengths (follow_lengths), 0.5*m_speed);
 
   // Calculate the speed factor here while we have access to the gap.
-  m_front_gap_control.set (std::min (follow_lengths*mp_car->length (), 0.5*m_speed));
+  m_front_gap_control.set (std::min (lengths (follow_lengths), 0.5*m_speed));
   m_speed_factor = 
     1.0 - clip (m_front_gap_control.propagate (min_forward_distance_gap, m_timestep),
                 0.0, 1.0);
@@ -716,7 +742,7 @@ Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
   //!! Look ahead by time, not distance to compensate for closing under braking.
   //!! Account for deceleration? 
   double pass_distance = delta_x * m_speed / delta_v;
-  if (pass_distance > 100.0 * mp_car->length ())
+  if (pass_distance > lengths (100))
     return NONE;
 
   return pass_side (along + pass_distance/2, pass_distance/20, 10, segment);
@@ -820,6 +846,12 @@ Braking_Operation::~Braking_Operation ()
 {
   // Do the proper cleanup if we were deleted during a braking operation.
   end ();
+}
+
+void
+Braking_Operation::scale (double factor)
+{
+  m_deceleration *= factor;
 }
 
 void

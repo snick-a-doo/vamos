@@ -135,6 +135,8 @@ namespace Vamos_World
       /// best sector time is updated. Updated each sector.
       double previous_sector_time_difference () const;
 
+      bool is_finished () const { return m_finished; }
+
     private:
       void set_finished () { m_finished = true; }
       void update (double current_time, double distance, size_t sector, bool new_sector);

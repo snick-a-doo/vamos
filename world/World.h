@@ -30,6 +30,7 @@
 #include "Timing_Info.h"
 
 #include <vector>
+#include <iosfwd>
 
 namespace Vamos_World
 {
@@ -111,7 +112,7 @@ namespace Vamos_World
     void cars_can_interact (bool can) { m_cars_can_interact = can; }
     void propagate_cars (double time_step);
     size_t number_of_cars () const { return m_cars.size (); }
-    void print_results () const;
+    void write_results (std::ofstream& os) const;
 
   protected:
     Vamos_Track::Strip_Track* mp_track;

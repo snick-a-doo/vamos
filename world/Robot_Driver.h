@@ -115,6 +115,8 @@ namespace Vamos_World
                           double lift,
                           double mass);
 
+    void scale (double factor);
+
   private:
     void end ();
     double distance_from_start (double distance) const;
@@ -167,7 +169,8 @@ namespace Vamos_World
         PARKED,
         IDLING,
         REVVING,
-        DRIVING
+        DRIVING,
+        COOL_DOWN
       };
 
     struct Event
@@ -178,6 +181,7 @@ namespace Vamos_World
           START_ENGINE,
           REV,
           DRIVE,
+          DONE,
           NO_EVENT
         };
 
@@ -212,6 +216,8 @@ namespace Vamos_World
     /// Called to signal the start of the race.
     virtual void start (double to_go);
 
+    virtual void finish ();
+
     /// Set whether or not the robot should take other cars into account.
     /// Useful for comparing performance with collisions turned off. 
     void interact (bool do_interact) 
@@ -228,7 +234,7 @@ namespace Vamos_World
 
     virtual bool is_interactive () const { return false; }
 
-    virtual bool is_driving () const { return m_state == DRIVING; }
+    virtual bool is_driving () const;
 
   private:
     const Car_Information& info () const { return (*mp_cars)[m_info_index]; }
