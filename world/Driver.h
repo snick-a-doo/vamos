@@ -28,7 +28,7 @@ namespace Vamos_World
     /// Start driving.
     virtual void start (double to_go) {}
     /// True if the driver is driving.
-    virtual bool is_started () const { return true; }
+    virtual bool is_driving () const { return true; }
 
     virtual void reset () {}
     virtual void propagate (double time_step) {}

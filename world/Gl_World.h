@@ -204,7 +204,7 @@ namespace Vamos_World
 	// Read the world definition file.
 	void read (std::string world_file = "", std::string controls_file = "");
 
-	virtual void start (size_t laps);
+	virtual void start (bool qualifying, size_t laps_or_minutes);
 
 	void set_paused (bool is_paused);
 

@@ -45,22 +45,26 @@ using namespace Vamos_World;
 
 //-----------------------------------------------------------------------------
 static std::string 
-format_time (double time)
+format_time (double time, int precision = 3)
 {
   if (time == Timing_Info::NO_TIME) return "";
 
   int minutes = int (time / 60.0);
   double seconds = time - 60 * minutes;
+  int width = 2; // Show the leading zero on the seconds.
+  if (precision > 0)
+    width += precision + 1; // Add 1 for the decimal point.
 
   std::ostringstream os;
   os << minutes << ':' 
-     << std::fixed << std::setfill ('0') << std::setw (6) << std::setprecision (3)
+     << std::fixed << std::setfill ('0') 
+     << std::setw (width) << std::setprecision (precision)
      << seconds;
   return os.str ();
 }
 
 static std::string 
-format_time_difference (double delta_time)
+format_time_difference (double delta_time, int precision = 3)
 {
   if (delta_time == Timing_Info::NO_TIME) return "";
 
@@ -68,7 +72,7 @@ format_time_difference (double delta_time)
   if (delta_time > 0.0)
       os << '+';
 
-  os << std::fixed << std::setprecision (3) << delta_time;
+  os << std::fixed << std::setprecision (precision) << delta_time;
   return os.str ();
 }
 
@@ -446,7 +450,7 @@ Gl_World::update_car_timing ()
   for (size_t i = 0; i < m_cars.size (); i++)
     {
       Car_Information& car = m_cars [i];
-      if (!car.driver->is_started ())
+      if (!car.driver->is_driving ())
         car.driver->start (mp_timing->countdown ());
       const double distance = car.track_position ().x;
       const int sector = mp_track->sector (distance);
@@ -776,28 +780,38 @@ Gl_World::draw_leaderboard (Vamos_Media::Two_D& screen)
     {
       const size_t lap = (*it)->current_lap ();
       const size_t total_laps = mp_timing->total_laps ();
-      if (lap <= total_laps)
+      if (mp_timing->is_finished ())
+        {
+          screen.text (x, y, "Finish");
+        }
+      else if (mp_timing->qualifying () && (total_laps == 0))
+        {
+          screen.text (x, y, "", format_time (mp_timing->time_remaining (), 0));
+        }
+      else
         {
           std::ostringstream os;
           os << lap << '/' << total_laps;
           screen.text (x, y, "Lap", os.str ());
         }
-      else
-        screen.text (x, y, "Finish");
     }
 
   y -= 3;
-  screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (),
-               format_time ((*it)->previous_lap_time ()));
+  std::string time = format_time (mp_timing->qualifying ()
+                                  ? (*it)->best_lap_time () 
+                                  : (*it)->previous_lap_time ());
+  screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (), time);
 
   while (++it != order.end ())
     {
       y -= 3;
-      screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (),
-                   format_time_difference ((*it)->interval ()));
+      time = mp_timing->qualifying () 
+        ? format_time ((*it)->best_lap_time ()) 
+        : format_time_difference ((*it)->interval ());
+      screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (), time);
     }
 
-  if (mp_track->get_road (0).is_closed ())
+  if (!mp_timing->qualifying () && mp_track->get_road (0).is_closed ())
     {
       y -= 3;
       screen.text (x, y, "Fastest Lap");
@@ -834,9 +848,9 @@ Gl_World::draw_lap_times (Vamos_Media::Two_D& screen)
 }
 
 void 
-Gl_World::start (size_t laps)
+Gl_World::start (bool qualifying, size_t laps_or_minutes)
 {
-  World::start (laps);
+  World::start (qualifying, laps_or_minutes);
   m_map.set_bounds (*mp_track, *mp_window);
   if (!m_cars.empty ())
     set_paused (false);

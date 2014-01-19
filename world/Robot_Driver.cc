@@ -53,9 +53,11 @@ namespace
 //-----------------------------------------------------------------------------
 Robot_Driver::Robot_Driver (Car* car_in, 
                             Strip_Track* track_in,
-                            double gravity,
-                            bool qualify) 
+                            double gravity)
 : Driver (car_in),
+  m_mode (RACE),
+  m_state (PARKED),
+  m_event (Event::PARK, 0.0),
   mp_cars (0),
   m_info_index (0),
   m_speed_control (4.0, 0.0, 0.0),
@@ -68,14 +70,11 @@ Robot_Driver::Robot_Driver (Car* car_in,
   m_target_segment (0),
   mp_track (track_in),
   m_shift_time (0.0),
-  m_event (Event::PARK, 0.0),
-  m_is_started (false),
   m_timestep (1.0),
   m_lane_shift (0.0),
   m_lane_shift_timer (0.0),
   m_interact (true),
   m_show_steering_target (false),
-  m_qualify (qualify),
   m_road (mp_track->get_road (0)),
   m_racing_line (m_road,
                  car_in->get_robot_parameters ().lateral_acceleration,
@@ -104,22 +103,22 @@ Robot_Driver::reaction_time ()
   return Vamos_Geometry::random_in_range (0.1, 0.3);
 }
 
+void Robot_Driver::qualify ()
+{
+  m_mode = QUALIFY;
+}
+
 void
 Robot_Driver::start (double to_go)
 {
-  if (m_qualify)
-    {
-      if (m_event.type == Event::START_ENGINE)
-        set_event (Event::WAIT);
-      else
-        set_event (Event::START_ENGINE);
-    }
+  if (m_state == PARKED)
+    set_event (Event::START_ENGINE);
+  else if (m_mode == QUALIFY)
+    set_event (Event::DRIVE, Vamos_Geometry::random_in_range (10, 60));
   else if (to_go <= 0.0)
-    set_event (Event::START, reaction_time ());
+    set_event (Event::DRIVE, reaction_time ());
   else if (to_go <= 1.0)
     set_event (Event::REV);
-  else
-    set_event (Event::START_ENGINE);
 }
 
 void
@@ -138,7 +137,7 @@ Robot_Driver::propagate (double timestep)
   handle_event ();
   m_speed = mp_car->chassis ().cm_velocity ().magnitude();
 
-  if (is_started ())
+  if (m_state == DRIVING)
     drive ();
 }
 
@@ -157,34 +156,33 @@ Robot_Driver::handle_event ()
       mp_car->shift (0);
       mp_car->start_engine ();
       set_gas (0.0);
-      m_is_started = false;
+      m_state = PARKED;
       break;
 
     case Event::START_ENGINE:
-      m_lane_shift = get_lane_shift ();
       mp_car->disengage_clutch (0.0);
       mp_car->shift (0);
       mp_car->start_engine ();
       set_gas (0.0);
-      break;
-
-    case Event::WAIT:
-      set_event (Event::START, Vamos_Geometry::random_in_range (10, 30));
+      m_state = IDLING;
       break;
 
     case Event::REV:
       mp_car->disengage_clutch (0.0);
       mp_car->shift (1);
       set_gas (0.5);
+      m_state = REVVING;
       break;
 
-    case Event::START:
+    case Event::DRIVE:
       static const double clutch_time = 2.0;
-      if (!m_is_started && (!m_qualify || has_gap ()))
+      if (m_mode == QUALIFY && !has_gap ())
+        m_event.reset ();
+      else if (m_state != DRIVING)
         {
           mp_car->shift (1);
           mp_car->engage_clutch (clutch_time);
-          m_is_started = true;
+          m_state = DRIVING;
         }
       break;
 
@@ -193,8 +191,26 @@ Robot_Driver::handle_event ()
     }
 }
 
+double Robot_Driver::lengths (double n) const
+{
+  //! replace n*mp_car->length() everywhere.
+  return n * mp_car->length ();
+}
+
 bool Robot_Driver::has_gap () const
 {
+  double along = info ().track_position ().x;
+  for (std::vector <Car_Information>::const_iterator it = mp_cars->begin ();
+       it != mp_cars->end ();
+       it++)
+    {
+      if (it->driver->is_driving ())
+        {
+          double delta = (it->track_position ().x - along);
+          if ((delta - m_road.length () > lengths (-100.0)) || (delta < lengths (25.0)))
+            return false;
+        }
+    }
   return true;
 }
 

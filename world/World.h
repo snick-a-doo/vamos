@@ -112,7 +112,6 @@ namespace Vamos_World
     void propagate_cars (double time_step);
     size_t number_of_cars () const { return m_cars.size (); }
     void print_results () const;
-    void do_start_sequence (bool start) { m_start_sequence = start; }
 
   protected:
     Vamos_Track::Strip_Track* mp_track;
@@ -125,7 +124,7 @@ namespace Vamos_World
     std::vector <Interaction_Info> m_interaction_info;
     size_t m_focused_car_index;
 
-    virtual void start (size_t laps);
+    virtual void start (bool qualifying, size_t laps_or_minutes);
     void reset ();
     void restart ();
 
@@ -138,7 +137,6 @@ namespace Vamos_World
                     const Vamos_Track::Road& Road);
     void set_controlled_car (size_t car_index);
 
-    bool m_start_sequence;
     bool m_cars_can_interact;
     bool m_has_controlled_car;
     size_t m_controlled_car_index;

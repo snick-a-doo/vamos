@@ -83,6 +83,7 @@ void read_input (Options& opt, Entry_List& entries)
     }
 
   std::sort (entries.begin (), entries.end (), Entry::quicker);
+  opt.number_of_cars = entries.size ();
 }
 
 void get_entries (Options& opt, Entry_List& entries)
@@ -172,10 +173,10 @@ int main (int argc, char* argv [])
                   car->adjust_robot_parameters (opt.performance, 
                                                 opt.performance,
                                                 opt.performance);
-                  Robot_Driver* driver = new Robot_Driver (car, 
-                                                           &track,
-                                                           world.get_gravity (),
-                                                           opt.qualifying);
+                  Robot_Driver* driver
+                    = new Robot_Driver (car, &track, world.get_gravity ());
+                  if (opt.qualifying)
+                    driver->qualify ();
                   driver->interact (opt.interact);
                   driver->show_steering_target (opt.show_line);
                   world.add_car (car, driver, road, false);
@@ -208,8 +209,7 @@ int main (int argc, char* argv [])
       track.build_racing_line ();
       track.show_racing_line (opt.show_line);
     }
-  world.do_start_sequence (!opt.qualifying);
-  world.start (opt.laps);
+  world.start (opt.qualifying, opt.laps);
 
   return EXIT_SUCCESS;
 }

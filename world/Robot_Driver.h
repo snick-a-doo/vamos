@@ -155,12 +155,52 @@ namespace Vamos_World
   /// A computer-controlled driver
   class Robot_Driver : public Driver
   {
+  private:
+    enum Mode
+      {
+        QUALIFY,
+        RACE
+      };
+
+    enum State
+      {
+        PARKED,
+        IDLING,
+        REVVING,
+        DRIVING
+      };
+
+    struct Event
+    {
+      enum Type
+        {
+          PARK,
+          START_ENGINE,
+          REV,
+          DRIVE,
+          NO_EVENT
+        };
+
+      Event (Type e_type, double e_delay)
+        : type (e_type),
+          delay (e_delay),
+          time (0.0)
+      {}
+
+      void propagate (double time_step) { time += time_step; }
+      void reset () { time = 0.0; }
+      bool ready () const { return time >= delay; }
+
+      Type type;
+      double delay;
+      double time;
+    };
+
   public:
     /// Provide pointers to the robot's car and the track.
     Robot_Driver (Vamos_Body::Car* car_in, 
                   Vamos_Track::Strip_Track* track_in,
-                  double gravity,
-                  bool qualify);
+                  double gravity);
     virtual ~Robot_Driver () {};
 
     void qualify ();
@@ -171,7 +211,6 @@ namespace Vamos_World
 
     /// Called to signal the start of the race.
     virtual void start (double to_go);
-    virtual bool is_started () const { return m_is_started; }
 
     /// Set whether or not the robot should take other cars into account.
     /// Useful for comparing performance with collisions turned off. 
@@ -189,33 +228,9 @@ namespace Vamos_World
 
     virtual bool is_interactive () const { return false; }
 
+    virtual bool is_driving () const { return m_state == DRIVING; }
+
   private:
-    struct Event
-    {
-      enum Type
-        {
-          PARK,
-          START_ENGINE,
-          WAIT,
-          REV,
-          START,
-          NO_EVENT
-        };
-
-      Event (Type e_type, double e_delay)
-        : type (e_type),
-          delay (e_delay),
-          time (0.0)
-      {}
-
-      void propagate (double time_step) { time += time_step; }
-      bool ready () const { return time >= delay; }
-
-      Type type;
-      double delay;
-      double time;
-    };
-
     const Car_Information& info () const { return (*mp_cars)[m_info_index]; }
 
     void set_event (Event::Type type, double delay = 0);
@@ -234,6 +249,8 @@ namespace Vamos_World
     double lane_shift (const Vamos_Geometry::Three_Vector& track) const;
     double get_offline_distance () const;
     double offline_distance (double along, double lane_shift) const; 
+    /// Return the distance equivalent to n car lengths.
+    double lengths (double n) const;
 
     void steer ();
     void choose_gear ();
@@ -284,6 +301,10 @@ namespace Vamos_World
     /// Return a random reaction time in seconds.
     static double reaction_time ();
 
+    Mode m_mode;
+    State m_state;
+    Event m_event;
+
     const std::vector <Car_Information>* mp_cars;
     size_t m_info_index;
 
@@ -302,14 +323,11 @@ namespace Vamos_World
     Vamos_Track::Strip_Track* mp_track;
     bool m_reset;
     double m_shift_time;
-    Event m_event;
-    bool m_is_started;
     double m_timestep;
     double m_lane_shift;
     double m_lane_shift_timer;
     bool m_interact;
     bool m_show_steering_target;
-    bool m_qualify;
 
     const Vamos_Track::Road& m_road;
     Robot_Racing_Line m_racing_line;

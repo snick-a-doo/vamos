@@ -1646,7 +1646,7 @@ Three_Vector Strip_Track::grid_position (int place, int total, bool pit) const
 {
   assert (place > 0); // 1-based
   assert (place <= total);
-  static const double grid_interval = 8.0;
+  static const double grid_interval = pit ? 12.0 : 8.0;
   // Put the 1st car 1 interval from the beginning of the 1st segment to avoid
   // putting off the end.
   double across = pit ? 2 * mp_track->left_road_width (0.0) : 3.0 * std::pow (-1, place);

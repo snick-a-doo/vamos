@@ -26,12 +26,11 @@ using namespace Vamos_World;
 const double Timing_Info::NO_TIME = std::numeric_limits <double>::min ();
 const int N_COUNTDOWN_START = 6;
 
-Timing_Info::Timing_Info (size_t n_cars, 
-                          size_t n_sectors, 
-                          size_t n_laps,
-                          bool do_start_sequence)
+Timing_Info::Timing_Info (size_t n_cars, size_t n_sectors, bool do_start_sequence )
   : m_sectors (n_sectors),
-    m_laps (n_laps),
+    m_lap_limit (0),
+    m_time_limit (0.0),
+    m_qualifying (false),
     m_countdown (do_start_sequence ? N_COUNTDOWN_START : 0),
     m_start_delay (Vamos_Geometry::random_in_range (0.0, 4.0)),
     m_state (do_start_sequence ? STARTING : RUNNING),
@@ -42,13 +41,9 @@ Timing_Info::Timing_Info (size_t n_cars,
 {
   assert (n_sectors > 0);
 
-  // Reserve space if we know the total number of sectors. n_laps may be 0 in
-  // which case these vectors will grow indefinitely.
-  ma_sector_position.reserve (n_sectors * n_laps);
-  ma_sector_time.reserve (n_sectors * n_laps);
   for (size_t i = 0; i < n_cars; i++)
     {
-      Car_Timing* p_car = new Car_Timing (i + 1, n_sectors, n_laps);
+      Car_Timing* p_car = new Car_Timing (i + 1, n_sectors);
       ma_car_timing.push_back (p_car);
       ma_running_order.push_back (p_car);
       if (i == 0)
@@ -104,21 +99,43 @@ void Timing_Info::update (double current_time,
     case FINISHED:
       {
         m_total_time = current_time - m_state_time;
-        const bool new_sector = is_new_sector (index, sector);
+
         Car_Timing* p_car = ma_car_timing [index];
-        bool already_finished = p_car->m_finished;
-        p_car->update (m_total_time, distance, sector, new_sector, 
-                       (m_state == FINISHED));
-        if (new_sector)
+        const bool new_sector = is_new_sector (index, sector);
+        const bool new_lap = new_sector && (sector == 1);
+        const bool already_finished = p_car->m_finished;
+
+        p_car->update (m_total_time, distance, sector, new_sector);
+
+        const bool laps_done = ((m_lap_limit > 0)
+                                && (ma_car_timing [index]->current_lap () > m_lap_limit));
+        const bool time_done = ((m_time_limit > 0.0) && (m_total_time > m_time_limit));
+
+        // A car's race is done when
+        // 1. it completes all the laps
+        // 2. it completes any lap after any car has completed all laps
+        // 3. it completes any lap after time has expired
+        if (laps_done || (new_lap && (time_done || (m_state == FINISHED))))
+          p_car->set_finished ();
+ 
+       if (new_sector)
           update_position (p_car, m_total_time, sector, already_finished);
 
         // Go to the FINISHED state when the first car has completed all of the
-        // laps. Timing must continue for the other cars, so we keep m_state_time.
-        if ((m_state == RUNNING) && (ma_car_timing [index]->current_lap () > m_laps))
-          next_state (m_state_time);
+        // laps or time runs out. Timing must continue for the other cars, so we
+        // keep m_state_time.
+        if ((m_state == RUNNING) && (laps_done || time_done))
+          {
+            next_state (m_state_time);
+          }
         break;
       }
     }
+}
+
+double Timing_Info::time_remaining () const
+{
+  return (m_time_limit == 0.0 ? 0.0 : std::max (m_time_limit - m_total_time, 0.0));
 }
 
 void Timing_Info::next_state (double current_time)
@@ -152,10 +169,23 @@ void Timing_Info::update_position (Car_Timing* p_car,
   const size_t nth_sector = m_sectors * (p_car->current_lap () - 1) + sector - 1;
 
   Timing_Info::Running_Order::iterator new_position = ma_running_order.begin ();
-  double interval;
-  if (nth_sector > ma_sector_position.size ())
+  double interval = NO_TIME;
+  if (m_qualifying)
     {
-      interval = NO_TIME;
+      if (sector != 1)
+        return;
+
+      Timing_Info::Running_Order::const_iterator it = ma_running_order.begin ();
+      while ((it != ma_running_order.end ())
+             && ((*it)->best_lap_time () != NO_TIME) 
+             && (p_car->best_lap_time () > (*it)->best_lap_time ()))
+        {
+          ++it;
+          ++new_position;
+        }
+    }
+  else if (nth_sector > ma_sector_position.size ())
+    {
       ma_sector_position.push_back (1);
       ma_sector_time.push_back (current_time);
     }
@@ -196,9 +226,8 @@ bool Timing_Info::is_new_sector (size_t index, size_t sector) const
   return (sector == (current % m_sectors) + 1);
 }
 
-Timing_Info::Car_Timing::Car_Timing (size_t position, size_t sectors, size_t laps)
+Timing_Info::Car_Timing::Car_Timing (size_t position, size_t sectors)
   : m_grid_position (position),
-    m_total_laps (laps),
     m_current_time (0.0),
     m_distance (0.0),
     m_interval (NO_TIME),
@@ -210,8 +239,6 @@ Timing_Info::Car_Timing::Car_Timing (size_t position, size_t sectors, size_t lap
     m_lap_delta (NO_TIME),
     m_finished (false)
 {
-  ma_lap_time.reserve (laps);
-  ma_sector_time.reserve (m_sectors * laps);
   ma_best_sector_time.resize (m_sectors);
   ma_sector_delta.resize (m_sectors);
   for (size_t sector = 0; sector < m_sectors; sector++)
@@ -243,19 +270,15 @@ void Timing_Info::Car_Timing::reset ()
 void Timing_Info::Car_Timing::update (double current_time, 
                                       double distance, 
                                       size_t sector,
-                                      bool new_sector,
-                                      bool finished)
+                                      bool new_sector)
 {
   m_current_time = current_time;
   m_distance = distance;
   if (!m_finished && new_sector)
     {
       if (is_start_of_lap (sector))
-        {
           update_lap_data (current_time);
-          if ((m_lap > m_total_laps) || finished)
-            m_finished = true;
-        }
+
       update_sector_data (current_time, sector);
     }
 }

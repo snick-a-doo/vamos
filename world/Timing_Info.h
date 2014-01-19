@@ -29,6 +29,13 @@ namespace Vamos_World
   /// Lap times, sector times, running order, and intervals.
   class Timing_Info
   {
+    enum Timing_State
+      {
+        STARTING, ///< The session has not yet begin.
+        RUNNING,  ///< The session has started.
+        FINISHED  ///< The session is over, but some cars may be on track.
+      };
+
   public:
     class Car_Timing;
     typedef std::list <const Car_Timing*> Running_Order;
@@ -36,12 +43,16 @@ namespace Vamos_World
     /// Initialize the timing information.
     /// @param n_cars The number of cars added to the world.
     /// @param n_sectors The number of timing sectors per lap. Must be > 0. 
-    /// @param n_laps The number of laps in the session. If 0 laps-to-go
-    ///               information is not available. 
     /// @param do_start_sequence If true, do the countdown to the start of the
     ///                          session. Otherwise start immediately. 
-    Timing_Info (size_t n_cars, size_t n_sectors, size_t n_laps, bool do_start_sequence);
+    Timing_Info (size_t n_cars, size_t n_sectors, bool do_start_sequence);
     ~Timing_Info ();
+
+    void set_time_limit (double minutes) { m_time_limit = 60.0 * minutes; }
+    void set_lap_limit (size_t laps) { m_lap_limit = laps; }
+    void set_qualifying () { m_qualifying = true; }
+
+    bool qualifying () const { return m_qualifying; }
 
     /// Return the number of counts until the start of the session. Intervals
     /// are seconds except for 1 to 0 which has an extra random delay. The race
@@ -50,13 +61,17 @@ namespace Vamos_World
 
     /// Return the total number of laps specified at construction. May be
     /// zero. Fixed. 
-    size_t total_laps () const { return m_laps; }
+    size_t total_laps () const { return m_lap_limit; }
     /// Return the time since the start of the session. Updated continuously.
     double total_time () const { return m_total_time; }
     /// Reset the global timer and the cars' times.
     void reset ();
     /// Update the total time and the timing for the car with the specified index.
     void update (double current_time, size_t index, double distance, size_t sector);
+
+    double time_remaining () const;
+
+    bool is_finished () const { return m_state == FINISHED; } 
 
     const Running_Order& running_order () const { return ma_running_order; }
 
@@ -72,7 +87,7 @@ namespace Vamos_World
       friend class Timing_Info;
 
     public:
-      Car_Timing (size_t position, size_t sectors, size_t laps);
+      Car_Timing (size_t position, size_t sectors);
 
       void reset ();
 
@@ -121,17 +136,13 @@ namespace Vamos_World
       double previous_sector_time_difference () const;
 
     private:
-      void update (double current_time, 
-                   double distance, 
-                   size_t sector, 
-                   bool new_sector,
-                   bool finished);
+      void set_finished () { m_finished = true; }
+      void update (double current_time, double distance, size_t sector, bool new_sector);
       bool is_start_of_lap (size_t sector) const;
       void update_lap_data (double current_time);
       void update_sector_data (double current_time, size_t sector);
 
       double m_grid_position;
-      size_t m_total_laps;
       double m_current_time;
       double m_distance;
       double m_interval;
@@ -156,15 +167,10 @@ namespace Vamos_World
                           size_t sector,
                           bool finished);
 
-    enum Timing_State
-      {
-        STARTING, ///< The session has not yet begin.
-        RUNNING,  ///< The session has started.
-        FINISHED  ///< The session is over, but some cars may be on track.
-      };
-
     size_t m_sectors;
-    size_t m_laps;
+    size_t m_lap_limit;
+    double m_time_limit;
+    bool m_qualifying;
     int m_countdown;
     /// The random delay after the last light has been on for a second and
     /// before they all go out to signal the start of the race.

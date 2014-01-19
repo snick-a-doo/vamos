@@ -87,7 +87,6 @@ World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere)
     m_gravity (9.8),
     mp_timing (0),
     m_focused_car_index (0),
-    m_start_sequence (false),
     m_cars_can_interact (true),
     m_has_controlled_car (false),
     m_controlled_car_index (0)
@@ -107,12 +106,19 @@ World::~World ()
 }
 
 void
-World::start (size_t laps)
+World::start (bool qualify, size_t laps_or_minutes)
 {
-  mp_timing = new Timing_Info (m_cars.size (), 
-                               mp_track->timing_lines (), 
-                               laps,
-                               m_start_sequence);
+  // Here qualifying implies no start sequence, but that's not necessarily the
+  // case.  That's why we pass !qualify to the constructor and also call
+  // set_qualifying();
+  mp_timing = new Timing_Info (m_cars.size (), mp_track->timing_lines (), !qualify);
+  if (qualify)
+    {
+      mp_timing->set_qualifying ();
+      mp_timing->set_time_limit (laps_or_minutes);
+    }
+  else
+    mp_timing->set_lap_limit (laps_or_minutes);
 }
 
 inline Three_Vector
