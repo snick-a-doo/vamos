@@ -19,5 +19,5 @@ EXTRA_DIST = \
 	Sky.h \
 	Sphere_Sky.h
 
-AM_CXXFLAGS = -Wall -pedantic -O2 -g -DDATADIR=\"$(pkgdatadir)\" \
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DDATADIR=\"$(pkgdatadir)\" \
 	`pkg-config --cflags sdl libpng`

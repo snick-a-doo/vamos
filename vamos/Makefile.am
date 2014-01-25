@@ -13,5 +13,5 @@ LIBS = \
 	`pkg-config --libs sdl freealut libpng` -lboost_system -lboost_filesystem \
 	@LIBS@
 
-AM_CXXFLAGS = -Wall -pedantic -O2 -g -DDATADIR=\"$(pkgdatadir)\" \
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DDATADIR=\"$(pkgdatadir)\" \
 	`pkg-config --cflags sdl freealut libpng`

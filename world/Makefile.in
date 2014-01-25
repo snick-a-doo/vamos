@@ -267,7 +267,7 @@ pkginclude_HEADERS = \
 	World.h
 
 EXTRA_DIST = $(pkginclude_HEADERS)
-AM_CXXFLAGS = -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost `pkg-config sdl --cflags`
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost `pkg-config sdl --cflags`
 @DO_UNIT_TESTS_FALSE@UNIT_TESTS = 
 @DO_UNIT_TESTS_TRUE@UNIT_TESTS = test_Controls test_Timing_Info
 test_Controls_SOURCES = test_Controls.cc

@@ -25,7 +25,7 @@ pkgincludedir = $(includedir)/@PACKAGE@/world
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 
-AM_CXXFLAGS = -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost `pkg-config sdl --cflags`
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost `pkg-config sdl --cflags`
 
 if DO_UNIT_TESTS
 UNIT_TESTS = test_Controls test_Timing_Info

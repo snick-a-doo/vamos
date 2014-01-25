@@ -323,7 +323,7 @@ pkginclude_HEADERS = \
 	Parameter.h
 
 EXTRA_DIST = $(pkginclude_HEADERS)
-AM_CXXFLAGS = -Wall -pedantic -O0 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O0 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
 @DO_UNIT_TESTS_FALSE@UNIT_TESTS = 
 @DO_UNIT_TESTS_TRUE@UNIT_TESTS = \
 @DO_UNIT_TESTS_TRUE@	test_Calculations \

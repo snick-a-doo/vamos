@@ -214,7 +214,7 @@ vamos_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la
 
-AM_CXXFLAGS = -Wall -pedantic -O2 -g -DDATADIR=\"$(pkgdatadir)\" \
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DDATADIR=\"$(pkgdatadir)\" \
 	`pkg-config --cflags sdl freealut libpng`
 
 all: all-am

@@ -39,7 +39,7 @@ pkgincludedir = $(includedir)/@PACKAGE@/geometry
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 
-AM_CXXFLAGS = -Wall -pedantic -O0 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O0 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
 
 if DO_UNIT_TESTS
 UNIT_TESTS = \
