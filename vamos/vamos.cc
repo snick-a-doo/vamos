@@ -18,7 +18,6 @@
 #include <boost/filesystem.hpp>
 
 #include "../body/Gl_Car.h"
-#include "../media/Texture_Image.h"
 #include "../media/Ac3d.h"
 #include "../track/Strip_Track.h"
 #include "../world/Gl_World.h"

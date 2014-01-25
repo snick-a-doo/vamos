@@ -28,8 +28,8 @@ namespace Vamos_Geometry
 	double x;
 	double y;
 	
-	Two_Vector (double x_in, double y_in) : x (x_in), y (y_in) {};
-	Two_Vector () : x (0.0), y (0.0) {};
+	Two_Vector (double x_in, double y_in) : x (x_in), y (y_in) {}
+	Two_Vector () : x (0.0), y (0.0) {}
 
     // Return the magnitude of this vector.
     inline double magnitude () const;

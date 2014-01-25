@@ -16,6 +16,9 @@ vamos
 magic-eq
 out
 *.pyc
+*.so
+.emacs*
+*-results
 doc/robot-cars/computer-controlled-cars.pdf
 doc/robot-cars/computer-controlled-cars.aux
 doc/robot-cars/computer-controlled-cars.log

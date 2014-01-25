@@ -30,14 +30,13 @@ namespace Vamos_Geometry
   struct Three_Vector
   {
     /// Default constructor.  Null vector.
-    Three_Vector ()
-      : x (0.0), y (0.0), z (0.0) {};
+    Three_Vector () : x (0.0), y (0.0), z (0.0) {}
     /// Construct from length and angle in the x-y plane.
     Three_Vector (double length, double angle);
     /// Construct from components.
     Three_Vector (double x_in, double y_in, double z_in)
-      : x (x_in), y (y_in), z (z_in) {};
-    /// Construct from 2D vector; z is zero..
+      : x (x_in), y (y_in), z (z_in) {}
+    /// Construct from 2D vector; z is zero.
     Three_Vector (const Two_Vector& xy_vector);
 
     /// Set each element to zero.
