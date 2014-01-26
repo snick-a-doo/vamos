@@ -20,11 +20,13 @@
 #include "../body/Wheel.h"
 #include "../geometry/Conversions.h"
 #include "../media/Two_D.h"
-#include "../track/Track.h"
+#include "../track/Strip_Track.h"
+
+#include "Atmosphere.h"
 #include "Gl_World.h"
-#include "Sounds.h"
 #include "Interactive_Driver.h"
 #include "Robot_Driver.h"
+#include "Sounds.h"
 #include "Timing_Info.h"
 
 #include <SDL.h>
@@ -182,21 +184,21 @@ Timer::use_fixed_time_step (bool use)
 }
 
 //-----------------------------------------------------------------------------
-Gl_World::Gl_World (int argc, char** argv,
-                    Vamos_Track::Strip_Track* track, 
-                    Atmosphere* atmosphere,
-                    Sounds* sounds,
+Gl_World::Gl_World (Vamos_Track::Strip_Track& track, 
+                    Atmosphere& atmosphere,
+                    Sounds& sounds,
                     bool full_screen)
   : World (track, atmosphere),
     m_timer (100, 10),
-    mp_sounds (sounds),
+    m_sounds (sounds),
     mp_window (0),
     m_view (MAP_VIEW),
     m_update_graphics (true),
     m_done (false)
 {
-  initialize_graphics (&argc, argv);
-  mp_window = new Gl_Window (900, 600, argv [0], full_screen);
+  int argc = 0;
+  initialize_graphics (&argc, NULL);
+  mp_window = new Gl_Window (900, 600, "Vamos", full_screen);
   reshape (mp_window->width (), mp_window->height ());
   set_attributes ();
   set_paused (true);
@@ -245,12 +247,11 @@ Gl_World::set_attributes ()
 }
 
 void 
-Gl_World::add_car (Vamos_Body::Car* car, 
-                   Driver* driver,
+Gl_World::add_car (Vamos_Body::Car& car, 
+                   Driver& driver,
                    const Vamos_Track::Road& road,
                    bool controlled)
 {
-  if (car == 0) return;
   World::add_car (car, driver, road, controlled);
 
   // If there's a controlled car, show the view from inside it. Otherwise show
@@ -287,8 +288,8 @@ Gl_World::set_paused (bool is_paused)
       it->car->set_paused (is_paused);
     }
 
-  if ((mp_sounds != 0) && is_paused)
-    mp_sounds->pause ();
+  if (is_paused)
+    m_sounds.pause ();
 }
 
 bool 
@@ -320,7 +321,7 @@ Gl_World::read_car (double, double)
 bool 
 Gl_World::read_track (double, double)
 {
-  mp_track->read ();
+  m_track.read ();
   display ();
   return true;
 }
@@ -452,7 +453,7 @@ Gl_World::update_car_timing ()
       if (!car.driver->is_driving ())
         car.driver->start (mp_timing->countdown ());
       const double distance = car.track_position ().x;
-      const int sector = mp_track->sector (distance);
+      const int sector = m_track.sector (distance);
       mp_timing->update (m_timer.get_current_time (), i, distance, sector);
       if (mp_timing->timing_at_index (i).is_finished ())
         car.driver->finish ();
@@ -462,8 +463,6 @@ Gl_World::update_car_timing ()
 void
 Gl_World::play_sounds ()
 {
-  if (mp_sounds == 0) return;
-
   double tire_slide = 0.0;
   double kerb_speed = 0.0;
   double grass_speed = 0.0;
@@ -514,17 +513,16 @@ Gl_World::play_sounds ()
   m_interaction_info.clear ();
   const Three_Vector& p = focused_car ()->car->chassis ().position ();
 
-  mp_sounds->play_tire_squeal_sound (tire_slide, p);
-  mp_sounds->play_kerb_sound (kerb_speed, p);
-  mp_sounds->play_grass_sound (grass_speed, p);
-  mp_sounds->play_gravel_sound (gravel_speed, p);
-  mp_sounds->play_scrape_sound (scrape_speed, p);
-  mp_sounds->play_wind_sound ((focused_car ()->car->chassis ().
-                               cm_velocity () 
-                               - mp_atmosphere->velocity ()).magnitude (),
-                              p);
-  mp_sounds->play_hard_crash_sound (hard_crash_speed, p);
-  mp_sounds->play_soft_crash_sound (soft_crash_speed, p);
+  m_sounds.play_tire_squeal_sound (tire_slide, p);
+  m_sounds.play_kerb_sound (kerb_speed, p);
+  m_sounds.play_grass_sound (grass_speed, p);
+  m_sounds.play_gravel_sound (gravel_speed, p);
+  m_sounds.play_scrape_sound (scrape_speed, p);
+  m_sounds.play_wind_sound ((focused_car ()->car->chassis ().cm_velocity () 
+                             - m_atmosphere.velocity ()).magnitude (),
+                            p);
+  m_sounds.play_hard_crash_sound (hard_crash_speed, p);
+  m_sounds.play_soft_crash_sound (soft_crash_speed, p);
 }
 
 void 
@@ -558,8 +556,8 @@ Gl_World::draw_mirror_views ()
       glPushAttrib (GL_POLYGON_BIT);
       {
         glCullFace (GL_FRONT);
-        mp_track->draw_sky (focused_car ()->car->view_position ());
-        mp_track->draw ();
+        m_track.draw_sky (focused_car ()->car->view_position ());
+        m_track.draw ();
         draw_cars (false, false);
       }
       glPopAttrib ();
@@ -597,8 +595,8 @@ Gl_World::set_world_view (const Vamos_Geometry::Three_Vector& camera_position,
 void 
 Gl_World::set_world_view (const Vamos_Track::Camera& camera)
 {
-  set_world_view (mp_track->camera_position (camera),
-                  camera.fixed ? mp_track->camera_target (camera)
+  set_world_view (m_track.camera_position (camera),
+                  camera.fixed ? m_track.camera_target (camera)
                   : focused_car ()->car->chassis ().cm_position (),
                   camera.vertical_field_angle);
 }
@@ -610,13 +608,13 @@ Gl_World::draw_track (bool draw_sky, const Three_Vector& view_position)
   if (draw_sky)
     {
       assert (focused_car () != 0);
-      mp_track->draw_sky (view_position);
+      m_track.draw_sky (view_position);
     }
   else
     {
-      mp_track->draw_map_background ();
+      m_track.draw_map_background ();
     }
-  mp_track->draw ();
+  m_track.draw ();
 }
 
 void 
@@ -680,7 +678,7 @@ Gl_World::display ()
       break;
     case MAP_VIEW:
       m_map.set_view ();
-      draw_track (false);
+      draw_track (false, Three_Vector::ZERO);
       if (focused_car () != 0)
         {
           draw_cars (false);
@@ -692,10 +690,10 @@ Gl_World::display ()
         if (focused_car () != 0)
           {
             const Vamos_Track::Camera& camera =
-              mp_track->get_camera (mp_timing->timing_at_index (m_focused_car_index)
+              m_track.get_camera (mp_timing->timing_at_index (m_focused_car_index)
                                     .lap_distance ());
             set_world_view (camera);
-            draw_track (true, mp_track->camera_position (camera));
+            draw_track (true, m_track.camera_position (camera));
           }
         draw_cars (true);
         draw_timing_info ();
@@ -716,13 +714,13 @@ Gl_World::reshape (int width, int height)
     {
       focused_car ()->car->make_rear_view_mask (width, height);
     }
-  m_map.set_bounds (*mp_track, *mp_window);
+  m_map.set_bounds (m_track, *mp_window);
 }
 
 void 
 Gl_World::draw_timing_info ()
 {
-  if (!mp_track->has_starting_lights ())
+  if (!m_track.has_starting_lights ())
     set_starting_lights ();
 
   Vamos_Media::Two_D screen;
@@ -777,7 +775,7 @@ Gl_World::draw_leaderboard (Vamos_Media::Two_D& screen)
   const Timing_Info::Running_Order& order = mp_timing->running_order ();
   Timing_Info::Running_Order::const_iterator it = order.begin ();
 
-  if (mp_track->get_road (0).is_closed ())
+  if (m_track.get_road (0).is_closed ())
     {
       const size_t lap = (*it)->current_lap ();
       const size_t total_laps = mp_timing->total_laps ();
@@ -812,7 +810,7 @@ Gl_World::draw_leaderboard (Vamos_Media::Two_D& screen)
       screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (), time);
     }
 
-  if (!mp_timing->qualifying () && mp_track->get_road (0).is_closed ())
+  if (!mp_timing->qualifying () && m_track.get_road (0).is_closed ())
     {
       y -= 3;
       screen.text (x, y, "Fastest Lap");
@@ -852,7 +850,7 @@ void
 Gl_World::start (bool qualifying, size_t laps_or_minutes)
 {
   World::start (qualifying, laps_or_minutes);
-  m_map.set_bounds (*mp_track, *mp_window);
+  m_map.set_bounds (m_track, *mp_window);
   if (!m_cars.empty ())
     set_paused (false);
   m_timer.reset ();
@@ -1103,13 +1101,13 @@ World_Reader::on_data (std::string data)
     {
       double density;
       is >> density;
-      mp_world->mp_atmosphere->density (density);
+      mp_world->m_atmosphere.density (density);
     }
   else if (path () == "/world/atmosphere/velocity")
     {
       Three_Vector velocity;
       is >> velocity;
-      mp_world->mp_atmosphere->velocity (velocity);
+      mp_world->m_atmosphere.velocity (velocity);
     }
   else if (path () == "/world/atmosphere/speed-of-sound")
     {

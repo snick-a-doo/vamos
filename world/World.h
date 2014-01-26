@@ -20,17 +20,31 @@
 #ifndef _WORLD_H_
 #define _WORLD_H_
 
-#include "../body/Car.h"
 #include "../geometry/Circular_Buffer.h"
 #include "../geometry/Material.h"
+#include "../geometry/Three_Matrix.h"
 #include "../geometry/Three_Vector.h"
-#include "../track/Strip_Track.h"
-#include "../track/Road_Segment.h"
-#include "Atmosphere.h"
+
 #include "Timing_Info.h"
 
 #include <vector>
 #include <iosfwd>
+
+namespace Vamos_Body
+{
+  class Car;
+}
+
+namespace Vamos_Geometry
+{
+  class Three_Vector;
+}
+
+namespace Vamos_Track
+{
+  class Road;
+  class Strip_Track;
+}
 
 namespace Vamos_World
 {
@@ -91,10 +105,13 @@ namespace Vamos_World
     double perpendicular_speed;
   };
 
+  class Atmosphere;
+  class Track;
+
   class World
   {
   public:
-    World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere);
+    World (Vamos_Track::Strip_Track& track, Atmosphere& atmosphere);
     virtual ~World ();
 
     void interact (Vamos_Body::Car* car, 
@@ -103,10 +120,10 @@ namespace Vamos_World
     void collide (Car_Information* car1_info, Car_Information* car2_info);
     void gravity (double g);
     double get_gravity () const { return m_gravity; }
-    virtual void add_car (Vamos_Body::Car* car,
-                          Driver* driver,
+    virtual void add_car (Vamos_Body::Car& car,
+                          Driver& driver,
                           const Vamos_Track::Road& road,
-                          bool controlled = false);
+                          bool controlled);
     virtual void set_focused_car (size_t car_index);
     void focus_other_car (int delta);
     void cars_can_interact (bool can) { m_cars_can_interact = can; }
@@ -115,8 +132,8 @@ namespace Vamos_World
     void write_results (std::ofstream& os) const;
 
   protected:
-    Vamos_Track::Strip_Track* mp_track;
-    Atmosphere* mp_atmosphere;
+    Vamos_Track::Strip_Track& m_track;
+    Atmosphere& m_atmosphere;
     double m_gravity;
 
     std::vector <Car_Information> m_cars;

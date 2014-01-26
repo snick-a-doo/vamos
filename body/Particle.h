@@ -50,7 +50,7 @@ namespace Vamos_Body
 	Particle (double mass = 0.0,
               const Frame* parent = 0);
 
-	virtual ~Particle () {};
+	virtual ~Particle () {}
 
 	// Return the force exerted on the rigid body in the body's frame.
 	virtual Vamos_Geometry::Three_Vector force () const
@@ -101,16 +101,16 @@ namespace Vamos_Body
 
 	// Find and store the forces, impulses, and torques for the
 	// current configuration.
-	virtual void find_forces () {};
+	virtual void find_forces () {}
 
 	// Propagate the Particle forward in time by TIME.
 	virtual void propagate (double time) {};
 
 	// Undo the last propagation.
-	virtual void rewind () {};
+	virtual void rewind () {}
 
 	// Do any necessary cleanup at the end of a time step.
-	virtual void end_timestep () {};
+	virtual void end_timestep () {}
 
 	// Set the force, impulse and torque to zero;
 	virtual void reset ();

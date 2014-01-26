@@ -15,10 +15,14 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#include "World.h"
+#include "Atmosphere.h"
 #include "Driver.h"
 #include "Timing_Info.h"
-#include "../body/Wheel.h"
+#include "World.h"
+
+#include "../body/Car.h"
+#include "../geometry/Three_Vector.h"
+#include "../track/Strip_Track.h"
 
 #include <cassert>
 #include <limits>
@@ -81,9 +85,9 @@ Car_Information::Record::Record (double time,
 }
 
 //-----------------------------------------------------------------------------
-World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere)
-  : mp_track (track),
-    mp_atmosphere (atmosphere),
+World::World (Vamos_Track::Strip_Track& track, Atmosphere& atmosphere)
+  : m_track (track),
+    m_atmosphere (atmosphere),
     m_gravity (9.8),
     mp_timing (0),
     m_focused_car_index (0),
@@ -95,13 +99,6 @@ World::World (Vamos_Track::Strip_Track* track, Atmosphere* atmosphere)
 
 World::~World ()
 {
-  for (std::vector <Car_Information>::iterator it = m_cars.begin ();
-       it != m_cars.end ();
-       it++)
-    {
-      delete it->car;
-      delete it->driver;
-    }
   delete mp_timing;
 }
 
@@ -111,7 +108,7 @@ World::start (bool qualify, size_t laps_or_minutes)
   // Here qualifying implies no start sequence, but that's not necessarily the
   // case.  That's why we pass !qualify to the constructor and also call
   // set_qualifying();
-  mp_timing = new Timing_Info (m_cars.size (), mp_track->timing_lines (), !qualify);
+  mp_timing = new Timing_Info (m_cars.size (), m_track.timing_lines (), !qualify);
   if (qualify)
     {
       mp_timing->set_qualifying ();
@@ -170,12 +167,12 @@ World::propagate_cars (double time_step)
       Car_Information& info = m_cars [i];
       info.propagate (time_step, 
                       mp_timing->total_time (),
-                      mp_track->track_coordinates (info.car->front_position (),
-                                                   info.road_index,
-                                                   info.segment_index),
-                      mp_track->track_coordinates (info.car->target_position (),
-                                                   info.road_index,
-                                                   info.segment_index));
+                      m_track.track_coordinates (info.car->front_position (),
+                                                 info.road_index,
+                                                 info.segment_index),
+                      m_track.track_coordinates (info.car->target_position (),
+                                                 info.road_index,
+                                                 info.segment_index));
       interact (info.car, info.road_index, info.segment_index);
 
       double air_density_factor = 1.0;
@@ -194,8 +191,8 @@ World::propagate_cars (double time_step)
         }
       
       // Handle air resistance.
-      info.car->wind (mp_atmosphere->velocity (), 
-                      mp_atmosphere->density () * air_density_factor);
+      info.car->wind (m_atmosphere.velocity (), 
+                      m_atmosphere.density () * air_density_factor);
     }
 }
 
@@ -209,7 +206,7 @@ World::slipstream_air_density_factor (Car_Information& car1, Car_Information& ca
   const Three_Vector& p1 = car1.track_position ();
   const Three_Vector& p2 = car2.track_position ();
 
-  const Vamos_Track::Road& road = mp_track->get_road (car1.road_index);
+  const Vamos_Track::Road& road = m_track.get_road (car1.road_index);
   if (road.distance (p1.x, p2.x) > 0.0)
    return 1.0;
 
@@ -254,10 +251,10 @@ World::interact (Car* car,
       const Three_Vector& pos = car->chassis ().contact_position (*it);
       double bump_parameter = 
         car->distance_traveled () + (*it)->position ().x;
-      const Contact_Info info = mp_track->test_for_contact (pos, 
-                                                            bump_parameter, 
-                                                            road_index,
-                                                            segment_index);
+      const Contact_Info info = m_track.test_for_contact (pos, 
+                                                          bump_parameter, 
+                                                          road_index,
+                                                          segment_index);
 
       const Three_Vector& velocity = car->chassis ().velocity (*it);
       if (info.contact)
@@ -292,8 +289,8 @@ World::interact (Car* car,
 
   // Check for contact with track objects.
   for (std::vector <Vamos_Track::Track_Object>::const_iterator 
-         object = mp_track->objects ().begin ();
-       object != mp_track->objects ().end ();
+         object = m_track.objects ().begin ();
+       object != m_track.objects ().end ();
        object++)
     {
       const Contact_Info info = car->collision (object->position, 
@@ -416,10 +413,10 @@ World::reset ()
   Car* car = controlled_car ()->car;
   car->reset ();
   place_car (car,
-             mp_track->reset_position (car->chassis ().position (), 
-                                       road_index, 
-                                       segment_index),
-             mp_track->get_road (road_index));
+             m_track.reset_position (car->chassis ().position (), 
+                                     road_index, 
+                                     segment_index),
+             m_track.get_road (road_index));
 }
 
 // Place the car back on the track at the starting line.
@@ -480,14 +477,13 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
 }
 
 void 
-World::add_car (Car* car, Driver* driver, const Road& road, bool controlled)
+World::add_car (Car& car, Driver& driver, const Road& road, bool controlled)
 {
-  car->chassis ().gravity (Three_Vector (0.0, 0.0, -m_gravity));
-  m_cars.push_back (Car_Information (car, driver));
-  if (driver != 0)
-    driver->set_cars (&m_cars);
+  car.chassis ().gravity (Three_Vector (0.0, 0.0, -m_gravity));
+  m_cars.push_back (Car_Information (&car, &driver));
+  driver.set_cars (&m_cars);
 
-  place_car (car, car->chassis ().position (), road);
+  place_car (&car, car.chassis ().position (), road);
 
   if (controlled)
     set_controlled_car (m_cars.size () - 1);
@@ -534,7 +530,7 @@ World::write_results (std::ofstream& os) const
 {
   const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
 
-  os << mp_track->track_file () << std::endl
+  os << m_track.track_file () << std::endl
      << (p_fastest ? p_fastest->laps_complete () : 0) << std::endl
      << mp_timing->total_laps () << std::endl
      << (p_fastest ? p_fastest->best_lap_time () : 0) << std::endl;

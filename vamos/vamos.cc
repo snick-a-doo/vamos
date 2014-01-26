@@ -20,6 +20,7 @@
 #include "../body/Gl_Car.h"
 #include "../media/Ac3d.h"
 #include "../track/Strip_Track.h"
+#include "../world/Atmosphere.h"
 #include "../world/Gl_World.h"
 #include "../world/Sounds.h"
 #include "../world/Interactive_Driver.h"
@@ -133,7 +134,7 @@ int main (int argc, char* argv [])
   Strip_Track track;
   Atmosphere air (1.2, Three_Vector (0.0, 0.0, 0.0));
   Sounds sounds (opt.volume);
-  Gl_World world (argc, argv, &track, &air, &sounds, opt.full_screen);
+  Gl_World world (track, air, sounds, opt.full_screen);
 
   try
     {
@@ -163,7 +164,8 @@ int main (int argc, char* argv [])
               if (itEntry->interactive)
                 {
                   interactive = true;
-                  world.add_car (car, new Interactive_Driver (car), road, true);
+                  Interactive_Driver* driver = new Interactive_Driver (*car);
+                  world.add_car (*car, *driver, road, true);
                   world.set_focused_car (place - 1);
                 }
               else
@@ -173,12 +175,12 @@ int main (int argc, char* argv [])
                                                 opt.performance,
                                                 opt.performance);
                   Robot_Driver* driver
-                    = new Robot_Driver (car, &track, world.get_gravity ());
+                    = new Robot_Driver (*car, track, world.get_gravity ());
                   if (opt.qualifying)
                     driver->qualify ();
                   driver->interact (opt.interact);
                   driver->show_steering_target (opt.show_line);
-                  world.add_car (car, driver, road, false);
+                  world.add_car (*car, *driver, road, false);
                 }
             }
 

@@ -20,18 +20,27 @@
 #ifndef _GL_WORLD_H_
 #define _GL_WORLD_H_
 
-#include "../body/Gl_Car.h"
-#include "../geometry/Three_Vector.h"
-#include "../geometry/Rectangle.h"
-#include "../media/XML_Parser.h"
 #include "World.h"
 #include "Controls.h"
 
+#include "../geometry/Rectangle.h"
+#include "../media/XML_Parser.h"
+
 #include <SDL_events.h>
+
+namespace Vamos_Geometry
+{
+  class Three_Vector;
+}
 
 namespace Vamos_Media
 {
   class Two_D;
+}
+
+namespace Vamos_Track
+{
+  class Camera;
 }
 
 namespace Vamos_World
@@ -189,15 +198,14 @@ namespace Vamos_World
   class Gl_World : public World, public Control_Handler
   {
   public:
-	Gl_World (int argc, char** argv, 
-			  Vamos_Track::Strip_Track* track, 
-			  Atmosphere* atmosphere,
-			  Sounds* sounds,
+	Gl_World (Vamos_Track::Strip_Track& track, 
+			  Atmosphere& atmosphere,
+			  Sounds& sounds,
               bool full_screen);
-	~Gl_World ();
+	virtual ~Gl_World ();
 
-    virtual void add_car (Vamos_Body::Car* car,
-                          Driver* driver,
+    virtual void add_car (Vamos_Body::Car& car,
+                          Driver& driver,
                           const Vamos_Track::Road& road,
                           bool fcontrolled);
 
@@ -244,7 +252,7 @@ namespace Vamos_World
 	std::string m_controls_file;
 
 	Timer m_timer;
-	Sounds* mp_sounds;
+	Sounds& m_sounds;
 
     Control m_keyboard;
     Control m_joystick;
@@ -287,10 +295,7 @@ namespace Vamos_World
 	void set_world_view (const Vamos_Geometry::Three_Vector& camera_position,
                          const Vamos_Geometry::Three_Vector& target_position,
                          double vertical_field_angle);
-	void draw_track (bool draw_sky,
-					 const Vamos_Geometry::Three_Vector& 
-					 view_position = Vamos_Geometry::
-					 Three_Vector (0.0, 0.0, 0.0));
+	void draw_track (bool draw_sky, const Vamos_Geometry::Three_Vector& view_position); 
 	void draw_cars (bool draw_interior, bool draw_focused_car = true);
 	void draw_mirror_views ();
 	void show_scene ();

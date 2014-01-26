@@ -202,8 +202,8 @@ namespace Vamos_World
 
   public:
     /// Provide pointers to the robot's car and the track.
-    Robot_Driver (Vamos_Body::Car* car_in, 
-                  Vamos_Track::Strip_Track* track_in,
+    Robot_Driver (Vamos_Body::Car& car_in, 
+                  Vamos_Track::Strip_Track& track_in,
                   double gravity);
     virtual ~Robot_Driver () {};
 

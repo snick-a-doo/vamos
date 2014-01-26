@@ -17,8 +17,8 @@ namespace Vamos_World
   class Driver
   {
   public:
-    Driver (Vamos_Body::Car* car_in) 
-      : mp_car (car_in)
+    Driver (Vamos_Body::Car& car_in) 
+      : mp_car (&car_in)
     {
     }
 

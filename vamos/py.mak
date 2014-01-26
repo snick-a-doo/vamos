@@ -37,6 +37,7 @@ bp-media.so: bp-media.o
 bp-track.so: bp-track.o
 	g++ -shared -Wl,-soname,track.so -o track.so bp-track.o \
 	../track/Strip_Track.o \
+	../track/Strip_Track_Reader.o \
 	../geometry/.libs/libvamos-geometry.so \
 	../media/.libs/libvamos-media.so \
 	../track/.libs/libvamos-track.so \
@@ -68,6 +69,8 @@ bp-world.so: bp-world.o
 	../media/Two_D.o \
 	../world/Atmosphere.o \
 	../world/Gl_World.o \
+	../world/Interactive_Driver.o \
+	../world/Robot_Driver.o \
 	../world/Sounds.o \
 	../world/Timing_Info.o \
 	../world/World.o \

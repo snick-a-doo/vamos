@@ -32,7 +32,7 @@ namespace Vamos_World
 
 	void velocity (const Vamos_Geometry::Three_Vector& vel) 
 	{ m_velocity = vel; }
-	Vamos_Geometry::Three_Vector velocity () const { return m_velocity; }
+	const Vamos_Geometry::Three_Vector& velocity () const { return m_velocity; }
 
 	void density (double rho) { m_density = rho; }
 	double density () const { return m_density; }

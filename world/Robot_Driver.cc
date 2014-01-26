@@ -51,8 +51,8 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-Robot_Driver::Robot_Driver (Car* car_in, 
-                            Strip_Track* track_in,
+Robot_Driver::Robot_Driver (Car& car_in, 
+                            Strip_Track& track_in,
                             double gravity)
 : Driver (car_in),
   m_mode (RACE),
@@ -65,10 +65,10 @@ Robot_Driver::Robot_Driver (Car* car_in,
   m_brake_control (0.1, 0.0, 0.0),
   m_steer_control (0.5, 0.0, 0.0),
   m_front_gap_control (1.5, 0.0, 1.5),
-  m_target_slip (car_in->get_robot_parameters ().slip_ratio),
+  m_target_slip (car_in.get_robot_parameters ().slip_ratio),
   m_speed (0.0),
   m_target_segment (0),
-  mp_track (track_in),
+  mp_track (&track_in),
   m_shift_time (0.0),
   m_timestep (1.0),
   m_lane_shift (0.0),
@@ -77,10 +77,10 @@ Robot_Driver::Robot_Driver (Car* car_in,
   m_show_steering_target (false),
   m_road (mp_track->get_road (0)),
   m_racing_line (m_road,
-                 car_in->get_robot_parameters ().lateral_acceleration,
+                 car_in.get_robot_parameters ().lateral_acceleration,
                  gravity),
   m_braking (m_road,
-             car_in->get_robot_parameters ().deceleration,
+             car_in.get_robot_parameters ().deceleration,
              gravity,
              m_racing_line),
   m_speed_factor (1.0),
@@ -209,7 +209,6 @@ Robot_Driver::handle_event ()
 
 double Robot_Driver::lengths (double n) const
 {
-  //! replace n*mp_car->length() everywhere.
   return n * mp_car->length ();
 }
 

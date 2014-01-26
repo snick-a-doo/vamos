@@ -137,7 +137,7 @@ namespace Vamos_Body
                                double volume, 
                                double throttle_volume_factor, 
                                double engine_speed_volume_factor, 
-                               double pitch) = 0;
+                               double pitch) {};
 
     // Set and get the parameters for computer control.
     void set_robot_parameters (double slip_ratio,
@@ -157,14 +157,14 @@ namespace Vamos_Body
     virtual void 
     exterior_model (std::string file, double scale,
                     const Vamos_Geometry::Three_Vector& translation,
-                    const Vamos_Geometry::Three_Vector& rotation) = 0;
+                    const Vamos_Geometry::Three_Vector& rotation) {};
     virtual void 
     interior_model (std::string file, double scale,
                     const Vamos_Geometry::Three_Vector& translation,
-                    const Vamos_Geometry::Three_Vector& rotation) = 0;
+                    const Vamos_Geometry::Three_Vector& rotation) {};
 
     // Set the dashboard.
-    virtual void dashboard (Dashboard* dash) = 0;
+    virtual void dashboard (Dashboard* dash) {};
 
     // Advance the car in time by TIME.
     virtual void propagate (double time);
