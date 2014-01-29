@@ -110,6 +110,7 @@ world_la_OBJECTS = $(am_world_la_OBJECTS)
 world_la_LINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(world_la_CXXFLAGS) $(CXXFLAGS) \
 	$(world_la_LDFLAGS) $(LDFLAGS) -o $@
+@HAVE_PYTHON_TRUE@am_world_la_rpath = -rpath $(pyexecdir)
 @DO_UNIT_TESTS_TRUE@am__EXEEXT_1 = test_Controls$(EXEEXT) \
 @DO_UNIT_TESTS_TRUE@	test_Timing_Info$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
@@ -288,7 +289,8 @@ pkginclude_HEADERS = \
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost `pkg-config sdl --cflags`
-pyexec_LTLIBRARIES = world.la
+@HAVE_PYTHON_FALSE@pyexec_LTLIBRARIES = 
+@HAVE_PYTHON_TRUE@pyexec_LTLIBRARIES = world.la
 world_la_SOURCES = bp-world.cc
 world_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
 world_la_LDFLAGS = -avoid-version -module
@@ -408,7 +410,7 @@ clean-pyexecLTLIBRARIES:
 libvamos-world.la: $(libvamos_world_la_OBJECTS) $(libvamos_world_la_DEPENDENCIES) $(EXTRA_libvamos_world_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libvamos_world_la_OBJECTS) $(libvamos_world_la_LIBADD) $(LIBS)
 world.la: $(world_la_OBJECTS) $(world_la_DEPENDENCIES) $(EXTRA_world_la_DEPENDENCIES) 
-	$(world_la_LINK) -rpath $(pyexecdir) $(world_la_OBJECTS) $(world_la_LIBADD) $(LIBS)
+	$(world_la_LINK) $(am_world_la_rpath) $(world_la_OBJECTS) $(world_la_LIBADD) $(LIBS)
 
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \

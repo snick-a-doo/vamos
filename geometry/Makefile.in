@@ -102,6 +102,7 @@ geometry_la_OBJECTS = $(am_geometry_la_OBJECTS)
 geometry_la_LINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(geometry_la_CXXFLAGS) $(CXXFLAGS) \
 	$(geometry_la_LDFLAGS) $(LDFLAGS) -o $@
+@HAVE_PYTHON_TRUE@am_geometry_la_rpath = -rpath $(pyexecdir)
 libvamos_geometry_la_LIBADD =
 am_libvamos_geometry_la_OBJECTS = Calculations.lo Inertia_Tensor.lo \
 	Interpolator.lo Linear_Interpolator.lo Material.lo PID.lo \
@@ -341,7 +342,10 @@ pkginclude_HEADERS = \
 	Two_Vector.h \
 	Parameter.h
 
-pyexec_LTLIBRARIES = geometry.la
+EXTRA_DIST = $(pkginclude_HEADERS)
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O0 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
+@HAVE_PYTHON_FALSE@pyexec_LTLIBRARIES = 
+@HAVE_PYTHON_TRUE@pyexec_LTLIBRARIES = geometry.la
 geometry_la_SOURCES = bp-geometry.cc
 geometry_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python3.2
 geometry_la_LDFLAGS = -avoid-version -module
@@ -350,8 +354,6 @@ geometry_la_LIBADD = \
 	-lpython$(PYTHON_VERSION) \
 	-lboost_python-$(PYTHON_VERSION)
 
-EXTRA_DIST = $(pkginclude_HEADERS)
-AM_CXXFLAGS = -fPIC -Wall -pedantic -O0 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
 @DO_UNIT_TESTS_FALSE@UNIT_TESTS = 
 @DO_UNIT_TESTS_TRUE@UNIT_TESTS = \
 @DO_UNIT_TESTS_TRUE@	test_Calculations \
@@ -484,7 +486,7 @@ clean-pyexecLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 geometry.la: $(geometry_la_OBJECTS) $(geometry_la_DEPENDENCIES) $(EXTRA_geometry_la_DEPENDENCIES) 
-	$(geometry_la_LINK) -rpath $(pyexecdir) $(geometry_la_OBJECTS) $(geometry_la_LIBADD) $(LIBS)
+	$(geometry_la_LINK) $(am_geometry_la_rpath) $(geometry_la_OBJECTS) $(geometry_la_LIBADD) $(LIBS)
 libvamos-geometry.la: $(libvamos_geometry_la_OBJECTS) $(libvamos_geometry_la_DEPENDENCIES) $(EXTRA_libvamos_geometry_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libvamos_geometry_la_OBJECTS) $(libvamos_geometry_la_LIBADD) $(LIBS)
 

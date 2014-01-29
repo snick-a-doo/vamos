@@ -526,9 +526,11 @@ World::controlled_car ()
 }
 
 void
-World::write_results (std::ofstream& os) const
+World::write_results (const std::string& file) const
 {
   const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
+
+  std::ofstream os (file.c_str ());
 
   os << m_track.track_file () << std::endl
      << (p_fastest ? p_fastest->laps_complete () : 0) << std::endl

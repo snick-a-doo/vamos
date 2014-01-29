@@ -27,7 +27,12 @@ EXTRA_DIST = $(pkginclude_HEADERS)
 
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost `pkg-config sdl --cflags`
 
+if HAVE_PYTHON
 pyexec_LTLIBRARIES = world.la
+else
+pyexec_LTLIBRARIES =
+endif
+
 world_la_SOURCES = bp-world.cc
 world_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
 world_la_LDFLAGS = -avoid-version -module

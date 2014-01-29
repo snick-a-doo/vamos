@@ -1,58 +1,48 @@
-#  Vamos Automotive Simulator
-#  Copyright (C) 2014 Sam Varner
+#  This file is part of Vamos Automotive Simulator
+#  
+#  Copyright 2014 Sam Varner
 #
-#  This program is free software; you can redistribute it and/or modify
+#  Vamos is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
+#  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
+# 
+#  Foobar is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#
+# 
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-# TODO:
-# 1. Get datadir from configure.
-# 2. Handle file exceptions.
-# 3. Print results.
+#  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import os
 
-sys.path.insert (0, '../body/.libs')
-sys.path.insert (0, '../geometry/.libs')
-sys.path.insert (0, '../media/.libs')
-sys.path.insert (0, '../track/.libs')
-sys.path.insert (0, '../world/.libs')
+sys.path = (['../%s/.libs' % subdir for subdir in 
+            ['body', 'geometry', 'media', 'track', 'world']]
+            + sys.path)
 
+import config
 from body import Gl_Car
 from geometry import Three_Matrix, Three_Vector
 from media import XML_Exception
 from track import Strip_Track
 from world import Atmosphere, Gl_World, Interactive_Driver, Robot_Driver, Sounds
 
-#! Get from config.
-DATADIR = '/usr/share/vamos/data'
-
 class Entry:
     def __init__ (self, file, interactive, time):
         self.file = file
         self.interactive = interactive
         self.time = time
-
-def quicker (entry1, entry2):
-    return entry1.time < entry2.time
+    def get_time (self):
+        return self.time
 
 def get_path (file, section, extend):
     path = '../data/' + section + '/' + file
     if extend: path += '.xml'
     if os.path.exists (path):
         return path
-    path = DATADIR + '/' + section + '/' + file
+    path = config.datadir + '/' + section + '/' + file
     if extend: path += '.xml'
     if os.path.exists (path):
         return path
@@ -61,12 +51,12 @@ def get_path (file, section, extend):
 def read_input (opt):
     entries = []
     with open (opt.input_file) as f:
-        line = f.readline ()
-        opt.track_file = line [0]
+        line = f.readlines ()
+        opt.track_file = line [0][:-1]
         for entry in line [4:]:
             e = entry.split ()
-            entries.append (Entry (e[0], e[2] == 'interactive', float (e[3])))
-    entries.sort (quicker)
+            entries.append (Entry (e[0], e[2] == 'interactive', float (e[4])))
+    entries.sort (key = Entry.get_time)
     opt.number_of_cars = len (entries)
     return entries
 
@@ -84,9 +74,8 @@ def get_entries (opt):
         car_files.append (get_path (opt.car_file, 'cars', True))
     car_files.sort ()
     entries = []
-    for car in car_files:
-        if len (entries) < opt.number_of_cars:
-            entries.append (Entry (car, False, 0))
+    while len (entries) < opt.number_of_cars:
+        entries.append (Entry (car_files [len (entries) % len (car_files)], False, 0))
     assert (len (entries) == opt.number_of_cars)
     if not opt.demo:
         entries[-1].interactive = True
@@ -96,7 +85,6 @@ def vamos (opt):
     cars = []
     drivers = []
     try:
-        #print (opt)
         entries = get_entries (opt)
         air = Atmosphere (1.2, Three_Vector())
         sounds = Sounds (opt.volume)
@@ -141,28 +129,18 @@ def vamos (opt):
                         get_path (opt.controls_file, 'controls', True))
             sounds.read (opt.data_dir + 'sounds/', 'default-sounds.xml')
 
-#! Handle file exceptions.  Catch all for now.
-    except:
+    # Handle file exceptions.
+    except RuntimeError:
         print (sys.exc_info()[1])
         return
-#    except Vamos_Media::Ac3d_Exception error:
-#        print (error.message ())
-#        return
-#
+
     if opt.show_line or opt.demo or opt.number_of_cars > 1:
         track.build_racing_line ()
         track.show_racing_line (opt.show_line)
 
     world.start (opt.qualifying, opt.laps)
+    world.write_results (('qualifying' if opt.qualifying else 'race') + '-results')
 
-    name = '-results'
-    if opt.qualifying:
-        name = 'qualifying' + name
-    else:
-        name = 'race' + name
-#! Print results
-#!  std::ofstream os (name.str ().c_str ());
-#    world.write_results (os)
 
 if __name__ == '__main__':
     from optparse import OptionParser
@@ -211,7 +189,7 @@ if __name__ == '__main__':
 
     options.data_dir = '../data/'
     if not os.path.exists (options.data_dir):
-        data_dir = DATADIR + "/";
+        data_dir = config.datadir + "/";
         if not os.path.exists (data_dir):
             print ("Couldn't find the data direcory, ../data or %s\n" % data_dir) 
             sys.exit (1)
@@ -226,6 +204,6 @@ if __name__ == '__main__':
         options.track_file = track_file
 
     if options.show_version:
-        print ('vamos 0.8.0')
+        print (config.version)
     else:
         vamos (options)

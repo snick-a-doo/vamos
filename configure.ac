@@ -1,12 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(vamos, 0.7.1, snick-a-doo@comcast.net)
+AC_INIT(vamos, 0.8.0, snick-a-doo@comcast.net)
 AC_CONFIG_SRCDIR(world/World.cc)
 AC_CONFIG_AUX_DIR(config)
 
 AM_INIT_AUTOMAKE
-
-AM_PATH_PYTHON
-
 
 AC_ARG_ENABLE(unit_tests,
   [  --enable-unit-tests  build and execute unit tests],
@@ -26,7 +23,8 @@ AC_PROG_LIBTOOL
 
 AC_PATH_X
 
-AM_PATH_PYTHON([3.2])
+AM_PATH_PYTHON([3.2],, [:])
+AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
 
 dnl Checks for libraries.
 AC_CHECK_LIB(SDL, SDL_Init,,
@@ -129,6 +127,7 @@ AC_CONFIG_FILES([Makefile
 				track/Makefile
 				world/Makefile
 				vamos/Makefile
+                vamos/config.py
 				data/Makefile
 				data/cars/Makefile
 				data/cars/F1/Makefile

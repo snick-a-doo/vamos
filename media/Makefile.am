@@ -20,7 +20,12 @@ EXTRA_DIST = $(pkginclude_HEADERS)
 
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
 
+if HAVE_PYTHON
 pyexec_LTLIBRARIES = media.la
+else
+pyexec_LTLIBRARIES =
+endif
+
 media_la_SOURCES = bp-media.cc
 media_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
 media_la_LDFLAGS = -avoid-version -module

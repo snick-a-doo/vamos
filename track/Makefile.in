@@ -107,6 +107,7 @@ track_la_OBJECTS = $(am_track_la_OBJECTS)
 track_la_LINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(track_la_CXXFLAGS) $(CXXFLAGS) \
 	$(track_la_LDFLAGS) $(LDFLAGS) -o $@
+@HAVE_PYTHON_TRUE@am_track_la_rpath = -rpath $(pyexecdir)
 @DO_UNIT_TESTS_TRUE@am__EXEEXT_1 = test_Road_Segment$(EXEEXT) \
 @DO_UNIT_TESTS_TRUE@	test_Strip_Track$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
@@ -283,7 +284,8 @@ pkginclude_HEADERS = \
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
-pyexec_LTLIBRARIES = track.la
+@HAVE_PYTHON_FALSE@pyexec_LTLIBRARIES = 
+@HAVE_PYTHON_TRUE@pyexec_LTLIBRARIES = track.la
 track_la_SOURCES = bp-track.cc
 track_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
 track_la_LDFLAGS = -avoid-version -module
@@ -419,7 +421,7 @@ clean-pyexecLTLIBRARIES:
 libvamos-track.la: $(libvamos_track_la_OBJECTS) $(libvamos_track_la_DEPENDENCIES) $(EXTRA_libvamos_track_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libvamos_track_la_OBJECTS) $(libvamos_track_la_LIBADD) $(LIBS)
 track.la: $(track_la_OBJECTS) $(track_la_DEPENDENCIES) $(EXTRA_track_la_DEPENDENCIES) 
-	$(track_la_LINK) -rpath $(pyexecdir) $(track_la_OBJECTS) $(track_la_LIBADD) $(LIBS)
+	$(track_la_LINK) $(am_track_la_rpath) $(track_la_OBJECTS) $(track_la_LIBADD) $(LIBS)
 
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \

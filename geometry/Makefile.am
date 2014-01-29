@@ -34,8 +34,18 @@ pkginclude_HEADERS = \
 	Two_Vector.h \
 	Parameter.h
 
+pkgincludedir = $(includedir)/@PACKAGE@/geometry
 
+EXTRA_DIST = $(pkginclude_HEADERS)
+
+AM_CXXFLAGS = -fPIC -Wall -pedantic -O0 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
+
+if HAVE_PYTHON
 pyexec_LTLIBRARIES = geometry.la
+else
+pyexec_LTLIBRARIES =
+endif
+
 geometry_la_SOURCES = bp-geometry.cc
 geometry_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python3.2
 geometry_la_LDFLAGS = -avoid-version -module
@@ -43,12 +53,6 @@ geometry_la_LIBADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	-lpython$(PYTHON_VERSION) \
 	-lboost_python-$(PYTHON_VERSION)
-
-pkgincludedir = $(includedir)/@PACKAGE@/geometry
-
-EXTRA_DIST = $(pkginclude_HEADERS)
-
-AM_CXXFLAGS = -fPIC -Wall -pedantic -O0 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
 
 if DO_UNIT_TESTS
 UNIT_TESTS = \

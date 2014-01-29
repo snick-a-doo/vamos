@@ -11,8 +11,8 @@ cscope.files
 cscope.out
 libtool
 caelum
-vamos
-!vamos/
+vamos/vamos
+vamos/config.py
 magic-eq
 out
 *.pyc

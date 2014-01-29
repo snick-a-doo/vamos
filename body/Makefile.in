@@ -103,6 +103,7 @@ body_la_OBJECTS = $(am_body_la_OBJECTS)
 body_la_LINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(body_la_CXXFLAGS) $(CXXFLAGS) \
 	$(body_la_LDFLAGS) $(LDFLAGS) -o $@
+@HAVE_PYTHON_TRUE@am_body_la_rpath = -rpath $(pyexecdir)
 libvamos_body_la_LIBADD =
 am_libvamos_body_la_OBJECTS = Aerodynamic_Device.lo Rigid_Body.lo \
 	Brake.lo Car.lo Car_Reader.lo Clutch.lo Contact_Point.lo \
@@ -335,7 +336,8 @@ pkginclude_HEADERS = \
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
-pyexec_LTLIBRARIES = body.la
+@HAVE_PYTHON_FALSE@pyexec_LTLIBRARIES = 
+@HAVE_PYTHON_TRUE@pyexec_LTLIBRARIES = body.la
 body_la_SOURCES = bp-body.cc
 body_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
 body_la_LDFLAGS = -avoid-version -module
@@ -488,7 +490,7 @@ clean-pyexecLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 body.la: $(body_la_OBJECTS) $(body_la_DEPENDENCIES) $(EXTRA_body_la_DEPENDENCIES) 
-	$(body_la_LINK) -rpath $(pyexecdir) $(body_la_OBJECTS) $(body_la_LIBADD) $(LIBS)
+	$(body_la_LINK) $(am_body_la_rpath) $(body_la_OBJECTS) $(body_la_LIBADD) $(LIBS)
 libvamos-body.la: $(libvamos_body_la_OBJECTS) $(libvamos_body_la_DEPENDENCIES) $(EXTRA_libvamos_body_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libvamos_body_la_OBJECTS) $(libvamos_body_la_LIBADD) $(LIBS)
 

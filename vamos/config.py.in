@@ -1,0 +1,7 @@
+package = '''@PACKAGE@'''
+prefix = '''@prefix@'''
+data_root = '''@datarootdir@'''
+
+datadir = data_root.replace ('${prefix}', prefix) + '/' + package
+
+version = '''@PACKAGE_NAME@''' + ' ' + '''@PACKAGE_VERSION@'''

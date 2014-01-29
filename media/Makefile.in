@@ -106,6 +106,7 @@ media_la_OBJECTS = $(am_media_la_OBJECTS)
 media_la_LINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(media_la_CXXFLAGS) $(CXXFLAGS) \
 	$(media_la_LDFLAGS) $(LDFLAGS) -o $@
+@HAVE_PYTHON_TRUE@am_media_la_rpath = -rpath $(pyexecdir)
 @DO_UNIT_TESTS_TRUE@am__EXEEXT_1 = test_XML_Parser$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 am_test_XML_Parser_OBJECTS = test_XML_Parser.$(OBJEXT)
@@ -273,7 +274,8 @@ pkginclude_HEADERS = \
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
-pyexec_LTLIBRARIES = media.la
+@HAVE_PYTHON_FALSE@pyexec_LTLIBRARIES = 
+@HAVE_PYTHON_TRUE@pyexec_LTLIBRARIES = media.la
 media_la_SOURCES = bp-media.cc
 media_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
 media_la_LDFLAGS = -avoid-version -module
@@ -388,7 +390,7 @@ clean-pyexecLTLIBRARIES:
 libvamos-media.la: $(libvamos_media_la_OBJECTS) $(libvamos_media_la_DEPENDENCIES) $(EXTRA_libvamos_media_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libvamos_media_la_OBJECTS) $(libvamos_media_la_LIBADD) $(LIBS)
 media.la: $(media_la_OBJECTS) $(media_la_DEPENDENCIES) $(EXTRA_media_la_DEPENDENCIES) 
-	$(media_la_LINK) -rpath $(pyexecdir) $(media_la_OBJECTS) $(media_la_LIBADD) $(LIBS)
+	$(media_la_LINK) $(am_media_la_rpath) $(media_la_OBJECTS) $(media_la_LIBADD) $(LIBS)
 
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \

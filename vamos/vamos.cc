@@ -213,8 +213,7 @@ int main (int argc, char* argv [])
   world.start (opt.qualifying, opt.laps);
   std::ostringstream name;
   name << (opt.qualifying ? "qualifying" : "race") << "-results";
-  std::ofstream os (name.str ().c_str ());
-  world.write_results (os);
+  world.write_results (name.str ());
 
   return EXIT_SUCCESS;
 }
