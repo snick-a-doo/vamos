@@ -165,7 +165,7 @@ int main (int argc, char* argv [])
                 {
                   interactive = true;
                   Interactive_Driver* driver = new Interactive_Driver (*car);
-                  world.add_car (*car, *driver, road, true);
+                  world.add_car (*car, *driver);
                   world.set_focused_car (place - 1);
                 }
               else
@@ -180,7 +180,7 @@ int main (int argc, char* argv [])
                     driver->qualify ();
                   driver->interact (opt.interact);
                   driver->show_steering_target (opt.show_line);
-                  world.add_car (*car, *driver, road, false);
+                  world.add_car (*car, *driver);
                 }
             }
 

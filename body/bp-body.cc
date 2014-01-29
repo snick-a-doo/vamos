@@ -1,4 +1,4 @@
-#include "../body/Gl_Car.h"
+#include "Gl_Car.h"
 #include "../geometry/Three_Vector.h"
 #include "../geometry/Three_Matrix.h"
 

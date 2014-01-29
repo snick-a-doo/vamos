@@ -5,6 +5,9 @@ AC_CONFIG_AUX_DIR(config)
 
 AM_INIT_AUTOMAKE
 
+AM_PATH_PYTHON
+
+
 AC_ARG_ENABLE(unit_tests,
   [  --enable-unit-tests  build and execute unit tests],
     [case "${enableval}" in
@@ -22,6 +25,8 @@ AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 
 AC_PATH_X
+
+AM_PATH_PYTHON([3.2])
 
 dnl Checks for libraries.
 AC_CHECK_LIB(SDL, SDL_Init,,

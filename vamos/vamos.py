@@ -19,18 +19,21 @@
 # 1. Get datadir from configure.
 # 2. Handle file exceptions.
 # 3. Print results.
-# 4. Fix crash on close.  Road is deleting segments and elevation when it
-#    goes out of scope.
-# 5. Make robots use throttle.  Transverse slip from Tire is large.
+
+import sys
+import os
+
+sys.path.insert (0, '../body/.libs')
+sys.path.insert (0, '../geometry/.libs')
+sys.path.insert (0, '../media/.libs')
+sys.path.insert (0, '../track/.libs')
+sys.path.insert (0, '../world/.libs')
 
 from body import Gl_Car
 from geometry import Three_Matrix, Three_Vector
 from media import XML_Exception
 from track import Strip_Track
 from world import Atmosphere, Gl_World, Interactive_Driver, Robot_Driver, Sounds
-
-import sys
-import os
 
 #! Get from config.
 DATADIR = '/usr/share/vamos/data'
@@ -90,8 +93,10 @@ def get_entries (opt):
     return entries
 
 def vamos (opt):
+    cars = []
+    drivers = []
     try:
-        print (opt)
+        #print (opt)
         entries = get_entries (opt)
         air = Atmosphere (1.2, Three_Vector())
         sounds = Sounds (opt.volume)
@@ -100,11 +105,8 @@ def vamos (opt):
         track.read (opt.data_dir, opt.track_file)
 
         if not opt.map_mode:
-            road = track.get_road (0) # leads to segfault on close
             robots = False
             interactive = False
-            cars = []
-            drivers = []
             for entry in entries:
                 cars.append (Gl_Car (track.grid_position (len (cars) + 1,
                                                           opt.number_of_cars,
@@ -116,20 +118,20 @@ def vamos (opt):
                 if entry.interactive:
                     interactive = True
                     drivers.append (Interactive_Driver (car))
-                    world.add_car (car, drivers [-1], road, True)
+                    world.add_car (car, drivers [-1])
                     world.set_focused_car (len (cars) - 1)
                 else:
                     robots = True
                     car.adjust_robot_parameters (opt.performance, 
-                                                 opt.performance,
-                                                 opt.performance)
+                                                       opt.performance,
+                                                       opt.performance)
                     drivers.append (Robot_Driver (car, track, world.get_gravity ()))
                     driver = drivers [-1]
                     if opt.qualifying:
                         driver.qualify ()
                     driver.interact (opt.interact)
                     driver.show_steering_target (opt.show_line)
-                    world.add_car (car, driver, road, False)
+                    world.add_car (car, driver)
 
             if robots and not interactive:
                 world.set_focused_car (0)
@@ -188,6 +190,8 @@ if __name__ == '__main__':
                        action = 'store_true', dest = 'full_screen', default = False)
     parser.add_option ('-n', '--no-interaction',
                        action = 'store_false', dest = 'interact', default = True)
+    parser.add_option ('-r', '--random-track',
+                       action = 'store_true', dest = 'random_track', default = False)
     parser.add_option ('--version',
                        action = 'store_true', dest = 'show_version', default = False)
 
@@ -211,6 +215,15 @@ if __name__ == '__main__':
         if not os.path.exists (data_dir):
             print ("Couldn't find the data direcory, ../data or %s\n" % data_dir) 
             sys.exit (1)
+
+    if options.random_track:
+        sys.path.insert (0, '../scripts')
+        import random_circuit
+        track = random_circuit.Random_Circuit ()
+        track.construct ()
+        track_file = '/tmp/random-circuit.xml'
+        track.write_track (track_file)
+        options.track_file = track_file
 
     if options.show_version:
         print ('vamos 0.8.0')

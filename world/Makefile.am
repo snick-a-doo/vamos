@@ -27,6 +27,19 @@ EXTRA_DIST = $(pkginclude_HEADERS)
 
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost `pkg-config sdl --cflags`
 
+pyexec_LTLIBRARIES = world.la
+world_la_SOURCES = bp-world.cc
+world_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
+world_la_LDFLAGS = -avoid-version -module
+world_la_LIBADD = \
+	$(top_srcdir)/body/libvamos-body.la \
+	$(top_srcdir)/geometry/libvamos-geometry.la \
+	$(top_srcdir)/media/libvamos-media.la \
+	$(top_srcdir)/track/libvamos-track.la \
+	$(top_srcdir)/world/libvamos-world.la \
+	-lpython$(PYTHON_VERSION) \
+	-lboost_python-$(PYTHON_VERSION)
+
 if DO_UNIT_TESTS
 UNIT_TESTS = test_Controls test_Timing_Info
 else

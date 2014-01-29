@@ -1,5 +1,5 @@
-#include "../geometry/Three_Matrix.h"
-#include "../geometry/Three_Vector.h"
+#include "Three_Matrix.h"
+#include "Three_Vector.h"
 
 #include <boost/python.hpp>
 

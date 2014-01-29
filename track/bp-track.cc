@@ -1,5 +1,5 @@
 #include "../geometry/Three_Vector.h"
-#include "../track/Strip_Track.h"
+#include "Strip_Track.h"
 
 #include <boost/python.hpp>
 

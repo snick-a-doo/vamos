@@ -246,7 +246,6 @@ Tire::input (const Three_Vector& velocity,
 			 const Material& surface_material)
 {
   orient_frame_with_unit_vector (normal_force.unit ());
-  std::cerr << "v=" << velocity << std::endl;
   m_velocity = rotate_from_parent (velocity);
   m_normal_angular_velocity = normal_angular_velocity;
   m_normal_force = normal_force.magnitude ();
@@ -395,7 +394,6 @@ void
 Tire::slip (double* sigma, double* alpha) const
 {
   m_tire_friction.slip (speed (), m_velocity, sigma, alpha);
-  std::cerr << "tire " << speed () << ' ' << m_velocity << std::endl;
 }
 
 // Return the position of the contact patch in the wheel's coordinate

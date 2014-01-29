@@ -1,11 +1,11 @@
 #include "../body/Car.h"
 #include "../geometry/Three_Vector.h"
 #include "../track/Strip_Track.h"
-#include "../world/Atmosphere.h"
-#include "../world/Interactive_Driver.h"
-#include "../world/Robot_Driver.h"
-#include "../world/Gl_World.h"
-#include "../world/Sounds.h"
+#include "Atmosphere.h"
+#include "Interactive_Driver.h"
+#include "Robot_Driver.h"
+#include "Gl_World.h"
+#include "Sounds.h"
 
 #include <boost/python.hpp>
 

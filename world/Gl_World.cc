@@ -247,16 +247,13 @@ Gl_World::set_attributes ()
 }
 
 void 
-Gl_World::add_car (Vamos_Body::Car& car, 
-                   Driver& driver,
-                   const Vamos_Track::Road& road,
-                   bool controlled)
+Gl_World::add_car (Vamos_Body::Car& car, Driver& driver)
 {
-  World::add_car (car, driver, road, controlled);
+  World::add_car (car, driver);
 
   // If there's a controlled car, show the view from inside it. Otherwise show
   // the view from the trackside cameras.
-  if (controlled)
+  if (driver.is_interactive ())
     m_view = BODY_VIEW;
   else if (m_view != BODY_VIEW)
     m_view = WORLD_VIEW;
@@ -1058,7 +1055,7 @@ bool
 Map::set_zoom (double, double factor)
 {
   m_bounds = m_initial_bounds;
-  m_bounds.scale (factor);
+  m_bounds.scale (1.0 / factor);
   return true;
 }
 

@@ -120,10 +120,7 @@ namespace Vamos_World
     void collide (Car_Information* car1_info, Car_Information* car2_info);
     void gravity (double g);
     double get_gravity () const { return m_gravity; }
-    virtual void add_car (Vamos_Body::Car& car,
-                          Driver& driver,
-                          const Vamos_Track::Road& road,
-                          bool controlled);
+    virtual void add_car (Vamos_Body::Car& car, Driver& driver);
     virtual void set_focused_car (size_t car_index);
     void focus_other_car (int delta);
     void cars_can_interact (bool can) { m_cars_can_interact = can; }

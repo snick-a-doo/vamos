@@ -365,6 +365,7 @@ Car::propagate (double time)
       // Propagate the base class.
       mp_drivetrain->find_forces ();
     }
+
   m_chassis.find_forces ();
 
   if (mp_drivetrain)

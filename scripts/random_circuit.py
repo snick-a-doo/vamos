@@ -332,29 +332,30 @@ class Random_Circuit (vamos_track.vamos_track):
 #             p = c.arc_end_point ()
 #             cr.move_to (p.x, p.y)
 
-sys.argv = sys.argv [1:]
-
-show = False
-if len (sys.argv) > 0 and sys.argv [0] == '--show':
-    show = True
+if __name__ == '__main__':
     sys.argv = sys.argv [1:]
 
-seed = 0
-if len (sys.argv) > 0:
-    seed = int (sys.argv [0])
-    sys.argv = sys.argv [1:]
-else:
-    seed = random.randrange (0, 2**64)
-print (seed)
+    show = False
+    if len (sys.argv) > 0 and sys.argv [0] == '--show':
+        show = True
+        sys.argv = sys.argv [1:]
 
-random.seed (seed)
+    seed = 0
+    if len (sys.argv) > 0:
+        seed = int (sys.argv [0])
+        sys.argv = sys.argv [1:]
+    else:
+        seed = random.randrange (0, 2**64)
+    print (seed)
 
-if show:
-    import clutter
-    viewer = Circuit_Viewer ()
-    viewer.show_all ()
-    clutter.main ()
-else:
-    track = Random_Circuit ()
-    track.construct ()
-    track.write_track ('/tmp/random-circuit.xml')
+    random.seed (seed)
+
+    if show:
+        import clutter
+        viewer = Circuit_Viewer ()
+        viewer.show_all ()
+        clutter.main ()
+    else:
+        track = Random_Circuit ()
+        track.construct ()
+        track.write_track ('/tmp/random-circuit.xml')

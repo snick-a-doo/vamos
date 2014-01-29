@@ -92,12 +92,21 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgincludedir)"
-LTLIBRARIES = $(lib_LTLIBRARIES)
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pyexecdir)" \
+	"$(DESTDIR)$(pkgincludedir)"
+LTLIBRARIES = $(lib_LTLIBRARIES) $(pyexec_LTLIBRARIES)
 libvamos_track_la_LIBADD =
 am_libvamos_track_la_OBJECTS = Gl_Road_Segment.lo Road_Segment.lo \
 	Strip_Track.lo Strip_Track_Reader.lo
 libvamos_track_la_OBJECTS = $(am_libvamos_track_la_OBJECTS)
+track_la_DEPENDENCIES = $(top_srcdir)/geometry/libvamos-geometry.la \
+	$(top_srcdir)/media/libvamos-media.la \
+	$(top_srcdir)/track/libvamos-track.la
+am_track_la_OBJECTS = track_la-bp-track.lo
+track_la_OBJECTS = $(am_track_la_OBJECTS)
+track_la_LINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) $(track_la_CXXFLAGS) $(CXXFLAGS) \
+	$(track_la_LDFLAGS) $(LDFLAGS) -o $@
 @DO_UNIT_TESTS_TRUE@am__EXEEXT_1 = test_Road_Segment$(EXEEXT) \
 @DO_UNIT_TESTS_TRUE@	test_Strip_Track$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
@@ -127,9 +136,9 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(libvamos_track_la_SOURCES) $(test_Road_Segment_SOURCES) \
-	$(test_Strip_Track_SOURCES)
-DIST_SOURCES = $(libvamos_track_la_SOURCES) \
+SOURCES = $(libvamos_track_la_SOURCES) $(track_la_SOURCES) \
+	$(test_Road_Segment_SOURCES) $(test_Strip_Track_SOURCES)
+DIST_SOURCES = $(libvamos_track_la_SOURCES) $(track_la_SOURCES) \
 	$(test_Road_Segment_SOURCES) $(test_Strip_Track_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -189,6 +198,11 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PYTHON = @PYTHON@
+PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
+PYTHON_PLATFORM = @PYTHON_PLATFORM@
+PYTHON_PREFIX = @PYTHON_PREFIX@
+PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -239,9 +253,13 @@ mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
+pkgpyexecdir = @pkgpyexecdir@
+pkgpythondir = @pkgpythondir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+pyexecdir = @pyexecdir@
+pythondir = @pythondir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -265,6 +283,17 @@ pkginclude_HEADERS = \
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
+pyexec_LTLIBRARIES = track.la
+track_la_SOURCES = bp-track.cc
+track_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
+track_la_LDFLAGS = -avoid-version -module
+track_la_LIBADD = \
+	$(top_srcdir)/geometry/libvamos-geometry.la \
+	$(top_srcdir)/media/libvamos-media.la \
+	$(top_srcdir)/track/libvamos-track.la \
+	-lpython$(PYTHON_VERSION) \
+	-lboost_python-$(PYTHON_VERSION)
+
 @DO_UNIT_TESTS_FALSE@UNIT_TESTS = 
 @DO_UNIT_TESTS_TRUE@UNIT_TESTS = \
 @DO_UNIT_TESTS_TRUE@	test_Road_Segment \
@@ -355,8 +384,42 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
+install-pyexecLTLIBRARIES: $(pyexec_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	@list='$(pyexec_LTLIBRARIES)'; test -n "$(pyexecdir)" || list=; \
+	list2=; for p in $$list; do \
+	  if test -f $$p; then \
+	    list2="$$list2 $$p"; \
+	  else :; fi; \
+	done; \
+	test -z "$$list2" || { \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(pyexecdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(pyexecdir)" || exit 1; \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(pyexecdir)'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(pyexecdir)"; \
+	}
+
+uninstall-pyexecLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pyexec_LTLIBRARIES)'; test -n "$(pyexecdir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(pyexecdir)/$$f'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(pyexecdir)/$$f"; \
+	done
+
+clean-pyexecLTLIBRARIES:
+	-test -z "$(pyexec_LTLIBRARIES)" || rm -f $(pyexec_LTLIBRARIES)
+	@list='$(pyexec_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
 libvamos-track.la: $(libvamos_track_la_OBJECTS) $(libvamos_track_la_DEPENDENCIES) $(EXTRA_libvamos_track_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libvamos_track_la_OBJECTS) $(libvamos_track_la_LIBADD) $(LIBS)
+track.la: $(track_la_OBJECTS) $(track_la_DEPENDENCIES) $(EXTRA_track_la_DEPENDENCIES) 
+	$(track_la_LINK) -rpath $(pyexecdir) $(track_la_OBJECTS) $(track_la_LIBADD) $(LIBS)
 
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
@@ -385,6 +448,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Strip_Track_Reader.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_Road_Segment.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_Strip_Track.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/track_la-bp-track.Plo@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -406,6 +470,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+track_la-bp-track.lo: bp-track.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(track_la_CXXFLAGS) $(CXXFLAGS) -MT track_la-bp-track.lo -MD -MP -MF $(DEPDIR)/track_la-bp-track.Tpo -c -o track_la-bp-track.lo `test -f 'bp-track.cc' || echo '$(srcdir)/'`bp-track.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/track_la-bp-track.Tpo $(DEPDIR)/track_la-bp-track.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='bp-track.cc' object='track_la-bp-track.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(track_la_CXXFLAGS) $(CXXFLAGS) -c -o track_la-bp-track.lo `test -f 'bp-track.cc' || echo '$(srcdir)/'`bp-track.cc
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -522,7 +593,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgincludedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(pkgincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -558,7 +629,7 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	clean-noinstPROGRAMS mostlyclean-am
+	clean-noinstPROGRAMS clean-pyexecLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -584,7 +655,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am: install-libLTLIBRARIES install-pyexecLTLIBRARIES
 
 install-html: install-html-am
 
@@ -624,25 +695,27 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLTLIBRARIES uninstall-pkgincludeHEADERS
+uninstall-am: uninstall-libLTLIBRARIES uninstall-pkgincludeHEADERS \
+	uninstall-pyexecLTLIBRARIES
 
 .MAKE: check-am install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am check-local clean \
 	clean-generic clean-libLTLIBRARIES clean-libtool \
-	clean-noinstPROGRAMS ctags distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-libLTLIBRARIES \
-	install-man install-pdf install-pdf-am \
+	clean-noinstPROGRAMS clean-pyexecLTLIBRARIES ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
 	install-pkgincludeHEADERS install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am \
-	uninstall-libLTLIBRARIES uninstall-pkgincludeHEADERS
+	install-pyexecLTLIBRARIES install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-libLTLIBRARIES \
+	uninstall-pkgincludeHEADERS uninstall-pyexecLTLIBRARIES
 
 
 @DO_UNIT_TESTS_TRUE@check-local: $(UNIT_TESTS)

@@ -1,5 +1,5 @@
 #include "../body/Gl_Car.h"
-#include "../media/XML_Parser.h"
+#include "XML_Parser.h"
 
 #include <boost/python.hpp>
 

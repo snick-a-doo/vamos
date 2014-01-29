@@ -20,6 +20,17 @@ EXTRA_DIST = $(pkginclude_HEADERS)
 
 AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
 
+pyexec_LTLIBRARIES = track.la
+track_la_SOURCES = bp-track.cc
+track_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
+track_la_LDFLAGS = -avoid-version -module
+track_la_LIBADD = \
+	$(top_srcdir)/geometry/libvamos-geometry.la \
+	$(top_srcdir)/media/libvamos-media.la \
+	$(top_srcdir)/track/libvamos-track.la \
+	-lpython$(PYTHON_VERSION) \
+	-lboost_python-$(PYTHON_VERSION)
+
 if DO_UNIT_TESTS
 UNIT_TESTS = \
 	test_Road_Segment \

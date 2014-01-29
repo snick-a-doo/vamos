@@ -1,6 +1,5 @@
-lib_LTLIBRARIES = libvamos-geometry.la
-
-LIBS =
+lib_LTLIBRARIES = \
+	libvamos-geometry.la
 
 libvamos_geometry_la_SOURCES = \
 	Calculations.cc \
@@ -34,6 +33,16 @@ pkginclude_HEADERS = \
 	Three_Vector.h \
 	Two_Vector.h \
 	Parameter.h
+
+
+pyexec_LTLIBRARIES = geometry.la
+geometry_la_SOURCES = bp-geometry.cc
+geometry_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python3.2
+geometry_la_LDFLAGS = -avoid-version -module
+geometry_la_LIBADD = \
+	$(top_srcdir)/geometry/libvamos-geometry.la \
+	-lpython$(PYTHON_VERSION) \
+	-lboost_python-$(PYTHON_VERSION)
 
 pkgincludedir = $(includedir)/@PACKAGE@/geometry
 

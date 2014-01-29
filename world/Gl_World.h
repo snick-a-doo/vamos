@@ -204,10 +204,7 @@ namespace Vamos_World
               bool full_screen);
 	virtual ~Gl_World ();
 
-    virtual void add_car (Vamos_Body::Car& car,
-                          Driver& driver,
-                          const Vamos_Track::Road& road,
-                          bool fcontrolled);
+    virtual void add_car (Vamos_Body::Car& car, Driver& driver);
 
 	// Read the world definition file.
 	void read (std::string world_file = "", std::string controls_file = "");

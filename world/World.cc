@@ -477,15 +477,15 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
 }
 
 void 
-World::add_car (Car& car, Driver& driver, const Road& road, bool controlled)
+World::add_car (Car& car, Driver& driver)
 {
   car.chassis ().gravity (Three_Vector (0.0, 0.0, -m_gravity));
   m_cars.push_back (Car_Information (&car, &driver));
   driver.set_cars (&m_cars);
 
-  place_car (&car, car.chassis ().position (), road);
+  place_car (&car, car.chassis ().position (), m_track.get_road (0));
 
-  if (controlled)
+  if (driver.is_interactive ())
     set_controlled_car (m_cars.size () - 1);
 }
 
