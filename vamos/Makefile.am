@@ -1,8 +1,17 @@
-bin_PROGRAMS = vamos
+vamosexec_PYTHON = vamos.py
+vamosexecdir = $(prefix)/bin
+# config.py is generated from config.py.in
+nodist_pyexec_PYTHON = config.py
 
-vamos_SOURCES = Options.cc vamos.cc
+install-exec-hook:
+	mv -f $(vamosexecdir)/vamos.py $(vamosexecdir)/vamos; \
+	chmod 755 $(vamosexecdir)/vamos
 
-vamos_LDADD = \
+noinst_PROGRAMS = cvamos
+
+cvamos_SOURCES = Options.cc vamos.cc
+
+cvamos_LDADD = \
 	$(top_srcdir)/world/libvamos-world.la \
 	$(top_srcdir)/body/libvamos-body.la \
 	$(top_srcdir)/track/libvamos-track.la \

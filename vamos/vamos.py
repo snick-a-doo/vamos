@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #  This file is part of Vamos Automotive Simulator
 #  
 #  Copyright 2014 Sam Varner
@@ -18,6 +19,7 @@
 import sys
 import os
 
+#! Should be able to get paths from 'configure'.
 sys.path = (['../%s/.libs' % subdir for subdir in 
             ['body', 'geometry', 'media', 'track', 'world']]
             + sys.path)
@@ -37,12 +39,8 @@ class Entry:
     def get_time (self):
         return self.time
 
-def get_path (file, section, extend):
-    path = '../data/' + section + '/' + file
-    if extend: path += '.xml'
-    if os.path.exists (path):
-        return path
-    path = config.datadir + '/' + section + '/' + file
+def get_path (opt, file, section, extend):
+    path = opt.data_dir + section + '/' + file
     if extend: path += '.xml'
     if os.path.exists (path):
         return path
@@ -63,15 +61,15 @@ def read_input (opt):
 def get_entries (opt):
     if len (opt.input_file) > 0:
         return read_input (opt)
-    opt.track_file = get_path (opt.track_file, 'tracks', True)
+    opt.track_file = get_path (opt, opt.track_file, 'tracks', True)
     car_files = []
-    car_path = get_path (opt.car_file, 'cars', False)
+    car_path = get_path (opt, opt.car_file, 'cars', False)
     if os.path.isdir (car_path):
         for file in os.listdir (car_path):
             if os.path.splitext (file)[1] == '.xml':
                 car_files.append (car_path + '/' + file)
     else:
-        car_files.append (get_path (opt.car_file, 'cars', True))
+        car_files.append (get_path (opt, opt.car_file, 'cars', True))
     car_files.sort ()
     entries = []
     while len (entries) < opt.number_of_cars:
@@ -125,8 +123,8 @@ def vamos (opt):
                 world.set_focused_car (0)
                 world.cars_can_interact (opt.interact)
 
-            world.read (get_path (opt.world_file, 'worlds', True), 
-                        get_path (opt.controls_file, 'controls', True))
+            world.read (get_path (opt, opt.world_file, 'worlds', True), 
+                        get_path (opt, opt.controls_file, 'controls', True))
             sounds.read (opt.data_dir + 'sounds/', 'default-sounds.xml')
 
     # Handle file exceptions.
@@ -139,7 +137,7 @@ def vamos (opt):
         track.show_racing_line (opt.show_line)
 
     world.start (opt.qualifying, opt.laps)
-    world.write_results (('qualifying' if opt.qualifying else 'race') + '-results')
+    world.write_results ('/tmp/vamos' + ( '-qualifying' if opt.qualifying else 'race'))
 
 
 if __name__ == '__main__':
@@ -189,8 +187,8 @@ if __name__ == '__main__':
 
     options.data_dir = '../data/'
     if not os.path.exists (options.data_dir):
-        data_dir = config.datadir + "/";
-        if not os.path.exists (data_dir):
+        options.data_dir = config.datadir + "/";
+        if not os.path.exists (options.data_dir):
             print ("Couldn't find the data direcory, ../data or %s\n" % data_dir) 
             sys.exit (1)
 

@@ -186,6 +186,8 @@ Robot_Driver::handle_event ()
         m_event.reset ();
       else if (m_state != DRIVING)
         {
+          if (m_mode != QUALIFY)
+            m_lane_shift = get_lane_shift ();
           mp_car->shift (1);
           mp_car->engage_clutch (clutch_time);
           m_state = DRIVING;
