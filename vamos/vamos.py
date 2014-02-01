@@ -145,8 +145,8 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option ('-c', '--car', dest = 'car_file', default = 'default-car')
     parser.add_option ('-t', '--track', dest = 'track_file', default = 'default-track')
-    parser.add_option ('-w', '--world', dest = 'world_file', default = 'default-world')
-    parser.add_option ('-a', '--controls', dest = 'controls_file', 
+    parser.add_option ('--world', dest = 'world_file', default = 'default-world')
+    parser.add_option ('--controls', dest = 'controls_file', 
                        default = 'default-controls')
     parser.add_option ('-o', '--opponents', dest = 'number_of_cars',
                        type = 'int', default = 0)
@@ -162,8 +162,8 @@ if __name__ == '__main__':
                        action = 'store_true', dest = 'demo', default = False)
     parser.add_option ('-q', '--qualifying',
                        action = 'store_true', dest = 'qualifying', default = False)
-    parser.add_option ('-f', '--full-screen',
-                       action = 'store_true', dest = 'full_screen', default = False)
+    parser.add_option ('-w', '--window',
+                       action = 'store_false', dest = 'full_screen', default = True)
     parser.add_option ('-n', '--no-interaction',
                        action = 'store_false', dest = 'interact', default = True)
     parser.add_option ('-r', '--random-track',
