@@ -1,11 +1,13 @@
 vamosexec_PYTHON = vamos.py
 vamosexecdir = $(prefix)/bin
-# config.py is generated from config.py.in
-nodist_pyexec_PYTHON = config.py
+pyexec_PYTHON = config.py
 
 install-exec-hook:
 	mv -f $(vamosexecdir)/vamos.py $(vamosexecdir)/vamos; \
 	chmod 755 $(vamosexecdir)/vamos
+
+uninstall-hook:
+	rm -f $(vamosexecdir)/vamos;
 
 noinst_PROGRAMS = cvamos
 

@@ -1,32 +1,9 @@
 -*-org-*-
-Gl_Car.cc:576:52: warning: narrowing conversion of 'x.Vamos_Geometry::Three_Vector::x' from 'double' to 'float' inside { } is ill-formed in C++11 [-Wnarrowing]
-Gl_World.cc:596:76: warning: narrowing conversion of 'direction.Vamos_Geometry::Three_Vector::x' from 'double' to 'float' inside { } is ill-formed in C++11 [-Wnarrowing]
-Gl_World.cc:1248:56: warning: narrowing conversion of 'pos.Vamos_Geometry::Three_Vector::x' from 'double' to 'GLfloat {aka float}' inside { } is ill-formed in C++11 [-Wnarrowing]
 
 * Pending
 ** Bump function is not smooth across start of track.
 ** Don't let cars intersect.
 ** Check for memory leaks on reloading cars and tracks.
-** Occasional track-to-world assert
-nico> ./vamos -o 6 -t Villeneuve -f -c F1
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Road::track_coordinates guess=18 found=20
-Warning: Strip_Track::track_coordinates guess=6 found=9
-lt-vamos: Strip_Track.cc:1417: virtual Vamos_Geometry::Three_Vector Vamos_Track::Strip_Track::track_coordinates(const Vamos_Geometry::Three_Vector&, size_t&, size_t&): Assertion `false' failed.
-Aborted (core dumped)
-
 ** Improve framerate
    Allow more cars at once.  Rendering is the major bottleneck.
    Collision handling reduces perfomance a bit for large numbers of cars.
@@ -62,14 +39,10 @@ Aborted (core dumped)
 ** Direction enum conflicts
 ** Rectangle name conflicts
    Rectangle -> Vamos_Geometry::Rectangle.
-* Game Support (post 0.7.0)
+* Game Support
+** Add UI
 ** Draw lines on the track.
-** Handle starting grid.
-** Handle pit placement.
-** Add starting lights.
 ** Make crash sound play consistently.
-** Randomize robots.
-
 * Post 1.0
 ** Make tires springy
 ** Review suspension

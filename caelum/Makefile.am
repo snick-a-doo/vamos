@@ -6,8 +6,6 @@ caelum_SOURCES = \
 	Sky.cc \
 	Sphere_Sky.cc
 
-INCLUDES = -I$(top_srcdir)/..
-
 LIBS = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la \

@@ -118,6 +118,8 @@ AX_BOOST_BASE([1.46.0],, AC_MSG_ERROR([Boost >= v1.46.0 is required.]))
 
 AM_CONDITIONAL(DO_UNIT_TESTS, test x$unit_tests = xtrue)
 
+AC_CONFIG_MACRO_DIR([m4])
+
 AC_CONFIG_FILES([Makefile
 				config/Makefile
 				scripts/Makefile

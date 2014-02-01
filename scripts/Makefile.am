@@ -1,3 +1,13 @@
-noinst_SCRIPTS = trk-convert magic.el
+pyexec_PYTHON = \
+	vamos_track.py \
+	random_circuit.py \
+	random_road.py
 
-EXTRA_DIST = trk-convert magic.el
+noinst_SCRIPTS = \
+	graph.sh \
+	magic.el
+
+EXTRA_DIST = \
+	graph.sh \
+	magic.el
+
