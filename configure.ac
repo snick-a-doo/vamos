@@ -140,5 +140,6 @@ AC_CONFIG_FILES([Makefile
 				data/sounds/Makefile
 				data/worlds/Makefile
 				doc/Makefile
+				doc/robot-cars/Makefile
 				caelum/Makefile])
 AC_OUTPUT
