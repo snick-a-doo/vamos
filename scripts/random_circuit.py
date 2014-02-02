@@ -245,6 +245,7 @@ class Random_Circuit (vamos_track.vamos_track):
             distances.append (d)
 
         self.add_segment (distances [max_index]/2, 0)
+        self.segments [0].add_camera ([200.0, -20.0, 5.0], 400.0)
         for i in range (len (self.curves) - 1):
             j = (i + max_index) % n
             k = (j + 1) % n
