@@ -466,6 +466,7 @@ Gl_Car::draw_dashboard_extras ()
               1.0, 0.0, 1.0,
               throttle_fraction ());
 
+#ifdef DEBUG
   screen.text (28, 18, "Tire Temperature, Wear, Grip");
   //!fixme Assume wheels are defined in the order: right front, left front,
   // right rear, left rear.
@@ -482,8 +483,10 @@ Gl_Car::draw_dashboard_extras ()
   screen.text (44, 10, "", m_wheels [2]->wear (), "", 2);
   screen.text (48, 10, "", m_wheels [2]->grip (), "", 2);
 
-  screen.text (28, 6, "Fuel", mp_fuel_tank->fuel (), "L", 1);
-  screen.text (28, bottom, "Air Density", m_air_density, "kg/m^3", 3);
+  screen.text (28, 6, "Air Density", m_air_density, "kg/m^3", 3);
+#endif
+
+  screen.text (28, bottom, "Fuel", mp_fuel_tank->fuel (), "L", 1);
 }
 
 // Perform the transformations for the driver's view.

@@ -787,7 +787,7 @@ Robot_Driver::get_block_side (double along, size_t segment) const
 void
 Robot_Driver::draw ()
 {
-  {
+#ifdef DEBUG
     double y = 94;
     Two_D screen;
     screen.text (20, y -= 2, "follow ", m_gap [3], "", 3);
@@ -799,7 +799,7 @@ Robot_Driver::draw ()
     screen.text (20, y -= 2, "right ", m_gap [2], "m", 3);
     screen.text (20, y -= 2, "offline ", get_offline_distance (), "m", 3);
     screen.text (20, y -= 2, "shift ", m_lane_shift, "", 3);
-  }
+#endif
 
   /// Optionally show the target and vector as green and red squares.
   if (!m_show_steering_target)
