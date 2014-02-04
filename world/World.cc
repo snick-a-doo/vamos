@@ -108,7 +108,9 @@ World::start (bool qualify, size_t laps_or_minutes)
   // Here qualifying implies no start sequence, but that's not necessarily the
   // case.  That's why we pass !qualify to the constructor and also call
   // set_qualifying();
-  mp_timing = new Timing_Info (m_cars.size (), m_track.timing_lines (), !qualify);
+  mp_timing = new Timing_Info (m_cars.size (), 
+                               m_track.timing_lines (), 
+                               !qualify && m_cars.size () > 1);
   if (qualify)
     {
       mp_timing->set_qualifying ();

@@ -715,7 +715,7 @@ Gl_World::reshape (int width, int height)
 }
 
 void 
-Gl_World::draw_timing_info ()
+Gl_World::draw_timing_info () const
 {
   if (!m_track.has_starting_lights ())
     set_starting_lights ();
@@ -748,7 +748,7 @@ Gl_World::draw_timing_info ()
 }
 
 void
-Gl_World::set_starting_lights ()
+Gl_World::set_starting_lights () const
 {
   const int count = mp_timing->countdown ();
   if (count == 0)
@@ -764,7 +764,7 @@ Gl_World::set_starting_lights ()
 }
 
 void
-Gl_World::draw_leaderboard (Vamos_Media::Two_D& screen)
+Gl_World::draw_leaderboard (Vamos_Media::Two_D& screen) const
 {
   double x = 2;
   double y = 95;
@@ -808,21 +808,11 @@ Gl_World::draw_leaderboard (Vamos_Media::Two_D& screen)
     }
 
   if (!mp_timing->qualifying () && m_track.get_road (0).is_closed ())
-    {
-      y -= 3;
-      screen.text (x, y, "Fastest Lap");
-      y -= 2;
-      const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
-      if (p_fastest && (p_fastest->best_lap_time () != Timing_Info::NO_TIME))
-        {
-          screen.text (x, y, m_cars [p_fastest->grid_position () - 1].car->name (),
-                       format_time (p_fastest->best_lap_time ()));
-        }
-    }
+    draw_fastest_lap (screen, x, y - 3);
 }
 
 void
-Gl_World::draw_lap_times (Vamos_Media::Two_D& screen)
+Gl_World::draw_lap_times (Vamos_Media::Two_D& screen) const
 {
   const Timing_Info::Running_Order& order = mp_timing->running_order ();
   Timing_Info::Running_Order::const_iterator it = order.begin ();
@@ -835,11 +825,32 @@ Gl_World::draw_lap_times (Vamos_Media::Two_D& screen)
       && (lap - 1) > a_time.size ())
     a_time.push_back (lap_time);
 
-  double x = 85;
+  double x = 2;
   double y = 95;
+  screen.text (x, y, "Lap", "Time");
+  y -= 3;
+
   for (size_t i = 0; i < a_time.size (); i++, y -= 3)
     {
       screen.text (x, y, i + 1, format_time (a_time [i]));
+    }
+
+  // Draw the lap number with no time for the current lap.
+  screen.text (x, y, a_time.size () + 1, "");
+
+  draw_fastest_lap (screen, x, y - 3);
+}
+
+void
+Gl_World::draw_fastest_lap (Vamos_Media::Two_D& screen, int x, int y) const
+{
+  screen.text (x, y, "Fastest Lap");
+  y -= 2;
+  const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
+  if (p_fastest && (p_fastest->best_lap_time () != Timing_Info::NO_TIME))
+    {
+      screen.text (x, y, m_cars [p_fastest->grid_position () - 1].car->name (),
+                   format_time (p_fastest->best_lap_time ()));
     }
 }
 
