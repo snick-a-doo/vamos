@@ -144,7 +144,6 @@ int main (int argc, char* argv [])
 
       if (!opt.map_mode)
         {
-          const Vamos_Track::Road& road = track.get_road (0);
           bool robots = false;
           bool interactive = false;
           Three_Matrix orientation;
