@@ -143,11 +143,10 @@ def vamos (opt):
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option ('-c', '--car', dest = 'car_file', default = 'default-car')
-    parser.add_option ('-t', '--track', dest = 'track_file', default = 'default-track')
-    parser.add_option ('--world', dest = 'world_file', default = 'default-world')
-    parser.add_option ('--controls', dest = 'controls_file', 
-                       default = 'default-controls')
+    parser.add_option ('-c', '--car', dest = 'car_file', default = 'GT')
+    parser.add_option ('-t', '--track', dest = 'track_file', default = 'Peanut')
+    parser.add_option ('--world', dest = 'world_file', default = 'earth')
+    parser.add_option ('--controls', dest = 'controls_file', default = 'stick')
     parser.add_option ('-o', '--opponents', dest = 'number_of_cars',
                        type = 'int', default = 0)
     parser.add_option ('-p', '--laps', dest = 'laps', type = 'int', default = 5)

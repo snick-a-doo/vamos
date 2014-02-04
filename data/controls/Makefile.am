@@ -2,7 +2,6 @@ controlsdir = $(pkgdatadir)/controls
 
 controls_DATA = \
 	clutch-wheel.xml \
-	default-controls.xml \
 	keyboard.xml \
 	mouse.xml \
 	stick.xml \

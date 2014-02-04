@@ -4,6 +4,8 @@
 
   <racing-line show="0" />
 
+  <!-- Sky Box -->
+
   <sky>
     <sides>textures/sky_sides.png</sides>
 	<top>textures/sky_top.png</top>
@@ -18,7 +20,7 @@
 	<restitution>0.1</restitution>
 	<rolling>1.0</rolling>
 	<drag>0.0</drag>
-	<bump-amplitude>0.01</bump-amplitude>
+	<bump-amplitude>0.1</bump-amplitude>
 	<bump-wavelength>100.0</bump-wavelength>
 	<texture>
 	  <file>textures/track2.png</file>
@@ -33,8 +35,8 @@
 	<restitution>0.1</restitution>
 	<rolling>5.0</rolling>
 	<drag>20.0</drag>	
-	<bump-amplitude>0.03</bump-amplitude>
-	<bump-wavelength>2.0</bump-wavelength>
+	<bump-amplitude>[ 0.05, 0.5 ]</bump-amplitude>
+	<bump-wavelength>5.0</bump-wavelength>
 	<texture>
 	  <file>textures/grass.png</file>
 	  <width>10.0</width>
@@ -49,7 +51,7 @@
 	<restitution>0.0</restitution>
 	<rolling>40.0</rolling>
 	<drag>200.0</drag>	
-	<bump-amplitude>0.05</bump-amplitude>
+	<bump-amplitude>[ 0.08, 0.5 ]</bump-amplitude>
 	<bump-wavelength>2.0</bump-wavelength>
 	<texture>
 	  <file>textures/gravel3.png</file>
@@ -484,12 +486,12 @@
     </road>
     <road segment="straight">
       <resolution>2.0</resolution>
-	  <length>96.0</length>
+	  <length>94.5</length>
 	  <radius>40.0</radius>
     </road>
     <road segment="straight">
       <resolution>10.0</resolution>
-	  <length>150.0</length>
+	  <length>350.0</length>
       <model>
 	    <file>garage.ac</file>
 	    <scale>10.0</scale>
@@ -504,10 +506,10 @@
     </road>
     <road segment="straight">
       <resolution>10.0</resolution>
-	  <length>5.0</length>
+	  <length>25.0</length>
 	  <left-width>[ 5.0, 4.0 ]</left-width>
     </road>
-    <join segments="3" />
+    <join segments="2" />
   </pit>
 
   <!-- Force the track to close.-->

@@ -8,7 +8,6 @@ tracks_DATA = \
 	Catalunya.xml \
 	Curl.xml \
 	D.xml \
-	default-track.xml \
 	drag.xml \
 	garage.ac \
 	grandstand.ac \
