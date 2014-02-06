@@ -25,7 +25,7 @@
 
 using namespace Vamos_World;
 
-const double Timing_Info::NO_TIME = std::numeric_limits <double>::min ();
+const double Timing_Info::NO_TIME = std::numeric_limits <double>::max ();
 const int N_COUNTDOWN_START = 6;
 
 Timing_Info::Timing_Info (size_t n_cars, size_t n_sectors, bool do_start_sequence )

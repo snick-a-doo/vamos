@@ -137,7 +137,7 @@ def vamos (opt):
         track.show_racing_line (opt.show_line)
 
     world.start (opt.qualifying, opt.laps)
-    world.write_results ('/tmp/vamos' + ( '-qualifying' if opt.qualifying else 'race'))
+    world.write_results ('/tmp/vamos' + ( '-qualifying' if opt.qualifying else '-race'))
 
 
 if __name__ == '__main__':

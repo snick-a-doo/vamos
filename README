@@ -1,117 +1,71 @@
--*-text-*-
+-*-org-*-
 
-SYNOPSYS
+Vamos is an automotive simulation framework with an emphasis on thorough
+physical modeling and good C++ design. Vamos includes a real-time, first-person,
+3D driving application.
 
-    vamos [-m|--map]
-          [[-t|--track=] TRACK_FILE]
-          [[-c|--car=] CAR_FILE]
-          [[-w|--world=] WORLD_FILE]
-          [[-a|--controls=] CONTROLS_FILE]
-          [[-o|--opponents=] NUMBER_OF_OPPONENTS]
-          [[-p|--laps=] NUMBER_OF_LAPS]
-          [[-z|--performance=] FACTOR]
-          [[-s|--volume=] VOLUME_PERCENT]
-          [-f|--full-screen]
-          [-n|--no-interaction]
-          [-d|--demo]
-          [-l|--show-line[=ARG]  draw the racing line on the track [ARG=yes]]
+* Requirements
+  The libraries are written in C++ so you need a compiler.  Any recent GCC
+  release should do fine.
 
-Vamos is an automotive simulation framework with an emphasis on
-thorough physical modeling and good C++ design. Vamos includes a
-real-time, first-person, 3D driving application.
+  The necessary libraries are OpenGL (including glu and GLUT), SDL, OpenAL, and
+  Boost.  
 
-What You Need
-* SDL
-* OpenGL
-* OpenAL
-* An accelerated video card.
-* A joystick is highly recommended.
+  The game is written in Python 3.  If Python >= 3.2 is not found the libraries
+  will be built but not the game.
 
-Build with the usual ./configure; make sequence.  You can run the sim
-from the vamos directory without installing.
+  A joystick is recommended but it's possible to control the car with keys or a
+  mouse. 
 
-Executing vamos with no arugments will put you in the default care on the
-default track.  Use the joystick buttons for shifting.  Give it some gas when
-shifting out of neutral or you'll stall and you'll have to press the `S' key to
-re-start the engine.
+* Building
+  Use the usual GNU-style build sequence.
+  
+  $ tar xzf vamos-0.8.0.tar.gz
+  $ cd vamos-0.8.0
+  $ ./configure
+  $ make
 
-Here are some important key bindings
-* a  Place the car back at the starting line.
-* r  Place the car back on the road.
-* ,  Pan the view left.
-* .  Pan the view right.
-* s  Start the engine after a stall.
-* f  Fill the fuel tank.
-* p  Pause the application.
-* q  Exit the application.
-* F9 Cycle through the views.
+  If you like you can install with
 
-Here are the bindings for driving by keyboard
-* Up     Throttle.
-* Down   Brake.
-* Left	 Turn left.
-* Right  Turn right.
-* Insert Shift up.
-* Delete Shift down.
-* Home   Clutch.
+  # make install
 
-You can choose a particular car with the `-c <car>' or `--car=<car>'
-option, where <car> is one of
-* `default-car' (same as `GT')
-* `F1'
-* `F1-1967',
-* `front-drive'
-* `GT'
-* `trainer'
+  but you can also run it from the build directory.
 
-The track may be chosen with the `-t <track>'
-or `--track=<track>' option, where <track> is one of 
-* `default-track' (same as `Peanut')
-* Albert_Park
-* Americas
-* Bahrain
-* Catalunya
-* Curl
-* default-track
-* drag
-* D
-* Fuji
-* Hockenheimring
-* Hungaroring
-* Imola
-* Indianapolis
-* Interlagos
-* Istanbul
-* Jerez
-* jump
-* Korea
-* Kyalami
-* Laguna_Seca
-* Le_Mans
-* Magny-Cours
-* Monaco
-* Monza
-* Monza-1967
-* Monza-Bank
-* Mosport
-* Nurburgring
-* Peanut
-* Road_Atlanta
-* Sepang
-* Shanghai
-* Silverstone
-* Silverstone-2011
-* Singapore
-* skid_pad
-* Spa
-* Suzuka
-* Valencia
-* Villeneuve
-* Watkins_Glen
-* Yas_Marina
+* Running
+  Vamos does not have a GUI yet so you'll have to use command-line arguments.
+  Before you start, you can close the program with the X or Escape key.  F9
+  change the view and F4 cycles through the cars.
 
-See the Texinfo documentation for more details.
+  To run it from the build directory, use
 
-Please let me know how it works for you.
+  $ cd vamos
+  $ python vamos.py <arguments>
 
-Sam Varner <snick-a-doo@comcast.net>
+  Depending on your system you may need to type 'python3' to get the right
+  version.
+
+  If it's installed use
+
+  $ vamos <arguments>
+
+  but make sure your PYTHONPATH includes the place where the modules were
+  installed.  Try something like
+
+  $ export PYTHONPATH=/usr/local/lib64/python3.2/site-packages
+
+  Here are some command-line recipes
+** Practice at Suzuka
+   $ vamos -t Suzuka
+
+   You can see what tracks are available by listing the files in ../data/tracks
+   if you're running from the build directory or
+   /usr/local/share/vamos/tracks if installed. 
+
+** Watch the computer-controlled cars on a randomly generated track
+   $ vamos -r -d -o 5
+
+** Qualify at Spa
+   $ vamos -q -t Spa -o 5 -p 10
+
+** Race from the qualifying positions from the last qualifying sesion
+   $ vamos /tmp/vamos-qualifying
