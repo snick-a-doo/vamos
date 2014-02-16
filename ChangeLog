@@ -1,4 +1,9 @@
-Changes since 0.7.1
+Changes since 0.8.0
+2014-02-16  Sam Varner  <snick-a-doo@comcast.net>
+
+	Make configure and makefiles more portable.
+	
+-- 0.8.0 --
 2014-02-03  Sam Varner  <snick-a-doo@comcast.net>
 
 	Show lap times for practice.  Don't show staring lights for
