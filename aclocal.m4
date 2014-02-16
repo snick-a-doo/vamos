@@ -1,4 +1,4 @@
-# generated automatically by aclocal 1.13.4 -*- Autoconf -*-
+# generated automatically by aclocal 1.14.1 -*- Autoconf -*-
 
 # Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
@@ -55,7 +55,7 @@ To do so, use the procedure documented by the package, typically 'autoreconf'.])
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 20
+#serial 21
 
 AC_DEFUN([AX_BOOST_BASE],
 [
@@ -113,9 +113,11 @@ if test "x$want_boost" = "xyes"; then
     dnl are found, e.g. when only header-only libraries are installed!
     libsubdirs="lib"
     ax_arch=`uname -m`
-    if test $ax_arch = x86_64 -o $ax_arch = ppc64 -o $ax_arch = s390x -o $ax_arch = sparc64; then
+    case $ax_arch in
+      x86_64|ppc64|s390x|sparc64|aarch64)
         libsubdirs="lib64 lib lib64"
-    fi
+        ;;
+    esac
 
     dnl first we check the system location for boost libraries
     dnl this location ist chosen if boost libraries are installed with the --layout=system option
@@ -279,6 +281,522 @@ fi
 
 ])
 
+# ===========================================================================
+#      http://www.gnu.org/software/autoconf-archive/ax_boost_python.html
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_BOOST_PYTHON
+#
+# DESCRIPTION
+#
+#   This macro checks to see if the Boost.Python library is installed. It
+#   also attempts to guess the correct library name using several attempts.
+#   It tries to build the library name using a user supplied name or suffix
+#   and then just the raw library.
+#
+#   If the library is found, HAVE_BOOST_PYTHON is defined and
+#   BOOST_PYTHON_LIB is set to the name of the library.
+#
+#   This macro calls AC_SUBST(BOOST_PYTHON_LIB).
+#
+#   In order to ensure that the Python headers and the Boost libraries are
+#   specified on the include path, this macro requires AX_PYTHON_DEVEL and
+#   AX_BOOST_BASE to be called.
+#
+# LICENSE
+#
+#   Copyright (c) 2008 Michael Tindal
+#   Copyright (c) 2013 Daniel Mullner <muellner@math.stanford.edu>
+#
+#   This program is free software; you can redistribute it and/or modify it
+#   under the terms of the GNU General Public License as published by the
+#   Free Software Foundation; either version 2 of the License, or (at your
+#   option) any later version.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+#   Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#   As a special exception, the respective Autoconf Macro's copyright owner
+#   gives unlimited permission to copy, distribute and modify the configure
+#   scripts that are the output of Autoconf when processing the Macro. You
+#   need not follow the terms of the GNU General Public License when using
+#   or distributing such scripts, even though portions of the text of the
+#   Macro appear in them. The GNU General Public License (GPL) does govern
+#   all other use of the material that constitutes the Autoconf Macro.
+#
+#   This special exception to the GPL applies to versions of the Autoconf
+#   Macro released by the Autoconf Archive. When you make and distribute a
+#   modified version of the Autoconf Macro, you may extend this special
+#   exception to the GPL to apply to your modified version as well.
+
+#serial 18
+
+AC_DEFUN([AX_BOOST_PYTHON],
+[AC_REQUIRE([AX_PYTHON_DEVEL])dnl
+AC_CACHE_CHECK(whether the Boost::Python library is available,
+ac_cv_boost_python,
+[AC_LANG_SAVE
+ AC_LANG_CPLUSPLUS
+ CPPFLAGS_SAVE="$CPPFLAGS"
+ if test x$PYTHON_CPPFLAGS != x; then
+   CPPFLAGS="$PYTHON_CPPFLAGS $CPPFLAGS"
+ fi
+ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+ #include <boost/python/module.hpp>
+ using namespace boost::python;
+ BOOST_PYTHON_MODULE(test) { throw "Boost::Python test."; }]],
+	[[return 0;]])],
+	ac_cv_boost_python=yes, ac_cv_boost_python=no)
+ AC_LANG_RESTORE
+ CPPFLAGS="$CPPFLAGS_SAVE"
+])
+if test "$ac_cv_boost_python" = "yes"; then
+  AC_DEFINE(HAVE_BOOST_PYTHON,,[define if the Boost::Python library is available])
+  ax_python_lib=boost_python
+  AC_ARG_WITH([boost-python],AS_HELP_STRING([--with-boost-python],[specify yes/no or the boost python library or suffix to use]),
+  [if test "x$with_boost_python" != "xno"; then
+     ax_python_lib=$with_boost_python
+     ax_boost_python_lib=boost_python-$with_boost_python
+   fi])
+  BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
+  for ax_lib in `ls $BOOSTLIBDIR/libboost_python*.so* $BOOSTLIBDIR/libboost_python*.dylib* $BOOSTLIBDIR/libboost_python*.a* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_python.*\)\.so.*$;\1;' -e 's;^lib\(boost_python.*\)\.dylib.*$;\1;' -e 's;^lib\(boost_python.*\)\.a.*$;\1;' ` $ax_python_lib $ax_boost_python_lib boost_python; do
+    AC_CHECK_LIB($ax_lib, exit, [BOOST_PYTHON_LIB=$ax_lib break], , [$PYTHON_LDFLAGS])
+  done
+  AC_SUBST(BOOST_PYTHON_LIB)
+fi
+])dnl
+
+# ===========================================================================
+#         http://www.gnu.org/software/autoconf-archive/ax_python.html
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_PYTHON
+#
+# DESCRIPTION
+#
+#   This macro does a complete Python development environment check.
+#
+#   It recurses through several python versions (from 2.1 to 2.6 in this
+#   version), looking for an executable. When it finds an executable, it
+#   looks to find the header files and library.
+#
+#   It sets PYTHON_BIN to the name of the python executable,
+#   PYTHON_INCLUDE_DIR to the directory holding the header files, and
+#   PYTHON_LIB to the name of the Python library.
+#
+#   This macro calls AC_SUBST on PYTHON_BIN (via AC_CHECK_PROG),
+#   PYTHON_INCLUDE_DIR and PYTHON_LIB.
+#
+# LICENSE
+#
+#   Copyright (c) 2008 Michael Tindal
+#
+#   This program is free software; you can redistribute it and/or modify it
+#   under the terms of the GNU General Public License as published by the
+#   Free Software Foundation; either version 2 of the License, or (at your
+#   option) any later version.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+#   Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#   As a special exception, the respective Autoconf Macro's copyright owner
+#   gives unlimited permission to copy, distribute and modify the configure
+#   scripts that are the output of Autoconf when processing the Macro. You
+#   need not follow the terms of the GNU General Public License when using
+#   or distributing such scripts, even though portions of the text of the
+#   Macro appear in them. The GNU General Public License (GPL) does govern
+#   all other use of the material that constitutes the Autoconf Macro.
+#
+#   This special exception to the GPL applies to versions of the Autoconf
+#   Macro released by the Autoconf Archive. When you make and distribute a
+#   modified version of the Autoconf Macro, you may extend this special
+#   exception to the GPL to apply to your modified version as well.
+
+#serial 14
+
+AC_DEFUN([AX_PYTHON],
+[AC_MSG_CHECKING(for python build information)
+AC_MSG_RESULT([])
+for python in python3.3 python3.2 python3.1 python3.0 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python; do
+AC_CHECK_PROGS(PYTHON_BIN, [$python])
+ax_python_bin=$PYTHON_BIN
+if test x$ax_python_bin != x; then
+   AC_CHECK_LIB($ax_python_bin, main, ax_python_lib=$ax_python_bin, ax_python_lib=no)
+   if test x$ax_python_lib == xno; then
+     AC_CHECK_LIB(${ax_python_bin}m, main, ax_python_lib=${ax_python_bin}m, ax_python_lib=no)
+   fi
+   if test x$ax_python_lib != xno; then
+     ax_python_header=`$ax_python_bin -c "from distutils.sysconfig import *; print(get_config_var('CONFINCLUDEPY'))"`
+     if test x$ax_python_header != x; then
+       break;
+     fi
+   fi
+fi
+done
+if test x$ax_python_bin = x; then
+   ax_python_bin=no
+fi
+if test x$ax_python_header = x; then
+   ax_python_header=no
+fi
+if test x$ax_python_lib = x; then
+   ax_python_lib=no
+fi
+
+AC_MSG_RESULT([  results of the Python check:])
+AC_MSG_RESULT([    Binary:      $ax_python_bin])
+AC_MSG_RESULT([    Library:     $ax_python_lib])
+AC_MSG_RESULT([    Include Dir: $ax_python_header])
+
+if test x$ax_python_header != xno; then
+  PYTHON_INCLUDE_DIR=$ax_python_header
+  AC_SUBST(PYTHON_INCLUDE_DIR)
+fi
+if test x$ax_python_lib != xno; then
+  PYTHON_LIB=$ax_python_lib
+  AC_SUBST(PYTHON_LIB)
+fi
+])dnl
+
+# ===========================================================================
+#      http://www.gnu.org/software/autoconf-archive/ax_python_devel.html
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_PYTHON_DEVEL([version])
+#
+# DESCRIPTION
+#
+#   Note: Defines as a precious variable "PYTHON_VERSION". Don't override it
+#   in your configure.ac.
+#
+#   This macro checks for Python and tries to get the include path to
+#   'Python.h'. It provides the $(PYTHON_CPPFLAGS) and $(PYTHON_LDFLAGS)
+#   output variables. It also exports $(PYTHON_EXTRA_LIBS) and
+#   $(PYTHON_EXTRA_LDFLAGS) for embedding Python in your code.
+#
+#   You can search for some particular version of Python by passing a
+#   parameter to this macro, for example ">= '2.3.1'", or "== '2.4'". Please
+#   note that you *have* to pass also an operator along with the version to
+#   match, and pay special attention to the single quotes surrounding the
+#   version number. Don't use "PYTHON_VERSION" for this: that environment
+#   variable is declared as precious and thus reserved for the end-user.
+#
+#   This macro should work for all versions of Python >= 2.1.0. As an end
+#   user, you can disable the check for the python version by setting the
+#   PYTHON_NOVERSIONCHECK environment variable to something else than the
+#   empty string.
+#
+#   If you need to use this macro for an older Python version, please
+#   contact the authors. We're always open for feedback.
+#
+# LICENSE
+#
+#   Copyright (c) 2009 Sebastian Huber <sebastian-huber@web.de>
+#   Copyright (c) 2009 Alan W. Irwin
+#   Copyright (c) 2009 Rafael Laboissiere <rafael@laboissiere.net>
+#   Copyright (c) 2009 Andrew Collier
+#   Copyright (c) 2009 Matteo Settenvini <matteo@member.fsf.org>
+#   Copyright (c) 2009 Horst Knorr <hk_classes@knoda.org>
+#   Copyright (c) 2013 Daniel Mullner <muellner@math.stanford.edu>
+#
+#   This program is free software: you can redistribute it and/or modify it
+#   under the terms of the GNU General Public License as published by the
+#   Free Software Foundation, either version 3 of the License, or (at your
+#   option) any later version.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+#   Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#   As a special exception, the respective Autoconf Macro's copyright owner
+#   gives unlimited permission to copy, distribute and modify the configure
+#   scripts that are the output of Autoconf when processing the Macro. You
+#   need not follow the terms of the GNU General Public License when using
+#   or distributing such scripts, even though portions of the text of the
+#   Macro appear in them. The GNU General Public License (GPL) does govern
+#   all other use of the material that constitutes the Autoconf Macro.
+#
+#   This special exception to the GPL applies to versions of the Autoconf
+#   Macro released by the Autoconf Archive. When you make and distribute a
+#   modified version of the Autoconf Macro, you may extend this special
+#   exception to the GPL to apply to your modified version as well.
+
+#serial 16
+
+AU_ALIAS([AC_PYTHON_DEVEL], [AX_PYTHON_DEVEL])
+AC_DEFUN([AX_PYTHON_DEVEL],[
+	#
+	# Allow the use of a (user set) custom python version
+	#
+	AC_ARG_VAR([PYTHON_VERSION],[The installed Python
+		version to use, for example '2.3'. This string
+		will be appended to the Python interpreter
+		canonical name.])
+
+	AC_PATH_PROG([PYTHON],[python[$PYTHON_VERSION]])
+	if test -z "$PYTHON"; then
+	   AC_MSG_ERROR([Cannot find python$PYTHON_VERSION in your system path])
+	   PYTHON_VERSION=""
+	fi
+
+	#
+	# Check for a version of Python >= 2.1.0
+	#
+	AC_MSG_CHECKING([for a version of Python >= '2.1.0'])
+	ac_supports_python_ver=`$PYTHON -c "import sys; \
+		ver = sys.version.split ()[[0]]; \
+		print (ver >= '2.1.0')"`
+	if test "$ac_supports_python_ver" != "True"; then
+		if test -z "$PYTHON_NOVERSIONCHECK"; then
+			AC_MSG_RESULT([no])
+			AC_MSG_FAILURE([
+This version of the AC@&t@_PYTHON_DEVEL macro
+doesn't work properly with versions of Python before
+2.1.0. You may need to re-run configure, setting the
+variables PYTHON_CPPFLAGS, PYTHON_LDFLAGS, PYTHON_SITE_PKG,
+PYTHON_EXTRA_LIBS and PYTHON_EXTRA_LDFLAGS by hand.
+Moreover, to disable this check, set PYTHON_NOVERSIONCHECK
+to something else than an empty string.
+])
+		else
+			AC_MSG_RESULT([skip at user request])
+		fi
+	else
+		AC_MSG_RESULT([yes])
+	fi
+
+	#
+	# if the macro parameter ``version'' is set, honour it
+	#
+	if test -n "$1"; then
+		AC_MSG_CHECKING([for a version of Python $1])
+		ac_supports_python_ver=`$PYTHON -c "import sys; \
+			ver = sys.version.split ()[[0]]; \
+			print (ver $1)"`
+		if test "$ac_supports_python_ver" = "True"; then
+		   AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+			AC_MSG_ERROR([this package requires Python $1.
+If you have it installed, but it isn't the default Python
+interpreter in your system path, please pass the PYTHON_VERSION
+variable to configure. See ``configure --help'' for reference.
+])
+			PYTHON_VERSION=""
+		fi
+	fi
+
+	#
+	# Check if you have distutils, else fail
+	#
+	AC_MSG_CHECKING([for the distutils Python package])
+	ac_distutils_result=`$PYTHON -c "import distutils" 2>&1`
+	if test -z "$ac_distutils_result"; then
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+		AC_MSG_ERROR([cannot import Python module "distutils".
+Please check your Python installation. The error was:
+$ac_distutils_result])
+		PYTHON_VERSION=""
+	fi
+
+	#
+	# Check for Python include path
+	#
+	AC_MSG_CHECKING([for Python include path])
+	if test -z "$PYTHON_CPPFLAGS"; then
+		python_path=`$PYTHON -c "import distutils.sysconfig; \
+			print (distutils.sysconfig.get_python_inc ());"`
+		plat_python_path=`$PYTHON -c "import distutils.sysconfig; \
+			print (distutils.sysconfig.get_python_inc (plat_specific=1));"`
+		if test -n "${python_path}"; then
+			if test "${plat_python_path}" != "${python_path}"; then
+				python_path="-I$python_path -I$plat_python_path"
+			else
+				python_path="-I$python_path"
+			fi
+		fi
+		PYTHON_CPPFLAGS=$python_path
+	fi
+	AC_MSG_RESULT([$PYTHON_CPPFLAGS])
+	AC_SUBST([PYTHON_CPPFLAGS])
+
+	#
+	# Check for Python library path
+	#
+	AC_MSG_CHECKING([for Python library path])
+	if test -z "$PYTHON_LDFLAGS"; then
+		# (makes two attempts to ensure we've got a version number
+		# from the interpreter)
+		ac_python_version=`cat<<EOD | $PYTHON -
+
+# join all versioning strings, on some systems
+# major/minor numbers could be in different list elements
+from distutils.sysconfig import *
+e = get_config_var('VERSION')
+if e is not None:
+	print(e)
+EOD`
+
+		if test -z "$ac_python_version"; then
+			if test -n "$PYTHON_VERSION"; then
+				ac_python_version=$PYTHON_VERSION
+			else
+				ac_python_version=`$PYTHON -c "import sys; \
+					print (sys.version[[:3]])"`
+			fi
+		fi
+
+		# Make the versioning information available to the compiler
+		AC_DEFINE_UNQUOTED([HAVE_PYTHON], ["$ac_python_version"],
+                                   [If available, contains the Python version number currently in use.])
+
+		# First, the library directory:
+		ac_python_libdir=`cat<<EOD | $PYTHON -
+
+# There should be only one
+import distutils.sysconfig
+e = distutils.sysconfig.get_config_var('LIBDIR')
+if e is not None:
+	print (e)
+EOD`
+
+		# Now, for the library:
+		ac_python_library=`cat<<EOD | $PYTHON -
+
+import distutils.sysconfig
+c = distutils.sysconfig.get_config_vars()
+if 'LDVERSION' in c:
+	print ('python'+c[['LDVERSION']])
+else:
+	print ('python'+c[['VERSION']])
+EOD`
+
+		# This small piece shamelessly adapted from PostgreSQL python macro;
+		# credits goes to momjian, I think. I'd like to put the right name
+		# in the credits, if someone can point me in the right direction... ?
+		#
+		if test -n "$ac_python_libdir" -a -n "$ac_python_library"
+		then
+			# use the official shared library
+			ac_python_library=`echo "$ac_python_library" | sed "s/^lib//"`
+			PYTHON_LDFLAGS="-L$ac_python_libdir -l$ac_python_library"
+		else
+			# old way: use libpython from python_configdir
+			ac_python_libdir=`$PYTHON -c \
+			  "from distutils.sysconfig import get_python_lib as f; \
+			  import os; \
+			  print (os.path.join(f(plat_specific=1, standard_lib=1), 'config'));"`
+			PYTHON_LDFLAGS="-L$ac_python_libdir -lpython$ac_python_version"
+		fi
+
+		if test -z "PYTHON_LDFLAGS"; then
+			AC_MSG_ERROR([
+  Cannot determine location of your Python DSO. Please check it was installed with
+  dynamic libraries enabled, or try setting PYTHON_LDFLAGS by hand.
+			])
+		fi
+	fi
+	AC_MSG_RESULT([$PYTHON_LDFLAGS])
+	AC_SUBST([PYTHON_LDFLAGS])
+
+	#
+	# Check for site packages
+	#
+	AC_MSG_CHECKING([for Python site-packages path])
+	if test -z "$PYTHON_SITE_PKG"; then
+		PYTHON_SITE_PKG=`$PYTHON -c "import distutils.sysconfig; \
+			print (distutils.sysconfig.get_python_lib(0,0));"`
+	fi
+	AC_MSG_RESULT([$PYTHON_SITE_PKG])
+	AC_SUBST([PYTHON_SITE_PKG])
+
+	#
+	# libraries which must be linked in when embedding
+	#
+	AC_MSG_CHECKING(python extra libraries)
+	if test -z "$PYTHON_EXTRA_LIBS"; then
+	   PYTHON_EXTRA_LIBS=`$PYTHON -c "import distutils.sysconfig; \
+                conf = distutils.sysconfig.get_config_var; \
+                print (conf('LIBS'))"`
+	fi
+	AC_MSG_RESULT([$PYTHON_EXTRA_LIBS])
+	AC_SUBST(PYTHON_EXTRA_LIBS)
+
+	#
+	# linking flags needed when embedding
+	#
+	AC_MSG_CHECKING(python extra linking flags)
+	if test -z "$PYTHON_EXTRA_LDFLAGS"; then
+		PYTHON_EXTRA_LDFLAGS=`$PYTHON -c "import distutils.sysconfig; \
+			conf = distutils.sysconfig.get_config_var; \
+			print (conf('LINKFORSHARED'))"`
+	fi
+	AC_MSG_RESULT([$PYTHON_EXTRA_LDFLAGS])
+	AC_SUBST(PYTHON_EXTRA_LDFLAGS)
+
+	#
+	# final check to see if everything compiles alright
+	#
+	AC_MSG_CHECKING([consistency of all components of python development environment])
+	# save current global flags
+	ac_save_LIBS="$LIBS"
+	ac_save_CPPFLAGS="$CPPFLAGS"
+	LIBS="$ac_save_LIBS $PYTHON_LDFLAGS $PYTHON_EXTRA_LDFLAGS $PYTHON_EXTRA_LIBS"
+	CPPFLAGS="$ac_save_CPPFLAGS $PYTHON_CPPFLAGS"
+	AC_LANG_PUSH([C])
+	AC_LINK_IFELSE([
+		AC_LANG_PROGRAM([[#include <Python.h>]],
+				[[Py_Initialize();]])
+		],[pythonexists=yes],[pythonexists=no])
+	AC_LANG_POP([C])
+	# turn back to default flags
+	CPPFLAGS="$ac_save_CPPFLAGS"
+	LIBS="$ac_save_LIBS"
+
+	AC_MSG_RESULT([$pythonexists])
+
+        if test ! "x$pythonexists" = "xyes"; then
+	   AC_MSG_FAILURE([
+  Could not link test program to Python. Maybe the main Python library has been
+  installed in some non-standard library path. If so, pass it to configure,
+  via the LDFLAGS environment variable.
+  Example: ./configure LDFLAGS="-L/usr/non-standard-path/python/lib"
+  ============================================================================
+   ERROR!
+   You probably have to install the development version of the Python package
+   for your distribution.  The exact name of this package varies among them.
+  ============================================================================
+	   ])
+	  PYTHON_VERSION=""
+	fi
+
+	#
+	# all done!
+	#
+])
+
 # Copyright (C) 2002-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
@@ -291,10 +809,10 @@ fi
 # generated from the m4 files accompanying Automake X.Y.
 # (This private macro should not be called outside this file.)
 AC_DEFUN([AM_AUTOMAKE_VERSION],
-[am__api_version='1.13'
+[am__api_version='1.14'
 dnl Some users find AM_AUTOMAKE_VERSION and mistake it for a way to
 dnl require some minimum version.  Point them to the right macro.
-m4_if([$1], [1.13.4], [],
+m4_if([$1], [1.14.1], [],
       [AC_FATAL([Do not call $0, use AM_INIT_AUTOMAKE([$1]).])])dnl
 ])
 
@@ -310,7 +828,7 @@ m4_define([_AM_AUTOCONF_VERSION], [])
 # Call AM_AUTOMAKE_VERSION and AM_AUTOMAKE_VERSION so they can be traced.
 # This function is AC_REQUIREd by AM_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-[AM_AUTOMAKE_VERSION([1.13.4])dnl
+[AM_AUTOMAKE_VERSION([1.14.1])dnl
 m4_ifndef([AC_AUTOCONF_VERSION],
   [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
 _AM_AUTOCONF_VERSION(m4_defn([AC_AUTOCONF_VERSION]))])
@@ -677,6 +1195,12 @@ AC_DEFUN([AM_OUTPUT_DEPENDENCY_COMMANDS],
 # This macro actually does too much.  Some checks are only needed if
 # your package does certain things.  But this isn't really a big deal.
 
+dnl Redefine AC_PROG_CC to automatically invoke _AM_PROG_CC_C_O.
+m4_define([AC_PROG_CC],
+m4_defn([AC_PROG_CC])
+[_AM_PROG_CC_C_O
+])
+
 # AM_INIT_AUTOMAKE(PACKAGE, VERSION, [NO-DEFINE])
 # AM_INIT_AUTOMAKE([OPTIONS])
 # -----------------------------------------------
@@ -785,14 +1309,54 @@ dnl macro is hooked onto _AC_COMPILER_EXEEXT early, see below.
 AC_CONFIG_COMMANDS_PRE(dnl
 [m4_provide_if([_AM_COMPILER_EXEEXT],
   [AM_CONDITIONAL([am__EXEEXT], [test -n "$EXEEXT"])])])dnl
-])
+
+# POSIX will say in a future version that running "rm -f" with no argument
+# is OK; and we want to be able to make that assumption in our Makefile
+# recipes.  So use an aggressive probe to check that the usage we want is
+# actually supported "in the wild" to an acceptable degree.
+# See automake bug#10828.
+# To make any issue more visible, cause the running configure to be aborted
+# by default if the 'rm' program in use doesn't match our expectations; the
+# user can still override this though.
+if rm -f && rm -fr && rm -rf; then : OK; else
+  cat >&2 <<'END'
+Oops!
+
+Your 'rm' program seems unable to run without file operands specified
+on the command line, even when the '-f' option is present.  This is contrary
+to the behaviour of most rm programs out there, and not conforming with
+the upcoming POSIX standard: <http://austingroupbugs.net/view.php?id=542>
+
+Please tell bug-automake@gnu.org about your system, including the value
+of your $PATH and any error possibly output before this message.  This
+can help us improve future automake versions.
+
+END
+  if test x"$ACCEPT_INFERIOR_RM_PROGRAM" = x"yes"; then
+    echo 'Configuration will proceed anyway, since you have set the' >&2
+    echo 'ACCEPT_INFERIOR_RM_PROGRAM variable to "yes"' >&2
+    echo >&2
+  else
+    cat >&2 <<'END'
+Aborting the configuration process, to ensure you take notice of the issue.
+
+You can download and install GNU coreutils to get an 'rm' implementation
+that behaves properly: <http://www.gnu.org/software/coreutils/>.
+
+If you want to complete the configuration process using your problematic
+'rm' anyway, export the environment variable ACCEPT_INFERIOR_RM_PROGRAM
+to "yes", and re-run configure.
+
+END
+    AC_MSG_ERROR([Your 'rm' program is bad, sorry.])
+  fi
+fi])
 
 dnl Hook into '_AC_COMPILER_EXEEXT' early to learn its expansion.  Do not
 dnl add the conditional right here, as _AC_COMPILER_EXEEXT may be further
 dnl mangled by Autoconf and run in a shell conditional statement.
 m4_define([_AC_COMPILER_EXEEXT],
 m4_defn([_AC_COMPILER_EXEEXT])[m4_provide([_AM_COMPILER_EXEEXT])])
-
 
 # When config.status generates a header, we must update the stamp-h file.
 # This file resides in the same directory as the config header
@@ -974,6 +1538,53 @@ AC_DEFUN([_AM_SET_OPTIONS],
 # Execute IF-SET if OPTION is set, IF-NOT-SET otherwise.
 AC_DEFUN([_AM_IF_OPTION],
 [m4_ifset(_AM_MANGLE_OPTION([$1]), [$2], [$3])])
+
+# Copyright (C) 1999-2013 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# _AM_PROG_CC_C_O
+# ---------------
+# Like AC_PROG_CC_C_O, but changed for automake.  We rewrite AC_PROG_CC
+# to automatically call this.
+AC_DEFUN([_AM_PROG_CC_C_O],
+[AC_REQUIRE([AM_AUX_DIR_EXPAND])dnl
+AC_REQUIRE_AUX_FILE([compile])dnl
+AC_LANG_PUSH([C])dnl
+AC_CACHE_CHECK(
+  [whether $CC understands -c and -o together],
+  [am_cv_prog_cc_c_o],
+  [AC_LANG_CONFTEST([AC_LANG_PROGRAM([])])
+  # Make sure it works both with $CC and with simple cc.
+  # Following AC_PROG_CC_C_O, we do the test twice because some
+  # compilers refuse to overwrite an existing .o file with -o,
+  # though they will create one.
+  am_cv_prog_cc_c_o=yes
+  for am_i in 1 2; do
+    if AM_RUN_LOG([$CC -c conftest.$ac_ext -o conftest2.$ac_objext]) \
+         && test -f conftest2.$ac_objext; then
+      : OK
+    else
+      am_cv_prog_cc_c_o=no
+      break
+    fi
+  done
+  rm -f core conftest*
+  unset am_i])
+if test "$am_cv_prog_cc_c_o" != yes; then
+   # Losing compiler, so override with the script.
+   # FIXME: It is wrong to rewrite CC.
+   # But if we don't then we get into trouble of one sort or another.
+   # A longer-term fix would be to have automake use am__CC in this case,
+   # and then we could set am__CC="\$(top_srcdir)/compile \$(CC)"
+   CC="$am_aux_dir/compile $CC"
+fi
+AC_LANG_POP([C])])
+
+# For backward compatibility.
+AC_DEFUN_ONCE([AM_PROG_CC_C_O], [AC_REQUIRE([AC_PROG_CC])])
 
 # Copyright (C) 1999-2013 Free Software Foundation, Inc.
 #

@@ -1,6 +1,5 @@
+# Library
 lib_LTLIBRARIES = libvamos-track.la
-
-LIBS =
 
 libvamos_track_la_SOURCES = \
 	Gl_Road_Segment.cc \
@@ -18,8 +17,9 @@ pkgincludedir = $(includedir)/@PACKAGE@/track
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 
-AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
+AM_CXXFLAGS = -fPIC -Wall -pedantic
 
+# Python Module
 if HAVE_PYTHON
 pyexec_LTLIBRARIES = track.la
 else
@@ -27,15 +27,16 @@ pyexec_LTLIBRARIES =
 endif
 
 track_la_SOURCES = bp-track.cc
-track_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
+track_la_CXXFLAGS = $(AM_CXXFLAGS) -I$(PYTHON_INCLUDE_DIR)
 track_la_LDFLAGS = -avoid-version -module
 track_la_LIBADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la \
 	$(top_srcdir)/track/libvamos-track.la \
-	-lpython$(PYTHON_VERSION) \
-	-lboost_python-$(PYTHON_VERSION)
+	-l$(PYTHON_LIB) \
+	-l$(BOOST_PYTHON_LIB)
 
+# Unit Tests
 if DO_UNIT_TESTS
 UNIT_TESTS = \
 	test_Road_Segment \
@@ -47,13 +48,13 @@ endif
 noinst_PROGRAMS = $(UNIT_TESTS)
 EXTRA_PROGRAMS = $(UNIT_TESTS)
 test_Road_Segment_SOURCES = test_Road_Segment.cc
+test_Road_Segment_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Road_Segment_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	Road_Segment.lo \
 	-lboost_unit_test_framework
 test_Strip_Track_SOURCES = test_Strip_Track.cc
-test_Strip_Track_LDFLAGS = \
-	`pkg-config --libs sdl freealut libpng`
+test_Strip_Track_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Strip_Track_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la \

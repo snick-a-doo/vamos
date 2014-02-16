@@ -29,10 +29,10 @@
 
 Options::Options (int argc, char* argv [])
   : data_dir ("../data/"),
-    car_file ("default-car"),
-    track_file ("default-track"),
-    world_file ("default-world"),
-    controls_file ("default-controls"),
+    car_file ("GT"),
+    track_file ("Peanut"),
+    world_file ("earth"),
+    controls_file ("stick"),
     number_of_cars (1),
     laps (5),
     performance (0.0),

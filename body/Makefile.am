@@ -1,3 +1,4 @@
+# Library
 lib_LTLIBRARIES = libvamos-body.la
 
 libvamos_body_la_SOURCES = \
@@ -45,8 +46,9 @@ pkgincludedir = $(includedir)/@PACKAGE@/body
 
 EXTRA_DIST = $(pkginclude_HEADERS)
 
-AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DBOOST_TEST_DYN_LINK -L/usr/lib/boost
+AM_CXXFLAGS = -fPIC -Wall -pedantic
 
+# Python Module
 if HAVE_PYTHON
 pyexec_LTLIBRARIES = body.la
 else
@@ -54,14 +56,14 @@ pyexec_LTLIBRARIES =
 endif
 
 body_la_SOURCES = bp-body.cc
-body_la_CXXFLAGS = -fPIC -Wall -pedantic -I/usr/include/python$(PYTHON_VERSION) `pkg-config --cflags sdl freealut libpng`
+body_la_CXXFLAGS = $(AM_CXXFLAGS) -I$(PYTHON_INCLUDE_DIR)
 body_la_LDFLAGS = -avoid-version -module
 body_la_LIBADD = \
 	$(top_srcdir)/body/libvamos-body.la \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la \
-	-lpython$(PYTHON_VERSION) \
-	-lboost_python-$(PYTHON_VERSION)
+	-l$(PYTHON_LIB) \
+	-l$(BOOST_PYTHON_LIB)
 
 if DO_UNIT_TESTS
 UNIT_TESTS = \
@@ -77,6 +79,7 @@ endif
 noinst_PROGRAMS = $(UNIT_TESTS)
 EXTRA_PROGRAMS = $(UNIT_TESTS)
 test_Aerodynamic_Device_SOURCES = test_Aerodynamic_Device.cc
+test_Aerodynamic_Device_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Aerodynamic_Device_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	Frame.lo \
@@ -84,23 +87,27 @@ test_Aerodynamic_Device_LDADD = \
 	Aerodynamic_Device.lo \
 	-lboost_unit_test_framework
 test_Car_SOURCES = test_Car.cc
+test_Car_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Car_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la \
 	$(top_srcdir)/body/libvamos-body.la \
 	-lboost_unit_test_framework
 test_Frame_SOURCES = test_Frame.cc
+test_Frame_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Frame_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	Frame.lo \
 	-lboost_unit_test_framework
 test_Particle_SOURCES = test_Particle.cc
+test_Particle_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Particle_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	Frame.lo \
 	Particle.lo \
 	-lboost_unit_test_framework
 test_Rigid_Body_SOURCES = test_Rigid_Body.cc
+test_Rigid_Body_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Rigid_Body_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la \

@@ -6,16 +6,11 @@ caelum_SOURCES = \
 	Sky.cc \
 	Sphere_Sky.cc
 
-LIBS = \
-	$(top_srcdir)/geometry/libvamos-geometry.la \
-	$(top_srcdir)/media/libvamos-media.la \
-	`pkg-config --libs sdl libpng` \
-	@LIBS@
-
 EXTRA_DIST = \
 	Cylinder_Sky.h \
 	Sky.h \
 	Sphere_Sky.h
 
-AM_CXXFLAGS = -fPIC -Wall -pedantic -O2 -g -DDATADIR=\"$(pkgdatadir)\" \
-	`pkg-config --cflags sdl libpng`
+caelum_LDADD = \
+	$(top_srcdir)/geometry/libvamos-geometry.la \
+	$(top_srcdir)/media/libvamos-media.la
