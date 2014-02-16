@@ -29,7 +29,7 @@
 #include "Sounds.h"
 #include "Timing_Info.h"
 
-#include <SDL.h>
+#include <SDL/SDL.h>
 #include <GL/glut.h>
 
 #include <cmath>

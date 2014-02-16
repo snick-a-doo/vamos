@@ -26,8 +26,6 @@
 #include "../geometry/Rectangle.h"
 #include "../media/XML_Parser.h"
 
-#include <SDL_events.h>
-
 namespace Vamos_Geometry
 {
   class Three_Vector;

@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(vamos, 0.8.0, snick-a-doo@comcast.net)
+AC_INIT(vamos, 0.8.1, snick-a-doo@comcast.net)
 AC_CONFIG_SRCDIR(world/World.cc)
 AC_CONFIG_AUX_DIR(config)
 
@@ -46,7 +46,7 @@ dnl Stolen from plib's configure.in
 if test "x$ac_cv_header_windows_h" != "xyes" ; then
     dnl Check for X11
     AC_PATH_XTRA
-    x_suffix="$X_LIBS $X_PRE_LIBS -lX11 -lXi -lXext -lXmu $X_EXTRA_LIBS"
+    x_suffix="$X_LIBS $X_PRE_LIBS -lX11  $X_EXTRA_LIBS"
 
     AC_CHECK_LIB(dl, dlclose)
 
@@ -75,10 +75,10 @@ if test "x$ac_cv_header_windows_h" != "xyes" ; then
     opengl_LIBS="$LIBS $x_suffix"
 
     dnl check for glut...or freeglut
-    AC_CHECK_LIB(freeglut, glutGetModifiers,,,$opengl_LIBS)
-    if test "x$ac_cv_lib_freeglut_glutGetModifiers" = "xno" ; then
+    AC_CHECK_LIB(freeglut, glutInit,,,$opengl_LIBS)
+    if test "x$ac_cv_lib_freeglut_glutInit" = "xno" ; then
         dnl if no freeglut, check for Real GLUT
-        AC_CHECK_LIB(glut, glutGetModifiers,,,$opengl_LIBS)
+        AC_CHECK_LIB(glut, glutInit,,,$opengl_LIBS)
     fi
 else
   dnl CygWin under Windoze.
@@ -113,8 +113,12 @@ AC_CHECK_LIB(png, png_sig_cmp,,,$x_suffix)
 AC_CHECK_HEADER(png.h,,
 	AC_MSG_ERROR([libpng is required.]))
 
+dnl Python
+AX_PYTHON
+
 dnl Boost
 AX_BOOST_BASE([1.46.0],, AC_MSG_ERROR([Boost >= v1.46.0 is required.]))
+AX_BOOST_PYTHON([1.46.0])
 
 AM_CONDITIONAL(DO_UNIT_TESTS, test x$unit_tests = xtrue)
 
