@@ -18,6 +18,8 @@
 
 import sys
 import os
+import pygame
+from pygame.locals import Rect
 
 #! Should be able to get paths from 'configure'.
 sys.path = (['../%s/.libs' % subdir for subdir in 
@@ -79,7 +81,18 @@ def get_entries (opt):
         entries[-1].interactive = True
     return entries
 
+import time
+from OpenGL.GL import *
+
 def vamos (opt):
+#    pygame.init ()
+#    screen = pygame.display.set_mode ((1000, 800), pygame.OPENGL)
+#    track = Strip_Track ()
+#    track.read (opt.data_dir, get_path (opt, opt.track_file, 'tracks', True))
+#    track.draw ()
+#    time.sleep (2)
+#    return
+
     cars = []
     drivers = []
     try:
@@ -88,7 +101,13 @@ def vamos (opt):
         sounds = Sounds (opt.volume)
         track = Strip_Track ()
         world = Gl_World (track, air, sounds, opt.full_screen)
-        track.read (opt.data_dir, opt.track_file)
+        track.read (opt.data_dir, get_path (opt, opt.track_file, 'tracks', True))
+        world.display ()
+        glOrtho (-500, 500, -500, 500, -1000, 1000)
+        track.draw_map_background ()
+        track.draw ()
+        time.sleep (10)
+        return
 
         if not opt.map_mode:
             robots = False

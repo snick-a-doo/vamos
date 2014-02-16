@@ -57,7 +57,7 @@ void Two_D::draw_string (const std::string& str, double x, double y)
   glRasterPos2d (x, y);
   for (std::string::const_iterator it = str.begin (); it != str.end (); ++it)
 	{
-	  glutBitmapCharacter (GLUT_BITMAP_8_BY_13, *it);
+      //!! glutBitmapCharacter (GLUT_BITMAP_8_BY_13, *it);
 	}
 }
 

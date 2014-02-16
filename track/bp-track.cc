@@ -31,6 +31,8 @@ BOOST_PYTHON_MODULE (track)
 
   bp::class_<Strip_Track> ("Strip_Track", bp::init <>())
     .def ("read", &Strip_Track::read)
+    .def ("draw", &Strip_Track::draw)
+    .def ("draw_map_background", &Strip_Track::draw_map_background)
     .def ("get_road", &Strip_Track::get_road,
           bp::return_value_policy <bp::copy_const_reference>())
     .def ("grid_position", &Strip_Track::grid_position,

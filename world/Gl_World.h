@@ -26,8 +26,6 @@
 #include "../geometry/Rectangle.h"
 #include "../media/XML_Parser.h"
 
-#include <SDL_events.h>
-
 namespace Vamos_Geometry
 {
   class Three_Vector;
@@ -236,6 +234,7 @@ namespace Vamos_World
     virtual Control& joystick () { return m_joystick; }
     virtual Control& keyboard () { return m_keyboard; }
     virtual Control& mouse () { return m_mouse; }
+    void display ();
 
   private:
     virtual void draw_timing_info () const;
@@ -281,7 +280,6 @@ namespace Vamos_World
     void set_starting_lights () const;
     void play_sounds ();
 
-    void display ();
     void reshape (int width, int height);
     void update_track_bounds ();
     void map_key_press (int index); //!! factor out map class?

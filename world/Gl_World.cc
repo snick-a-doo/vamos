@@ -29,7 +29,7 @@
 #include "Sounds.h"
 #include "Timing_Info.h"
 
-#include <SDL.h>
+#include <SDL/SDL.h>
 #include <GL/glut.h>
 
 #include <cmath>
@@ -111,6 +111,7 @@ Gl_Window::resize (int width, int height)
   m_height = height;
   m_aspect = (m_height == 0) ? 1.0 : double (m_width) / m_height; 
   glViewport (0, 0, m_width, m_height);
+  //!! Move out.  Prevents other modules from using GL first.
   if (SDL_SetVideoMode (width, height, 0, m_video_flags) == 0)
     throw No_SDL_Screen (width, height, 0, m_video_flags);
 }
@@ -197,9 +198,9 @@ Gl_World::Gl_World (Vamos_Track::Strip_Track& track,
     m_done (false)
 {
   int argc = 0;
-  initialize_graphics (&argc, NULL);
-  mp_window = new Gl_Window (900, 600, "Vamos", full_screen);
-  reshape (mp_window->width (), mp_window->height ());
+  //!! initialize_graphics (&argc, NULL);
+  mp_window = new Gl_Window (800, 500, "Vamos", full_screen);
+  //!! reshape (mp_window->width (), mp_window->height ());
   set_attributes ();
   set_paused (true);
 }
@@ -212,9 +213,9 @@ Gl_World::~Gl_World ()
 void 
 Gl_World::initialize_graphics (int* argc, char** argv)
 {
-  glutInit (argc, argv);
-  if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK) != 0) 
-    throw Can_Not_Intialize_SDL (SDL_GetError ());
+  //!! glutInit (argc, argv);
+  //!! if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK) != 0)
+  //!!   throw Can_Not_Intialize_SDL (SDL_GetError ());
   atexit (SDL_Quit);
   SDL_JoystickOpen (0);
 }

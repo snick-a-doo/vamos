@@ -48,7 +48,8 @@ BOOST_PYTHON_MODULE (world)
     .def ("add_car", &Gl_World::add_car)
     .def ("set_focused_car", &Gl_World::set_focused_car)
     .def ("get_gravity", &Gl_World::get_gravity)
-    .def ("cars_can_interact", &Gl_World::cars_can_interact);
+    .def ("cars_can_interact", &Gl_World::cars_can_interact)
+    .def ("display", &Gl_World::display);
 
   bp::class_<Driver> ("Driver", bp::init <Car&>());
 
