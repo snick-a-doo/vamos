@@ -308,7 +308,29 @@ tracks_DATA = \
 	Korea.xml \
 	Kyalami.xml \
 	Laguna_Seca.xml \
-	Le_Mans.xml
+	Le_Mans.xml \
+	Magny-Cours.xml \
+	Monaco.xml \
+	Monza.xml \
+	Monza-1967.xml \
+	Monza-Bank.xml \
+	Mosport.xml \
+	Nurburgring.xml \
+	Peanut.xml \
+	Road_Atlanta.xml \
+	Sepang.xml \
+	Shanghai.xml \
+	Silverstone.xml \
+	Silverstone-2010.xml \
+	Silverstone-2011.xml \
+	Singapore.xml \
+	skid_pad.xml \
+	Spa.xml \
+	Suzuka.xml \
+	Valencia.xml \
+	Villeneuve.xml \
+	Watkins_Glen.xml \
+	Yas_Marina.xml
 
 EXTRA_DIST = $(tracks_DATA)
 all: all-am
@@ -525,28 +547,6 @@ uninstall-am: uninstall-tracksDATA
 	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
 	ps ps-am tags-am uninstall uninstall-am uninstall-tracksDATA
 
-	Magny-Cours.xml \
-	Monaco.xml \
-	Monza.xml \
-	Monza-1967.xml \
-	Monza-Bank.xml \
-	Mosport.xml \
-	Nurburgring.xml \
-	Peanut.xml \
-	Road_Atlanta.xml \
-	Sepang.xml \
-	Shanghai.xml \
-	Silverstone.xml \
-	Silverstone-2010.xml \
-	Silverstone-2011.xml \
-	Singapore.xml \
-	skid_pad.xml \
-	Spa.xml \
-	Suzuka.xml \
-	Valencia.xml \
-	Villeneuve.xml \
-	Watkins_Glen.xml \
-	Yas_Marina.xml
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -22,7 +22,7 @@ tracks_DATA = \
 	Korea.xml \
 	Kyalami.xml \
 	Laguna_Seca.xml \
-	Le_Mans.xml
+	Le_Mans.xml \
 	Magny-Cours.xml \
 	Monaco.xml \
 	Monza.xml \
