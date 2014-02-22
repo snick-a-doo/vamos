@@ -1,8 +1,16 @@
 Changes since 0.8.0
+2014-02-22  Sam Varner  <snick-a-doo@comcast.net>
+
+    Don't put the cars so far off track for qualifying.
+
+2014-02-22  Sam Varner  <snick-a-doo@comcast.net>
+
+    Distribute all track files.
+
 2014-02-16  Sam Varner  <snick-a-doo@comcast.net>
 
 	Make configure and makefiles more portable.
-	
+
 -- 0.8.0 --
 2014-02-03  Sam Varner  <snick-a-doo@comcast.net>
 
