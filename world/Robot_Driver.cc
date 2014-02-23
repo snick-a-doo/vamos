@@ -825,9 +825,9 @@ Robot_Driver::draw ()
 //-----------------------------------------------------------------------------
 
 // The distance resolution of the braking speed calculation
-static const double delta_x = 10.0;
+static const double delta_x = 5.0;
 // Braking is applied gradually.  It reaches its maximum in this many meters.
-static const double fade_in = 50.0;
+static const double fade_in = 20.0;
 
 Braking_Operation::Braking_Operation (const Road& road,
                                       double deceleration,
