@@ -18,6 +18,8 @@
 
 import sys
 import os
+import time
+#from OpenGL.GL import *
 import pygame
 from pygame.locals import Rect
 
@@ -81,17 +83,14 @@ def get_entries (opt):
         entries[-1].interactive = True
     return entries
 
-import time
-from OpenGL.GL import *
-
 def vamos (opt):
-#    pygame.init ()
-#    screen = pygame.display.set_mode ((1000, 800), pygame.OPENGL)
-#    track = Strip_Track ()
-#    track.read (opt.data_dir, get_path (opt, opt.track_file, 'tracks', True))
-#    track.draw ()
-#    time.sleep (2)
-#    return
+    pygame.init ()
+    screen = pygame.display.set_mode ((1000, 800), pygame.OPENGL)
+    track = Strip_Track ()
+    track.read (opt.data_dir, get_path (opt, opt.track_file, 'tracks', True))
+    track.draw ()
+    time.sleep (2)
+    return
 
     cars = []
     drivers = []
