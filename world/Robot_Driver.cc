@@ -64,7 +64,7 @@ Robot_Driver::Robot_Driver (Car& car_in,
   m_traction_control (0.5, 0.0, 0.0),
   m_brake_control (0.1, 0.0, 0.0),
   m_steer_control (0.5, 0.0, 0.0),
-  m_front_gap_control (1.5, 0.0, 1.5),
+  m_front_gap_control (1.5, 0.0, 0.0),
   m_target_slip (car_in.get_robot_parameters ().slip_ratio),
   m_speed (0.0),
   m_target_segment (0),
@@ -825,9 +825,9 @@ Robot_Driver::draw ()
 //-----------------------------------------------------------------------------
 
 // The distance resolution of the braking speed calculation
-static const double delta_x = 10.0;
+static const double delta_x = 5.0;
 // Braking is applied gradually.  It reaches its maximum in this many meters.
-static const double fade_in = 50.0;
+static const double fade_in = 20.0;
 
 Braking_Operation::Braking_Operation (const Road& road,
                                       double deceleration,
