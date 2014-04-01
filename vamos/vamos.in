@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+# Executable wraper for vamos.py
+#
+
+prefix="@prefix@"
+pythondir="@pythondir@"
+cd "@pkgpythondir@"
+exec @PYTHON@ ./vamos.py "${@}"

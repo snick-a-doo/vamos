@@ -1,4 +1,4 @@
-pyexec_PYTHON = \
+pkgpython_PYTHON = \
 	vamos_track.py \
 	random_circuit.py \
 	random_road.py
@@ -10,4 +10,3 @@ noinst_SCRIPTS = \
 EXTRA_DIST = \
 	graph.sh \
 	magic.el
-

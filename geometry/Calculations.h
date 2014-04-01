@@ -22,7 +22,7 @@
 
 namespace Vamos_Geometry
 {
-  class Three_Vector;
+  struct Three_Vector;
 
   /// Return the minimum distance (in the past or future) between two
   /// particles. 

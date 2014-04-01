@@ -1,13 +1,6 @@
-vamosexec_PYTHON = vamos.py
-vamosexecdir = $(prefix)/bin
-pyexec_PYTHON = config.py
-
-install-exec-hook:
-	mv -f $(vamosexecdir)/vamos.py $(vamosexecdir)/vamos; \
-	chmod 755 $(vamosexecdir)/vamos
-
-uninstall-hook:
-	rm -f $(vamosexecdir)/vamos;
+pkgpython_PYTHON = vamos.py config.py
+bin_SCRIPTS = vamos
+CLEANFILES = $(bin_SCRIPTS)
 
 noinst_PROGRAMS = cvamos
 
@@ -25,4 +18,3 @@ cvamos_LDADD = \
 	-lboost_filesystem
 
 AM_CXXFLAGS = -fPIC -Wall -pedantic -DDATADIR=\"$(pkgdatadir)\"
-
