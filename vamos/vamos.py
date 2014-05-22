@@ -26,7 +26,7 @@ sys.path = (['../%s/.libs' % subdir for subdir in
 
 import config
 from body import Gl_Car
-from geometry import Three_Matrix, Three_Vector
+from geometry import Parameter, Three_Matrix, Three_Vector
 from media import XML_Exception
 from track import Strip_Track
 from world import Atmosphere, Gl_World, Interactive_Driver, Robot_Driver, Sounds
@@ -109,8 +109,8 @@ def vamos (opt):
                 else:
                     robots = True
                     car.adjust_robot_parameters (opt.performance, 
-                                                       opt.performance,
-                                                       opt.performance)
+                                                 opt.performance,
+                                                 opt.performance)
                     drivers.append (Robot_Driver (car, track, world.get_gravity ()))
                     driver = drivers [-1]
                     if opt.qualifying:
@@ -181,8 +181,11 @@ if __name__ == '__main__':
         options.number_of_cars += 1
 
     options.input_file = ''
-    if len (arguments) > 0:
-        options.input_file = arguments [0]
+    for arg in arguments:
+        try:
+            Parameter.set (float (arg))
+        except ValueError:
+            options.input_file = arg
 
     options.data_dir = '../data/'
     if not os.path.exists (options.data_dir):

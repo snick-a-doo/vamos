@@ -17,6 +17,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "Parameter.h"
 #include "Three_Matrix.h"
 #include "Three_Vector.h"
 
@@ -30,4 +31,6 @@ BOOST_PYTHON_MODULE (geometry)
   bp::class_<Three_Matrix> ("Three_Matrix", bp::init <>());
   bp::class_<Three_Vector> ("Three_Vector", bp::init <double, double, double>())
     .def (bp::init <>());
+  bp::class_<Parameter> ("Parameter", bp::init <>())
+    .def ("set", &Parameter::set);
 }

@@ -138,15 +138,13 @@ Options::Options (int argc, char* argv [])
   if (optind < argc)
     input_file = argv [optind++];
   while (optind < argc)
-    parameter.push_back (atof (argv [optind++]));
+    Vamos_Geometry::Parameter::set (atof (argv [optind++]));
 
   // Subtract a car for demo mode.
   if (demo && (number_of_cars > 1))
     --number_of_cars;
 
   find_data_directory ();
-
-  Vamos_Geometry::Parameter::set (parameter);
 }
 
 void Options::find_data_directory ()

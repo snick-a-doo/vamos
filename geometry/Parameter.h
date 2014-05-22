@@ -29,12 +29,11 @@ namespace Vamos_Geometry
   class Parameter
   {
   public:
-    /// Save the passed-in numbers
-    static void set (const std::vector <double>& values)
-    { m_values = values; }
+    /// Save a passed-in number.
+    static void set (double value) { m_values.push_back (value); }
 
     /// Get a parameter.
-    /// @pamam i the index of the parameter
+    /// @param i the index of the parameter
     /// @fallback the value to return if the ith parameter was not set.
     static double get (size_t i, double fallback = 0.0);
 
