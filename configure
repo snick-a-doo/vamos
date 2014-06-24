@@ -15978,6 +15978,15 @@ $as_echo_n "checking for boostlib >= $boost_lib_version_req... " >&6; }
         ;;
     esac
 
+
+    libsubdirs="lib/${host_cpu}-${host_os} $libsubdirs"
+
+    case ${host_cpu} in
+      i?86)
+        libsubdirs="lib/i386-${host_os} $libsubdirs"
+        ;;
+    esac
+
                 if test "$ac_boost_path" != ""; then
         BOOST_CPPFLAGS="-I$ac_boost_path/include"
         for ac_boost_path_tmp in $libsubdirs; do
@@ -16439,7 +16448,7 @@ $as_echo_n "checking python extra libraries... " >&6; }
 	if test -z "$PYTHON_EXTRA_LIBS"; then
 	   PYTHON_EXTRA_LIBS=`$PYTHON -c "import distutils.sysconfig; \
                 conf = distutils.sysconfig.get_config_var; \
-                print (conf('LIBS'))"`
+                print (conf('LIBS') + ' ' + conf('SYSLIBS'))"`
 	fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PYTHON_EXTRA_LIBS" >&5
 $as_echo "$PYTHON_EXTRA_LIBS" >&6; }

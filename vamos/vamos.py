@@ -123,9 +123,10 @@ def vamos (opt):
                 world.set_focused_car (0)
                 world.cars_can_interact (opt.interact)
 
-            world.read (get_path (opt, opt.world_file, 'worlds', True), 
-                        get_path (opt, opt.controls_file, 'controls', True))
             sounds.read (opt.data_dir + 'sounds/', 'default-sounds.xml')
+
+        world.read (get_path (opt, opt.world_file, 'worlds', True), 
+                    get_path (opt, opt.controls_file, 'controls', True))
 
     # Handle file exceptions.
     except RuntimeError:
