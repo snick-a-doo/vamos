@@ -273,13 +273,6 @@ namespace Vamos_Body
 
     void drivetrain (Drivetrain* drive);
 
-    // Set the position of the driver's eyes relative to the origin.
-    void view_position (const Vamos_Geometry::Three_Vector& driver_view) 
-    { m_driver_view = driver_view; }
-
-    // Set the driver's field of view in degrees.
-    void field_of_view (double field) { m_field_of_view = field; }
-
     virtual void set_view (const Vamos_Geometry::Three_Vector& position,
                            double field_of_view,
                            double near_plane, double far_plane,
@@ -301,7 +294,7 @@ namespace Vamos_Body
     double pan () const { return m_pan_key_control.value (); }
 
     // Return the position of the viewpont.
-    Vamos_Geometry::Three_Vector view_position () const;
+    Vamos_Geometry::Three_Vector view_position (bool world, bool bob) const;
 
     //* Methods to be defined in derived classes.
 
@@ -309,17 +302,15 @@ namespace Vamos_Body
     // orientation.
     virtual void draw () {};
     virtual void draw_interior () {};
-    virtual void draw_rear_view (double aspect, int index) {};
-    virtual void make_rear_view_mask (int window_width, 
-                                      int window_height) {};
-	virtual void update_rear_view_mask (int window_width, 
-                                        int window_height) {};
+    virtual Vamos_Geometry::Three_Vector draw_rear_view (double aspect, int index)
+    { return Vamos_Geometry::Three_Vector::ZERO; }
+    virtual void make_rear_view_mask (int window_width, int window_height) {}
+	virtual void update_rear_view_mask (int window_width, int window_height) {}
     virtual int get_n_mirrors () const { return 0; }
 
     // Perform the transformations for the driver's view.
-    virtual void view (double pan, 
-                       const Vamos_Geometry::Three_Vector& view_position) {};
-    virtual void view () {};
+    virtual void view (double pan, const Vamos_Geometry::Three_Vector& view_position) {}
+    virtual void view () {}
 
     // Return true if there is no shift delay.
     bool fast_shift () const { return m_shift_delay <= 0.0; }
@@ -392,6 +383,8 @@ namespace Vamos_Body
     const std::string& name () const { return m_name; }
 
     double grip () const;
+
+    Vamos_Geometry::Three_Vector acceleration (bool smooth) const;
 
   protected:
     Rigid_Body m_chassis;
@@ -483,6 +476,8 @@ namespace Vamos_Body
     Crash_Box m_crash_box;
 
     Robot_Parameters m_robot_parameters;
+
+    Vamos_Geometry::Three_Vector m_smoothed_acceleration;
   };
 
   class Gauge;

@@ -754,10 +754,8 @@ Gl_World::set_starting_lights () const
   if (count == 0)
     return;
 
-  const int width = mp_window->width ();
-  const int height = mp_window->height ();
-  Vamos_Media::Two_D screen (width, height);
-  screen.lights (0.5*width, 0.6*height, 0.01*height, 
+  Vamos_Media::Two_D screen;
+  screen.lights (50.0, 60.0, 1.0,
                  5, count,
                  0.9, 0.0, 0.0,
                  0.23, 0.2, 0.2);

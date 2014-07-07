@@ -107,14 +107,12 @@ Tire_Friction::slip (double patch_speed, const Three_Vector& hub_velocity,
   // patch speed and the hub velocity is very small.
   *sigma = 0.0;
   *alpha = 0.0;
-  if (std::abs (hub_velocity.x - patch_speed) > 1.0e-4)
-	{
-	  // Put a lower limit on the denominator to keep sigma and
-	  // tan_alpha from getting out of hand at low speeds.
-	  double denom = std::max (std::abs (hub_velocity.x), 3.0);
-	  *sigma = 100.0 * (patch_speed - hub_velocity.x) / denom;
-	  *alpha = -rad_to_deg (atan2 (hub_velocity.y, denom));
-	}
+
+  // Put a lower limit on the denominator to keep sigma and
+  // tan_alpha from getting out of hand at low speeds.
+  double denom = std::max (std::abs (hub_velocity.x), 3.0);
+  *sigma = 100.0 * (patch_speed - hub_velocity.x) / denom;
+  *alpha = -rad_to_deg (atan2 (hub_velocity.y, denom));
 }
 
 // Return the friction vector calculated from the magic formula.

@@ -31,7 +31,7 @@ namespace Vamos_Geometry
   {
   public:
     Rectangle ();
-    Rectangle (double x, double y, double width, double height);
+    Rectangle (double x, double y, double width, double height, bool inverted = false);
     Rectangle (const Vamos_Geometry::Two_Vector& upper_left,
                const Vamos_Geometry::Two_Vector& lower_right);
 
@@ -40,8 +40,8 @@ namespace Vamos_Geometry
     double right () const { return m_right; }
     double bottom () const { return m_bottom; }
 
-    double width () const { return m_right - m_left; }
-    double height () const { return m_top - m_bottom; }
+    double width () const { return std::abs (m_right - m_left); }
+    double height () const { return std::abs (m_top - m_bottom); }
 
     inline Vamos_Geometry::Two_Vector center () const;
 
@@ -49,9 +49,12 @@ namespace Vamos_Geometry
 
     bool operator == (const Rectangle& other) const;
 
-    // Enlarge the rectangle if necessary so that another rectangle is
-    // completely enclosed.
+    /// Enlarge the rectangle if necessary so that another rectangle is
+    /// completely enclosed.
     const Rectangle& enclose (const Rectangle& other);
+    /// Shrink the rectangle if necessary so that it's completely enclosed by
+    /// another.
+    const Rectangle& clip (const Rectangle& other);
 
     void scale (double x_factor, double y_factor);
     void scale (double factor);
@@ -62,6 +65,9 @@ namespace Vamos_Geometry
     double m_top;
     double m_right;
     double m_bottom;
+
+    /// True if y is positive downward.
+    bool m_inverted;
   };
 
   Vamos_Geometry::Two_Vector

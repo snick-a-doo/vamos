@@ -31,7 +31,8 @@ namespace Vamos_Media
   class Two_D
   {
   public:
-    Two_D (int width = 100, int height = 100);
+    Two_D ();
+    Two_D (int width, int height);
     ~Two_D ();
 
     void text (double x, double y, const std::string& label) { text (x, y, label, ""); }
@@ -57,7 +58,17 @@ namespace Vamos_Media
                  double red_on, double green_on, double blue_on,
                  double red_off, double green_off, double blue_off);
 
+    void vector (double x, double y, double r,
+                 double red, double green, double blue,
+                 double red_dot, double green_dot, double blue_dot,
+                 const Vamos_Geometry::Two_Vector& v);
+
   private:
+    double m_width;
+    double m_height;
+
+    void initialize ();
+
     void draw_string (const std::string& str, double x, double y);
   };
 }

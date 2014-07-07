@@ -37,6 +37,11 @@ using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 
+namespace
+{
+  const double view_tilt_factor = 0.1;
+}
+
 //* Struct Rear_View_Mirror
 
 //** Constructor
@@ -66,8 +71,8 @@ Rear_View_Mirror::~Rear_View_Mirror ()
 void 
 Rear_View_Mirror::activate_viewport ()
 {
-  glViewport (m_viewport.x, m_viewport.y, m_viewport.width, m_viewport.height);
-  glScissor (m_viewport.x, m_viewport.y, m_viewport.width, m_viewport.height);
+  glViewport (m_viewport.left (), m_viewport.top (), m_viewport.width (), m_viewport.height ());
+  glScissor (m_viewport.left (), m_viewport.top (), m_viewport.width (), m_viewport.height ());
 }
 
 Three_Vector 
@@ -94,6 +99,121 @@ Rear_View_Mirror::set_view ()
   activate_viewport ();
   glClear (GL_DEPTH_BUFFER_BIT);
   transform_view ();
+}
+
+// Put a mask for one rear-view mirror in the stencil buffer.
+void 
+Rear_View_Mirror::make_mask (int window_width, int window_height,
+							 const Three_Vector& driver_position, 
+							 double driver_field_of_view,
+                             double pan)
+{
+  glDisable (GL_LIGHTING);
+  set_viewport (window_width, window_height, 
+				driver_position, driver_field_of_view, pan);
+  draw_mask_shape ();
+  set_stencil (window_width, window_height);
+  glEnable (GL_LIGHTING);
+}
+
+
+// Find the dimensions for a viewport that's just large enough to hold
+// the mirror.
+void 
+Rear_View_Mirror::set_viewport (int window_width, int window_height, 
+								const Three_Vector& driver_position,
+								double driver_field_of_view,
+                                double pan)
+{
+  Three_Vector pos = (m_position - driver_position).rotate (-deg_to_rad (pan) * Three_Vector::Z);
+  const double y_factor = -1.0 / (pos.x * tan (0.5 * deg_to_rad (driver_field_of_view)));
+  const double aspect = double (window_width) / window_height;
+  const double x_factor = -y_factor / aspect;
+
+  const int x0 = to_pixels (window_width, x_factor, pos.y) - 1;
+  const int y0 = to_pixels (window_height, y_factor, pos.z) - 1;
+
+  const int x1 = to_pixels (window_width, x_factor, pos.y - m_width);
+  const int y1 = to_pixels (window_height, y_factor, pos.z + m_height);
+
+  m_viewport = Rectangle (Two_Vector (x0, y0), Two_Vector (x1, y1));
+  m_viewport.clip (Rectangle (0, 0, window_width - 1, window_height - 1, true));
+}
+
+
+// Draw the mask.
+void 
+Rear_View_Mirror::draw_mask_shape ()
+{
+  glStencilFunc (GL_ALWAYS, 1, 1);
+  glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
+
+  mp_mask->activate ();
+
+  glColor3d (1.0, 1.0, 1.0);
+  glBegin (GL_QUADS);
+  glTexCoord2d (0.0, 1.0);
+  glVertex3d (m_position.x, m_position.y, m_position.z);
+  glTexCoord2d (1.0, 1.0);
+  glVertex3d (m_position.x, m_position.y - m_width, m_position.z);
+  glTexCoord2d (1.0, 0.0);
+  glVertex3d (m_position.x, m_position.y - m_width, 
+			  m_position.z + m_height);
+  glTexCoord2d (0.0, 0.0);
+  glVertex3d (m_position.x, m_position.y, m_position.z + m_height);
+  glEnd ();
+
+  glFlush ();
+}
+
+
+// Use the pixels in the viewport to set the stencil buffer.
+void 
+Rear_View_Mirror::set_stencil (int window_width, int window_height)
+{
+  unsigned char* stencil_buffer = make_stencil_buffer ();
+
+  glMatrixMode (GL_PROJECTION);
+  glPushMatrix ();
+  glLoadIdentity ();
+  gluOrtho2D (0.0, double (window_width), 0.0, double (window_height));
+  glMatrixMode (GL_MODELVIEW);
+  glPushMatrix ();
+  glLoadIdentity ();
+  glStencilFunc (GL_EQUAL, 1, 1);
+  glStencilOp (GL_KEEP, GL_REPLACE, GL_REPLACE);
+  glRasterPos2i (m_viewport.left (), m_viewport.top ());
+  glDrawPixels (m_viewport.width (), m_viewport.height (), GL_STENCIL_INDEX,
+  				GL_UNSIGNED_BYTE, stencil_buffer);
+  glPopMatrix ();
+
+  glMatrixMode (GL_PROJECTION);
+  glPopMatrix ();
+
+  glFinish ();
+
+  delete [] stencil_buffer;
+}
+
+// Grab the current buffer as an array of pixels.
+unsigned char* 
+Rear_View_Mirror::make_stencil_buffer ()
+{
+  glReadBuffer (GL_BACK);
+  const size_t elements = m_viewport.width () * m_viewport.height ();
+  unsigned char* rgba_buffer = new unsigned char [4 * elements];
+
+  glReadPixels (m_viewport.left (), m_viewport.top (), 
+ 				m_viewport.width (), m_viewport.height (), 
+ 				GL_RGBA, GL_UNSIGNED_BYTE, rgba_buffer);
+
+  unsigned char* buffer = new unsigned char [elements];
+  for (size_t i = 0; i < elements; i++)
+	{
+	  buffer [i] = rgba_buffer [4 * i];
+	}
+  delete [] rgba_buffer;
+  return buffer;
 }
 
 //* Class Gl_Car
@@ -208,8 +328,7 @@ Gl_Car::add_rear_view (const Vamos_Geometry::Three_Vector& position,
 void
 Gl_Car::update_rear_view_mask (int window_width, int window_height)
 {
-  if (m_pan_key_control.delta () != 0.0)
-    make_rear_view_mask (window_width, window_height);
+  make_rear_view_mask (window_width, window_height);
 }
 
 // Fill the stencil buffer for masking the rear-view mirrors.
@@ -241,138 +360,18 @@ Gl_Car::make_rear_view_mask (int window_width, int window_height)
 	   it++)
 	{
 	  (*it)->make_mask (window_width, window_height,
-						m_driver_view, field_of_view (),
+                        view_position (false, true), field_of_view (),
                         m_pan_key_control.value ());
 	}
 }
 
-
-// Put a mask for one rear-view mirror in the stencil buffer.
-void 
-Rear_View_Mirror::make_mask (int window_width, int window_height,
-							 const Three_Vector& driver_position, 
-							 double driver_field_of_view,
-                             double pan)
-{
-  glDisable (GL_LIGHTING);
-  set_viewport (window_width, window_height, 
-				driver_position, driver_field_of_view, pan);
-  draw_mask_shape ();
-  set_stencil (window_width, window_height);
-  glEnable (GL_LIGHTING);
-}
-
-
-// Find the dimensions for a viewport that's just large enough to hold
-// the mirror.
-void 
-Rear_View_Mirror::set_viewport (int window_width, int window_height, 
-								const Three_Vector& driver_position,
-								double driver_field_of_view,
-                                double pan)
-{
-  Three_Vector pos = (m_position - driver_position).
-    rotate (-deg_to_rad (pan) * Three_Vector::Z);
-  const double y_factor = 
-	-1.0 / (pos.x * tan (0.5 * deg_to_rad (driver_field_of_view)));
-  const double aspect = double (window_width) / window_height;
-  const double x_factor = -y_factor / aspect;
-
-  const int x0 = to_pixels (window_width, x_factor, pos.y) - 1;
-  m_viewport.x = clip (x0, 0, window_width - 1);
-  const int y0 = to_pixels (window_height, y_factor, pos.z) - 1;
-  m_viewport.y = clip (y0, 0, window_height - 1);
-
-  const int x1 = to_pixels (window_width, x_factor, pos.y - m_width);
-  m_viewport.width = clip (x1, 0, window_width - 1) - m_viewport.x;
-  const int y1 = to_pixels (window_height, y_factor, pos.z + m_height);
-  m_viewport.height = clip (y1, 0, window_height - 1) - m_viewport.y;
-}
-
-
-// Draw the mask.
-void 
-Rear_View_Mirror::draw_mask_shape ()
-{
-  glStencilFunc (GL_ALWAYS, 1, 1);
-  glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
-
-  mp_mask->activate ();
-
-  glColor3d (1.0, 1.0, 1.0);
-  glBegin (GL_QUADS);
-  glTexCoord2d (0.0, 1.0);
-  glVertex3d (m_position.x, m_position.y, m_position.z);
-  glTexCoord2d (1.0, 1.0);
-  glVertex3d (m_position.x, m_position.y - m_width, m_position.z);
-  glTexCoord2d (1.0, 0.0);
-  glVertex3d (m_position.x, m_position.y - m_width, 
-			  m_position.z + m_height);
-  glTexCoord2d (0.0, 0.0);
-  glVertex3d (m_position.x, m_position.y, m_position.z + m_height);
-  glEnd ();
-
-  glFlush ();
-}
-
-
-// Use the pixels in the viewport to set the stencil buffer.
-void 
-Rear_View_Mirror::set_stencil (int window_width, int window_height)
-{
-  unsigned char* stencil_buffer = make_stencil_buffer ();
-
-  glMatrixMode (GL_PROJECTION);
-  glPushMatrix ();
-  glLoadIdentity ();
-  gluOrtho2D (0.0, double (window_width), 0.0, double (window_height));
-  glMatrixMode (GL_MODELVIEW);
-  glPushMatrix ();
-  glLoadIdentity ();
-  glStencilFunc (GL_EQUAL, 1, 1);
-  glStencilOp (GL_KEEP, GL_REPLACE, GL_REPLACE);
-  glRasterPos2i (m_viewport.x, m_viewport.y);
-  glDrawPixels (m_viewport.width, m_viewport.height, GL_STENCIL_INDEX,
-  				GL_UNSIGNED_BYTE, stencil_buffer);
-  glPopMatrix ();
-
-  glMatrixMode (GL_PROJECTION);
-  glPopMatrix ();
-
-  glFinish ();
-
-  delete [] stencil_buffer;
-}
-
-
-// Grab the current buffer as an array of pixels.
-unsigned char* 
-Rear_View_Mirror::make_stencil_buffer ()
-{
-  glReadBuffer (GL_BACK);
-  const size_t elements = m_viewport.width * m_viewport.height;
-  unsigned char* rgba_buffer = new unsigned char [4 * elements];
-
-  glReadPixels (m_viewport.x, m_viewport.y, 
- 				m_viewport.width, m_viewport.height, 
- 				GL_RGBA, GL_UNSIGNED_BYTE, rgba_buffer);
-
-  unsigned char* buffer = new unsigned char [elements];
-  for (size_t i = 0; i < elements; i++)
-	{
-	  buffer [i] = rgba_buffer [4 * i];
-	}
-  delete [] rgba_buffer;
-  return buffer;
-}
-
-
-void 
-Gl_Car::draw_rear_view (double aspect, int index)
+Three_Vector Gl_Car::draw_rear_view (double aspect, int index)
 {
   Rear_View_Mirror* mirror = m_mirrors [index];
   mirror->set_view ();
-  view (mirror->get_direction (), mirror->get_center ());
+  Three_Vector pos = m_chassis.position () + mirror->get_center ();
+  view (mirror->get_direction (), pos);
+  return pos;
 }
 
 // Set the dashboard.
@@ -467,7 +466,18 @@ Gl_Car::draw_dashboard_extras ()
               1.0, 0.0, 1.0,
               throttle_fraction ());
 
+  // Show an accelerometer with a limit of 2 g's.
+  const Three_Vector& a = acceleration (false)/9.8;
+  double radius = 0.25*(top - bottom);
+  screen.vector (25, top - radius, radius,
+                 0.8, 0.8, 0.8,
+                 1.0, 0.0, 0.0,
+                 Two_Vector (a.y, -a.x)/2.0);
+
 #ifdef DEBUG
+  screen.text (26 + radius, top - radius, "", a.y, "", 2);
+  screen.text (27, top - 2*radius - 2, "", a.x, "", 2);
+
   screen.text (28, 18, "Tire Temperature, Wear, Grip");
   //!fixme Assume wheels are defined in the order: right front, left front,
   // right rear, left rear.
@@ -495,7 +505,8 @@ void
 Gl_Car::view ()
 {
   // Called for the front view.
-  view (m_pan_key_control.value (), m_driver_view);
+  Three_Vector pos = view_position (true, true);
+  view (m_pan_key_control.value (), pos);
   const double pan = deg_to_rad (m_pan_key_control.value ());
 
   Three_Vector z = m_chassis.rotate_to_world (Three_Vector (0.0, 0.0, 1.0));
@@ -504,7 +515,6 @@ Gl_Car::view ()
   float at_up [6] = { float (x.x), float (x.y), float (x.z),
                       float (z.x), float (z.y), float (z.z) };
 
-  Three_Vector pos = view_position ();
   alListener3f (AL_POSITION, pos.x, pos.y, pos.z);
   alListenerfv (AL_ORIENTATION, at_up); 
 
@@ -524,16 +534,19 @@ Gl_Car::view (double pan, const Three_Vector& view_position)
   double angle;
   Three_Vector axis = m_chassis.axis_angle (&angle);
 
+  const Three_Vector& a = acceleration (true);
+
   // Rotate the view.
   glRotated (90, 0.0, 1.0, 0.0);
-  glRotated (-90, 1.0, 0.0, 0.0);
+  // Tilt the view according to the acceleration.
+  glRotated (-90 - view_tilt_factor*a.y, 1.0, 0.0, 0.0);
+  glRotated (view_tilt_factor*a.x, 0.0, 1.0, 0.0);
   glRotated (-angle, axis.x, axis.y, axis.z);
 
   Three_Vector z = m_chassis.rotate_to_world (Three_Vector (0.0, 0.0, 1.0));
   glRotated (-pan, z.x, z.y, z.z);
 
-  Three_Vector pos = -m_chassis.transform_to_world (view_position);
-  glTranslated (pos.x, pos.y, pos.z);
+  glTranslated (-view_position.x, -view_position.y, -view_position.z);
 }
 
 void 

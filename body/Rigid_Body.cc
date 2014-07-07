@@ -262,7 +262,8 @@ Rigid_Body::propagate (double time)
   m_last_angular_velocity = angular_velocity ();
   angular_accelerate (delta_omega);
 
-  Three_Vector delta_v = time * total_force / m_mass;
+  m_acceleration = total_force / m_mass;
+  Three_Vector delta_v = m_acceleration * time;
   Three_Vector delta_r = (m_cm_velocity + delta_v) * time;
   m_last_cm_velocity = m_cm_velocity;
   m_cm_velocity += delta_v;
@@ -334,6 +335,11 @@ Three_Vector
 Rigid_Body::velocity (const Three_Vector& r)
 {
   return m_cm_velocity + rotate_to_parent (angular_velocity ().cross (moment (r)));
+}
+
+Three_Vector Rigid_Body::acceleration () const
+{
+  return rotate_from_world (m_acceleration);
 }
 
 Three_Vector

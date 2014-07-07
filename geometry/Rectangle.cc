@@ -27,15 +27,17 @@ Rectangle::Rectangle ()
   : m_left (0.0),
     m_top (0.0),
     m_right (0.0),
-    m_bottom (0.0)
+    m_bottom (0.0),
+    m_inverted (false)
 {
 }
 
-Rectangle::Rectangle (double x, double y, double width, double height)
+Rectangle::Rectangle (double x, double y, double width, double height, bool inverted)
   : m_left (x),
-    m_top (y + height),
+    m_top (inverted ? y : y + height),
     m_right (x + width),
-    m_bottom (y)
+    m_bottom (inverted ? y + height : y),
+    m_inverted (inverted)
 {
 }
 
@@ -43,7 +45,8 @@ Rectangle::Rectangle (const Two_Vector& upper_left, const Two_Vector& lower_righ
   : m_left (upper_left.x),
     m_top (upper_left.y),
     m_right (lower_right.x),
-    m_bottom (lower_right.y)
+    m_bottom (lower_right.y),
+    m_inverted (m_bottom > m_top)
 {
 }
 
@@ -56,15 +59,21 @@ Rectangle::operator == (const Rectangle& other) const
     && m_bottom == other.m_bottom;
 }
 
-// Enlarge the rectangle if necessary so that another rectangle is
-// completely enclosed.
-const Rectangle&
-Rectangle::enclose (const Rectangle& other)
+const Rectangle& Rectangle::enclose (const Rectangle& other)
 {
   m_left = std::min (m_left, other.m_left);
-  m_top = std::max (m_top, other.m_top);
+  m_top = m_inverted ? std::min (m_top, other.m_top) : std::max (m_top, other.m_top);
   m_right = std::max (m_right, other.m_right);
-  m_bottom = std::min (m_bottom, other.m_bottom);
+  m_bottom = m_inverted ? std::max (m_bottom, other.m_bottom) : std::min (m_bottom, other.m_bottom);
+  return *this;
+}
+
+const Rectangle& Rectangle::clip (const Rectangle& other)
+{
+  m_left = std::max (m_left, other.m_left);
+  m_top = m_inverted ? std::max (m_top, other.m_top) : std::min (m_top, other.m_top);
+  m_right = std::min (m_right, other.m_right);
+  m_bottom = m_inverted ? std::min (m_bottom, other.m_bottom) : std::max (m_bottom, other.m_bottom);
   return *this;
 }
 

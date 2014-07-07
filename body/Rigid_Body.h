@@ -60,6 +60,8 @@ namespace Vamos_Body
 
     Vamos_Geometry::Three_Vector m_last_position;
 
+    Vamos_Geometry::Three_Vector m_acceleration;
+
     // The velocity of the center of mass.
     Vamos_Geometry::Three_Vector m_cm_velocity;
 
@@ -179,6 +181,8 @@ namespace Vamos_Body
     Vamos_Geometry::Three_Vector velocity (Particle* particle);
     // Return the velocity of a point in the body's frame.
     Vamos_Geometry::Three_Vector velocity (const Vamos_Geometry::Three_Vector& r);
+    /// Return the acceleration of the center of mass is the body's frame.
+    Vamos_Geometry::Three_Vector acceleration () const;
 
     // Return the velocity of the center of mass.
     Vamos_Geometry::Three_Vector cm_velocity () const { return m_cm_velocity; }

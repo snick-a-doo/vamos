@@ -43,6 +43,12 @@ using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 
+namespace
+{
+  const double acceleration_average_weight = 10.0;
+  const double view_shift_factor = 0.003;
+}
+
 //* Class Key_Control
 // The Key_Control class handles gradual application of a control
 // that's operated by a button, such as the clutch.  If you're using a
@@ -389,6 +395,10 @@ Car::propagate (double time)
 
   m_distance_traveled += 
     m_chassis.rotate_from_parent (m_chassis.cm_velocity ()).x * time;
+
+  // Update the smoothed acceleration.
+  const double weight = std::min (acceleration_average_weight*time, 1.0);
+  m_smoothed_acceleration = (1.0 - weight)*m_smoothed_acceleration + weight*m_chassis.acceleration ();
 }
 
 // Change the steering angle to ANGLE with a time constant of TIME.
@@ -500,10 +510,13 @@ Car::wheel (size_t wheel_index) const
 }
 
 // Return the position of the viewpont.
-Three_Vector 
-Car::view_position () const
+Three_Vector Car::view_position (bool world, bool bob) const
 {
-  return m_chassis.transform_to_world (m_driver_view);
+  Three_Vector pos = m_driver_view;
+  if (bob)
+    pos -= view_shift_factor*acceleration (true);
+
+  return world ? m_chassis.transform_to_world (pos) : pos;
 }
 
 void 
@@ -584,7 +597,7 @@ Car::chase_position () const
   const Three_Vector v2 = m_chassis.rotate_to_world (Three_Vector::X);
   const double w2 = 1.0 - w1;
 
-  return center_position () 
+  return m_chassis.transform_to_world (center () - 0.1*acceleration (true))
     - (w1 * v1 + w2 * v2) * 3.0 * length ()
     + Three_Vector (0.0, 0.0, length ());
 }
@@ -619,6 +632,11 @@ double Car::grip () const
        it++)
     g += (*it)->grip ();
   return g / m_wheels.size ();
+}
+
+Three_Vector Car::acceleration (bool smooth) const
+{
+  return smooth ? m_smoothed_acceleration : m_chassis.acceleration ();
 }
 
 Three_Vector
