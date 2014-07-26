@@ -121,10 +121,10 @@ def vamos (opt):
 
             if robots and not interactive:
                 world.set_focused_car (0)
-                world.cars_can_interact (opt.interact)
 
             sounds.read (opt.data_dir + 'sounds/', 'default-sounds.xml')
 
+        world.cars_can_interact (opt.interact)
         world.read (get_path (opt, opt.world_file, 'worlds', True), 
                     get_path (opt, opt.controls_file, 'controls', True))
 
