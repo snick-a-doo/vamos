@@ -203,15 +203,8 @@ class Random_Circuit (vamos_track.vamos_track):
             self.curves = connect_curves (self.curves)
             changed = len (self.curves) != n_curves
 
-    def circle_less (self, c1, c2):
-        '''Circles are ordered by angle from origin to center.'''
-        a1 = math.atan2 (c1.y, c1.x)
-        a2 = math.atan2 (c2.y, c2.x)
-        if a2 < a1: return self.direction
-        else: return -self.direction
-
     def circle_angle (self, c):
-        return math.atan2 (c.y, c.x)
+        return self.direction * math.atan2 (c.y, c.x)
 
     def generate_curves (self, corners):
         '''Generate circles with random positions and radii. Discard circles
