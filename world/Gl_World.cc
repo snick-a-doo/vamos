@@ -541,7 +541,7 @@ Gl_World::draw_mirror_views ()
 {
   for (int i = 0; i < focused_car ()->car->get_n_mirrors (); i++)
     {
-      focused_car ()->car->draw_rear_view (mp_window->aspect (), i);
+      Three_Vector pos = focused_car ()->car->draw_rear_view (mp_window->aspect (), i);
 
       glMatrixMode (GL_MODELVIEW);
 
@@ -553,7 +553,7 @@ Gl_World::draw_mirror_views ()
       glPushAttrib (GL_POLYGON_BIT);
       {
         glCullFace (GL_FRONT);
-        m_track.draw_sky (focused_car ()->car->view_position ());
+        m_track.draw_sky (pos);
         m_track.draw ();
         draw_cars (false, false);
       }
@@ -574,7 +574,7 @@ Gl_World::set_world_view (const Vamos_Geometry::Three_Vector& camera_position,
                           const Vamos_Geometry::Three_Vector& target_position,
                           double vertical_field_angle)
 {
-  gluPerspective (vertical_field_angle, mp_window->aspect (), 10.0, 1000.0);
+  gluPerspective (vertical_field_angle, mp_window->aspect (), 1.0, 10000.0);
   gluLookAt (camera_position.x, camera_position.y, camera_position.z,
              target_position.x, target_position.y, target_position.z,
              0.0, 0.0, 1.0); // up direction
@@ -658,7 +658,7 @@ Gl_World::display ()
     {
     case BODY_VIEW:
       set_car_view (focused_car ()->car);
-      draw_track (true, focused_car ()->car->view_position ());
+      draw_track (true, focused_car ()->car->view_position (true, true));
       draw_cars (true);
       draw_timing_info ();
       draw_mirror_views ();

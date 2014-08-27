@@ -369,7 +369,7 @@ Three_Vector Gl_Car::draw_rear_view (double aspect, int index)
 {
   Rear_View_Mirror* mirror = m_mirrors [index];
   mirror->set_view ();
-  Three_Vector pos = m_chassis.position () + mirror->get_center ();
+  Three_Vector pos = m_chassis.position () + m_chassis.rotate_to_world (mirror->get_center ());
   view (mirror->get_direction (), pos);
   return pos;
 }
