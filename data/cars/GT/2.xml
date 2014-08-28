@@ -2,9 +2,9 @@
 <!-- max-power 2.0e5 -> 2.2e5 -->
 <car name="BLU">
   <robot>
-    <slip-ratio>9.0</slip-ratio>
-    <deceleration>1.4</deceleration>
-    <lateral-acceleration>1.5</lateral-acceleration>
+    <slip-ratio>7.5</slip-ratio>
+    <deceleration>1.55</deceleration>
+    <lateral-acceleration>1.55</lateral-acceleration>
   </robot>
 
   <exterior-model>

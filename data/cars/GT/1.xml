@@ -2,9 +2,9 @@
 
 <car name="YEL">
   <robot>
-    <slip-ratio>9.0</slip-ratio>
-    <deceleration>1.4</deceleration>
-    <lateral-acceleration>1.5</lateral-acceleration>
+    <slip-ratio>7.5</slip-ratio>
+    <deceleration>1.55</deceleration>
+    <lateral-acceleration>1.55</lateral-acceleration>
   </robot>
 
   <exterior-model>
@@ -23,16 +23,17 @@
   <view>
     <position>[ 2.07, 1.24, 1.0 ]</position>
     <field-width>60.0</field-width>
-	<near-plane>0.5</near-plane>
+	<near-plane>0.3</near-plane>
 	<far-plane>700.0</far-plane>
 	<pan-angle>60.0</pan-angle>
   </view>
   <mirror>
+	<direction>160.0</direction>
     <position>[ 3, 2.0, 0.8 ]</position>
 	<size>[ 0.25, 0.25 ]</size>
 	<direction>160.0</direction>
     <field-width>60.0</field-width>
-	<near-plane>2.0</near-plane>
+	<near-plane>1.0</near-plane>
 	<far-plane>400.0</far-plane>
 	<mask>square-mask.png</mask>
   </mirror>
@@ -41,7 +42,7 @@
 	<size>[ 0.30, 0.10 ]</size>
 	<direction>180.0</direction>
     <field-width>30.0</field-width>
-	<near-plane>6.0</near-plane>
+	<near-plane>3.0</near-plane>
   </mirror>
 
   <dashboard>

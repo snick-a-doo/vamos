@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
-<!-- lowered mass, raised deceleration, lateral-acceleration by 0.1 -->
+<!-- lowered mass -->
 <car name="GRN">
   <robot>
-    <slip-ratio>9.0</slip-ratio>
-    <deceleration>1.5</deceleration>
-    <lateral-acceleration>1.6</lateral-acceleration>
+    <slip-ratio>7.5</slip-ratio>
+    <deceleration>1.55</deceleration>
+    <lateral-acceleration>1.55</lateral-acceleration>
   </robot>
 
   <exterior-model>
@@ -256,7 +256,7 @@
   </wheel>
 
   <contact-point>
-    <mass>30.0</mass>
+    <mass>25.0</mass>
     <position>[ 0.0, 0.0, 0.5 ]</position>
 	<material>metal</material>
 	<friction>0.0</friction>

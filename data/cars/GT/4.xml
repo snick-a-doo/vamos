@@ -2,9 +2,9 @@
 <!-- drag-coefficient 0.6 -> 0.5 -->
 <car name="RED">
   <robot>
-    <slip-ratio>9.0</slip-ratio>
-    <deceleration>1.4</deceleration>
-    <lateral-acceleration>1.5</lateral-acceleration>
+    <slip-ratio>7.5</slip-ratio>
+    <deceleration>1.55</deceleration>
+    <lateral-acceleration>1.55</lateral-acceleration>
   </robot>
 
   <exterior-model>
