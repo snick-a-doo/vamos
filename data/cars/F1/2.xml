@@ -6,7 +6,7 @@
   <robot>
     <slip-ratio>7.0</slip-ratio>
     <deceleration>1.8</deceleration>
-    <lateral-acceleration>1.8</lateral-acceleration>
+    <lateral-acceleration>1.7</lateral-acceleration>
   </robot>
 
   <exterior-model>

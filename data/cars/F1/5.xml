@@ -4,8 +4,8 @@
 <car name="SLV">
   <robot>
     <slip-ratio>7.0</slip-ratio>
-    <deceleration>1.9</deceleration>
-    <lateral-acceleration>1.9</lateral-acceleration>
+    <deceleration>1.8</deceleration>
+    <lateral-acceleration>1.8</lateral-acceleration>
   </robot>
 
   <exterior-model>

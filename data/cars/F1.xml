@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 
 <!-- A modern Formula One car -->
-<car name="F1">
+<car name="WHT">
   <robot>
-    <slip-ratio>8.0</slip-ratio>
-    <deceleration>1.9</deceleration>
-    <lateral-acceleration>1.9</lateral-acceleration>
+    <slip-ratio>7.0</slip-ratio>
+    <deceleration>1.7</deceleration>
+    <lateral-acceleration>1.8</lateral-acceleration>
   </robot>
 
   <exterior-model>
-    <file>F1.ac</file>
+    <file>F1-white.ac</file>
 	<scale>1.0</scale>
 	<translate>[ -0.5, 0.2, -0.1 ]</translate>
 	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
@@ -106,7 +106,7 @@
       <sound>
         <file>f1-v8.wav</file>
 		<pitch>0.0009</pitch>
-		<volume>0.02</volume>
+		<volume>0.03</volume>
 		<throttle-volume-factor>1.0</throttle-volume-factor>
 		<engine-speed-volume-factor>0.001</engine-speed-volume-factor>
 	  </sound>
