@@ -90,6 +90,7 @@
   </road>
 
   <timing-line>10.0</timing-line>
+  <timing-line>324</timing-line>
 
   <!-- Force the track to close.-->
   <circuit segments="1" />

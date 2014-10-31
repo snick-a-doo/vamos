@@ -22,3 +22,12 @@ out
 *-results
 doc/robot-cars/computer-controlled-cars.aux
 doc/robot-cars/computer-controlled-cars.log
+*.o
+*.lo
+*.la
+*.loT
+*~
+.deps/
+.libs/
+test_*
+!test_*.cc

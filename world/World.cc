@@ -41,7 +41,7 @@ Car_Information::Car_Information (Car* car_in, Driver* driver_in)
    segment_index (0), 
    car (car_in),
    driver (driver_in),
-   m_record (5000)
+   m_record (1000)
 {
 }
 

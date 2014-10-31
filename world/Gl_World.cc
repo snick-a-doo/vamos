@@ -207,6 +207,7 @@ Gl_World::Gl_World (Vamos_Track::Strip_Track& track,
 Gl_World::~Gl_World ()
 {
   delete mp_window;
+  SDL_Quit();
 }
 
 void 
@@ -215,7 +216,6 @@ Gl_World::initialize_graphics (int* argc, char** argv)
   glutInit (argc, argv);
   if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK) != 0)
     throw Can_Not_Intialize_SDL (SDL_GetError ());
-  atexit (SDL_Quit);
   SDL_JoystickOpen (0);
 }
 

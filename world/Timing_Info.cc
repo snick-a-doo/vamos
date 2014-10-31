@@ -223,6 +223,7 @@ void Timing_Info::update_position (Car_Timing* p_car,
 
 bool Timing_Info::is_new_sector (size_t index, size_t sector) const
 {
+  //!!Fixme: always returns true if there's only one sector.
   const size_t current = ma_car_timing [index]->current_sector ();
   // Do the % before + because sector is 1-based.
   return (sector == (current % m_sectors) + 1);
