@@ -20,6 +20,8 @@
 #ifndef _PID_H_
 #define _PID_H_
 
+#include <iosfwd>
+
 /// A PID controller
 ///
 /// The controller provides a value to be used to as an input parameter for
@@ -54,17 +56,25 @@ namespace Vamos_Geometry
     /// @return The new control parameter output.
     double propagate (double input, double dt);
 
+    double operator () () const;
+    
+    /// Stream operators.
+    std::ostream& output (std::ostream& os) const;
+
   private:
     double m_kp; //< Proportional gain
     double m_ki; //< Integral gain
     double m_kd; //< Derivative gain
+
+    double m_proportional; //< Proportional term
+    double m_integral; //< Integral term
+    double m_derivative; //< Derivative term
+
     /// Time constant for decay of the integral term.  This reduces the
     /// influence of the accumulated integral term on the output at later
     /// times.
     double m_integral_decay;
 
-    /// The accumulated error for the integral term.
-    double m_integral;
     /// The previous error for the derivative term.
     double m_previous_error;
     /// The most recent setpoint.
@@ -73,5 +83,8 @@ namespace Vamos_Geometry
     double m_cumulative_time;
   };
 }
+
+inline std::ostream& operator << (std::ostream& os, Vamos_Geometry::PID const& pid)
+{ return pid.output (os); }
 
 #endif // not _PID_H_
