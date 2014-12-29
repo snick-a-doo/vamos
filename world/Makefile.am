@@ -1,3 +1,5 @@
+include $(top_srcdir)/flymake.mk
+
 # Library
 lib_LTLIBRARIES = libvamos-world.la
 
