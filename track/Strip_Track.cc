@@ -260,7 +260,7 @@ Racing_Line::Racing_Line ()
   : m_length (0.0),
     mp_line (0),
     m_list_id (0),
-    m_iterations (800),
+    m_iterations (1500),
     m_stiffness (1.0),
     m_damping (0.01),
     m_margin (1.6),
@@ -284,11 +284,11 @@ Racing_Line::position (double along) const
 Three_Vector
 Racing_Line::curvature (double along, double offline_fraction) const
 {
-  const Three_Vector c1 = m_curvature.interpolate (wrap (along, m_length));
+  along = wrap (along, m_length);
+  const Three_Vector c1 = m_curvature.interpolate (along);
   const Three_Vector c2 = (offline_fraction > 0.0)
-    ? m_left_curvature.interpolate (wrap (along, m_length))
-    : m_right_curvature.interpolate (wrap (along, m_length));
-
+    ? m_left_curvature.interpolate (along)
+    : m_right_curvature.interpolate (along);
   //  linearly interpolate from line to edge.
   const double f = std::abs (offline_fraction);
   return Three_Vector (Vamos_Geometry::interpolate (f, 0.0, c1.x, 1.0, c2.x),
@@ -302,19 +302,25 @@ Racing_Line::tangent (double along) const
   return m_tangent.interpolate (wrap (along, m_length));
 }
 
-Three_Vector 
-Racing_Line::get_curvature (const Three_Vector& p1,
-                            const Three_Vector& p2,
-                            const Three_Vector& p3) const
+Three_Vector Racing_Line::normal_curvature (const Three_Vector& p1,
+                                            const Three_Vector& p2,
+                                            const Three_Vector& p3) const
 {
   Three_Vector r21 (p1 - p2);
   Three_Vector r23 (p3 - p2);
   Three_Vector up (r23.cross (r21));
 
-  const double length_21 = r21.magnitude ();
+  const double length_23 = r23.magnitude ();
 
   // Assume the angle is small so that sin x = x.
-  return up / (length_21 * length_21 * length_21);
+  return up / (r21.dot (r21) * length_23);
+}
+
+Three_Vector Racing_Line::planar_curvature (const Three_Vector& p1,
+                                            const Three_Vector& p2,
+                                            const Three_Vector& p3) const
+{
+  return normal_curvature (p1, p2, p3).magnitude () * (p2 - (p1 + p3)/2.0).unit ();
 }
 
 void
@@ -327,7 +333,7 @@ Racing_Line::force (const Three_Vector& p1,
 {
   Three_Vector r21 (p1 - p2);
   Three_Vector r23 (p3 - p2);
-  Three_Vector curvature = get_curvature (p1, p2, p3);
+  Three_Vector curvature = normal_curvature (p1, p2, p3);
   Three_Vector df1 = m_stiffness * curvature.cross (r21);
   Three_Vector df3 = -m_stiffness * curvature.cross (r23);
 
@@ -399,7 +405,7 @@ Racing_Line::build (const Road& road, bool close)
   // than 'max_interval' 
   const double max_interval = m_resolution > 0.0 
     ? m_resolution
-    : left_width (road, 0.0) + right_width (road, 0.0);
+    : 0.5*(left_width (road, 0.0) + right_width (road, 0.0));
   double interval = max_interval;
   const int divisions = std::ceil (m_length / interval);
   if (divisions <= 0)
@@ -420,13 +426,12 @@ Racing_Line::build (const Road& road, bool close)
   m_right_curvature.clear ();
   m_tangent.clear ();
 
-  // Load every other point to avoid closely spaced points at sharp corners.
-  for (size_t i = 1; i < positions.size () - 1; i += 2)
-    load_curvature (i*interval, 
-                    positions [i - 1], 
-                    positions [i], 
-                    positions [i + 1],
-                    road);
+  for (size_t i = 1; i < positions.size () - 1; ++i)
+      load_curvature (i*interval, 
+                      positions [i - 1], 
+                      positions [i], 
+                      positions [i + 1],
+                      road);
 
   if (close)
     {
@@ -441,40 +446,38 @@ Racing_Line::build (const Road& road, bool close)
 }
 
 void
-Racing_Line::load_curvature (double distance,
+Racing_Line::load_curvature (double along,
                              const Three_Vector& p1,
                              const Three_Vector& p2,
                              const Three_Vector& p3,
                              const Road& road)
 {
-  const Gl_Road_Segment& segment = *road.segment_at (distance);
-  mp_line->load (distance, p2.x, p2.y);
+  const Gl_Road_Segment& segment = *road.segment_at (along);
+  mp_line->load (along, p2.x, p2.y);
 
-  m_tangent.load (distance, (p3 - p1).unit ());
+  m_tangent.load (along, (p3 - p1).unit ());
 
   const double factor = segment.racing_line_curvature_factor ();
-  Three_Vector c = factor * 
-    get_curvature (p1, p2, p3).magnitude () * (p2 - (p1 + p3)/2.0).unit ();
-  m_curvature.load (distance, c);
-  const double radius = segment.radius ();
-  if (radius == 0.0)
+  m_curvature.load (along, factor * planar_curvature (p1, p2, p3));
+
+  if (segment.radius () == 0.0)
     {
-      m_left_curvature.load (distance, Three_Vector::ZERO);
-      m_right_curvature.load (distance, Three_Vector::ZERO);
+      m_left_curvature.load (along, Three_Vector::ZERO);
+      m_right_curvature.load (along, Three_Vector::ZERO);
     }
-  else if (radius > 0.0)
+  else
     {
-      m_left_curvature.load (distance, c);
-      //! 1.0 / (radius - segment.left_racing_line_width (0.0)));
-      m_right_curvature.load (distance, c);
-      //! 1.0 / (radius + segment.right_racing_line_width (0.0)));
-    }
-  else if (radius < 0.0)
-    {
-      m_left_curvature.load (distance, c);
-      //! 1.0 / (radius + segment.left_racing_line_width (0.0)));
-      m_right_curvature.load (distance, c);
-      //! 1.0 / (radius - segment.right_racing_line_width (0.0)));
+      double across = segment.left_racing_line_width (along);
+      Three_Vector p1 = road.position (along - 10, across);
+      Three_Vector p2 = road.position (along, across);
+      Three_Vector p3 = road.position (along + 10, across);
+      m_left_curvature.load (along, planar_curvature (p1, p2, p3));
+
+      across = segment.right_racing_line_width (along);
+      p1 = road.position (along - 10, across);
+      p2 = road.position (along, across);
+      p3 = road.position (along + 10, across);
+      m_right_curvature.load (along, planar_curvature (p1, p2, p3));
     }
 }
 
@@ -489,23 +492,21 @@ Racing_Line::build_list (const Road& road)
 
   glDisable (GL_TEXTURE_2D);
   glLineWidth (2.0);
+
   glBegin (GL_LINE_STRIP);
-  size_t segment = 0;
   Three_Vector last_world = position (0.0);
-  const Segment_List& segment_list = road.segments ();
-  for (double x = 0.0; x < m_length; x += 0.1)
+  for (double along = 0.0; along < m_length; along += 0.1)
     {
-      Three_Vector world = position (x);
-      road.track_coordinates (world, segment);
+      Three_Vector world = position (along);
       Three_Vector forward = (world - last_world).unit ();
-      Three_Vector curve = curvature (x, 0.0);
+      Three_Vector curve = curvature (along, 0.0);
       double color = 100.0 * curve.magnitude ();
       if (curve.cross (forward).z < 0.0)
         color *= -1.0;
       glColor4f (1.0 - color, 1.0 + color, 1.0, 0.5);
       glVertex3d (world.x, 
                   world.y, 
-                  segment_list [segment]->world_elevation (world) + 0.05);
+                  road.segment_at (along)->world_elevation (world) + 0.05);
       last_world = world;
     }
   glEnd ();
@@ -513,14 +514,13 @@ Racing_Line::build_list (const Road& road)
   glPointSize (4.0);
   glColor4f (0.8, 0.0, 0.0, 0.5);
   glBegin (GL_POINTS);
-  segment = 0;
+
   for (size_t i = 0; i < mp_line->size (); i++)
     {
       Three_Vector world = (*mp_line) [i];
-      road.track_coordinates (world, segment); // Find the segment index.
       glVertex3d (world.x, 
                   world.y, 
-                  segment_list [segment]->world_elevation (world) + 0.04);
+                  road.segment_at (mp_line->parameter (i))->world_elevation (world) + 0.04);
     }
   glEnd ();
 
@@ -1646,7 +1646,7 @@ Three_Vector Strip_Track::grid_position (int place, int total, bool pit) const
 {
   assert (place > 0); // 1-based
   assert (place <= total);
-  static const double grid_interval = pit ? 12.0 : 8.0;
+  static const double grid_interval = (pit ? 12.0 : 8.0);
   // Put the 1st car 1 interval from the beginning of the 1st segment to avoid
   // putting off the end.
   double across = pit 

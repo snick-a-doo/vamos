@@ -194,10 +194,13 @@ namespace Vamos_Track
                     double interval,
                     bool close);
 
-    Vamos_Geometry::Three_Vector 
-    get_curvature (const Vamos_Geometry::Three_Vector& p1,
-                   const Vamos_Geometry::Three_Vector& p2,
-                   const Vamos_Geometry::Three_Vector& p3) const;
+    Vamos_Geometry::Three_Vector normal_curvature (const Vamos_Geometry::Three_Vector& p1,
+                                                   const Vamos_Geometry::Three_Vector& p2,
+                                                   const Vamos_Geometry::Three_Vector& p3) const;
+
+    Vamos_Geometry::Three_Vector planar_curvature (const Vamos_Geometry::Three_Vector& p1,
+                                                   const Vamos_Geometry::Three_Vector& p2,
+                                                   const Vamos_Geometry::Three_Vector& p3) const;
 
     void force (const Vamos_Geometry::Three_Vector& p1,
                 const Vamos_Geometry::Three_Vector& p2,
