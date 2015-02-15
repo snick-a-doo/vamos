@@ -261,7 +261,7 @@ Racing_Line::Racing_Line ()
     mp_line (0),
     m_list_id (0),
     m_iterations (1500),
-    m_stiffness (1.0),
+    m_stiffness (0.5),
     m_damping (0.01),
     m_margin (1.6),
     m_resolution (0.0)
