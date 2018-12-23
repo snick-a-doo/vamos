@@ -1,14 +1,10 @@
-pkgpython_PYTHON = vamos.py config.py
-bin_SCRIPTS = vamos
-CLEANFILES = $(bin_SCRIPTS)
+bin_PROGRAMS = vamos
 
-noinst_PROGRAMS = cvamos
-
-cvamos_SOURCES = Options.cc vamos.cc
+vamos_SOURCES = Options.cc vamos.cc
 
 EXTRA_DIST = Options.h
 
-cvamos_LDADD = \
+vamos_LDADD = \
 	$(top_srcdir)/world/libvamos-world.la \
 	$(top_srcdir)/body/libvamos-body.la \
 	$(top_srcdir)/track/libvamos-track.la \

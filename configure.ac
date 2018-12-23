@@ -23,24 +23,10 @@ AC_PROG_LIBTOOL
 
 AC_PATH_X
 
-AM_PATH_PYTHON([3.2],, [:])
-AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
-
-AC_CONFIG_FILES([vamos/vamos], [chmod +x vamos/vamos])
-
-dnl Python
-AX_PYTHON
+AM_PATH_PYTHON([3])
 
 dnl Boost
 AX_BOOST_BASE([1.46.0],, AC_MSG_ERROR([Boost >= v1.46.0 is required.]))
-AX_BOOST_PYTHON([1.46.0])
-
-dnl Error out if Boost Python was found but the library was not.
-if test "$ac_cv_boost_python" = "yes"; then
-    if test "$ax_boost_python_lib" = ""; then
-        AC_MSG_ERROR([Boost Python found but the libraries were not.  You may need to set LDFLAGS or use --with-boost-python])
-    fi
-fi
 
 dnl Checks for libraries.
 AC_CHECK_LIB(SDL, SDL_Init,,
@@ -142,7 +128,6 @@ AC_CONFIG_FILES([Makefile
 				track/Makefile
 				world/Makefile
 				vamos/Makefile
-                vamos/config.py
 				data/Makefile
 				data/cars/Makefile
 				data/cars/F1/Makefile

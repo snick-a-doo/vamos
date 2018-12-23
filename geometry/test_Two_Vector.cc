@@ -79,11 +79,7 @@ BOOST_AUTO_TEST_CASE (input)
   Input_Output_Fixture f;
   std::string s = "[ 1.2, -3.4 ]";
   std::istringstream is (s);
-  ::operator >> (is, f.v);
-  // Can't use is >> f.v because that would be ambiguous due to the
-  // re-definition of >> in std:: for use by Boost::test.  See comment
-  // in Two_Vector.h
-
+  is >> f.v;
   BOOST_CHECK_EQUAL (f.v.x, 1.2);
   BOOST_CHECK_EQUAL (f.v.y, -3.4);
 }
@@ -92,11 +88,7 @@ BOOST_AUTO_TEST_CASE (output)
 {
   Input_Output_Fixture f;
   std::ostringstream os;
-  ::operator << (os, f.v);
-  // Can't use os << f.v because that would be ambiguous due to the
-  // re-definition of << in std:: for use by Boost::test.  See comment
-  // in Two_Vector.h
-
+  os << f.v;
   BOOST_CHECK_EQUAL (os.str (), "[ -2.2, 3.3 ]");
 }
 

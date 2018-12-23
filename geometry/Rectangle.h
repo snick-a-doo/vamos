@@ -76,8 +76,8 @@ namespace Vamos_Geometry
     return Vamos_Geometry::Two_Vector (Vamos_Geometry::average (m_left, m_right),
                                        Vamos_Geometry::average (m_top, m_bottom));
   }
-
-  std::ostream& operator << (std::ostream& os, const Rectangle& rectangle);
 }
+
+std::ostream& operator << (std::ostream& os, const Vamos_Geometry::Rectangle& rectangle);
 
 #endif // not _RECTANGLE_H_

@@ -892,7 +892,7 @@ Ac3d_Object::Ac3d_Object (std::string type, double scale,
 	m_rotation (rotation)
   {
 	std::ifstream is (m_file.c_str ());
-	if (is == 0)
+	if (!is)
 	  {
 		throw No_File (m_file);
 	  }

@@ -5,7 +5,6 @@
 
 @c %**start of header
 @setfilename vamos.info
-@setchapternewpage
 @settitle Vamos
 @set VERSION 0.7.0
 @set EDITION 0.5
@@ -52,7 +51,7 @@ approved by the Free Software Foundation.
 @titlepage
 @title Vamos Automotive Simulator
 @subtitle @value{EDITION}, version @value{VERSION}
-@subtitle @vaule{UPDATED}
+@subtitle @value{UPDATED}
 @author
 
 @page

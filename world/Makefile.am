@@ -1,5 +1,3 @@
-include $(top_srcdir)/flymake.mk
-
 # Library
 lib_LTLIBRARIES = libvamos-world.la
 
@@ -29,25 +27,6 @@ pkgincludedir = $(includedir)/@PACKAGE@/world
 EXTRA_DIST = $(pkginclude_HEADERS)
 
 AM_CXXFLAGS = -fPIC -Wall -pedantic
-
-# Python Module
-if HAVE_PYTHON
-pyexec_LTLIBRARIES = world.la
-else
-pyexec_LTLIBRARIES =
-endif
-
-world_la_SOURCES = bp-world.cc
-world_la_CXXFLAGS = $(AM_CXXFLAGS) -I$(PYTHON_INCLUDE_DIR)
-world_la_LDFLAGS = -avoid-version -module
-world_la_LIBADD = \
-	$(top_srcdir)/body/libvamos-body.la \
-	$(top_srcdir)/geometry/libvamos-geometry.la \
-	$(top_srcdir)/media/libvamos-media.la \
-	$(top_srcdir)/track/libvamos-track.la \
-	$(top_srcdir)/world/libvamos-world.la \
-	-l$(PYTHON_LIB) \
-	-l$(BOOST_PYTHON_LIB)
 
 # Unit Tests
 if DO_UNIT_TESTS

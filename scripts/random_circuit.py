@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # random_circuit: Generate closed tracks for Vamos
 #

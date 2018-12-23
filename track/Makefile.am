@@ -1,5 +1,3 @@
-include $(top_srcdir)/flymake.mk
-
 # Library
 lib_LTLIBRARIES = libvamos-track.la
 
@@ -20,23 +18,6 @@ pkgincludedir = $(includedir)/@PACKAGE@/track
 EXTRA_DIST = $(pkginclude_HEADERS)
 
 AM_CXXFLAGS = -fPIC -Wall -pedantic
-
-# Python Module
-if HAVE_PYTHON
-pyexec_LTLIBRARIES = track.la
-else
-pyexec_LTLIBRARIES =
-endif
-
-track_la_SOURCES = bp-track.cc
-track_la_CXXFLAGS = $(AM_CXXFLAGS) -I$(PYTHON_INCLUDE_DIR)
-track_la_LDFLAGS = -avoid-version -module
-track_la_LIBADD = \
-	$(top_srcdir)/geometry/libvamos-geometry.la \
-	$(top_srcdir)/media/libvamos-media.la \
-	$(top_srcdir)/track/libvamos-track.la \
-	-l$(PYTHON_LIB) \
-	-l$(BOOST_PYTHON_LIB)
 
 # Unit Tests
 if DO_UNIT_TESTS

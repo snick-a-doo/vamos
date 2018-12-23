@@ -1,8 +1,5 @@
-include $(top_srcdir)/flymake.mk
-
 # Library
-lib_LTLIBRARIES = \
-	libvamos-geometry.la
+lib_LTLIBRARIES = libvamos-geometry.la
 
 libvamos_geometry_la_SOURCES = \
 	Calculations.cc \
@@ -42,21 +39,6 @@ pkgincludedir = $(includedir)/@PACKAGE@/geometry
 EXTRA_DIST = $(pkginclude_HEADERS)
 
 AM_CXXFLAGS = -fPIC -Wall -pedantic
-
-# Python Module
-if HAVE_PYTHON
-pyexec_LTLIBRARIES = geometry.la
-else
-pyexec_LTLIBRARIES =
-endif
-
-geometry_la_SOURCES = bp-geometry.cc
-geometry_la_CXXFLAGS = $(AM_CXXFLAGS) -I$(PYTHON_INCLUDE_DIR)
-geometry_la_LDFLAGS = -avoid-version -module
-geometry_la_LIBADD = \
-	$(top_srcdir)/geometry/libvamos-geometry.la \
-	-l$(PYTHON_LIB) \
-	-l$(BOOST_PYTHON_LIB)
 
 # Unit Tests
 if DO_UNIT_TESTS

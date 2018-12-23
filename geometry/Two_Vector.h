@@ -69,21 +69,10 @@ namespace Vamos_Geometry
 }
 
 // Stream operators.
-std::istream& operator >> (std::istream& is, Vamos_Geometry::Two_Vector& vec);
-std::ostream& operator << (std::ostream& os, Vamos_Geometry::Two_Vector const& vec);
-
-#if defined (BOOST_TEST_MODULE)
-// For Boost 1.39, need operator << overloaded for Two_Vector in
-// namespace std for unit test log messages.  Alternatively, we could
-// use BOOST_TEST_DONT_PRINT_LOG_VALUE (Two_Vector), but then the
-// messages would be less useful.
 namespace std
 {
-  std::istream& operator >> (std::istream& is, Vamos_Geometry::Two_Vector& vec)
-  { return ::operator >> (is, vec); }
-  std::ostream& operator << (std::ostream& os, Vamos_Geometry::Two_Vector const& vec)
-  { return ::operator << (os, vec); }
+  std::istream& operator>>(std::istream& is, Vamos_Geometry::Two_Vector& vec);
+  std::ostream& operator<<(std::ostream& os, const Vamos_Geometry::Two_Vector& vec);
 }
-#endif // BOOST_TEST_MODULE
 
 #endif // not _TWO_VECTOR_H_

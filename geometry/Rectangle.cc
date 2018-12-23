@@ -103,8 +103,7 @@ Rectangle::move (const Two_Vector& delta)
   m_bottom += delta.y;
 }
 
-std::ostream& Vamos_Geometry::
-operator << (std::ostream& os, const Rectangle& rectangle)
+std::ostream& operator << (std::ostream& os, const Vamos_Geometry::Rectangle& rectangle)
 {
   os << "(" << rectangle.left () << ", " << rectangle.top ()
 	 << ") (" << rectangle.right () << ", " << rectangle.bottom () << ")";
