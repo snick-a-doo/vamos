@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(vamos, 0.8.2, snick-a-doo@comcast.net)
+AC_INIT([vamos],[1.0.0],[snick-a-doo@comcast.net])
 AC_CONFIG_SRCDIR(world/World.cc)
 AC_CONFIG_AUX_DIR(config)
 
@@ -19,7 +19,7 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-AC_PROG_LIBTOOL
+LT_INIT
 
 AC_PATH_X
 
