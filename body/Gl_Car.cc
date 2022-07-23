@@ -29,6 +29,7 @@
 #include <GL/glut.h>
 
 #include <algorithm>
+#include <functional>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -410,7 +411,7 @@ Gl_Car::draw ()
 
 	  // Draw the wheels.
 	  std::for_each (m_wheels.begin (), m_wheels.end (),
-					 std::mem_fun (&Wheel::draw));
+					 std::mem_fn (&Wheel::draw));
     }
 }
 

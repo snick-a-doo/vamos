@@ -1,7 +1,7 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE Road_Segment
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
+h#include <boost/test/unit_test.hpp>
+#include <boost/test/tools/floating_point_comparison.hpp>
 
 #include "Road_Segment.h"
 #include "../geometry/Conversions.h"

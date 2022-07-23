@@ -1,4 +1,4 @@
-This is vamos.info, produced by makeinfo version 6.5 from vamos.texi.
+This is vamos.info, produced by makeinfo version 6.8 from vamos.texi.
 
 INFO-DIR-SECTION Applications
 START-INFO-DIR-ENTRY
@@ -67,14 +67,6 @@ Its main purpose is to be a test bed for the libraries.  It is not
 intended to be a polished end-user application.  However, you can drive
 on a number of tracks and try to beat your best time.  Or you can just
 have fun driving on, and over, the ragged edge.
-
-* Menu:
-
-* Controls::
-* Dashboard::
-* Cars::
-* Tracks::
-* Worlds::
 
 1.1 Getting Started
 ===================
@@ -2041,24 +2033,29 @@ Concept Index
 Tag Table:
 Node: Top1229
 Node: Let's Go2298
-Node: Controls4809
-Node: Dashboard10767
-Node: Cars12876
-Node: Tracks24639
-Node: Worlds37553
-Node: Units38989
-Node: Code Reference40841
-Node: The Geometry Library43277
-Node: The Media Library46746
-Node: The Track Library46915
-Node: The Body Library47963
-Node: Frame48738
-Node: Particle48839
-Node: Body48959
-Node: Car49069
-Node: The World Library49232
-Node: Building Vamos51081
-Node: Copying53667
-Node: Concept Index73873
+Node: Controls4741
+Node: Dashboard10699
+Node: Cars12808
+Node: Tracks24571
+Node: Worlds37485
+Node: Units38921
+Node: Code Reference40773
+Node: The Geometry Library43209
+Node: The Media Library46678
+Node: The Track Library46847
+Node: The Body Library47895
+Node: Frame48670
+Node: Particle48771
+Node: Body48891
+Node: Car49001
+Node: The World Library49164
+Node: Building Vamos51013
+Node: Copying53599
+Node: Concept Index73805
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

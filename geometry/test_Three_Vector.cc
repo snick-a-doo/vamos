@@ -1,7 +1,7 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE Three_Vector
 #include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/tools/floating_point_comparison.hpp>
 
 #include "Constants.h"
 #include "Three_Vector.h"

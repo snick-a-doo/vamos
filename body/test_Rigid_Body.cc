@@ -1,7 +1,7 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE Rigid_Body
 #include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/tools/floating_point_comparison.hpp>
 
 #include "Rigid_Body.h"
 #include "../geometry/Constants.h"

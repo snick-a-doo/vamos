@@ -69,12 +69,11 @@ test_Aerodynamic_Device_LDADD = \
 	Particle.lo \
 	Aerodynamic_Device.lo \
 	-lboost_unit_test_framework
-test_Car_SOURCES = test_Car.cc
+test_Car_SOURCES = test_Car.cc $(libvamos_body_la_SOURCES)
 test_Car_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Car_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la \
-	$(top_srcdir)/body/libvamos-body.la \
 	-lboost_unit_test_framework
 test_Frame_SOURCES = test_Frame.cc
 test_Frame_CXXFLAGS = -DBOOST_TEST_DYN_LINK
@@ -89,12 +88,17 @@ test_Particle_LDADD = \
 	Frame.lo \
 	Particle.lo \
 	-lboost_unit_test_framework
-test_Rigid_Body_SOURCES = test_Rigid_Body.cc
+test_Rigid_Body_SOURCES = \
+	test_Rigid_Body.cc \
+	Aerodynamic_Device.cc \
+	Rigid_Body.cc \
+	Contact_Point.cc \
+	Frame.cc \
+	Particle.cc
 test_Rigid_Body_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 test_Rigid_Body_LDADD = \
 	$(top_srcdir)/geometry/libvamos-geometry.la \
 	$(top_srcdir)/media/libvamos-media.la \
-	$(top_srcdir)/body/libvamos-body.la \
 	-lboost_unit_test_framework
 
 if DO_UNIT_TESTS

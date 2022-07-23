@@ -791,7 +791,7 @@ Ac3d_Object::Ac3d_Object (std::string type, double scale,
 	  }
 	buffer [length] = '\0';
 	m_data = std::string (buffer);
-	delete buffer;
+	delete [] buffer;
   }
 
   void 
@@ -808,11 +808,11 @@ Ac3d_Object::Ac3d_Object (std::string type, double scale,
 	  }
 
 	std::for_each (m_surfaces.begin (), m_surfaces.end (), 
-				   std::mem_fun (&Ac3d_Surface::build));
+				   std::mem_fn (&Ac3d_Surface::build));
 
 	glDisable (GL_TEXTURE_2D);
 	std::for_each (m_kids.begin (), m_kids.end (), 
-				   std::mem_fun (&Ac3d_Object::build));
+				   std::mem_fn (&Ac3d_Object::build));
 	glEnable (GL_TEXTURE_2D);
   }
 
@@ -1215,7 +1215,7 @@ Ac3d_Object::Ac3d_Object (std::string type, double scale,
 	glNewList (id, GL_COMPILE);
 
 	std::for_each (m_objects.begin (), m_objects.end (), 
-				   std::mem_fun (&Ac3d_Object::build));
+				   std::mem_fn (&Ac3d_Object::build));
 
 	glEndList ();
 

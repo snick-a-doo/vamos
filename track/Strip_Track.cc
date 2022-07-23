@@ -27,6 +27,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <functional>
 
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
@@ -1027,7 +1028,7 @@ void
 Road::draw ()
 {
   std::for_each (m_segments.begin (), m_segments.end (), 
-                 std::mem_fun (&Gl_Road_Segment::draw));
+                 std::mem_fn (&Gl_Road_Segment::draw));
   if (m_draw_racing_line)
     m_racing_line.draw ();
 }
