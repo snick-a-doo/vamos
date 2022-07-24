@@ -1,6 +1,6 @@
 test_sources = [
+  'test.cc',
   'test_aerodynamics.cc',
-  'test_calculations.cc',
   'test_car.cc',
   'test_circular-buffer.cc',
   'test_controls.cc',
@@ -18,11 +18,11 @@ test_sources = [
   'test_three-vector.cc',
   'test_timing-info.cc',
   'test_two-vector.cc',
+  'test_xml-parser.cc',
 ]
 
 vamos_test = executable('vamos-test',
                         test_sources,
                         include_directories: vamos_includes,
-                        link_with: [body_lib, geometry_lib, media_lib, track_lib, world_lib],
-                        override_options: ['cpp_std=c++2a', 'warning_level=3', 'errorlogs=true'])
+                        link_with: [body_lib, geometry_lib, media_lib, track_lib, world_lib])
 test('vamos test', vamos_test)

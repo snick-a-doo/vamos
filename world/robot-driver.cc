@@ -20,7 +20,6 @@
 #include "robot-driver.h"
 #include "../body/car.h"
 #include "../body/wheel.h"
-#include "../geometry/calculations.h"
 #include "../geometry/constants.h"
 #include "../geometry/parameter.h"
 #include "../geometry/three-vector.h"

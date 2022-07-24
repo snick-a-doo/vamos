@@ -23,6 +23,6 @@ subdir('body')
 subdir('track')
 subdir('world')
 
-# subdir('test') -- uncomment after converting to Doctest
+subdir('test')
 subdir('caelum')
 subdir('vamos')

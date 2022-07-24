@@ -78,12 +78,6 @@ namespace Vamos_Geometry
     /// Non-modifying rotation.  Return a fresh vector.
     Three_Vector rotate (const Three_Vector& vec) const;
 
-    /// Implementation of input and output for the << and >>
-    /// operators.  See the note about Boost at the operator
-    /// definitions.
-    std::istream& input (std::istream& is);
-    std::ostream& output (std::ostream& os) const;
-
     /// Arithmetic operators that modify the vector.
     inline Three_Vector& operator += (const Three_Vector& vec);
     inline Three_Vector& operator -= (const Three_Vector& vec);
@@ -197,30 +191,9 @@ namespace Vamos_Geometry
       return Three_Vector (0.0, 0.0, 1.0);
     return *this / vec_abs;
   }
-}
 
-#if defined (BOOST_TEST_MODULE)
-namespace std
-{
-  /// For Boost 1.39, need operator << overloaded for Three_Vector in
-  /// namespace std for unit test log messages.  Alternatively, we
-  /// could use BOOST_TEST_DONT_PRINT_LOG_VALUE (Three_Vector), but
-  /// then the messages would be less useful.
-  inline std::istream& 
-  operator >> (std::istream& is, Vamos_Geometry::Three_Vector& vec)
-  { return vec.input (is); }
-  inline std::ostream& 
-  operator << (std::ostream& os, Vamos_Geometry::Three_Vector const& vec)
-  { return vec.output (os); }
+std::istream& operator>>(std::istream& is, Vamos_Geometry::Three_Vector& vec);
+std::ostream& operator<<(std::ostream& os, Vamos_Geometry::Three_Vector const& vec);
 }
-#else
-/// Stream operators.
-inline std::istream& 
-operator >> (std::istream& is, Vamos_Geometry::Three_Vector& vec)
-{ return vec.input (is); }
-inline std::ostream& 
-operator << (std::ostream& os, Vamos_Geometry::Three_Vector const& vec)
-{ return vec.output (os); }
-#endif // BOOST_TEST_MODULE
 
 #endif // not _THREE_VECTOR_H_

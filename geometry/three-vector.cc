@@ -19,6 +19,8 @@
 #include "three-matrix.h"
 #include "two-vector.h"
 
+#include <sstream>
+
 using namespace Vamos_Geometry;
 
 const Vamos_Geometry::Three_Vector Vamos_Geometry::
@@ -148,17 +150,20 @@ Three_Vector::rotate (const Three_Vector& vec) const
   return r * *this;
 }
 
-std::istream&
-Three_Vector::input (std::istream& is)
+namespace Vamos_Geometry
 {
-  char delim;
-  is >> delim >> x >> delim >> y >> delim >> z >> delim;
-  return is;
+std::istream& operator>>(std::istream& is, Three_Vector& vec)
+{
+    std::string str;
+    std::getline(is, str, ']');
+    std::istringstream line(str);
+    char delim;
+    line >> delim >> vec.x >> vec.y >> vec.z;
+    return is;
 }
 
-std::ostream&
-Three_Vector::output (std::ostream& os) const
+std::ostream& operator<<(std::ostream& os, Three_Vector const& vec)
 {
-  os << "[ " << x << ", " << y << ", " << z << " ]";
-  return os;
+    return os << "[" << vec.x << ' ' << vec.y << ' ' << vec.z << "]";
+}
 }

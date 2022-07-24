@@ -1,122 +1,97 @@
-#define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE Linear_Interpolator
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include "../geometry/linear-interpolator.h"
-#include "../geometry/constants.h"
+#include "doctest.h"
+
+#include "test.h"
+
+#include <geometry/constants.h>
+#include <geometry/linear-interpolator.h>
 
 using namespace Vamos_Geometry;
 
-struct Angle_Fixture
+TEST_CASE("angle")
 {
-  Angle_Fixture () 
-  {
-    linear.load (Two_Vector (0.0, 0.0));
-    linear.load (Two_Vector (1.0, 1.0));
-  }
-  Linear_Interpolator linear;
-};
+    Linear_Interpolator linear{{Two_Vector(0.0, 0.0), Two_Vector(1.0, 1.0)}};
 
-struct Zigzag_Fixture
-{
-  Zigzag_Fixture () 
-  {
-    linear.load (Two_Vector (0.0, 1.0));
-    linear.load (Two_Vector (1.0, 1.0));
-    linear.load (Two_Vector (2.0, 2.0));
-    linear.load (Two_Vector (3.0, 2.0));
-  }
-  Linear_Interpolator linear;
-};
-
-struct Zagzig_Fixture
-{
-  Zagzig_Fixture () 
-  {
-    linear.load (Two_Vector (0.0, -1.0));
-    linear.load (Two_Vector (1.0, -1.0));
-    linear.load (Two_Vector (2.0, -2.0));
-    linear.load (Two_Vector (3.0, -2.0));
-  }
-  Linear_Interpolator linear;
-};
-
-BOOST_AUTO_TEST_CASE (test_angle_interpolation)
-{
-  Angle_Fixture f;
-  BOOST_CHECK_EQUAL (f.linear.interpolate (0.0), 0.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (0.5), 0.5);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (1.0), 1.0);
+    SUBCASE("interpolate")
+    {
+        CHECK(linear.interpolate(0.0) == 0.0);
+        CHECK(linear.interpolate(0.5) == 0.5);
+        CHECK(linear.interpolate(1.0) == 1.0);
+    }
+    SUBCASE("extrapolate")
+    {
+        // Extrapolation is clamped to the endpoints.
+        CHECK(linear.interpolate(-1.0) == 0.0);
+        CHECK(linear.interpolate(100.0) == 1.0);
+    }
 }
 
-BOOST_AUTO_TEST_CASE (test_angle_extrapolation)
+TEST_CASE("zigzag")
 {
-  Angle_Fixture f;
-  BOOST_CHECK_EQUAL (f.linear.interpolate (-1.0), 0.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (100.0), 1.0);
-  // Extrapolation gives the values of the endpoints.  We do not
-  // extend the line at the current slope.
+    Linear_Interpolator linear{{Two_Vector(0.0, 1.0),
+            Two_Vector(1.0, 1.0),
+            Two_Vector(2.0, 2.0),
+            Two_Vector(3.0, 2.0)}};
+
+    SUBCASE("interpolate")
+    {
+        CHECK(linear.interpolate(0.0) == 1.0);
+        CHECK(linear.interpolate(0.5) == 1.0);
+        CHECK(linear.interpolate(1.0) == 1.0);
+        CHECK(linear.interpolate(1.5) == 1.5);
+        CHECK(linear.interpolate(2.0) == 2.0);
+        CHECK(linear.interpolate(2.5) == 2.0);
+        CHECK(linear.interpolate(3.0) == 2.0);
+    }
+    SUBCASE("extrapolate")
+    {
+        CHECK(linear.interpolate(-1.0) == 1.0);
+        CHECK(linear.interpolate(100.0) == 2.0);
+    }
+    SUBCASE("normal")
+    {
+        const Two_Vector up(0.0, 1.0);
+        const Two_Vector slant(-1.0 / root_2, 1.0 / root_2);
+        CHECK(linear.normal(-1.0) == up);
+        CHECK(linear.normal(0.0) == up);
+        CHECK(linear.normal(0.5) == up);
+        CHECK(linear.normal(1.0) == up);
+        CHECK(linear.normal(1.5) == slant);
+        CHECK(linear.normal(2.0) == slant);
+        CHECK(linear.normal(2.5) == up);
+        CHECK(linear.normal(3.0) == up);
+        CHECK(linear.normal(100.0) == up);
+    }
 }
 
-BOOST_AUTO_TEST_CASE (test_zigzag_interpolation)
+TEST_CASE("zagzig")
 {
-  Zigzag_Fixture f;
-  BOOST_CHECK_EQUAL (f.linear.interpolate (0.0), 1.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (0.5), 1.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (1.0), 1.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (1.5), 1.5);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (2.0), 2.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (2.5), 2.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (3.0), 2.0);
-}
+    Linear_Interpolator linear{{Two_Vector(0.0, -1.0),
+            Two_Vector(1.0, -1.0),
+            Two_Vector(2.0, -2.0),
+            Two_Vector(3.0, -2.0)}};
 
-BOOST_AUTO_TEST_CASE (test_zigzag_extrapolation)
-{
-  Zigzag_Fixture f;
-  BOOST_CHECK_EQUAL (f.linear.interpolate (-1.0), 1.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (100.0), 2.0);
-}
-
-BOOST_AUTO_TEST_CASE (test_zigzag_normal)
-{
-  Zigzag_Fixture f;
-  const Two_Vector up (0.0, 1.0);
-  const Two_Vector slant (-1.0 / root_2, 1.0 / root_2);
-  BOOST_CHECK_EQUAL (f.linear.normal (-1.0), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (0.0), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (0.5), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (1.0), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (1.5), slant);
-  BOOST_CHECK_EQUAL (f.linear.normal (2.0), slant);
-  BOOST_CHECK_EQUAL (f.linear.normal (2.5), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (3.0), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (100.0), up);
-}
-
-BOOST_AUTO_TEST_CASE (test_zagzig_interpolation)
-{
-  Zagzig_Fixture f;
-  BOOST_CHECK_EQUAL (f.linear.interpolate (0.0), -1.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (0.5), -1.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (1.0), -1.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (1.5), -1.5);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (2.0), -2.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (2.5), -2.0);
-  BOOST_CHECK_EQUAL (f.linear.interpolate (3.0), -2.0);
-}
-
-BOOST_AUTO_TEST_CASE (test_zagzig_normal)
-{
-  Zagzig_Fixture f;
-  const Two_Vector up (0.0, 1.0);
-  const Two_Vector slant (1.0 / root_2, 1.0 / root_2);
-  BOOST_CHECK_EQUAL (f.linear.normal (-1.0), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (0.0), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (0.5), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (1.0), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (1.5), slant);
-  BOOST_CHECK_EQUAL (f.linear.normal (2.0), slant);
-  BOOST_CHECK_EQUAL (f.linear.normal (2.5), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (3.0), up);
-  BOOST_CHECK_EQUAL (f.linear.normal (100.0), up);
+    SUBCASE("interpolate")
+    {
+        CHECK(linear.interpolate(0.0) == -1.0);
+        CHECK(linear.interpolate(0.5) == -1.0);
+        CHECK(linear.interpolate(1.0) == -1.0);
+        CHECK(linear.interpolate(1.5) == -1.5);
+        CHECK(linear.interpolate(2.0) == -2.0);
+        CHECK(linear.interpolate(2.5) == -2.0);
+        CHECK(linear.interpolate(3.0) == -2.0);
+    }
+    SUBCASE("normal")
+    {
+        const Two_Vector up(0.0, 1.0);
+        const Two_Vector slant(1.0 / root_2, 1.0 / root_2);
+        CHECK(linear.normal(-1.0) == up);
+        CHECK(linear.normal(0.0) == up);
+        CHECK(linear.normal(0.5) == up);
+        CHECK(linear.normal(1.0) == up);
+        CHECK(linear.normal(1.5) == slant);
+        CHECK(linear.normal(2.0) == slant);
+        CHECK(linear.normal(2.5) == up);
+        CHECK(linear.normal(3.0) == up);
+        CHECK(linear.normal(100.0) == up);
+    }
 }
