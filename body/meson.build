@@ -1,0 +1,27 @@
+body_sources = [
+  'aerodynamics.cc',
+  'brake.cc',
+  'car.cc',
+  'car-reader.cc',
+  'contact-point.cc',
+  'clutch.cc',
+  'dashboard.cc',
+  'differential.cc',
+  'drivetrain.cc',
+  'engine.cc',
+  'frame.cc',
+  'fuel-tank.cc',
+  'gl-car.cc',
+  'particle.cc',
+  'rigid-body.cc',
+  'suspension.cc',
+  'tire.cc',
+  'transmission.cc',
+  'wheel.cc',
+]
+
+body_lib = library('vamos-body',
+                    body_sources,
+                    dependencies: [al_dep, gl_dep, glu_dep],
+                    include_directories: vamos_includes,
+                    link_with: [geometry_lib, media_lib])

@@ -17,10 +17,10 @@
 //  You should have received a copy of the GNU General Public License
 //  along with Caelum.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "Sphere_Sky.h"
-#include "Cylinder_Sky.h"
+#include "sphere-sky.h"
+#include "cylinder-sky.h"
 
-#include "../media/Texture_Image.h"
+#include "../media/texture-image.h"
 
 #include <iostream>
 #include <cstdlib>

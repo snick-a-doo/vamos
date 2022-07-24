@@ -15,24 +15,24 @@
 //  You should have received a copy of the GNU General Public License
 //  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <boost/filesystem.hpp>
+#include "../body/gl-car.h"
+#include "../media/model.h"
+#include "../track/strip-track.h"
+#include "../world/atmosphere.h"
+#include "../world/gl-world.h"
+#include "../world/sounds.h"
+#include "../world/interactive-driver.h"
+#include "../world/robot-driver.h"
+#include "options.h"
 
-#include "../body/Gl_Car.h"
-#include "../media/Ac3d.h"
-#include "../track/Strip_Track.h"
-#include "../world/Atmosphere.h"
-#include "../world/Gl_World.h"
-#include "../world/Sounds.h"
-#include "../world/Interactive_Driver.h"
-#include "../world/Robot_Driver.h"
-#include "Options.h"
+#include <filesystem>
 
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 using namespace Vamos_Track;
 using namespace Vamos_World;
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 struct Entry
 {
@@ -51,18 +51,17 @@ struct Entry
 
 typedef std::vector <Entry> Entry_List;
 
-std::string
-get_path (std::string file, std::string section, bool extend)
+fs::path get_path(std::string const& data_dir,
+                  std::string const& section,
+                  std::string const& file,
+                  bool extend)
 {
-  std::string path ("../data/" + section + "/" + file + (extend ? ".xml" : ""));
-  if (fs::exists (path))
-    return path;
-
-  path = DATADIR "/" + section + "/" + file + (extend ? ".xml" : "");
-  if (fs::exists (path))
-    return path;
-
-  return file;
+    fs::path path(data_dir);
+    path /= section;
+    path /= file + (extend ? ".xml" : "");
+    if (fs::exists(path))
+        return path;
+    return file;
 }
 
 void read_input (Options& opt, Entry_List& entries)
@@ -91,11 +90,11 @@ void get_entries (Options& opt, Entry_List& entries)
   if (!opt.input_file.empty ())
     return read_input (opt, entries);
 
-  opt.track_file = get_path (opt.track_file, "tracks", true);
+  opt.track_file = get_path(opt.data_dir, "tracks", opt.track_file,true);
 
   std::vector <std::string> car_files;
 
-  fs::path car_path (get_path (opt.car_file, "cars", false));
+  auto car_path = get_path(opt.data_dir, "cars", opt.car_file, false);
   if (fs::is_directory (car_path))
     {
       for (fs::directory_iterator it = fs::directory_iterator (car_path);
@@ -109,7 +108,7 @@ void get_entries (Options& opt, Entry_List& entries)
       std::sort (car_files.begin (), car_files.end ());
     }
   else
-      car_files.push_back (get_path (opt.car_file, "cars", true));
+      car_files.push_back(get_path(opt.data_dir, "cars", opt.car_file,true));
 
   std::sort (car_files.begin (), car_files.end ());
   std::vector <std::string>::const_iterator it = car_files.begin ();
@@ -188,8 +187,8 @@ int main (int argc, char* argv [])
           world.cars_can_interact (opt.interact);
         }
 
-      world.read (get_path (opt.world_file, "worlds", true), 
-                  get_path (opt.controls_file, "controls", true));
+      world.read(get_path(opt.data_dir, "worlds", opt.world_file, true),
+                 get_path(opt.data_dir, "controls", opt.controls_file, true));
       if (!opt.map_mode)
           sounds.read (opt.data_dir + "sounds/", "default-sounds.xml");
     }
