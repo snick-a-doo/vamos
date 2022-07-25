@@ -158,12 +158,12 @@ std::istream& operator>>(std::istream& is, Three_Vector& vec)
     std::getline(is, str, ']');
     std::istringstream line(str);
     char delim;
-    line >> delim >> vec.x >> vec.y >> vec.z;
+    line >> delim >> vec.x >> delim >> vec.y >> delim >> vec.z;
     return is;
 }
 
 std::ostream& operator<<(std::ostream& os, Three_Vector const& vec)
 {
-    return os << "[" << vec.x << ' ' << vec.y << ' ' << vec.z << "]";
+    return os << "[ " << vec.x << ", " << vec.y << ", " << vec.z << " ]";
 }
 }

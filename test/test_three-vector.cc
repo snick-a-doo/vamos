@@ -2,6 +2,8 @@
 
 #include "test.h"
 
+#include <sstream>
+
 #include <geometry/constants.h>
 #include <geometry/three-vector.h>
 
@@ -144,5 +146,26 @@ TEST_CASE("vector and point")
         CHECK(close(v.perp_distance(p), 1.0, 1e-6));
         v.y = -3.0;
         CHECK(close(v.perp_distance(p), 1.0, 1e-6));
+    }
+}
+
+TEST_CASE("input/output")
+{
+    Three_Vector v{-2.2, 3.3, -4.4};
+
+    SUBCASE("input")
+    {
+        std::string s = "[ 1.2, -3.4, 5.6 ]";
+        std::istringstream is(s);
+        is >> v;
+        CHECK(v.x == 1.2);
+        CHECK(v.y == -3.4);
+        CHECK(v.z == 5.6);
+    }
+    SUBCASE("output")
+    {
+        std::ostringstream os;
+        os << v;
+        CHECK(os.str() == "[ -2.2, 3.3, -4.4 ]");
     }
 }

@@ -192,8 +192,8 @@ namespace Vamos_Geometry
     return *this / vec_abs;
   }
 
-std::istream& operator>>(std::istream& is, Vamos_Geometry::Three_Vector& vec);
-std::ostream& operator<<(std::ostream& os, Vamos_Geometry::Three_Vector const& vec);
+    std::istream& operator>>(std::istream& is, Vamos_Geometry::Three_Vector& vec);
+    std::ostream& operator<<(std::ostream& os, Vamos_Geometry::Three_Vector const& vec);
 }
 
 #endif // not _THREE_VECTOR_H_

@@ -47,16 +47,19 @@ operator / (const Two_Vector& p, double scalar)
   return Two_Vector (p.x / scalar, p.y / scalar);
 }
 
-// Stream Operators
-std::istream& std::operator>>(std::istream& is, Vamos_Geometry::Two_Vector& vector)
+
+namespace Vamos_Geometry
+{
+std::istream& operator>>(std::istream& is, Vamos_Geometry::Two_Vector& vector)
 {
   char delim;
   is >> delim >> vector.x >> delim >> vector.y >> delim;
   return is;
 }
 
-std::ostream& std::operator<<(std::ostream& os, const Vamos_Geometry::Two_Vector& vector)
+std::ostream& operator<<(std::ostream& os, Vamos_Geometry::Two_Vector const& vector)
 {
   os << "[ " << vector.x << ", " << vector.y << " ]";
   return os;
+}
 }

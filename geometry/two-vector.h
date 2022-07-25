@@ -66,13 +66,9 @@ namespace Vamos_Geometry
       return Two_Vector (0.0, 1.0);
     return *this / length;
   }
-}
 
-// Stream operators.
-namespace std
-{
-  std::istream& operator>>(std::istream& is, Vamos_Geometry::Two_Vector& vec);
-  std::ostream& operator<<(std::ostream& os, const Vamos_Geometry::Two_Vector& vec);
+    std::istream& operator>>(std::istream& is, Vamos_Geometry::Two_Vector& vec);
+    std::ostream& operator<<(std::ostream& os, Vamos_Geometry::Two_Vector const& vec);
 }
 
 #endif // not _TWO_VECTOR_H_
