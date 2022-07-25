@@ -5,7 +5,6 @@ project('vamos', 'cpp',
 
 al_dep = dependency('openal', required: true)
 alut_dep = dependency('freealut', required: true)
-assimp_dep = dependency('assimp', required: true)
 gl_dep = dependency('opengl', required: true)
 glu_dep = dependency('glu', required: true)
 glut_dep = dependency('glut', required: true)

@@ -8,7 +8,7 @@ media_sources = [
 
 media_lib = library('vamos-media',
                     media_sources,
-                    dependencies: [al_dep, alut_dep, assimp_dep, gl_dep,
+                    dependencies: [al_dep, alut_dep, gl_dep,
                                    glu_dep, glut_dep, png_dep],
                     include_directories: vamos_includes,
                     link_with: geometry_lib)

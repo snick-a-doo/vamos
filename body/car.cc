@@ -297,6 +297,7 @@ Car::propagate (double time)
 
   // Update the transmission.
   double gas = m_gas_key_control.value ();
+  static bool going = false;
   if (mp_drivetrain)
     {
       if (m_shift_pending)
@@ -321,12 +322,11 @@ Car::propagate (double time)
 
       // Update the fuel tank.
       mp_fuel_tank->consume (mp_drivetrain->engine ()->fuel_rate () * time);
-    }
 
-  static bool going = false;
-  if ((mp_drivetrain->transmission ()->gear () != 0)
-      && (mp_drivetrain->clutch ()->pressure () != 0.0))
-    going = true;
+      if (mp_drivetrain->transmission()->gear() != 0
+          && mp_drivetrain->clutch()->pressure() != 0.0)
+          going = true;
+    }
 
   m_slide = 0.0;
   double right_wheel_speed = 0.0;
