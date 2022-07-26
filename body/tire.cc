@@ -56,8 +56,7 @@ double peak_slip (double B, double C, double E, double Sh, double guess)
     {
       return B*(1.0 - E)*(x + Sh) + E*atan (B*(x + Sh)) - tan (pi/(2.0*C));
     }
-    static inline 
-    double derivative (double x, double B, double C, double E, double Sh)
+    static inline double derivative(double x, double B, double E, double Sh)
     {
       return B*(1.0 - E) + E*B/(1.0 + B*B*(x + Sh)*(x + Sh));
     }
@@ -72,7 +71,7 @@ double peak_slip (double B, double C, double E, double Sh, double guess)
       y = Slip::function (x, B, C, E, Sh);
       if (std::abs (y) < 0.001)
           return x;
-      x -= y / Slip::derivative (x, B, C, E, Sh);
+      x -= y / Slip::derivative (x, B, E, Sh);
     }
   //   std::cerr << "peak_slip() failed x=" << x << " y=" << y << 
   //     " B=" << B << " C=" << C << " E=" << E << " Sh=" << Sh << std::endl;

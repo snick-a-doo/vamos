@@ -27,6 +27,7 @@
 
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
+using namespace Vamos_World;
 
 // Define an OpenAL exit handler so resources will be freed when the sound
 // object is destroyed.
@@ -308,13 +309,11 @@ Sounds_Reader::Sounds_Reader (std::string file_name, Sounds* sounds)
   read (file_name);
 }
 
-void Vamos_World::
-Sounds_Reader::on_start_tag (const XML_Tag& tag)
+void Sounds_Reader::on_start_tag(XML_Tag const&)
 {
 }
 
-void Vamos_World::
-Sounds_Reader::on_end_tag (const XML_Tag& tag)
+void Sounds_Reader::on_end_tag(XML_Tag const&)
 {
   Sounds::Sound_Type type = Sounds::NONE;
 

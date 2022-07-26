@@ -58,18 +58,12 @@ Contact_Point::Contact_Point (const Particle& particle,
   set_material (material);
 }
 
-
-// Handle collisions.  The return value is how much the particle has
-// moved as a result of the contact.  For a Particle, this is always
-// 0.  But, for derived classes that model moving parts, a non-zero
-// value may be returned.
-double 
-Contact_Point::contact (const Three_Vector& impulse,
-                        const Three_Vector& velocity, 
-                        double distance,
-                        const Three_Vector& normal,
-                        const Three_Vector& angular_velocity,
-                        const Material& material)
+double Contact_Point::contact(Three_Vector const& impulse,
+                              Three_Vector const&, // velocity
+                              double, // distance,
+                              Three_Vector const&, // normal
+                              Three_Vector const&, // angular_velocity
+                              Material const&) //material
 {
   set_impulse (rotate_from_parent (impulse));
   m_contact = true;

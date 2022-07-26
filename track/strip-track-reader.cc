@@ -230,8 +230,7 @@ Strip_Track_Reader::on_start_tag (const Vamos_Media::XML_Tag& tag)
     }
 }
 
-void 
-Strip_Track_Reader::on_end_tag (const Vamos_Media::XML_Tag& tag)
+void Strip_Track_Reader::on_end_tag(const Vamos_Media::XML_Tag&)
 {
   if (label () == "road")
 	{

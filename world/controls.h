@@ -30,14 +30,15 @@ namespace Vamos_World
 {
   class Control;
 
-  // The base class for classes that can set control callbacks
-  class Control_Handler 
-  {
-  public:
-    virtual Control& joystick () = 0;
-    virtual Control& keyboard () = 0;
-    virtual Control& mouse () = 0;
-  };
+    /// The base class for classes that can set control callbacks
+    class Control_Handler
+    {
+    public:
+        virtual ~Control_Handler() = default;
+        virtual Control& joystick () = 0;
+        virtual Control& keyboard () = 0;
+        virtual Control& mouse () = 0;
+    };
 
   // The callback function pointer type
   typedef bool (Control_Handler::* Callback_Function) (double, double);

@@ -42,8 +42,7 @@ Interpolator::~Interpolator ()
 {
 }
 
-double
-Interpolator::interpolate (double distance) const
+double Interpolator::interpolate(double) const
 {
   m_interpolations++;
   if (show_statistics && (m_interpolations % statistics_interval == 0))

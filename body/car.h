@@ -131,12 +131,13 @@ namespace Vamos_Body
     // Read the car definition file.
     virtual void read (std::string data_dir = "", std::string car_file = "");
 
-    // Define a sound for the engine.
-    virtual void engine_sound (std::string file, 
-                               double volume, 
-                               double throttle_volume_factor, 
-                               double engine_speed_volume_factor, 
-                               double pitch) {};
+      // Define a sound for the engine.
+      virtual void engine_sound(std::string const&, // file
+                                double, // volume,
+                                double, // throttle_volume_factor,
+                                double, // engine_speed_volume_factor,
+                                double) // pitch
+      {};
 
     // Set and get the parameters for computer control.
     void set_robot_parameters (double slip_ratio,
@@ -152,18 +153,20 @@ namespace Vamos_Body
     const Robot_Parameters& get_robot_parameters () const
     { return m_robot_parameters; }
 
-    // Set the 3D models.
-    virtual void 
-    exterior_model (std::string file, double scale,
-                    const Vamos_Geometry::Three_Vector& translation,
-                    const Vamos_Geometry::Three_Vector& rotation) {};
-    virtual void 
-    interior_model (std::string file, double scale,
-                    const Vamos_Geometry::Three_Vector& translation,
-                    const Vamos_Geometry::Three_Vector& rotation) {};
+      // Set the 3D models.
+      virtual void exterior_model(std::string const&, // file
+                                  double, // scale
+                                  Vamos_Geometry::Three_Vector const&, // translation
+                                  Vamos_Geometry::Three_Vector const&) // rotation
+      {}
+      virtual void interior_model(std::string const&, // file
+                                  double, // scale
+                                  Vamos_Geometry::Three_Vector const&, // translation
+                                  Vamos_Geometry::Three_Vector const&) // rotation
+      {}
 
-    // Set the dashboard.
-    virtual void dashboard (Dashboard* dash) {};
+      // Set the dashboard.
+      virtual void dashboard(Dashboard* /* dash */) {}
 
     // Advance the car in time by TIME.
     virtual void propagate (double time);
@@ -273,19 +276,25 @@ namespace Vamos_Body
 
     void drivetrain (Drivetrain* drive);
 
-    virtual void set_view (const Vamos_Geometry::Three_Vector& position,
-                           double field_of_view,
-                           double near_plane, double far_plane,
-                           double pan_angle) {};
+      virtual void set_view(Vamos_Geometry::Three_Vector const&, // position
+                            double, // field_of_view
+                            double, // near_plane
+                            double, // far_plane
+                            double) // pan_angle
+      {}
 
-    virtual void set_perspective (double aspect) {};
+      virtual void set_perspective(double /* aspect */) {};
 
-    // Add a rearview mirror.
-    virtual void add_rear_view (const Vamos_Geometry::Three_Vector& position,
-                                double width, double height,
-                                double direction, double field,
-                                double near_plane, double far_plane,
-                                std::string mask_file) {};
+      // Add a rearview mirror.
+      virtual void add_rear_view(Vamos_Geometry::Three_Vector const&, // position
+                                 double, // width
+                                 double, // height
+                                 double, // direction
+                                 double, // field
+                                 double, // near_plane
+                                 double, //far_plane
+                                 std::string const&) // mask_file
+      {}
 
     // Return the driver's field of view in degrees.
     double field_of_view () const { return m_field_of_view; }
@@ -302,14 +311,15 @@ namespace Vamos_Body
     // orientation.
     virtual void draw () {};
     virtual void draw_interior () {};
-    virtual Vamos_Geometry::Three_Vector draw_rear_view (double aspect, int index)
-    { return Vamos_Geometry::Three_Vector::ZERO; }
-    virtual void make_rear_view_mask (int window_width, int window_height) {}
-	virtual void update_rear_view_mask (int window_width, int window_height) {}
+      virtual Vamos_Geometry::Three_Vector draw_rear_view(double /* aspect */, int /* index */);
+      virtual void make_rear_view_mask(int /* window_width */, int /* window_height */) {}
+      virtual void update_rear_view_mask(int /* window_width */, int /* window_height */) {}
     virtual int get_n_mirrors () const { return 0; }
 
-    // Perform the transformations for the driver's view.
-    virtual void view (double pan, const Vamos_Geometry::Three_Vector& view_position) {}
+      // Perform the transformations for the driver's view.
+      virtual void view(double, // pan
+                        Vamos_Geometry::Three_Vector const&) // view_position
+      {}
     virtual void view () {}
 
     // Return true if there is no shift delay.

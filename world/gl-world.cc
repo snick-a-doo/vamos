@@ -1078,13 +1078,11 @@ World_Reader::World_Reader (std::string file_name, Gl_World* world)
   read (file_name);
 }
 
-void 
-World_Reader::on_start_tag (const Vamos_Media::XML_Tag& tag)
+void World_Reader::on_start_tag(Vamos_Media::XML_Tag const&)
 {
 }
 
-void 
-World_Reader::on_end_tag (const Vamos_Media::XML_Tag& tag)
+void World_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
 {
 }
 
@@ -1269,8 +1267,7 @@ Controls_Reader::Controls_Reader (std::string file_name, Gl_World* world)
   read (file_name);
 }
 
-void 
-Controls_Reader::on_start_tag (const Vamos_Media::XML_Tag& tag)
+void Controls_Reader::on_start_tag(const Vamos_Media::XML_Tag&)
 {
   if (label () == "bind")
     {
@@ -1339,8 +1336,7 @@ Controls_Reader::register_callback
     }
 }
 
-void 
-Controls_Reader::on_end_tag (const Vamos_Media::XML_Tag& tag)
+void Controls_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
 {
   if (label () == "up")
     m_direction = UP;

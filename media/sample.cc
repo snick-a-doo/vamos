@@ -136,8 +136,7 @@ Sample::position (const Vamos_Geometry::Three_Vector& v)
   alSource3f (m_source, AL_POSITION, v.x, v.y, v.z);
 }
 
-void
-Sample::velocity (const Vamos_Geometry::Three_Vector& v, bool relative)
+void Sample::velocity(Vamos_Geometry::Three_Vector const& v, bool)
 {
   const double v_s = alGetDouble (AL_SPEED_OF_SOUND);
   AL_Error_Check error ("velocity()");

@@ -110,46 +110,49 @@ namespace Vamos_Body
     // Read the car definition file.
     void read (std::string data_dir = "", std::string car_file = "");
 
-	// Define a sound for the engine.
-	virtual void engine_sound (std::string file, 
-							   double volume, 
-							   double throttle_volume_factor, 
-							   double engine_speed_volume_factor,
-							   double pitch);
+      virtual void engine_sound(std::string const& file,
+                                double volume,
+                                double throttle_volume_factor,
+                                double engine_speed_volume_factor,
+                                double pitch) override;
 
-	// Set the 3D models.
-	virtual void 
-	exterior_model (std::string file, double scale,
-					const Vamos_Geometry::Three_Vector& translation,
-					const Vamos_Geometry::Three_Vector& rotation);
-	virtual void 
-	interior_model (std::string file, double scale,
-					const Vamos_Geometry::Three_Vector& translation,
-					const Vamos_Geometry::Three_Vector& rotation);
+      virtual void exterior_model(std::string const& file,
+                                  double scale,
+                                  Vamos_Geometry::Three_Vector const& translation,
+                                  Vamos_Geometry::Three_Vector const& rotation) override;
 
-	void set_perspective (double aspect);
+      virtual void interior_model(std::string const& file,
+                                  double scale,
+                                  Vamos_Geometry::Three_Vector const& translation,
+                                  Vamos_Geometry::Three_Vector const& rotation) override;
 
-	void set_view (const Vamos_Geometry::Three_Vector& position,
-				   double field_of_view,
-				   double near_plane, double far_plane,
-				   double pan_angle);
+      virtual void set_perspective (double aspect) override;
 
-	void add_rear_view (const Vamos_Geometry::Three_Vector& position,
-						double width, double height,
-						double direction, double field,
-						double near_plane, double far_plane,
-						std::string mask_file);
+      virtual void set_view(Vamos_Geometry::Three_Vector const& position,
+                            double field_of_view,
+                            double near_plane,
+                            double far_plane,
+                            double pan_angle) override;
 
-	// Set the dashboard.
-	void dashboard (Dashboard* dash);
+      virtual void add_rear_view(Vamos_Geometry::Three_Vector const& position,
+                                 double width,
+                                 double height,
+                                 double direction,
+                                 double field,
+                                 double near_plane,
+                                 double far_plane,
+                                 std::string const& mask_file) override;
+
+      virtual void dashboard (Dashboard* dash) override;
 
 	// Render the car according to its current position and orientation.
-	virtual void draw ();
-	virtual void draw_interior ();
-	virtual Vamos_Geometry::Three_Vector draw_rear_view (double aspect, int index);
-	virtual void make_rear_view_mask (int window_width, int window_height);
-	virtual void update_rear_view_mask (int window_width, int window_height);
-	virtual int get_n_mirrors () const { return m_mirrors.size (); }
+      virtual void draw() override;
+      virtual void draw_interior() override;
+      virtual Vamos_Geometry::Three_Vector draw_rear_view(double aspect, int index) override;
+      virtual void make_rear_view_mask(int window_width, int window_height) override;
+      virtual void update_rear_view_mask(int window_width, int window_height) override;
+      virtual int get_n_mirrors () const override
+      { return m_mirrors.size (); }
 
 	// Perform the transformations for the view.
 	void view (double pan, const Vamos_Geometry::Three_Vector& view_position);

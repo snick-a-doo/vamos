@@ -519,6 +519,11 @@ Three_Vector Car::view_position (bool world, bool bob) const
   return world ? m_chassis.transform_to_world (pos) : pos;
 }
 
+Three_Vector Car::draw_rear_view(double, int)
+{
+    return Vamos_Geometry::Three_Vector::ZERO;
+}
+
 void 
 Car::start_engine ()
 {

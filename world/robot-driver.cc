@@ -276,7 +276,7 @@ double Robot_Driver::get_offline_distance () const
   return offline_distance (info ().m_pointer_position.x, m_lane_shift);
 }
 
-double Robot_Driver::offline_distance (double along, double lane_shift) const
+double Robot_Driver::offline_distance(double along, double) const
 {
   double line_y = m_racing_line.from_center (along, info ().segment_index);
   if (m_lane_shift > 0.0)

@@ -276,8 +276,7 @@ Car_Reader::on_start_tag (const Vamos_Media::XML_Tag& tag)
     }
 }
 
-void 
-Car_Reader::on_end_tag (const Vamos_Media::XML_Tag& tag)
+void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
 {
   if (path () == "/car/robot")
     {

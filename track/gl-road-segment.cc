@@ -137,10 +137,9 @@ namespace Vamos_Track
   {
   }
 
-  void 
-  Segment_Iterator::start (const Three_Vector& start_coords, 
-                           double start_angle,
-                           Gl_Road_Segment::Strip strip)
+  void Segment_Iterator::start(Three_Vector const & start_coords,
+                               double, // start_angle,
+                               Gl_Road_Segment::Strip strip)
   {
     m_coordinates = start_coords;
     m_normal = Three_Vector (0.0, 0.0, 1.0);

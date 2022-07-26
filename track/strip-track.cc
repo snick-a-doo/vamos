@@ -355,12 +355,11 @@ Racing_Line::left_width (const Road& road, double along) const
   return road.left_racing_line_width (along) - m_margin;
 }
 
-void
-Racing_Line::propagate (const Road& road,
-                        std::vector <Three_Vector>& positions,
-                        std::vector <Three_Vector>& velocites,
-                        double interval,
-                        bool close)
+void Racing_Line::propagate(const Road& road,
+                            std::vector <Three_Vector>& positions,
+                            std::vector <Three_Vector>& velocites,
+                            double interval,
+                            bool) // close
 {
   const size_t points = positions.size ();
   std::vector <Three_Vector> forces (points);
@@ -844,14 +843,11 @@ double perpendicular_distance (const Three_Vector& p1,
             * sin (atan2 (p1.y - p2.y, p1.x - p2.x) - angle);
 }
 
-// Force a road that starts at START_COORDS and START_ANGLE, to end at
-// END_COORDS and END_ANGLE.
-void 
-Road::join (const Three_Vector& start_coords,
-            double start_angle,
-            const Three_Vector& end_coords,
-            double end_angle,
-            int adjusted_segments)
+void Road::join(Three_Vector const&, // start_coords,
+                double, // start_angle
+                Three_Vector const& end_coords,
+                double end_angle,
+                int adjusted_segments)
 {
   m_is_closed = true;
 
@@ -1499,11 +1495,10 @@ Strip_Track::get_road (size_t road_index) const
     }
 }
 
-Contact_Info 
-Strip_Track::test_for_contact (const Three_Vector& pos, 
-							   double bump_parameter,
-							   size_t& road_index,
-							   size_t& segment_index)
+Contact_Info Strip_Track::test_for_contact(Three_Vector const& pos,
+                                           double, // bump_parameter
+                                           size_t& road_index,
+                                           size_t& segment_index)
 {
   const Three_Vector track_pos = track_coordinates (pos, road_index, segment_index);
   const Gl_Road_Segment* segment = 

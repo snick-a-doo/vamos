@@ -266,10 +266,10 @@ Gl_Car::read (std::string data_dir, std::string car_file)
   Car::read (data_dir, car_file);
 }
 
-void 
-Gl_Car::exterior_model (std::string file, double scale, 
-						const Three_Vector& translation,
-						const Three_Vector& rotation)
+void Gl_Car::exterior_model(std::string const& file,
+                            double scale,
+                            Three_Vector const& translation,
+                            Three_Vector const& rotation)
 {
   if (m_body_list_id != 0)
 	{
@@ -280,10 +280,10 @@ Gl_Car::exterior_model (std::string file, double scale,
    m_body_list_id = model.build ();
 }
 
-void 
-Gl_Car::interior_model (std::string file, double scale, 
-						const Three_Vector& translation,
-						const Three_Vector& rotation)
+void Gl_Car::interior_model(std::string const& file,
+                            double scale,
+                            Three_Vector const& translation,
+                            Three_Vector const& rotation)
 {
   if (m_interior_list_id != 0)
 	{
@@ -294,17 +294,16 @@ Gl_Car::interior_model (std::string file, double scale,
    m_interior_list_id = model.build ();
 }
 
-void 
-Gl_Car::set_perspective (double aspect)
+void Gl_Car::set_perspective(double aspect)
 {
   gluPerspective (m_field_of_view, aspect, m_near_plane, m_far_plane);
 }
 
-void 
-Gl_Car::set_view (const Vamos_Geometry::Three_Vector& position,
-				  double field_of_view,
-				  double near_plane, double far_plane,
-				  double pan_angle)
+void Gl_Car::set_view(Vamos_Geometry::Three_Vector const& position,
+                      double field_of_view,
+                      double near_plane,
+                      double far_plane,
+                      double pan_angle)
 {
   m_driver_view = position;
   m_field_of_view = field_of_view;
@@ -313,12 +312,14 @@ Gl_Car::set_view (const Vamos_Geometry::Three_Vector& position,
   m_pan_angle = pan_angle;
 }
 
-void 
-Gl_Car::add_rear_view (const Vamos_Geometry::Three_Vector& position,
-					   double width, double height,
-					   double direction, double field,
-					   double near_plane, double far_plane,
-					   std::string mask_file)
+void Gl_Car::add_rear_view(Vamos_Geometry::Three_Vector const& position,
+                           double width,
+                           double height,
+                           double direction,
+                           double field,
+                           double near_plane,
+                           double far_plane,
+                           std::string const& mask_file)
 {
   m_mirrors.push_back (new Rear_View_Mirror (position, width, height,
 											 direction, field, 
@@ -366,7 +367,7 @@ Gl_Car::make_rear_view_mask (int window_width, int window_height)
 	}
 }
 
-Three_Vector Gl_Car::draw_rear_view (double aspect, int index)
+Three_Vector Gl_Car::draw_rear_view(double, int index)
 {
   Rear_View_Mirror* mirror = m_mirrors [index];
   mirror->set_view ();
@@ -550,12 +551,11 @@ Gl_Car::view (double pan, const Three_Vector& view_position)
   glTranslated (-view_position.x, -view_position.y, -view_position.z);
 }
 
-void 
-Gl_Car::engine_sound (std::string file, 
-					  double volume, 
-					  double throttle_volume_factor, 
-					  double engine_speed_volume_factor,
-					  double pitch)
+void Gl_Car::engine_sound(std::string const& file,
+                          double volume,
+                          double throttle_volume_factor,
+                          double engine_speed_volume_factor,
+                          double pitch)
 {
   delete mp_engine_sample;
   mp_engine_sample = 0;

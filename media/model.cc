@@ -561,11 +561,11 @@ namespace Vamos_Media
   }
 
 
-  bool
-  Surface_List::
-  join_quadrilateral (const Surface_Vertices& new_vertices,
-					  size_t old_index1, size_t old_index2,
-					  size_t new_index1, size_t new_index2)
+    bool Surface_List::join_quadrilateral(Surface_Vertices const& new_vertices,
+                                          size_t old_index1,
+                                          size_t old_index2,
+                                          size_t new_index1,
+                                          size_t) // new_index2
   {
 	size_t n_new_vertices = new_vertices.size ();
 	size_t new_index3 = (new_index1 + 2) % n_new_vertices;
@@ -593,10 +593,10 @@ namespace Vamos_Media
   }
 
 
-  bool
-  Surface_List::join_triangle (const Surface_Vertices& new_vertices,
-							   size_t new_index1, size_t new_index2,
-							   Ac3d_Surface::Figure_Type new_figure_type)
+    bool Surface_List::join_triangle(Surface_Vertices const& new_vertices,
+                                     size_t new_index1,
+                                     size_t, // new_index2
+                                     Ac3d_Surface::Figure_Type new_figure_type)
   {
 	size_t n_new_vertices = new_vertices.size ();
 	size_t new_index3 = (new_index1 + 2) % n_new_vertices;

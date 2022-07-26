@@ -279,10 +279,7 @@ Suspension::toe (double degree_angle)
   m_static_orientation.rotate (m_toe * STEER_AXIS);
 }
 
-// Return the camber angle in radians for a suspension displacement of
-// DISPLACEMENT.
-double 
-Suspension::camber_function (double displacement) const
+double Suspension::camber_function (double) const
 {
   return 0.0;
 }

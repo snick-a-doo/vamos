@@ -81,13 +81,20 @@ namespace Vamos_Body
 	virtual Vamos_Geometry::Three_Vector mass_position () const 
 	{ return position (); }
 
-	virtual double contact (const Vamos_Geometry::Three_Vector& impulse,
-                            const Vamos_Geometry::Three_Vector& velocity, 
-                            double distance,
-                            const Vamos_Geometry::Three_Vector& normal,
-                            const Vamos_Geometry::Three_Vector& angular_velocity,
-                            const Vamos_Geometry::Material& material)
-	{ return 0.0; }
+      /// Override to respond to contact with another object.
+      /// @param impulse The change in momentum to give to the body.
+      /// @param velocity This object's velocity relative to the other object.
+      /// @param distance How far this object has penetrated the other.
+      /// @param normal The normal to surface of the other object at the point of contact.
+      /// @param angular_velocity This object's angular velocity relative to the other
+      /// object.
+      /// @param material Material properties of the other object.
+      virtual double contact(Vamos_Geometry::Three_Vector const& impulse,
+                             Vamos_Geometry::Three_Vector const& velocity,
+                             double distance,
+                             Vamos_Geometry::Three_Vector const& normal,
+                             Vamos_Geometry::Three_Vector const& angular_velocity,
+                             Vamos_Geometry::Material const& material);
 
 	// Return the particle's mass.
 	double mass () const { return m_mass; }
@@ -103,7 +110,7 @@ namespace Vamos_Body
 	virtual void find_forces () {}
 
 	// Propagate the Particle forward in time by TIME.
-	virtual void propagate (double time) {};
+      virtual void propagate(double /* time */) {};
 
 	// Undo the last propagation.
 	virtual void rewind () {}

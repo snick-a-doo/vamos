@@ -39,7 +39,7 @@ struct Keyboard_Fixture : public Control_Fixture
         return true;
     }
 
-    bool on_down_3(double, double arg)
+    bool on_down_3(double, double)
     {
         down_3_called = true;
         return false;

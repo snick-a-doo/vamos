@@ -20,6 +20,7 @@
 #include "particle.h"
 
 using namespace Vamos_Body;
+using namespace Vamos_Geometry;
 
 // Specify position and orientation.
 Particle::Particle (double mass, 
@@ -45,6 +46,16 @@ Particle::Particle (double mass, const Frame* parent)
   : Frame (parent),
 	m_mass (mass)
 {
+}
+
+double Particle::contact(Three_Vector const&, // impulse,
+                         Three_Vector const&, // velocity
+                         double, // distance,
+                         Three_Vector const&, // normal
+                         Three_Vector const&, // angular_velocity
+                         Material const&) //material
+{
+    return 0.0;
 }
 
 void 
