@@ -257,29 +257,22 @@ Camera::Camera ()
 {}
 
 //* Class Racing_Line
-Racing_Line::Racing_Line ()
-  : m_length (0.0),
-    mp_line (0),
-    m_list_id (0),
-    m_iterations (1500),
-    m_stiffness (0.5),
-    m_damping (0.01),
-    m_margin (1.6),
-    m_resolution (0.0)
+Racing_Line::Racing_Line()
+    : m_iterations{500},
+      m_stiffness{0.5},
+      m_damping{0.01},
+      m_margin{1.6}
 {
 }
 
-Racing_Line::~Racing_Line ()
+Racing_Line::~Racing_Line()
 {
-  delete mp_line;
-  glDeleteLists (m_list_id, 1);
+    glDeleteLists (m_list_id, 1);
 }
 
-Two_Vector
-Racing_Line::position (double along) const
+Two_Vector Racing_Line::position(double along) const
 {
-  assert (mp_line != 0);
-  return mp_line->interpolate (wrap (along, m_length));
+    return m_line.interpolate(wrap(along, m_length));
 }
 
 Three_Vector
@@ -398,14 +391,11 @@ Racing_Line::build (const Road& road, bool close)
   if (m_length <= 0.0)
     throw Bad_Racing_Line_Length (m_length);
 
-  delete mp_line;
-  mp_line = new Parametric_Spline ();
-
   // Divide the track into the smallest number of equal intervals not longer
   // than 'max_interval' 
   const double max_interval = m_resolution > 0.0 
     ? m_resolution
-    : 0.5*(left_width (road, 0.0) + right_width (road, 0.0));
+    : 2*(left_width (road, 0.0) + right_width (road, 0.0));
   double interval = max_interval;
   const int divisions = std::ceil (m_length / interval);
   if (divisions <= 0)
@@ -421,6 +411,7 @@ Racing_Line::build (const Road& road, bool close)
   for (size_t i = 0; i < m_iterations; i++)
     propagate (road, positions, velocities, interval, close);
 
+  m_line.clear();
   m_curvature.clear ();
   m_left_curvature.clear ();
   m_right_curvature.clear ();
@@ -434,13 +425,13 @@ Racing_Line::build (const Road& road, bool close)
                       road);
 
   if (close)
-    {
-      mp_line->set_periodic (m_length);
-      m_curvature.set_periodic (m_length);
-      m_left_curvature.set_periodic (m_length);
-      m_right_curvature.set_periodic (m_length);
-      m_tangent.set_periodic (m_length);
-    }
+  {
+      m_line.set_periodic(m_length);
+      m_curvature.set_periodic(m_length);
+      m_left_curvature.set_periodic(m_length);
+      m_right_curvature.set_periodic(m_length);
+      m_tangent.set_periodic(m_length);
+  }
 
   build_list (road);
 }
@@ -453,7 +444,7 @@ Racing_Line::load_curvature (double along,
                              const Road& road)
 {
   const Gl_Road_Segment& segment = *road.segment_at (along);
-  mp_line->load (along, p2.x, p2.y);
+  m_line.load(along, p2.x, p2.y);
 
   m_tangent.load (along, (p3 - p1).unit ());
 
@@ -515,13 +506,14 @@ Racing_Line::build_list (const Road& road)
   glColor4f (0.8, 0.0, 0.0, 0.5);
   glBegin (GL_POINTS);
 
-  for (size_t i = 0; i < mp_line->size (); i++)
-    {
-      Three_Vector world = (*mp_line) [i];
-      glVertex3d (world.x, 
-                  world.y, 
-                  road.segment_at (mp_line->parameter (i))->world_elevation (world) + 0.04);
-    }
+  for (size_t i{0}; i < m_line.size(); i++)
+  {
+      auto const& world = m_line[i];
+      // Draw the line a little above the road.
+      glVertex3d (world.x,
+                  world.y,
+                  road.segment_at(m_line.parameter(i))->world_elevation(world) + 0.04);
+  }
   glEnd ();
 
   glEnable (GL_TEXTURE_2D);

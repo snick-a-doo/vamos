@@ -215,22 +215,23 @@ namespace Vamos_Track
                          const Vamos_Geometry::Three_Vector& p3,
                          const Road& segment);
 
-    double m_length;
-    Vamos_Geometry::Parametric_Spline* mp_line;
-    Vamos_Geometry::Vector_Spline m_curvature;
-    Vamos_Geometry::Vector_Spline m_left_curvature;
-    Vamos_Geometry::Vector_Spline m_right_curvature;
-    Vamos_Geometry::Vector_Spline m_tangent;
-	GLuint m_list_id;
-    size_t m_iterations;
-    /// Force per unit angle of bend.
-    double m_stiffness;
-    double m_damping;
-    /// How much distance to leave between the racing line and the edge
-    /// of the road.
-    double m_margin;
-    /// Spacing between nodes line.
-    double m_resolution;
+      double m_length{0.0};
+      Vamos_Geometry::Parametric_Spline m_line;
+      Vamos_Geometry::Vector_Spline m_curvature;
+      Vamos_Geometry::Vector_Spline m_left_curvature;
+      Vamos_Geometry::Vector_Spline m_right_curvature;
+      Vamos_Geometry::Vector_Spline m_tangent;
+      GLuint m_list_id{0};
+      /// Quit propagating the line after this many step.
+      size_t m_iterations;
+      /// Force per unit angle of bend.
+      double m_stiffness;
+      /// Negative force proportional to angular rate of change. Prevents oscillation.
+      double m_damping;
+      /// How much distance to leave between the racing line and the edge of the road.
+      double m_margin;
+      /// Spacing between nodes line.
+      double m_resolution{0.0};
   };
 
   typedef std::vector <Gl_Road_Segment*> Segment_List;

@@ -623,10 +623,10 @@ Three_Vector Car::target_position () const
                                        + Three_Vector (target_distance (), 0.0, 0.0));
 }
 
-double Car::target_distance () const
+double Car::target_distance() const
 {
-  double speed = m_chassis.cm_velocity ().magnitude();
-  return 2.0 * length () + 0.2 * speed;
+  auto speed = m_chassis.cm_velocity().magnitude();
+  return length() + 0.2 * speed;
 }
 
 double Car::grip () const

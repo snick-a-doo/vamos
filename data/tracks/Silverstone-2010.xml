@@ -11,11 +11,11 @@
 	<smooth/>
   </sky>
 
-  <map-background>
+  <!-- map-background>
     <image>../../Reference/Silverstone/Silverstone-small.png</image>
     <offset>[ -415, -1050 ]</offset>
     <size>[ 2150, 2150 ]</size>
-  </map-background>
+  </map-background -->
 
   <!-- Material Properties -->
   <material name="track" type="asphalt">
