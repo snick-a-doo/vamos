@@ -25,3 +25,5 @@ subdir('world')
 subdir('test')
 subdir('caelum')
 subdir('vamos')
+
+install_subdir('data', install_dir: get_option('datadir') / 'vamos')

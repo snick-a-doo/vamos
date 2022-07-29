@@ -14,4 +14,5 @@ vamos_libs = [
 vamos_app = executable('vamos',
                        vamos_sources,
                        include_directories: vamos_includes,
-                       link_with: vamos_libs)
+                       link_with: vamos_libs,
+                       install: true)

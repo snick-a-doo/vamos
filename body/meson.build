@@ -24,4 +24,5 @@ body_lib = library('vamos-body',
                     body_sources,
                     dependencies: [al_dep, gl_dep, glu_dep],
                     include_directories: vamos_includes,
-                    link_with: [geometry_lib, media_lib])
+                    link_with: [geometry_lib, media_lib],
+                    install: true)

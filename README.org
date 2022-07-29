@@ -3,8 +3,30 @@ physical modeling and good C++ design. Vamos includes a real-time, first-person,
 3D driving application.
 
 * TODO History
+I started writing the simulation code that eventually became Vamos in late 2000. I left academia and took a programming job earlier that year. The goals were to practice working with a codebase with a fair number of components and to keep doing physics. C++0x, which receded into C++11, was still far in the future, so much of the code is old-fashioned.
 
-* TODO Features
+In 2001, I put the project on SourceForge.
+
+Around 2012, I implemented computer-controlled cars.
+
+In 2022, I moved the code to GitHub to be with the rest of my public code.
+
+* Features
+** Car Models
+- GT :: A high-powered sedan
+- F1 :: A circa 2015, high-revving V10 Formula One car
+- F1-1967 :: Light, overpowered, no downforce.
+
+Cars are configured through an XML file. Weight distribution, engine, transmission, suspension are all configurable.
+
+** Tracks
+Choose from over 30 real-world tracks, including most Formula One tracks from around 2015. Plus a few other famous or historic circuits.
+** Random Tracks
+The scripts directory has Python scripts for generating courses.
+- random_road.py :: Ten km of unpredictable turns and elevation changes.
+- random_circut.py :: A closed circuit with unpredictable turns and elevation changes.
+
+Race against robot cars, or use the --demo option and watch them race each other. Cameras are automatically placed at each turn.
 
 * Requirements
 The libraries are written in C++ so you need a compiler. It's an old project, but as I update, I won't be shy about using features from the latest standards. You'll probably need C++20. Recent GCC
@@ -28,33 +50,72 @@ Vamos is built with [[https://mesonbuild.com/][Meson]].
 : meson setup
 : ninja test (or build with another back-end)
 
-* TODO Install
-Not configured yet.
+* Install
+As root, from the build directory
+
+: meson install
+
+installs the application, libraries, and data files.
 
 * Run
-Since installation isn't implemented yet, cd to build/vamos so the relative path to the data directory is correct, and run ./vamos.
+: Usage: vamos [[-a|--controls=] CONTROLS_FILE]
+:              [[-c|--car=] CAR_FILE]
+:               [-d|--demo]
+:               [-f|--full-screen]
+:               [-l|--show-line[=ARG]
+:               [-m|--map]
+:               [-n|--no-interaction]
+:              [[-o|--opponents=] NUMBER_OF_OPPONENTS]
+:              [[-p|--laps=] NUMBER_OF_LAPS]
+:               [-q|--qualifying]
+:              [[-s|--volume=] VOLUME_PERCENT]
+:              [[-t|--track=] TRACK_FILE]
+:              [[-w|--world=] WORLD_FILE]
+:              [[-z|--performance=] FACTOR]
+
+Since installation isn't implemented yet, cd to build/vamos so the relative path to the data directory is correct, and run `./vamos`.
 
   Here are some command-line recipes
-** Practice at Suzuka
-Drive timed laps in a circa 2012 Formula One car at the famous figure-8 track.
-: vamos -f -t Suzuka -c F1
+** Practice at Spa
+Drive timed laps in a circa 2012 Formula One car at the famous Spa-Francorchamps circuit.
+: vamos -f -t Spa -c F1
 
-You can see what tracks are available by listing the files in ../../data/tracks
+#+attr_html: :width 400
+[[file:data/images/practice-spa.png]]
+
+You can see what tracks are available by listing the files in `../../data/tracks`
 if you're running from the build directory or
-/usr/local/share/vamos/tracks if installed. 
+`/usr/local/share/vamos/tracks` if installed. 
 
 ** Watch the computer-controlled cars on a randomly generated track
 : python ../../scripts/random_circuit.py
 Preview.
-: vamos -m -t /tmp/random-circuit.xm
+: vamos -m -t /tmp/random-circuit.xml
+
+#+attr_html: :width 400
+[[file:./data/images/random-circuit-screenshot.png]]
+
 Generate another or start the show.
-: vamos -d -o 6 -t /tmp/random-circuit.xm
+: vamos -d -o 6 -t /tmp/random-circuit.xml
+
+#+attr_html: :width 400
+[[file:data/images/random-circuit-race.png]]
+
 Remove the -d (demo) to race against the robots.
 
 F9 cycles through views. F4 and F5 change the focused car.
 
-** Qualify at Spa
-: vamos -q -t Spa -o 5 -p 10
+** Race at Suzuka
+: vamos -t Suzuka -c F1 -o 5
 
-** Race from the qualifying positions from the last qualifying session
-: vamos /tmp/vamos-qualifying
+#+attr_html: :width 400
+[[file:data/images/race-suzuka.png]]
+
+* Next Steps
+- Find and fix bugs.
+- Review and update the code.
+- Improve robot cars.
+- Make better models and textures.
+- Make a polished application.
+- Use a library for importing models.
+- Use a library for reading configuration files.

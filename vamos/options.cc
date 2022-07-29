@@ -31,7 +31,7 @@
 constexpr std::string_view version = "1.0.0";
 
 Options::Options (int argc, char* argv [])
-  : data_dir ("../../data/"),
+  : data_dir ("/usr/local/share/vamos/data/"),
     car_file ("GT"),
     track_file ("Peanut"),
     world_file ("earth"),

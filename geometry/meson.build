@@ -14,4 +14,5 @@ geometry_sources = [
 
 geometry_lib = library('vamos-geometry',
                         geometry_sources,
-                        include_directories: vamos_includes)
+                        include_directories: vamos_includes,
+                        install: true)

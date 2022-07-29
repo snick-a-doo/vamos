@@ -11,4 +11,5 @@ media_lib = library('vamos-media',
                     dependencies: [al_dep, alut_dep, gl_dep,
                                    glu_dep, glut_dep, png_dep],
                     include_directories: vamos_includes,
-                    link_with: geometry_lib)
+                    link_with: geometry_lib,
+                    install: true)
