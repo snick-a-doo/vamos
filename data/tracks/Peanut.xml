@@ -169,7 +169,7 @@
 	<elevation>[ 200.0, 5.0 ]</elevation>
     <camera>
       <position>[ 200.0, -20.0, 10.0 ]</position>
-      <range>500.0</range>
+      <range>400.0</range>
     </camera>
     <pit-out>
       <side>left</side>
@@ -208,11 +208,6 @@
 	  </start>
 	  <profile>[ 0.2, 0.05 ][ 0.4, 0.07 ][ 0.6, 0.1 ][ 0.8, 0.1 ][ 1.2, 0.07 ][ 1.4, 0.0 ]</profile>
 	</left-kerb>
-    <camera>
-      <position>[ 2.0, -30.0, 3.0 ]</position>
-      <field>30.0</field>
-      <range>100.0</range>
-    </camera>
   </road>
   <road segment="left turn">
     <resolution>2.0</resolution>
@@ -256,7 +251,7 @@
 		  <width>1.0</width>
 		</transition>
 	  </end>
-	  <profile>[ 2.0, 0.0 ]</profile>
+	  <profile>[ 1.5, 0.0 ]</profile>
 	</right-kerb>
 	<elevation>[ 100.0, -5.0 ]</elevation>
     <camera>
@@ -272,15 +267,15 @@
 	<radius>-60.0</radius>
 	<left-kerb>
 	  <start>
-	    <distance>140.0</distance>
+	    <distance>130.0</distance>
 		<transition/>
 	  </start>
-	  <profile>[ 1.0, 0.1 ][ 3.0, 0.1 ][ 3.1, 0.0 ]</profile>
+	  <profile>[ 0.5, 0.05 ][ 1.5, 0.05 ][ 1.6, 0.0 ]</profile>
 	</left-kerb>
 	<right-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
-	  <profile>[ 2.0, 0.3 ][ 2.4, 0.3 ][ 2.5, 0.0 ]</profile>
+	  <profile>[ 1.5, 0.1 ][ 1.6, 0.0 ]</profile>
 	</right-kerb>
 	<elevation>[ 140.0, -10.0 ]</elevation>
     <camera>
@@ -319,10 +314,10 @@
 	<radius>200.0</radius>
 	<right-kerb>
 	  <start>
-	    <distance>200.0</distance>
+	    <distance>250.0</distance>
 		<transition/>
 	  </start>
-	  <profile>[ 1.0, 0.1 ][ 4.0, 0.1 ][ 4.1, 0.0 ]</profile>
+	  <profile>[ 1.0, 0.05 ][ 1.5, 0.05 ][ 1.6, 0.0 ]</profile>
 	</right-kerb>
 	<elevation>[ 100.0, 0.0 ]</elevation>
 	<bank>0.0</bank>
@@ -372,13 +367,13 @@
 	</left-kerb>
 	<right-kerb>
 	  <start>
-	    <distance>130.0</distance>
+	    <distance>120.0</distance>
 		<transition/>
       </start>
-	  <profile>[ 1.0, 0.1 ][ 3.0, 0.1 ][ 3.1, 0.0 ]</profile>
+	  <profile>[ 1.0, 0.05 ][ 1.5, 0.05 ][ 1.6, 0.0 ]</profile>
 	</right-kerb>
     <camera>
-      <position>[ 80.0, -30.0, 1.0 ]</position>
+      <position>[ 80.0, -30.0, 2.0 ]</position>
       <range>100.0</range>
     </camera>
   </road>
@@ -422,7 +417,7 @@
     </model>
     <camera>
       <position>[ 300.0, -10.0, 10.0 ]</position>
-      <range>350.0</range>
+      <range>380.0</range>
     </camera>
     <pit-in>
       <side>left</side>
@@ -456,10 +451,14 @@
 	</left-kerb>
 	<right-kerb>
 	  <start>
-	    <distance>120.0</distance>
+	    <distance>109.0</distance>
 		<transition/>
 	  </start>
 	</right-kerb>
+    <camera>
+      <position>[ 55.0, -20.0, 4.0 ]</position>
+      <range>380.0</range>
+    </camera>
   </road>
 
   <!-- front straight -->
