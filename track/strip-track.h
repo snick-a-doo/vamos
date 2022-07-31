@@ -183,8 +183,12 @@ namespace Vamos_Track
     void build (const Road& road, bool close);
     void draw () const;
 
-    double left_width (const Road& road, double along) const;
-    double right_width (const Road& road, double along) const;
+      /// @return The distance from the center line to the left boundary of the racing
+      /// line. I.e. the left road width minus the margin.
+      double left_width(Road const& road, double along) const;
+      /// @return The distance from the center line to the right boundary of the racing
+      /// line. I.e. the right road width minus the margin.
+      double right_width(Road const& road, double along) const;
 
   private:
     void build_list (const Road& road);
@@ -230,7 +234,7 @@ namespace Vamos_Track
       double m_damping;
       /// How much distance to leave between the racing line and the edge of the road.
       double m_margin;
-      /// Spacing between nodes line.
+      /// Spacing between nodes on the line.
       double m_resolution{0.0};
   };
 

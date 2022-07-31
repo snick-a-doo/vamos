@@ -25,8 +25,8 @@
 
 #include <GL/glu.h>
 
-#include <cmath>
 #include <cassert>
+#include <cmath>
 #include <functional>
 
 using namespace Vamos_Geometry;
@@ -272,7 +272,7 @@ Racing_Line::~Racing_Line()
 
 Two_Vector Racing_Line::position(double along) const
 {
-    return m_line.interpolate(wrap(along, m_length));
+    return m_line.interpolate(along);
 }
 
 Three_Vector
@@ -384,56 +384,60 @@ void Racing_Line::propagate(const Road& road,
     }
 }
 
-void
-Racing_Line::build (const Road& road, bool close)
+void Racing_Line::build(Road const& road, bool close)
 {
-  m_length = road.length ();
-  if (m_length <= 0.0)
-    throw Bad_Racing_Line_Length (m_length);
+    m_length = road.length();
+    if (m_length <= 0.0)
+        throw Bad_Racing_Line_Length(m_length);
 
-  // Divide the track into the smallest number of equal intervals not longer
-  // than 'max_interval' 
-  const double max_interval = m_resolution > 0.0 
-    ? m_resolution
-    : 2*(left_width (road, 0.0) + right_width (road, 0.0));
-  double interval = max_interval;
-  const int divisions = std::ceil (m_length / interval);
-  if (divisions <= 0)
-    throw No_Racing_Line_Segments (divisions);
-  interval = m_length / divisions;
+    // Divide the track into the smallest number of equal intervals not longer than
+    // max_interval. m_resolution may be set in the track file. If not, calculate an
+    // interval from the road width minus margin.
+    auto interval = m_resolution > 0.0
+        ? m_resolution
+        : 2.0 * (left_width(road, 0.0) + right_width(road, 0.0));
+    assert(interval > 0);
+    auto const divisions = static_cast<int>(std::ceil(m_length / interval));
+    if (divisions <= 0)
+        throw No_Racing_Line_Segments(divisions);
+    interval = m_length / divisions;
 
-  // Use the center of the track as the initial guess.
-  std::vector <Three_Vector> positions;
-  for (int node = 0; node < divisions; node++)
-    positions.push_back (road.position (node * interval, 0.0));
+    // Put a node at each interval. Include one at 0, but not at m_length because that's
+    // just past the end. If closed, 0 and m_length are the same. Start with the nodes in
+    // the center of the track.
+    std::vector<Three_Vector> positions;
+    for (int node{0}; node < divisions; ++node)
+        positions.push_back(road.position(node * interval, 0.0));
 
-  std::vector <Three_Vector> velocities (positions.size ());
-  for (size_t i = 0; i < m_iterations; i++)
-    propagate (road, positions, velocities, interval, close);
+    std::vector<Three_Vector> velocities(positions.size());
+    for (size_t i{0}; i < m_iterations; ++i)
+        propagate(road, positions, velocities, interval, close);
 
-  m_line.clear();
-  m_curvature.clear ();
-  m_left_curvature.clear ();
-  m_right_curvature.clear ();
-  m_tangent.clear ();
+    // These members are filled by load_curvature()>
+    m_line.clear();
+    m_curvature.clear();
+    m_left_curvature.clear();
+    m_right_curvature.clear();
+    m_tangent.clear();
 
-  for (size_t i = 1; i < positions.size () - 1; ++i)
-      load_curvature (i*interval, 
-                      positions [i - 1], 
-                      positions [i], 
-                      positions [i + 1],
-                      road);
+    // Find the curvature for each group of 3 consecutive nodes. We can find the curvature
+    // at 0 and m_length - interval only if the track is closed.
+    if (close)
+        load_curvature(0, positions.back(), positions[0], positions[1], road);
+    for (size_t i{0}, j{1}, k{2}; k < positions.size(); ++i, ++j, ++k)
+        load_curvature(j*interval, positions[i], positions[j], positions[k], road);
+    if (close)
+    {
+        load_curvature(m_length - interval, *std::prev(positions.end(), 2),
+                       positions.back(), positions.front(), road);
+        m_line.set_periodic(m_length);
+        m_curvature.set_periodic(m_length);
+        m_left_curvature.set_periodic(m_length);
+        m_right_curvature.set_periodic(m_length);
+        m_tangent.set_periodic(m_length);
+    }
 
-  if (close)
-  {
-      m_line.set_periodic(m_length);
-      m_curvature.set_periodic(m_length);
-      m_left_curvature.set_periodic(m_length);
-      m_right_curvature.set_periodic(m_length);
-      m_tangent.set_periodic(m_length);
-  }
-
-  build_list (road);
+    build_list(road);
 }
 
 void
@@ -495,9 +499,9 @@ Racing_Line::build_list (const Road& road)
       if (curve.cross (forward).z < 0.0)
         color *= -1.0;
       glColor4f (1.0 - color, 1.0 + color, 1.0, 0.5);
-      glVertex3d (world.x, 
-                  world.y, 
-                  road.segment_at (along)->world_elevation (world) + 0.05);
+      // Draw the line a little above the road.
+      glVertex3d(world.x, world.y,
+                 road.segment_at(along)->world_elevation(world) + 0.05);
       last_world = world;
     }
   glEnd ();
@@ -509,10 +513,9 @@ Racing_Line::build_list (const Road& road)
   for (size_t i{0}; i < m_line.size(); i++)
   {
       auto const& world = m_line[i];
-      // Draw the line a little above the road.
-      glVertex3d (world.x,
-                  world.y,
-                  road.segment_at(m_line.parameter(i))->world_elevation(world) + 0.04);
+      // Draw a dot a little above the line.
+      glVertex3d(world.x, world.y,
+                 road.segment_at(m_line.parameter(i))->world_elevation(world) + 0.06);
   }
   glEnd ();
 
@@ -734,19 +737,16 @@ Road::left_racing_line_width (double along) const
   return segment_at (along)->left_racing_line_width (along);
 }
 
-const Gl_Road_Segment*
-Road::segment_at (double along) const
+Gl_Road_Segment const* Road::segment_at(double along) const
 {
-  double distance = 0.0;
-  for (Segment_List::const_iterator it = segments ().begin ();
-	   it != segments ().end ();
-	   it++)
-	{
-      if (distance + (*it)->length () >= along)
-        return *it;
-      distance += (*it)->length ();
-	}
-  return segments ()[0];
+    double distance = 0.0;
+    for (auto const* seg : m_segments)
+    {
+        distance += seg->length();
+        if (distance >= along)
+            return seg;
+    }
+    return m_segments.back();
 }
 
 void 
