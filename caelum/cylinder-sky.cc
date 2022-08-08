@@ -17,17 +17,18 @@
 //  You should have received a copy of the GNU General Public License
 //  along with Caelum.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <cassert>
+#include "cylinder-sky.h"
+#include "../geometry/constants.h"
 
 #include <GL/gl.h>
 
-#include "../geometry/constants.h"
+#include <cassert>
+#include <cmath>
+#include <numbers>
 
-#include "cylinder-sky.h"
+using namespace std::numbers;
 
-using Vamos_Geometry::pi;
-
-Cylinder_Sky::Cylinder_Sky (int divisions, std::string image, 
+Cylinder_Sky::Cylinder_Sky (int divisions, std::string image,
 							int width, int height) :
   Sky (image, width, height),
   m_z_divisions (divisions)

@@ -4,8 +4,12 @@
 
 #include <geometry/constants.h>
 #include <geometry/linear-interpolator.h>
+#include <geometry/three-vector.h>
+
+#include <numbers>
 
 using namespace Vamos_Geometry;
+using namespace std::numbers;
 
 TEST_CASE("angle")
 {
@@ -50,13 +54,13 @@ TEST_CASE("zigzag")
     SUBCASE("normal")
     {
         const Two_Vector up(0.0, 1.0);
-        const Two_Vector slant(-1.0 / root_2, 1.0 / root_2);
+        Three_Vector const slant{-sqrt2 / 2.0, sqrt2 / 2.0, 0.0};
         CHECK(linear.normal(-1.0) == up);
         CHECK(linear.normal(0.0) == up);
         CHECK(linear.normal(0.5) == up);
         CHECK(linear.normal(1.0) == up);
-        CHECK(linear.normal(1.5) == slant);
-        CHECK(linear.normal(2.0) == slant);
+        CHECK(close(Three_Vector(linear.normal(1.5)), slant, 1e-9));
+        CHECK(close(Three_Vector(linear.normal(2.0)), slant, 1e-9));
         CHECK(linear.normal(2.5) == up);
         CHECK(linear.normal(3.0) == up);
         CHECK(linear.normal(100.0) == up);
@@ -82,14 +86,14 @@ TEST_CASE("zagzig")
     }
     SUBCASE("normal")
     {
-        const Two_Vector up(0.0, 1.0);
-        const Two_Vector slant(1.0 / root_2, 1.0 / root_2);
+        Two_Vector const up{0.0, 1.0};
+        Three_Vector const slant{sqrt2 / 2.0, sqrt2 / 2.0, 0.0};
         CHECK(linear.normal(-1.0) == up);
         CHECK(linear.normal(0.0) == up);
         CHECK(linear.normal(0.5) == up);
         CHECK(linear.normal(1.0) == up);
-        CHECK(linear.normal(1.5) == slant);
-        CHECK(linear.normal(2.0) == slant);
+        CHECK(close(Three_Vector(linear.normal(1.5)), slant, 1e-9));
+        CHECK(close(Three_Vector(linear.normal(2.0)), slant, 1e-9));
         CHECK(linear.normal(2.5) == up);
         CHECK(linear.normal(3.0) == up);
         CHECK(linear.normal(100.0) == up);

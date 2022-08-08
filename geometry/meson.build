@@ -2,6 +2,7 @@ geometry_sources = [
   'interpolator.cc',
   'inertia-tensor.cc',
   'linear-interpolator.cc',
+  'numeric.cc',
   'material.cc',
   'parameter.cc',
   'pid.cc',

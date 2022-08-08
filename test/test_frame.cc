@@ -5,8 +5,11 @@
 #include <body/frame.h>
 #include <geometry/constants.h>
 
+#include <numbers>
+
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
+using namespace std::numbers;
 
 Three_Vector const null_vector(0.0, 0.0, 0.0);
 Three_Vector const ones(1.0, 1.0, 1.0);

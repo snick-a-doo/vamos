@@ -18,16 +18,17 @@
 //  along with Caelum.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "sphere-sky.h"
-
 #include "../geometry/constants.h"
 
 #include <GL/gl.h>
 
 #include <cassert>
+#include <cmath>
+#include <numbers>
 
-using Vamos_Geometry::pi;
+using namespace std::numbers;
 
-Sphere_Sky::Sphere_Sky (int divisions, std::string image, 
+Sphere_Sky::Sphere_Sky (int divisions, std::string image,
 						int width, int height) :
   Sky (image, width, height)
 {

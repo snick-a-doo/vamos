@@ -1062,11 +1062,13 @@ Car_Reader::on_data (std::string data)
     {
       is >> m_vectors [0];
     }
-  else if ((path () == "/car/exterior-model/rotate")
-           || (path () == "/car/interior-model/rotate"))
+    else if (path() == "/car/exterior-model/rotate"
+             || path() == "/car/interior-model/rotate")
     {
-      is >> m_vectors [1];
-      m_vectors [1] = deg_to_rad (m_vectors [1]);
+        is >> m_vectors[1];
+        m_vectors[1] = {deg_to_rad(m_vectors[1].x),
+                        deg_to_rad(m_vectors[1].y),
+                        deg_to_rad(m_vectors[1].z)};
     }
   else if (path () == "/car/wheel/model/slow-file")
     is >> m_slow_model;

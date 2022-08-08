@@ -45,6 +45,8 @@
 using namespace Vamos_Geometry;
 using namespace Vamos_World;
 
+enum Mouse_Axis{X, Y};
+
 //-----------------------------------------------------------------------------
 static std::string 
 format_time (double time, int precision = 3)

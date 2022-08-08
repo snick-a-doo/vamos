@@ -1026,7 +1026,7 @@ namespace detail {
     template <typename R>                                                                          \
     rt& operator op(const R&) {                                                                    \
         static_assert(deferred_false<R>::value,                                                    \
-                      "Expression Too Complex Please Rewrite As Binary Comparison!");              \
+                      "Expression too complex. Rewrite as binary comparison.");              \
         return *this;                                                                              \
     }
 

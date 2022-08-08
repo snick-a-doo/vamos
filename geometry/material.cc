@@ -18,6 +18,8 @@
 #include "material.h"
 #include "constants.h"
 
+#include <numbers>
+
 using namespace Vamos_Geometry;
 
 Material::Material (Material_Type type, 
@@ -66,8 +68,9 @@ Material::Material (Material_Type type,
 
 inline double bump_function (double x, double y)
 {
-  const double phase = two_pi * (x + y);
-  return 0.25 * (sin (phase) + sin (root_2 * phase));
+    using namespace std::numbers;
+    const double phase = pi * (x + y);
+    return 0.25 * (sin(phase) + sin(sqrt2 * phase));
 }
 
 Three_Vector 

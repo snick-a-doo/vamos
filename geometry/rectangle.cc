@@ -20,6 +20,7 @@
 #include "rectangle.h"
 
 #include <algorithm>
+#include <numeric>
 
 using namespace Vamos_Geometry;
 
@@ -57,6 +58,11 @@ Rectangle::operator == (const Rectangle& other) const
     && m_top == other.m_top
     && m_right == other.m_right
     && m_bottom == other.m_bottom;
+}
+
+Vamos_Geometry::Two_Vector Rectangle::center() const
+{
+    return {std::midpoint(m_left, m_right), std::midpoint(m_top, m_bottom)};
 }
 
 const Rectangle& Rectangle::enclose (const Rectangle& other)

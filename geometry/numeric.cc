@@ -1,4 +1,4 @@
-//  Copyright (C) 2003-2022 Sam Varner
+//  Copyright (C) 2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
@@ -13,16 +13,18 @@
 //  You should have received a copy of the GNU General Public License along with Vamos.
 //  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _CONSTANTS_H_
-#define _CONSTANTS_H_
+#include "numeric.h"
+
+#include <random>
+
+std::random_device random_device;
+std::mt19937 random_generator(random_device());
 
 namespace Vamos_Geometry
 {
-    enum Direction{NONE,
-                   IN, OUT,
-                   UP, DOWN,
-                   FORWARD, BACKWARD,
-                   LEFT, RIGHT};
+double random_in_range(double low, double high)
+{
+    std::uniform_real_distribution<> distrib(low, high);
+    return distrib(random_generator);
 }
-
-#endif
+}

@@ -5,8 +5,11 @@
 #include <body/particle.h>
 #include <geometry/constants.h>
 
+#include <numbers>
+
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
+using namespace std::numbers;
 
 Three_Vector const ones(1.0, 1.0, 1.0);
 // Rotate the identity 120 degrees about [1,1,1].  This moves z to x,

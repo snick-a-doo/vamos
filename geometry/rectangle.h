@@ -42,8 +42,8 @@ namespace Vamos_Geometry
 
     double width () const { return std::abs (m_right - m_left); }
     double height () const { return std::abs (m_top - m_bottom); }
-
-    inline Vamos_Geometry::Two_Vector center () const;
+      /// @return The position of the midpoint of the rectangle.
+      Vamos_Geometry::Two_Vector center() const;
 
     double aspect () const { return width () / height (); }
 
@@ -69,13 +69,6 @@ namespace Vamos_Geometry
     /// True if y is positive downward.
     bool m_inverted;
   };
-
-  Vamos_Geometry::Two_Vector
-  Rectangle::center () const
-  { 
-    return Vamos_Geometry::Two_Vector (Vamos_Geometry::average (m_left, m_right),
-                                       Vamos_Geometry::average (m_top, m_bottom));
-  }
 }
 
 std::ostream& operator << (std::ostream& os, const Vamos_Geometry::Rectangle& rectangle);

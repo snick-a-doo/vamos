@@ -4,6 +4,8 @@
 
 #include <geometry/numeric.h>
 
+#include <set>
+
 using namespace Vamos_Geometry;
 
 TEST_CASE("sign")
@@ -27,24 +29,6 @@ TEST_CASE("is_in_range")
     CHECK(!is_in_range(9.0, 2.0, 8.0));
 }
 
-TEST_CASE("closer")
-{
-    CHECK(closer(-5.0, 1.0, 2.0) == 1.0);
-    CHECK(closer(0.9, 1.0, 2.0) == 1.0);
-    CHECK(closer(1.1, 1.0, 2.0) == 1.0);
-    CHECK(closer(1.51, 1.0, 2.0) == 2.0);
-    CHECK(closer(1.9, 1.0, 2.0) == 2.0);
-    CHECK(closer(2.1, 1.0, 2.0) == 2.0);
-    CHECK(closer(21.0, 1.0, 2.0) == 2.0);
-}
-
-TEST_CASE("average")
-{
-    CHECK(average(1.0, 2.0) == 1.5);
-    CHECK(average(2.0, 1.0) == 1.5);
-    CHECK(average(-2.0, 1.0) == -0.5);
-}
-
 TEST_CASE("wrap")
 {
     CHECK(wrap(-1.0, 2.0) == 1.0);
@@ -56,10 +40,13 @@ TEST_CASE("wrap")
     CHECK(wrap(5.0, 1.0, 3.0) == 1.0);
     CHECK(wrap(6.0, 1.0, 3.0) == 2.0);
     CHECK(wrap(7.0, 1.0, 3.0) == 1.0);
+
+    CHECK_THROWS_AS(wrap(1.0, 0.0), Vamos_Geometry::Bad_Argument<double>);
 }
 
 TEST_CASE("branch")
 {
+    using namespace std::numbers;
     CHECK(branch(2.0, 1.0) == 2.0);
     CHECK(branch(2.0 + 2.0 * pi, 1.0) == 2.0);
     CHECK(branch(2.0 - 2.0 * pi, 1.0) == 2.0);
@@ -86,4 +73,30 @@ TEST_CASE("interpolate")
 
     CHECK(interpolate(2.0, 1.0, 2.0, 3.0, 5.0) == 3.5);
     CHECK(interpolate(2.0, 1.0, 2.0, 3.0, -5.0) == -1.5);
+}
+
+TEST_CASE("random")
+{
+    // Generate 100 random numbers. Divide the range into 10 bins. Check that there's at
+    // least one number in each bin.
+    std::set<double> rands;
+    for (int i{0}; i < 100; ++i)
+        rands.insert(random_in_range(-5.0, 5.0));
+    auto low = -5.0;
+    auto high = -4.0;
+    bool found = false;
+    for (auto r : rands)
+    {
+        if (r > high)
+        {
+            ++high;
+            ++low;
+            found = false;
+        }
+        if (!found)
+        {
+            CHECK(r < high);
+            found = true;
+        }
+    }
 }

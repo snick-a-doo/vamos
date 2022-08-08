@@ -18,6 +18,7 @@
 #ifndef _ROAD_SEGMENT_H_
 #define _ROAD_SEGMENT_H_
 
+#include "../geometry/constants.h"
 #include "../geometry/conversions.h"
 #include "../geometry/linear-interpolator.h"
 #include "../geometry/rectangle.h"

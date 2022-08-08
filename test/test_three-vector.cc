@@ -7,7 +7,10 @@
 #include <geometry/constants.h>
 #include <geometry/three-vector.h>
 
+#include <numbers>
+
 using namespace Vamos_Geometry;
+using namespace std::numbers;
 
 TEST_CASE("null vector")
 {
