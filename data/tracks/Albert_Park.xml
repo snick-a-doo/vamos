@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <track name="Albert Park">
 
-  <racing-line show="0" />
-
   <sky>
     <sides>textures/sky_sides.png</sides>
 	<top>textures/sky_top.png</top>

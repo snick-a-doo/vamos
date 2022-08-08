@@ -286,11 +286,12 @@ namespace Vamos_Track
                        bool forward_only = false) const;
     const Gl_Road_Segment* segment_at (double along) const;
 
-    void build_racing_line ();
-
     const Racing_Line& racing_line () const { return m_racing_line; }
 
-    void show_racing_line (bool show) { m_draw_racing_line = show; }
+      /// Set the presence and visibility of the racing line.
+      /// @param build Calculate the racing line if true.
+      /// @param show Render the racing line if true.
+      void set_racing_line(bool build, bool show);
 
     bool is_closed () const { return m_is_closed; }
 
@@ -323,7 +324,8 @@ namespace Vamos_Track
     Vamos_Geometry::Rectangle m_bounds;
     double m_start_direction;
     Racing_Line m_racing_line;
-    bool m_draw_racing_line;
+      bool m_build_racing_line{false};
+      bool m_show_racing_line{false};
     bool m_is_closed;
   };
 
@@ -387,7 +389,10 @@ namespace Vamos_Track
     void set_start_direction (double degrees);
     double start_direction () const { return m_start_direction; }
 
-    void show_racing_line (bool show);
+      /// Set the presence and visibility of the racing line.
+      /// @param build Calculate the racing line if true.
+      /// @param show Render the racing line if true.
+      void set_racing_line(bool build, bool show);
 
 	// Add a straight or curved segment of road to the track.
 	size_t add_segment (Gl_Road_Segment* segment); 
@@ -493,10 +498,8 @@ namespace Vamos_Track
 	// Return the timing sector at the given distance.
 	int sector (double distance);
 
-    // Return object that need collision checking.
+    /// @return Objects that need collision checking.
     const std::vector <Track_Object>& objects () const { return m_objects; }
-
-    void build_racing_line () { mp_track->build_racing_line (); }
 
     const std::string& track_file () const { return m_track_file; }
 

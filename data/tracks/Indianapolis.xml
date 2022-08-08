@@ -2,7 +2,7 @@
 
 <track name="Indianapolis">
 
-  <racing-line show="0">
+  <racing-line>
     <resolution>20.0</resolution>
     <iterations>1000</iterations>
   </racing-line>

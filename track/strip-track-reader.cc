@@ -142,11 +142,6 @@ Strip_Track_Reader::on_start_tag (const Vamos_Media::XML_Tag& tag)
           m_adjusted_road_segments = 3;
         }
     }
-  else if ((path () == "/track/racing-line") && (attribs.size () == 1))
-    {
-      std::istringstream is (attribs [0].value.c_str ());
-      is >> mp_road->mp_track->m_draw_racing_line;
-    }
   else if (path () == "/track/pit/join")
 	{
 	  m_join_pit_lane = true;

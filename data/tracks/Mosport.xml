@@ -2,8 +2,6 @@
 <!-- Converted from the RARS track file mosport.trk by trk-kerb. -->
 <track name="Mosport">
 
-  <racing-line show="0" />
-
   <sky>
     <sides>textures/sky_sides.png</sides>
 	<top>textures/sky_top.png</top>

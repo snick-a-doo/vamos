@@ -534,7 +534,6 @@ Road::Road ()
   : mp_elevation (new Spline ()),
     m_start_direction (0.0),
     m_racing_line (),
-    m_draw_racing_line (false),
     m_is_closed (false)
 {
   clear ();
@@ -749,10 +748,11 @@ Gl_Road_Segment const* Road::segment_at(double along) const
     return m_segments.back();
 }
 
-void 
-Road::build_racing_line ()
-{   
-  m_racing_line.build (*this, m_is_closed); 
+void Road::set_racing_line(bool build, bool show)
+{
+    assert((build || !show) && "The racing line must be built if it is shown.");
+    m_build_racing_line = build;
+    m_show_racing_line = show;
 }
 
 void
@@ -825,6 +825,8 @@ Road::build (bool close, int adjusted_segments, double length)
   build_segments (Three_Vector (),
                   start_direction (),
                   close ? last.banking ().end_angle () : 0.0);
+  if (m_build_racing_line)
+      m_racing_line.build(*this, m_is_closed);
 }
 
 double perpendicular_distance (const Three_Vector& p1, 
@@ -1017,8 +1019,8 @@ Road::draw ()
 {
   std::for_each (m_segments.begin (), m_segments.end (), 
                  std::mem_fn (&Gl_Road_Segment::draw));
-  if (m_draw_racing_line)
-    m_racing_line.draw ();
+  if (m_show_racing_line)
+      m_racing_line.draw();
 }
 
 Three_Vector
@@ -1157,11 +1159,10 @@ Strip_Track::~Strip_Track ()
   delete mp_map_background;
 }
 
-void
-Strip_Track::show_racing_line (bool show)
+void Strip_Track::set_racing_line(bool build, bool show)
 {
-  if (mp_track)
-    mp_track->show_racing_line (show);
+    if (mp_track)
+        mp_track->set_racing_line(build, show);
 }
 
 // Read the track definition file.

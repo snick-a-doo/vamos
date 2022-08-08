@@ -131,6 +131,8 @@ int main (int argc, char* argv [])
     std::exit (opt.exit_status ());
 
   Strip_Track track;
+  track.set_racing_line(opt.show_line || opt.demo || opt.number_of_cars > 1,
+                        opt.show_line);
   Atmosphere air (1.2, Three_Vector (0.0, 0.0, 0.0));
   Sounds sounds (opt.volume);
   Gl_World world (track, air, sounds, opt.full_screen);
@@ -203,11 +205,6 @@ int main (int argc, char* argv [])
       std::exit (EXIT_FAILURE);
     }
 
-  if (opt.show_line || opt.demo || (opt.number_of_cars > 1))
-    {
-      track.build_racing_line ();
-      track.show_racing_line (opt.show_line);
-    }
   world.start (opt.qualifying, opt.laps);
   std::ostringstream name;
   name << (opt.qualifying ? "qualifying" : "race") << "-results";

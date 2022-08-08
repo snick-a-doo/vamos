@@ -10,4 +10,6 @@ doc/robot-cars/computer-controlled-cars.aux
 doc/robot-cars/computer-controlled-cars.log
 __pycache__
 vamos_track.pyc
-
+.Rhistory
+doc/html/
+doc/latex/
