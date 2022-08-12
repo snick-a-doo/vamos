@@ -14,7 +14,7 @@ using namespace std::numbers;
 Three_Vector const ones(1.0, 1.0, 1.0);
 // Rotate the identity 120 degrees about [1,1,1].  This moves z to x,
 // x to y and y to z.
-const Three_Matrix rotated(Three_Matrix().rotate(ones.unit() * 2.0 * pi / 3.0));
+const Three_Matrix rotated(Three_Matrix{1.0}.rotate(ones.unit() * 2.0 * pi / 3.0));
 
 TEST_CASE("particle")
 {

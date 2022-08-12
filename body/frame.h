@@ -154,7 +154,7 @@ namespace Vamos_Body
   private:
     const Frame* mp_parent;
 
-    Vamos_Geometry::Three_Matrix m_orientation;
+      Vamos_Geometry::Three_Matrix m_orientation{1.0};
 
     // The position of the origin of this frame relative to the parent frame.
     Vamos_Geometry::Three_Vector m_position;

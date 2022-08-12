@@ -27,6 +27,26 @@
 using namespace Vamos_Geometry;
 using namespace Vamos_Body;
 
+/// Add the contribution of a particle with the given mass and center-of-mass position to
+/// an inertia tensor.
+void add_inertia(double mass, Three_Vector const& pos, Three_Matrix& I)
+{
+    // I_xx I_xy I_xz
+    I[0][0] += mass * (pos.y * pos.y + pos.z * pos.z);
+    I[0][1] -= mass * (pos.x * pos.y);
+    I[0][2] -= mass * (pos.x * pos.z);
+
+    // I_yx I_yy I_yz
+    I[1][0] = I[0][1];
+    I[1][1] += mass * (pos.z * pos.z + pos.x * pos.x);
+    I[1][2] -= mass * (pos.y * pos.z);
+
+    // I_zx I_zy I_zz
+    I[2][0] = I[0][2];
+    I[2][1] = I[1][2];
+    I[2][2] += mass * (pos.x * pos.x + pos.y * pos.y);
+}
+
 //* Struct Contact_Parameters
 
 //** Constructor
@@ -93,7 +113,7 @@ Rigid_Body::set_initial_conditions (const Vamos_Geometry::Three_Vector& position
   m_initial_position = position;
   m_initial_velocity = velocity;
   m_initial_orientation.identity ();
-  m_initial_orientation = Three_Matrix ().rotate (orientation * deg_to_rad (1.0));
+  m_initial_orientation = Three_Matrix(1.0).rotate(orientation * deg_to_rad(1.0));
   m_initial_angular_velocity = angular_velocity * deg_to_rad (1.0);
   reset (0.0);
 }
@@ -163,17 +183,10 @@ Rigid_Body::update_center_of_mass ()
     }
   m_body_cm /= m_mass;
 
-  // Initialize the inertia tensor.
-  m_inertia.zero ();
   // Inertia tensor for rotations about the center of mass.
-  for (std::vector <Particle*>::const_iterator it = m_particles.begin ();
-       it != m_particles.end ();
-       it++)
-    {  
-      m_inertia.add ((*it)->mass (),
-                     (*it)->mass_position () - m_body_cm);
-    }
-  m_inertia.update ();
+  m_inertia.zero();
+  for (auto const* p : m_particles)
+      add_inertia(p->mass(), p->mass_position() - m_body_cm, m_inertia);
 }
 
 void 
@@ -257,7 +270,7 @@ Rigid_Body::propagate (double time)
   // out how the Body moves w.r.t its parent.
   total_force = rotate_to_parent (total_force) + m_gravity * m_mass;
 
-  Three_Vector delta_omega = time * total_torque * m_inertia.inverse ();
+  Three_Vector delta_omega = time * total_torque * invert(m_inertia);
   Three_Vector delta_theta = (angular_velocity () + delta_omega) * time;
   m_last_angular_velocity = angular_velocity ();
   angular_accelerate (delta_omega);
@@ -352,6 +365,11 @@ Three_Vector
 Rigid_Body::world_moment (const Vamos_Geometry::Three_Vector& world_position)
 {
   return rotate_to_world (moment (transform_from_world (world_position)));
+}
+
+Three_Matrix Rigid_Body::inertia() const
+{
+    return m_inertia;
 }
 
 // Handle a collision.

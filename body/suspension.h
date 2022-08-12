@@ -198,7 +198,7 @@ namespace Vamos_Body
 
 	// The orientation of the wheel in the absence of steering and
 	// displacement.
-	Vamos_Geometry::Three_Matrix m_static_orientation;
+      Vamos_Geometry::Three_Matrix m_static_orientation{1.0};
 
 	Vamos_Geometry::Three_Vector m_normal;
 

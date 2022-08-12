@@ -4,6 +4,10 @@
 
 #include "doctest.h"
 
+#include <geometry/three-matrix.h>
+#include <geometry/three-vector.h>
+#include <geometry/two-vector.h>
+
 #include <iostream>
 
 using namespace Vamos_Geometry;
@@ -32,4 +36,16 @@ bool close(Two_Vector const& actual, Two_Vector const& expected, double tol)
         return true;
     std::cout << actual << " != " << expected << " ±" << tol << std::endl;
     return false;
+}
+
+bool close(Three_Matrix const& actual, Three_Matrix const& expected, double tol)
+{
+    for (size_t i{0}; i < 3; ++i)
+        for (size_t j{0}; j < 3; ++j)
+            if (!close(actual[i][j], expected[i][j], tol))
+            {
+                std::cout << actual << " != " << expected << " ±" << tol << std::endl;
+                return false;
+            }
+    return true;
 }

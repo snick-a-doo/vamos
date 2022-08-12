@@ -1,153 +1,97 @@
-//	Vamos Automotive Simulator
-//  Copyright (C) 2001--2004 Sam Varner
+//  Vamos Automotive Simulator
+//  Copyright (C) 2001--2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _THREE_MATRIX_H_
-#define _THREE_MATRIX_H_
+#ifndef VAMOS_GEOMETRY_THREE_MATRIX_H_INCLUDED
+#define VAMOS_GEOMETRY_THREE_MATRIX_H_INCLUDED
 
 #include "three-vector.h"
 
+#include <array>
+
 namespace Vamos_Geometry
 {
-  // Exception.
-  class Singular_Matrix {};
+/// Exception thrown when trying to invert a singular matrix.
+class Singular_Matrix : public std::runtime_error
+{
+public:
+    Singular_Matrix()
+        : std::runtime_error("Matrix is singular. Can't invert.")
+    {}
+};
 
-  class Three_Matrix
-  {
-	double m_mat [3][3];
-	double m_e_vec [3][3];
-	double m_e_val [3];
-  
-	// The diagonalization routine used by eigen ().
-	void diagonalize ();
+/// Class representing a 3×3 matrix.
+class Three_Matrix
+{
+public:
+    static constexpr size_t N{3};
+    using Vec = std::array<double, N>;
+    using Mat = std::array<Vec, N>;
 
-	// Put DIAG in each diagonal element.
-	void set_diagonal (double diag);
+    /// Initialize to @p diag times the identity matrix.
+    Three_Matrix(double diag);
 
-	// Copy the elements of MAT into this matrix.
-	inline void copy_in (const Three_Matrix& mat);
+    /// Element access
+    /// @{
+    Vec& operator[](size_t index);
+    Vec const& operator[](size_t index) const;
+    /// @}
 
-  public:
-	// Initialize to identity matrix.
-	Three_Matrix ();
-	// Initialize elements with a C-style 2-D array.
-	Three_Matrix (const double [3][3]);
-	// Copy constructor.
-	Three_Matrix (const Three_Matrix& mat);
-	// Copy assignment.
-	Three_Matrix& operator = (const Three_Matrix& mat);
+    /// Set this matrix to the identity matrix.
+    /// @return A reference to this matrix to allow chaining.
+    Three_Matrix& identity();
+    /// Set all elements to zero.
+    /// @return A reference to this matrix to allow chaining.
+    Three_Matrix& zero();
+    /// Treat this matrix as a rotation matrix. Represent it in a reference frame rotated
+    /// about @p delta_theta by an angle equal to the magnitude of @p delta_theta.
+    Three_Matrix& rotate(Three_Vector const& delta_theta);
+    /// Multiply by another matrix.
+    Three_Matrix& operator*=(Three_Matrix const& mat);
 
-	double* operator [] (int index) { return m_mat [index]; }
-	const double* operator [] (int index) const { return m_mat [index]; }
+    /// Test for equality.
+    friend bool operator==(Three_Matrix const& m1, Three_Matrix const& m2) = default;
 
-    bool operator == (const Three_Matrix& mat) const;
-  
-	// Return the unit vector for a given axis.
-	Three_Vector unit (int index) const; 
+private:
+    /// The matrix elements.
+    Mat m_mat;
+};
 
-	// Set this matrix to the identity matrix.
-	void identity ();
-	// Set all elements to zero.
-	void zero ();
-	// Rotate the frame about the vector delta_theta, by an angle equal to
-	// the magnitude of delta_theta.
-	const Three_Matrix& rotate (const Three_Vector& delta_theta);
-  
-	// Return the transpose of this matrix.
-	Three_Matrix transpose () const;
+/// @return The transpose of a matrix.
+Three_Matrix transpose(Three_Matrix const& mat);
 
-	// Retrun the inverse of this matrix.
-	Three_Matrix invert () const;
+/// @return the inverse of a matrix.
+Three_Matrix invert(Three_Matrix const& mat);
 
-	// Return the eigen vectors of this matrix.  
-	// Set `e_val' to the eigenvalues.
-	Three_Matrix eigen (Three_Vector* e_val = 0);
+/// Multiplication by a scalar.
+/// @{
+Three_Matrix operator*(double, Three_Matrix const&);
+Three_Matrix operator*(Three_Matrix const&, double);
+/// @}
 
-	// Return the product of this matrix and `mat'.
-	inline Three_Matrix& operator *= (const Three_Matrix& mat);
-	inline Three_Matrix& operator *= (double);
-  };
+/// Multiplication with a vector.
+/// @{
+Three_Vector operator*(Three_Vector const& vec, Three_Matrix const& mat);
+Three_Vector operator*(Three_Matrix const& mat, Three_Vector const& vec);
+/// @}
 
-  void 
-  Three_Matrix::copy_in (const Three_Matrix& mat)
-  {
-    for (int i = 0; i < 3; i++)
-      {
-        for (int j = 0; j < 3; j++)
-          {
-            m_mat [i][j] = mat [i][j];
-          }
-      }
-  }
+/// Multiplication with a matrix.
+Three_Matrix operator*(Three_Matrix const&, Three_Matrix const&);
 
-  Three_Matrix& 
-  Three_Matrix::operator *= (double factor)
-  {
-    for (int i = 0; i < 3; i++)
-      {
-        for (int j = 0; j < 3; j++)
-          {
-            m_mat [i][j] *= factor;
-          }
-      }
-    return *this;
-  }
-
-  Three_Matrix& 
-  Three_Matrix::operator *= (const Three_Matrix& mat2)
-  {
-    double temp_mat [3][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
-    for (int i = 0; i < 3; i++)
-      {
-        for (int j = 0; j < 3; j++)
-          {
-            for (int k = 0; k < 3; k++)
-              {
-                temp_mat [i][j] += m_mat [i][k] * mat2 [k][j];
-              }
-          }
-      }
-    copy_in (temp_mat);
-    return *this;
-  }
-
-  // Multiplication with a matrix.
-  Three_Matrix operator * (const Three_Matrix&, const Three_Matrix&);
-  // Multiplication with a vector.
-  inline Three_Vector operator * (const Three_Matrix& mat,
-                                   const Three_Vector& vec)
-  {
-    return Three_Vector 
-      (vec.x * mat [0][0] + vec.y * mat [0][1] + vec.z * mat [0][2],
-       vec.x * mat [1][0] + vec.y * mat [1][1] + vec.z * mat [1][2],
-       vec.x * mat [2][0] + vec.y * mat [2][1] + vec.z * mat [2][2]);
-  }
-  Three_Vector operator * (const Three_Vector&, const Three_Matrix&);
-  // Multiplication by a scalar.
-  Three_Matrix operator * (double, const Three_Matrix&);
-  Three_Matrix operator * (const Three_Matrix&, double);
-
-  // Stream operator.
-  std::ostream& operator << (std::ostream& os, Three_Matrix mat);
-
-  // Return the Euler angles about the x (PHI), y (THETA), and z (PSI)
-  // axes for the orientation matrix MAT.
-  void euler_angles (const Three_Matrix& mat, 
-					 double* phi, double* theta, double* psi);
+/// Stream operator.
+std::ostream& operator<<(std::ostream& os, Three_Matrix const& mat);
 }
 
-#endif
+#endif // VAMOS_GEOMETRY_THREE_MATRIX_H_INCLUDED

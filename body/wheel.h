@@ -28,7 +28,6 @@
 #include "../geometry/material.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
-#include "../geometry/inertia-tensor.h"
 
 #include <GL/gl.h>
 

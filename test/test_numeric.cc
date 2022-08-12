@@ -80,7 +80,7 @@ TEST_CASE("random")
     // Generate 100 random numbers. Divide the range into 10 bins. Check that there's at
     // least one number in each bin.
     std::set<double> rands;
-    for (int i{0}; i < 100; ++i)
+    for (int i{0}; i < 1000; ++i)
         rands.insert(random_in_range(-5.0, 5.0));
     auto low = -5.0;
     auto high = -4.0;

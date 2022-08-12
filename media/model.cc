@@ -640,7 +640,7 @@ namespace Vamos_Media
 	std::string m_url;
 
 	double m_scale;
-	Three_Matrix m_rotation;
+      Three_Matrix m_rotation{1.0};
 	Three_Vector m_location;
 
 	Texture_Image* mp_texture;
@@ -945,7 +945,7 @@ Ac3d_Object::Ac3d_Object (std::string type, double scale,
   Three_Matrix
   read_matrix (std::ifstream& is)
   {
-	Three_Matrix mat;
+      Three_Matrix mat{0.0};
 	for (size_t i = 0; i < 3; i++)
 	  {
 		for (size_t j = 0; j < 3; j++)

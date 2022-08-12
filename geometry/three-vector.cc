@@ -136,7 +136,7 @@ Three_Vector::angle (const Three_Vector& vec) const
 const Three_Vector&
 Three_Vector::rotate (const Three_Vector& vec)
 {
-  Three_Matrix r;
+    Three_Matrix r{1.0};
   r.rotate (vec);
   *this = r * *this;
   return *this;
@@ -145,7 +145,7 @@ Three_Vector::rotate (const Three_Vector& vec)
 Three_Vector
 Three_Vector::rotate (const Three_Vector& vec) const
 {
-  Three_Matrix r;
+    Three_Matrix r{1.0};
   r.rotate (vec);
   return r * *this;
 }

@@ -1337,8 +1337,7 @@ Strip_Track::reset_orientation (const Three_Vector& pos,
 								size_t& road_index,
 								size_t& segment_index)
 {
-  Three_Matrix orientation;
-  orientation.identity ();
+    Three_Matrix orientation{1.0};
 
   // Align the car's up direction with the normal.
   const Three_Vector& track_pos = 

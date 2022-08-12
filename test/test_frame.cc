@@ -13,10 +13,10 @@ using namespace std::numbers;
 
 Three_Vector const null_vector(0.0, 0.0, 0.0);
 Three_Vector const ones(1.0, 1.0, 1.0);
-Three_Matrix const identity;
+Three_Matrix const identity{1.0};
 // Rotate the identity 120 degrees about [1,1,1].  This moves z to x,
 // x to y and y to z.
-Three_Matrix const rotated(Three_Matrix().rotate(ones.unit() * 2.0 * pi / 3.0));
+auto const rotated{Three_Matrix{1.0}.rotate(ones.unit() * 2.0 * pi / 3.0)};
 
 TEST_CASE("defaults")
 {
@@ -83,11 +83,7 @@ TEST_CASE("orientation")
         CHECK(frame.position() == null_vector);
         CHECK(frame.velocity() == null_vector);
         CHECK(frame.angular_velocity() == null_vector);
-
-        Three_Matrix o = frame.orientation();
-        for (size_t i = 0; i < 3; i++)
-            for (size_t j = 0; j < 3; j++)
-                CHECK(close(o[i][j], i == j ? 1.0 : 0.0, 1e-4));
+        CHECK(close(frame.orientation(), Three_Matrix{1.0}, 1e-9));
     }
     SUBCASE("transform to world")
     {

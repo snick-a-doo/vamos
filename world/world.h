@@ -77,7 +77,7 @@ namespace Vamos_World
       double m_time;
       Vamos_Geometry::Three_Vector m_track_position;
       Vamos_Geometry::Three_Vector m_position;
-      Vamos_Geometry::Three_Matrix m_orientation;
+        Vamos_Geometry::Three_Matrix m_orientation{1.0};
     };
 
     Vamos_Geometry::Circular_Buffer <Record> m_record;

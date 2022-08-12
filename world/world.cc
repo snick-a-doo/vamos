@@ -120,21 +120,20 @@ World::start (bool qualify, size_t laps_or_minutes)
     mp_timing->set_lap_limit (laps_or_minutes);
 }
 
-inline Three_Vector
-rotation_term (const Inertia_Tensor& I,
-               const Three_Vector& r,
-               const Three_Vector& n)
+Three_Vector rotation_term(Three_Matrix const& I,
+                           Three_Vector const& r,
+                           Three_Vector const& n)
 {
-  return (I.inverse () * (r.cross (n))).cross (r);
+    return (invert(I) * r.cross(n)).cross(r);
 }
 
 Three_Vector
 impulse (const Three_Vector& r1,
          double m1,
-         const Inertia_Tensor& I1,
+         const Three_Matrix& I1,
          const Three_Vector& r2,
          double m2,
-         const Inertia_Tensor& I2,
+         const Three_Matrix& I2,
          const Three_Vector& v,
          double restitution,
          double friction,
@@ -151,7 +150,7 @@ Three_Vector
 impulse (const Three_Vector& r,
          const Three_Vector& v,
          double m,
-         const Inertia_Tensor& I,
+         const Three_Matrix& I,
          double restitution,
          double friction,
          const Three_Vector& normal)
@@ -454,7 +453,7 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
 
   // Orient the car to be level with the track.
   {
-    Three_Matrix orientation;
+      Three_Matrix orientation{1.0};
     double along = track_pos.x - segment.start_distance ();
     double angle = segment.angle (along);
     orientation.rotate (Three_Vector (0.0, 0.0, angle));

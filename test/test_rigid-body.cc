@@ -10,7 +10,7 @@ using namespace Vamos_Geometry;
 
 TEST_CASE("cube")
 {
-    Rigid_Body body{Three_Vector(), Three_Matrix()};
+    Rigid_Body body{Three_Vector{}, Three_Matrix{1.0}};
     body.add_particle(new Particle(1.0, Three_Vector(0.0, 0.0, 0.0)));
     body.add_particle(new Particle(1.0, Three_Vector(1.0, 0.0, 0.0)));
     body.add_particle(new Particle(1.0, Three_Vector(0.0, 1.0, 0.0)));

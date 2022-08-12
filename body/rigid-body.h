@@ -23,7 +23,6 @@
 #include "../geometry/three-vector.h"
 #include "../geometry/three-matrix.h"
 #include "../geometry/material.h"
-#include "../geometry/inertia-tensor.h"
 #include "frame.h"
 #include "contact-point.h"
 
@@ -55,7 +54,7 @@ namespace Vamos_Body
     // The body's initial state, used by reset ().
     Vamos_Geometry::Three_Vector m_initial_position;
     Vamos_Geometry::Three_Vector m_initial_velocity;
-    Vamos_Geometry::Three_Matrix m_initial_orientation;
+      Vamos_Geometry::Three_Matrix m_initial_orientation{1.0};
     Vamos_Geometry::Three_Vector m_initial_angular_velocity;
 
     Vamos_Geometry::Three_Vector m_last_position;
@@ -69,7 +68,7 @@ namespace Vamos_Body
 
     Vamos_Geometry::Three_Vector m_last_velocity;
 
-    Vamos_Geometry::Three_Matrix m_last_orientation;
+      Vamos_Geometry::Three_Matrix m_last_orientation{1.0};
 
     Vamos_Geometry::Three_Vector m_last_angular_velocity;
 
@@ -98,8 +97,8 @@ namespace Vamos_Body
     Vamos_Geometry::Three_Vector m_cm_force;
 
   protected:
-    // The inertia tensor for the body.
-    Vamos_Geometry::Inertia_Tensor m_inertia;
+      /// The inertia tensor for the body.
+      Vamos_Geometry::Three_Matrix m_inertia{0.0};
 
     // A vector of pointers to the force and torque producers that
     // make up the body
@@ -196,7 +195,8 @@ namespace Vamos_Body
     Vamos_Geometry::Three_Vector 
     world_moment (const Vamos_Geometry::Three_Vector& world_position);
 
-    Vamos_Geometry::Inertia_Tensor inertia () const { return m_inertia; }
+      /// @return The body's inertia tensor.
+      Vamos_Geometry::Three_Matrix inertia() const;
 
     // Handle a collision.
     void contact (Particle* contact_point, 

@@ -262,7 +262,7 @@ Tire::orient_frame_with_unit_vector (const Three_Vector& normal_unit_vector)
 						+ normal_unit_vector.y * normal_unit_vector.y);
   double rotation_angle = asin (length);
 
-  set_orientation (Three_Matrix ());
+  set_orientation(Three_Matrix{1.0});
   rotate (rotation_axis.unit () * rotation_angle);
 }
 

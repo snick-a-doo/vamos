@@ -147,7 +147,7 @@ int main (int argc, char* argv [])
         {
           bool robots = false;
           bool interactive = false;
-          Three_Matrix orientation;
+          Three_Matrix orientation{1.0};
 
           for (Entry_List::const_iterator itEntry = entries.begin ();
                itEntry != entries.end ();

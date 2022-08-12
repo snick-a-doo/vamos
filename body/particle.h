@@ -22,7 +22,6 @@
 
 #include "../geometry/three-vector.h"
 #include "../geometry/three-matrix.h"
-#include "../geometry/inertia-tensor.h"
 #include "../geometry/material.h"
 #include "frame.h"
 

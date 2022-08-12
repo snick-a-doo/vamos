@@ -143,7 +143,7 @@ Frame::rotate_to_world (const Three_Vector& vector) const
 Three_Vector
 Frame::rotate_from_parent (const Three_Vector& vector) const
 {
-  return m_orientation.transpose() * vector;
+    return transpose(m_orientation) * vector;
 }
 
 Three_Vector
