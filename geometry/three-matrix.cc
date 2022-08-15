@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 using namespace Vamos_Geometry;
 
@@ -36,12 +37,12 @@ Three_Matrix::Three_Matrix(double diag)
 {
 }
 
-Vec& Three_Matrix::operator[](size_t index)
+Vec& Three_Matrix::operator [] (size_t index)
 {
     return m_mat[index];
 }
 
-const Vec& Three_Matrix::operator[](size_t index) const
+const Vec& Three_Matrix::operator [] (size_t index) const
 {
     return m_mat[index];
 }
@@ -97,7 +98,7 @@ Three_Matrix& Three_Matrix::rotate(Three_Vector const& delta_theta)
     return *this *= q_rot;
 }
 
-Three_Matrix& Three_Matrix::operator*=(Three_Matrix const& mat2)
+Three_Matrix& Three_Matrix::operator *= (Three_Matrix const& mat2)
 {
     Mat mult{0.0};
     for (size_t i{0}; i < N; ++i)
@@ -148,7 +149,7 @@ Three_Matrix invert(Three_Matrix const& mat)
     return out_mat * (1.0 / det);
 }
 
-Three_Matrix operator*(double factor, Three_Matrix const& mat)
+Three_Matrix operator * (double factor, Three_Matrix const& mat)
 {
     Three_Matrix out_mat{0.0};
     for (size_t i{0}; i < N; ++i)
@@ -157,32 +158,32 @@ Three_Matrix operator*(double factor, Three_Matrix const& mat)
     return out_mat;
 }
 
-Three_Matrix operator*(Three_Matrix const& mat, double factor)
+Three_Matrix operator * (Three_Matrix const& mat, double factor)
 {
     return factor * mat;
 }
 
-Three_Vector operator*(Three_Vector const& vec, Three_Matrix const& mat)
+Three_Vector operator * (Three_Vector const& vec, Three_Matrix const& mat)
 {
     return {vec.x * mat[0][0] + vec.y * mat[1][0] + vec.z * mat[2][0],
             vec.x * mat[0][1] + vec.y * mat[1][1] + vec.z * mat[2][1],
             vec.x * mat[0][2] + vec.y * mat[1][2] + vec.z * mat[2][2]};
 }
 
-Three_Vector operator*(Three_Matrix const& mat, Three_Vector const& vec)
+Three_Vector operator * (Three_Matrix const& mat, Three_Vector const& vec)
 {
     return {vec.x * mat[0][0] + vec.y * mat[0][1] + vec.z * mat[0][2],
             vec.x * mat[1][0] + vec.y * mat[1][1] + vec.z * mat[1][2],
             vec.x * mat[2][0] + vec.y * mat[2][1] + vec.z * mat[2][2]};
 }
 
-Three_Matrix operator*(Three_Matrix const& mat1, Three_Matrix const& mat2)
+Three_Matrix operator * (Three_Matrix const& mat1, Three_Matrix const& mat2)
 {
     Three_Matrix out_mat{mat1};
     return out_mat *= mat2;
 }
 
-std::ostream& operator<<(std::ostream& os, Three_Matrix const& mat)
+std::ostream& operator << (std::ostream& os, Three_Matrix const& mat)
 {
     os << "[[" << mat[0][0] << ",\t" << mat[0][1] << ",\t" << mat[0][2] << "]\n"
        << " [" << mat[1][0] << ",\t" << mat[1][1] << ",\t" << mat[1][2] << "]\n"

@@ -1040,9 +1040,9 @@ Pit_Lane::pit_in_offset (Gl_Road_Segment& pit_in) const
   else
     offset = -pit_in.right_width (along) + pit_width;
 
-  if (pit_in.radius () == 0.0)
-    return Three_Vector (along, offset, 0.0).
-      rotate (pit_in.angle (along) * Three_Vector::Z);
+  if (pit_in.radius() == 0.0)
+      return rotate(Three_Vector{along, offset, 0.0},
+                    pit_in.angle(along) * Three_Vector::Z);
   else
     return pit_in.center_of_curve () - pit_in.start_coords ()
       + Three_Vector (pit_in.radius () - offset, 
@@ -1067,9 +1067,9 @@ Pit_Lane::pit_out_offset (Gl_Road_Segment& pit_out) const
   else
     offset = -pit_out.right_width (along) + pit_width;
 
-  if (pit_out.radius () == 0.0)
-    return Three_Vector (along, offset, 0.0).
-      rotate (pit_out.angle (along) * Three_Vector::Z);
+  if (pit_out.radius() == 0.0)
+      return rotate(Three_Vector{along, offset, 0.0},
+                    pit_out.angle(along) * Three_Vector::Z);
   else
     return pit_out.center_of_curve () - pit_out.start_coords ()
       + Three_Vector (pit_out.radius () - offset, 

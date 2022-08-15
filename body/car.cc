@@ -580,10 +580,10 @@ Car::collision (const Three_Vector& position,
                   m_chassis.transform_velocity_from_world (velocity),
                   ignore_z));
 
-  return Contact_Info (!penetration.null (),
-                       penetration.magnitude (),
-                       m_chassis.rotate_to_world (penetration),
-                       Material::METAL);
+  return Contact_Info(!penetration.is_null(),
+                      penetration.magnitude(),
+                      m_chassis.rotate_to_world(penetration),
+                      Material::METAL);
 }
 
 void

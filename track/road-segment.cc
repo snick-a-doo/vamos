@@ -331,23 +331,12 @@ Road_Segment::set_wall_heights (double left_height, double right_height)
   m_right_wall_height = right_height;
 }
 
-void 
-Road_Segment::build_elevation (Spline* elevation,
-							   double start_distance)
+void Road_Segment::build_elevation (Spline* elevation, double start_distance)
 {
-  mp_elevation_curve = elevation;
-  for (std::vector <Two_Vector>::iterator it = m_elevation_points.begin ();
-	   it != m_elevation_points.end ();
-	   it++)
-	{
-	  mp_elevation_curve->load (*it + Two_Vector (start_distance, 0.0));
-	}
-
-  if (m_last_segment)
-	{
-	  // Remove any elevation points near or greater than m_length.
-	  mp_elevation_curve->remove_greater (start_distance + m_length - 10.0);
-	}
+    mp_elevation_curve = elevation;
+    for (auto p : m_elevation_points)
+        if (!m_last_segment || p.x < m_length - 10.0)
+            mp_elevation_curve->load(p + Two_Vector{start_distance, 0.0});
 }
 
 double 
@@ -391,7 +380,7 @@ Road_Segment::barrier_normal (double along,
   // The -y direction is up, -z is to the left, x is forward.
   normal.x = bump.x;
   normal.z = -bump.y;
-  return normal.rotate (angle (along) * Three_Vector::Z);
+  return rotate(normal, angle(along) * Three_Vector::Z);
 }
 
 Three_Vector 
@@ -420,7 +409,8 @@ Road_Segment::normal (double along,
     bank -= mp_left_kerb->angle (along, from_center - left_road_width (along));
   if (include_kerb && mp_right_kerb)
     bank += mp_right_kerb->angle (along, -from_center - right_road_width (along));
-  return norm.rotate (-bank * Three_Vector::X).rotate (angle (along) * Three_Vector::Z);
+  return rotate(rotate(norm, -bank * Three_Vector::X),
+                angle(along) * Three_Vector::Z);
 }
 
 Three_Vector 
@@ -653,9 +643,9 @@ Road_Segment::coordinates (const Three_Vector& world_position,
     {
       const double half_angle = arc () / 2.0;
 
-      const Three_Vector centered_position = 
-        (world_position - center_of_curve ()).
-        rotate ((pi / 2.0 - half_angle - m_start_angle) * Three_Vector::Z);
+      const auto centered_position = rotate(
+          world_position - center_of_curve(),
+          (pi / 2.0 - half_angle - m_start_angle) * Three_Vector::Z);
 
       const std::complex <double> across =
         solve_quadratic (1.0 + 
@@ -690,8 +680,8 @@ Road_Segment::coordinates (const Three_Vector& world_position,
     }
   else
     {
-      track_position = 
-        (world_position - center_of_curve ()).rotate (-m_start_angle * Three_Vector::Z);
+        track_position = rotate(world_position - center_of_curve(),
+                                -m_start_angle * Three_Vector::Z);
       track_position.x = (track_position.x - track_position.y * m_start_skew)/
         (1 + track_position.y / m_length * (m_end_skew - m_start_skew));
     }
@@ -739,38 +729,23 @@ Road_Segment::on_pit_merge (double distance, double from_center) const
     && (std::abs (atan2 (from_wall, from_split)) > std::abs (m_pit.angle ()) / 2.0);
 }
 
-// Do the track-to-world coordinate transformation.
-Three_Vector
-Road_Segment::position (double along, double from_center) const
+Three_Vector Road_Segment::position(double along, double from_center) const
 {
-  Three_Vector pos (0.0, 0.0, elevation (along, from_center));
-  if (is_straight ())
+    Three_Vector pos{0.0, 0.0, elevation (along, from_center)};
+    if (is_straight())
     {
-      const double extra = from_center
-        * (m_start_skew + ((m_end_skew - m_start_skew) * along
-                           / m_length)); 
-
-      pos += start_coords () 
-        + (Three_Vector (along + extra, from_center, 0.0).
-           rotate (m_start_angle * Three_Vector::Z));
+        auto extra = from_center * (m_start_skew + ((m_end_skew - m_start_skew) * along
+                                                    / m_length));
+        return pos + start_coords() + rotate(Three_Vector{along + extra, from_center, 0.0},
+                                             m_start_angle * Three_Vector::Z);
     }
-  else
-    {
-      const double beta = arc () / 2.0;
-      const double radius = 
-        m_radius - from_center * (1.0 + m_start_skew / tan (beta));
 
-      const Three_Vector center (center_of_curve () 
-                                 + (from_center * m_start_skew / sin (beta) 
-                                    * Three_Vector (sin (m_start_angle + beta),
-                                                    -cos (m_start_angle + beta),
-                                                    0.0)));
-
-      const double angle = m_start_angle + along / m_radius;
-      pos += center
-        - (Three_Vector (0.0, radius, 0.0).rotate (angle * Three_Vector::Z));
-    }
-  return pos;
+    auto beta{arc() / 2.0};
+    auto radius{m_radius - from_center * (1.0 + m_start_skew / tan(beta))};
+    auto center{center_of_curve () + Three_Vector(from_center * m_start_skew / sin(beta),
+                                                  m_start_angle + beta - pi / 2.0)};
+    auto angle{m_start_angle + along / m_radius};
+    return pos + center - rotate(radius * Three_Vector::Y, angle * Three_Vector::Z);
 }
 
 void

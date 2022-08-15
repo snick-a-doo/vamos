@@ -85,5 +85,5 @@ Material::bump (double x, double y) const
                                      y / m_bump_wavelength);
   const double side = m_bump_amplitude.y * bump;
   const double up = m_bump_amplitude.x * (bump - 0.5);
-  return Three_Vector (side, side, up);
+  return {side, side, up};
 }

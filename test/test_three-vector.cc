@@ -2,173 +2,134 @@
 
 #include "test.h"
 
-#include <sstream>
-
 #include <geometry/constants.h>
 #include <geometry/three-vector.h>
+#include <geometry/two-vector.h>
 
+#include <cmath>
 #include <numbers>
+#include <sstream>
 
 using namespace Vamos_Geometry;
 using namespace std::numbers;
 
-TEST_CASE("null vector")
+TEST_CASE("vectors")
 {
     Three_Vector null;
-    CHECK(null.magnitude() == 0.0);
-    CHECK(null.null());
-}
-
-TEST_CASE("unit vectors")
-{
     Three_Vector x{1.0, 0.0, 0.0};
     Three_Vector y{0.0, 1.0, 0.0};
     Three_Vector z{0.0, 0.0, 1.0};
-
-    SUBCASE("dot products")
-    {
-        CHECK(x.dot(y) == 0.0);
-        CHECK(x.dot(z) == 0.0);
-        CHECK(y.dot(x) == 0.0);
-        CHECK(y.dot(z) == 0.0);
-        CHECK(z.dot(x) == 0.0);
-        CHECK(z.dot(y) == 0.0);
-    }
-    SUBCASE("cross products")
-    {
-        CHECK(x.cross(y) == z);
-        CHECK(x.cross(z) == -y);
-        CHECK(y.cross(x) == -z);
-        CHECK(y.cross(z) == x);
-        CHECK(z.cross(x) == y);
-        CHECK(z.cross(y) == -x);
-    }
-    SUBCASE("add")
-    {
-        CHECK(x + y + z == Three_Vector{1.0, 1.0, 1.0});
-    }
-    SUBCASE("subtract")
-    {
-        CHECK(Three_Vector(1.0, 1.0, 1.0) - x - y == z);
-    }
-    SUBCASE("projection")
-    {
-        CHECK(close((x.project(x)).magnitude(), 1.0, 1e-4));
-        CHECK(close((x.project(y)).magnitude(), 0.0, 1e-4));
-        CHECK(close((x.project(z)).magnitude(), 0.0, 1e-4));
-    }
-    SUBCASE("rotate z")
-    {
-        Three_Vector r = x.rotate(Three_Vector(0.0, 0.0, pi / 2.0));
-        CHECK(close(r.x, 0.0, 1e-4));
-        CHECK(close(x.x, 0.0, 1e-4));
-        CHECK(close(r.y, 1.0, 1e-4));
-        CHECK(close(x.y, 1.0, 1e-4));
-        CHECK(close(r.z, 0.0, 1e-4));
-        CHECK(close(x.z, 0.0, 1e-4));
-    }
-    SUBCASE("rotate y")
-    {
-        Three_Vector r = z.rotate(Three_Vector(0.0, pi / 2.0, 0.0));
-        CHECK(close(r.x, 1.0, 1e-4));
-        CHECK(close(r.y, 0.0, 1e-4));
-        CHECK(close(r.z, 0.0, 1e-4));
-    }
-    SUBCASE("rotate x")
-    {
-        Three_Vector r = y.rotate(Three_Vector(pi / 2.0, 0.0, 0.0));
-        CHECK(close(r.x, 0.0, 1e-6));
-        CHECK(close(r.y, 0.0, 1e-6));
-        CHECK(close(r.z, 1.0, 1e-6));
-    }
-}
-
-TEST_CASE("1 2 3")
-{
     Three_Vector v123{1.0, 2.0, 3.0};
-    Three_Vector v321{3.0, 2.0, 1.0};
+    Three_Vector vn321{-3.0, -2.0, -1.0};
+    Three_Vector vxy{2.0, -pi/4.0};
+    Three_Vector v12{Two_Vector{1.0, 2.0}};
 
-    SUBCASE("zero")
+    SUBCASE("construct")
     {
-        v123.zero();
-        CHECK(v123.null());
+        CHECK(close(vxy, Three_Vector{sqrt2, -sqrt2, 0.0}, 1e-9));
+        CHECK(v12 == Three_Vector{1.0, 2.0, 0.0});
     }
-    SUBCASE("negate")
+    SUBCASE("magnitude")
     {
-        CHECK(-v123 == Three_Vector(-1.0, -2.0, -3.0));
+        CHECK(null.magnitude() == 0.0);
+        CHECK(x.magnitude() == 1.0);
+        CHECK(y.magnitude() == 1.0);
+        CHECK(z.magnitude() == 1.0);
+        CHECK(v123.magnitude() == sqrt(14.0));
+        CHECK(vn321.magnitude() == sqrt(14.0));
+        CHECK(vxy.magnitude() == 2.0);
+        CHECK(v12.magnitude() == sqrt(5.0));
     }
-    SUBCASE("dot")
+    SUBCASE("unit")
     {
-        CHECK(close(v123.dot(v321), 10.0, 1e-6));
+        CHECK(null.unit() == Three_Vector::Z);
+        CHECK(x.unit() == Three_Vector::X);
+        CHECK(y.unit() == Three_Vector::Y);
+        CHECK(z.unit() == Three_Vector::Z);
+        CHECK(v123.unit().magnitude() == 1.0);
+        CHECK(vn321.unit().magnitude() == 1.0);
+        CHECK(close(vxy.unit(), Three_Vector{sqrt2 / 2.0, -sqrt2 / 2.0, 0.0}, 1e-9));
+        CHECK(close(v12.unit().magnitude(), 1.0, 1e-9));
     }
-}
-
-TEST_CASE("xy plane")
-{
-    Three_Vector x{1.0, 0.0, 0.0};
-    Three_Vector y{0.0, 1.0, 0.0};
-    Three_Vector xy{1.0, 1.0, 0.0};
-
+    SUBCASE("null and zero")
+    {
+        CHECK(!v123.is_null());
+        CHECK(null.is_null());
+        CHECK(v123.zero() == null);
+    }
+    SUBCASE("dot product")
+    {
+        CHECK(null.dot(v123) == 0.0);
+        CHECK(x.dot(x) == 1.0);
+        CHECK(x.dot(y) == 0.0);
+        CHECK(v123.dot(vn321) == -10.0);
+        CHECK(v123.dot(z) == 3.0);
+        CHECK(vxy.dot(z) == 0.0);
+    }
+    SUBCASE("cross product")
+    {
+        CHECK(null.cross(vn321) == Three_Vector::ZERO);
+        CHECK(y.cross(y) == Three_Vector::ZERO);
+        CHECK(x.cross(y) == Three_Vector::Z);
+        CHECK(y.cross(x) == -Three_Vector::Z);
+        CHECK(v123.cross(vn321) == Three_Vector{4.0, -8.0, 4.0});
+        CHECK(v123.cross(z) == Three_Vector{2.0, -1.0, 0.0});
+        CHECK(close(vxy.cross(z), Three_Vector{-sqrt2, -sqrt2, 0.0}, 1e-9));
+    }
     SUBCASE("project")
     {
-        Three_Vector v = x.project(xy);
-        CHECK(close(v.x, 0.5, 1e-6));
-        CHECK(close(v.y, 0.5, 1e-6));
-        CHECK(close(v.z, 0.0, 1e-6));
+        CHECK(null.project(v123) == Three_Vector::ZERO);
+        CHECK(v123.project(null) == Three_Vector::ZERO);
+        CHECK(z.project(z) == z);
+        CHECK(x.project(y) == Three_Vector::ZERO);
+        CHECK(v123.project(z) == 3.0 * Three_Vector::Z);
+        CHECK(close(y.project(vxy), Three_Vector(-0.5, 0.5, 0.0), 1e-9));
     }
     SUBCASE("back project")
     {
-        Three_Vector v = x.back_project(xy);
-        CHECK(close(v.x, 1.0, 1e-6));
-        CHECK(close(v.y, 1.0, 1e-6));
-        CHECK(close(v.z, 0.0, 1e-6));
-        // Projecting and back-projecting should leave the vector unchanged.
-        v = x.back_project(x.project(xy));
-        CHECK(close(v.x, xy.x, 1e-6));
-        CHECK(close(v.y, xy.y, 1e-6));
-        CHECK(close(v.z, xy.z, 1e-6));
+        CHECK(null.back_project(v123) == Three_Vector::ZERO);
+        CHECK(v123.back_project(null) == Three_Vector::ZERO);
+        CHECK(z.back_project(z) == z);
+        CHECK(x.back_project(y) == Three_Vector::ZERO);
+        CHECK(z.back_project(v123) == v123 / 3.0);
+        CHECK(close(vxy.back_project(y), -2.0 * sqrt2 * Three_Vector::Y, 1e-9));
     }
-}
-
-TEST_CASE("length and angle")
-{
-    Three_Vector v{2.0, pi / 3.0};
-
-    CHECK(close(v.x, 1.0, 1e-6));
-    CHECK(close(v.y, 1.73205, 1e-6));
-    CHECK(close(v.z, 0.0, 1e-6));
-}
-
-TEST_CASE("vector and point")
-{
-    Three_Vector v{3.0, 3.0, 0.0};
-    Three_Vector p{sqrt(2.0), 0.0, 0.0};
-
-    SUBCASE("perp distance")
+    SUBCASE("arithmetic")
     {
-        CHECK(close(v.perp_distance(p), 1.0, 1e-6));
-        v.y = -3.0;
-        CHECK(close(v.perp_distance(p), 1.0, 1e-6));
+        CHECK(null + v123 == v123);
+        CHECK(vn321 - null == vn321);
+        CHECK(v123 + vn321 == Three_Vector{-2.0, 0.0, 2.0});
+        CHECK(v123 - vn321 == Three_Vector{4.0, 4.0, 4.0});
+        CHECK(-v123 + v123 == Three_Vector::ZERO);
+        CHECK(0.0 * v123 == Three_Vector::ZERO);
+        CHECK(v123 * 0.0 == Three_Vector::ZERO);
+        CHECK(2.0 * x + y * 3.0 + -5.0 * z == Three_Vector{2.0, 3.0, -5.0});
+        CHECK(null / 3.0 == null);
+        CHECK(vn321 / -2.0 == Three_Vector(1.5, 1.0, 0.5));
+        CHECK_THROWS_AS(vxy / 0.0, std::overflow_error);
+
+        null += v123;
+        vn321 -= Three_Vector::ZERO;
+        v123 += v12;
+        v12 *= 10.0;
+        vxy /= -sqrt2;
+        CHECK(null == Three_Vector{1.0, 2.0, 3.0});
+        CHECK(vn321 == Three_Vector{-3.0, -2.0, -1.0});
+        CHECK(v123 == Three_Vector{2.0, 4.0, 3.0});
+        CHECK(v12 == Three_Vector{10.0, 20.0, 0.0});
+        CHECK(close(vxy, Three_Vector{-1.0, 1.0, 0.0}, 1e-9));
     }
-}
-
-TEST_CASE("input/output")
-{
-    Three_Vector v{-2.2, 3.3, -4.4};
-
     SUBCASE("input")
     {
-        std::string s = "[ 1.2, -3.4, 5.6 ]";
-        std::istringstream is(s);
+        std::istringstream is("[ 1.2,  -3.4; 5]");
+        Three_Vector v;
         is >> v;
-        CHECK(v.x == 1.2);
-        CHECK(v.y == -3.4);
-        CHECK(v.z == 5.6);
+        CHECK(v == Three_Vector{1.2, -3.4, 5.0});
     }
     SUBCASE("output")
     {
         std::ostringstream os;
-        os << v;
-        CHECK(os.str() == "[ -2.2, 3.3, -4.4 ]");
+        os << v123;
+        CHECK(os.str() == "[1, 2, 3]");
     }
 }

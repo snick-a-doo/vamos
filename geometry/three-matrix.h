@@ -20,6 +20,7 @@
 #include "three-vector.h"
 
 #include <array>
+#include <stdexcept>
 
 namespace Vamos_Geometry
 {
@@ -59,10 +60,10 @@ public:
     /// about @p delta_theta by an angle equal to the magnitude of @p delta_theta.
     Three_Matrix& rotate(Three_Vector const& delta_theta);
     /// Multiply by another matrix.
-    Three_Matrix& operator*=(Three_Matrix const& mat);
+    Three_Matrix& operator *= (Three_Matrix const& mat);
 
     /// Test for equality.
-    friend bool operator==(Three_Matrix const& m1, Three_Matrix const& m2) = default;
+    friend bool operator == (Three_Matrix const& m1, Three_Matrix const& m2) = default;
 
 private:
     /// The matrix elements.
@@ -77,21 +78,21 @@ Three_Matrix invert(Three_Matrix const& mat);
 
 /// Multiplication by a scalar.
 /// @{
-Three_Matrix operator*(double, Three_Matrix const&);
-Three_Matrix operator*(Three_Matrix const&, double);
+Three_Matrix operator * (double, Three_Matrix const&);
+Three_Matrix operator * (Three_Matrix const&, double);
 /// @}
 
 /// Multiplication with a vector.
 /// @{
-Three_Vector operator*(Three_Vector const& vec, Three_Matrix const& mat);
-Three_Vector operator*(Three_Matrix const& mat, Three_Vector const& vec);
+Three_Vector operator * (Three_Vector const& vec, Three_Matrix const& mat);
+Three_Vector operator * (Three_Matrix const& mat, Three_Vector const& vec);
 /// @}
 
 /// Multiplication with a matrix.
-Three_Matrix operator*(Three_Matrix const&, Three_Matrix const&);
+Three_Matrix operator * (Three_Matrix const&, Three_Matrix const&);
 
 /// Stream operator.
-std::ostream& operator<<(std::ostream& os, Three_Matrix const& mat);
+std::ostream& operator << (std::ostream& os, Three_Matrix const& mat);
 }
 
 #endif // VAMOS_GEOMETRY_THREE_MATRIX_H_INCLUDED

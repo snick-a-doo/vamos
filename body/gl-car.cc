@@ -126,7 +126,7 @@ Rear_View_Mirror::set_viewport (int window_width, int window_height,
 								double driver_field_of_view,
                                 double pan)
 {
-  Three_Vector pos = (m_position - driver_position).rotate (-deg_to_rad (pan) * Three_Vector::Z);
+    auto pos{rotate(m_position - driver_position, -deg_to_rad(pan) * Three_Vector::Z)};
   const double y_factor = -1.0 / (pos.x * tan (0.5 * deg_to_rad (driver_field_of_view)));
   const double aspect = double (window_width) / window_height;
   const double x_factor = -y_factor / aspect;
@@ -511,11 +511,9 @@ Gl_Car::view ()
   view (m_pan_key_control.value (), pos);
   const double pan = deg_to_rad (m_pan_key_control.value ());
 
-  Three_Vector z = m_chassis.rotate_to_world (Three_Vector (0.0, 0.0, 1.0));
-  Three_Vector x = m_chassis.rotate_to_world
-    (Three_Vector (1.0, 0.0, 0.0).rotate (pan * Three_Vector::Z));
-  float at_up [6] = { float (x.x), float (x.y), float (x.z),
-                      float (z.x), float (z.y), float (z.z) };
+  auto z{m_chassis.rotate_to_world(Three_Vector::Z)};
+  auto x{m_chassis.rotate_to_world(rotate(Three_Vector::X, pan * Three_Vector::Z))};
+  float at_up[6] = {float(x.x), float(x.y), float(x.z), float(z.x), float(z.y), float(z.z)};
 
   alListener3f (AL_POSITION, pos.x, pos.y, pos.z);
   alListenerfv (AL_ORIENTATION, at_up); 

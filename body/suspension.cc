@@ -164,7 +164,7 @@ Suspension::get_position () const
   const double z = hinge_pos.z - m_initial_z - m_displacement;
   assert (z <= m_radius_magnitude);
   const double angle = asin (z / m_radius_magnitude);
-  return hinge_pos - m_initial_radius.rotate (angle * m_hinge_axis);
+  return hinge_pos - Vamos_Geometry::rotate(m_initial_radius, angle * m_hinge_axis);
 }
 
 void

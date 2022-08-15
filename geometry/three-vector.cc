@@ -1,158 +1,175 @@
-//  Copyright (C) 2001--2005 Sam Varner
+//  Copyright (C) 2001--2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
 #include "three-vector.h"
 #include "three-matrix.h"
 #include "two-vector.h"
 
+#include <iostream>
 #include <sstream>
 
 using namespace Vamos_Geometry;
 
-const Vamos_Geometry::Three_Vector Vamos_Geometry::
-Three_Vector::ZERO = Three_Vector (0.0, 0.0, 0.0);
-const Vamos_Geometry::Three_Vector Vamos_Geometry::
-Three_Vector::X = Three_Vector (1.0, 0.0, 0.0);
-const Vamos_Geometry::Three_Vector Vamos_Geometry::
-Three_Vector::Y = Three_Vector (0.0, 1.0, 0.0);
-const Vamos_Geometry::Three_Vector Vamos_Geometry::
-Three_Vector::Z = Three_Vector (0.0, 0.0, 1.0);
+Three_Vector const Three_Vector::ZERO{0.0, 0.0, 0.0};
+Three_Vector const Three_Vector::X{1.0, 0.0, 0.0};
+Three_Vector const Three_Vector::Y{0.0, 1.0, 0.0};
+Three_Vector const Three_Vector::Z{0.0, 0.0, 1.0};
 
-// Constructors.
-
-// Elements are initialized by length and angle in the x-y plane.
-Three_Vector::Three_Vector (double length, double angle)
-{
-  *this = Three_Vector (length, 0.0, 0.0).rotate (Three_Vector (0.0, 0.0, angle));
-}
-
-// Initialize with Two_Vector
-Three_Vector::Three_Vector (const Two_Vector& xy_vector)
-  : x (xy_vector.x),
-    y (xy_vector.y),
-    z (0.0)
+Three_Vector::Three_Vector()
 {
 }
 
-// Zero all elements.
-void
-Three_Vector::zero ()
+Three_Vector::Three_Vector(double x, double y, double z)
+    : x{x}, y{y}, z{z}
 {
-  x = y = z = 0.0;
 }
 
-// True if all elements are zero.
-bool
-Three_Vector::null () const
+Three_Vector::Three_Vector(double length, double angle)
+    : Three_Vector{length * cos(angle), length * sin(angle), 0.0}
 {
-  return (x == 0.0) && (y == 0.0) && (z == 0.0);
 }
 
-// Return the dot product with the argument.
-double
-Three_Vector::dot (const Three_Vector& vec) const
+Three_Vector::Three_Vector(Two_Vector const& xy_vector)
+    : Three_Vector{xy_vector.x, xy_vector.y, 0.0}
+{
+}
+
+double Three_Vector::magnitude() const
+{
+    return sqrt(this->dot(*this));
+}
+
+Three_Vector Three_Vector::unit() const
+{
+    auto vec_abs{magnitude()};
+    return vec_abs == 0.0
+        ? Three_Vector::Z
+        : *this / vec_abs;
+}
+
+Three_Vector& Three_Vector::zero()
+{
+    return *this = Three_Vector::ZERO;
+}
+
+bool Three_Vector::is_null() const
+{
+    return x == 0.0 && y == 0.0 && z == 0.0;
+}
+
+double Three_Vector::dot(Three_Vector const& vec) const
 {
   return x*vec.x + y*vec.y + z*vec.z;
 }
 
-// Return the cross product with the argument.
-Three_Vector
-Three_Vector::cross (const Three_Vector& vec) const
+Three_Vector Three_Vector::cross(Three_Vector const& vec) const
 {
-  return Three_Vector (y * vec.z - z * vec.y,
-					   z * vec.x - x * vec.z,
-					   x * vec.y - y * vec.x);
+    return {y * vec.z - z * vec.y,
+            z * vec.x - x * vec.z,
+            x * vec.y - y * vec.x};
 }
 
-// Return the projection along the argument.
-Three_Vector
-Three_Vector::project (const Three_Vector& vec) const
+Three_Vector Three_Vector::project(Three_Vector const& vec) const
 {
-  double dot_prod = dot (vec);
-  double vec_abs = vec.magnitude ();
-  if (vec.magnitude () == 0.0)
-	return Three_Vector (0.0, 0.0, 0.0);
-  return vec.unit () * dot_prod / vec_abs;
+    auto vec_abs{vec.magnitude()};
+    return vec_abs == 0.0
+        ? Three_Vector::ZERO
+        : vec * (dot(vec) / vec_abs / vec_abs);
 }
 
-// Return the vector in the direction of the argument that would yield
-// this vector when projected.  This is the inverse of project().
-Three_Vector
-Three_Vector::back_project (const Three_Vector& vec) const
+Three_Vector Three_Vector::back_project(Three_Vector const& vec) const
 {
-  double dot_prod = dot (vec);
-  if (dot_prod == 0.0)
-	return Three_Vector (0.0, 0.0, 0.0);
-  double this_abs = magnitude ();
-  return this_abs * this_abs * vec / dot_prod;
+    auto dot_prod{dot(vec)};
+    auto this_abs{magnitude()};
+    return dot_prod == 0.0
+        ? Three_Vector::ZERO
+        : this_abs * this_abs * vec / dot_prod;
 }
 
-// Return the pependicular distance between vectors parallel to this
-// one passing through the given points.
-double
-Three_Vector::perp_distance (const Three_Vector& point1,
-							 const Three_Vector& point2) const
+Three_Vector& Three_Vector::operator*=(double factor)
 {
-  Three_Vector vec1 = (point2 - point1);
-  Three_Vector vec2 = vec1.project (*this);
-  return (vec1 - vec2).magnitude ();
+    x *= factor;
+    y *= factor;
+    z *= factor;
+    return *this;
 }
 
-// Return the pependicular distance between this vector and the given
-// point.
-double
-Three_Vector::perp_distance (const Three_Vector& point) const
+Three_Vector& Three_Vector::operator/=(double factor)
 {
-  return dot (point) / magnitude ();
+    x /= factor;
+    y /= factor;
+    z /= factor;
+    return *this;
 }
 
-double
-Three_Vector::component (const Three_Vector& vec) const
+Three_Vector& Three_Vector::operator+=(Three_Vector const& vec)
 {
-  return dot (vec) / vec.magnitude ();
+    x += vec.x;
+    y += vec.y;
+    z += vec.z;
+    return *this;
 }
 
-// Return the angle between this vector and `vec'.
-double
-Three_Vector::angle (const Three_Vector& vec) const
+Three_Vector& Three_Vector::operator-=(Three_Vector const& vec)
 {
-  return acos ((*this).dot (vec) / (*this).magnitude () / vec.magnitude ());
-}
-
-const Three_Vector&
-Three_Vector::rotate (const Three_Vector& vec)
-{
-    Three_Matrix r{1.0};
-  r.rotate (vec);
-  *this = r * *this;
-  return *this;
-}
-
-Three_Vector
-Three_Vector::rotate (const Three_Vector& vec) const
-{
-    Three_Matrix r{1.0};
-  r.rotate (vec);
-  return r * *this;
+    x -= vec.x;
+    y -= vec.y;
+    z -= vec.z;
+    return *this;
 }
 
 namespace Vamos_Geometry
 {
-std::istream& operator>>(std::istream& is, Three_Vector& vec)
+Three_Vector rotate(Three_Vector const& vec1, Three_Vector const& vec2)
+{
+    return Three_Matrix{1.0}.rotate(vec2) * vec1;
+}
+
+Three_Vector operator + (Three_Vector const& vec1, Three_Vector const& vec2)
+{
+    return {vec1.x + vec2.x, vec1.y + vec2.y, vec1.z + vec2.z};
+}
+
+Three_Vector operator - (Three_Vector const& vec1, Three_Vector const& vec2)
+{
+    return {vec1.x - vec2.x, vec1.y - vec2.y, vec1.z - vec2.z};
+}
+
+Three_Vector operator - (Three_Vector const& vec)
+{
+    return vec * -1.0;
+}
+
+Three_Vector operator * (Three_Vector const& vec, double factor)
+{
+    return {vec.x * factor, vec.y * factor, vec.z * factor};
+}
+
+Three_Vector operator * (double factor, Three_Vector const& vec)
+{
+    return operator*(vec, factor);
+}
+
+Three_Vector operator / (Three_Vector const& vec, double factor)
+{
+    if (factor == 0.0)
+        throw std::overflow_error("Can't divide a Three_Vector by zero.");
+    return vec * (1.0 / factor);
+}
+
+std::istream& operator >> (std::istream& is, Three_Vector& vec)
 {
     std::string str;
     std::getline(is, str, ']');
@@ -162,8 +179,8 @@ std::istream& operator>>(std::istream& is, Three_Vector& vec)
     return is;
 }
 
-std::ostream& operator<<(std::ostream& os, Three_Vector const& vec)
+std::ostream& operator << (std::ostream& os, Three_Vector const& vec)
 {
-    return os << "[ " << vec.x << ", " << vec.y << ", " << vec.z << " ]";
+    return os << "[" << vec.x << ", " << vec.y << ", " << vec.z << "]";
 }
 }

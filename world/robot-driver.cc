@@ -1127,7 +1127,7 @@ Robot_Racing_Line::maximum_speed (double distance,
   double mu = m_lateral_acceleration;
   Three_Vector r_hat = curve.unit ();
   Three_Vector r_perp (-r_hat.y, r_hat.x, 0.0);
-  Three_Vector q_hat = n_hat.rotate (0.5 * pi * r_perp.unit ());
+  auto q_hat{rotate(n_hat, pi/2.0 * r_perp.unit())};
 
   double upper = m_gravity*(q_hat.z + mu*n_hat.z);
   double lower = c*(r_hat.dot(q_hat) + mu*r_hat.dot(n_hat)) + mu*lift/mass;
