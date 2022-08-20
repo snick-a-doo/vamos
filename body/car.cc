@@ -374,19 +374,6 @@ Car::propagate (double time)
     }
 
   m_chassis.find_forces ();
-
-  if (mp_drivetrain)
-    mp_drivetrain->propagate (time / 2.0);
-  m_chassis.propagate (time / 2.0);
-
-  if (mp_drivetrain)
-    mp_drivetrain->find_forces ();
-  m_chassis.find_forces ();
-
-  if (mp_drivetrain)
-    mp_drivetrain->rewind ();
-  m_chassis.rewind ();
-
   if (mp_drivetrain)
     mp_drivetrain->propagate (time);
   m_chassis.propagate (time);

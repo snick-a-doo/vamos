@@ -23,6 +23,7 @@
 #include "wheel.h"
 #include "../media/model.h"
 #include "../media/two-d.h"
+#include "../geometry/conversions.h"
 #include "../geometry/numeric.h"
 #include "../geometry/rectangle.h"
 

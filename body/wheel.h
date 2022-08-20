@@ -128,9 +128,6 @@ namespace Vamos_Body
 	// Advance the wheel forward in time by TIME.
 	void propagate (double time);
 
-	// Undo the last propagation.
-	void rewind ();
-
  	// Handle collisions.  The return value is how much the wheel was
  	// displaced by the collision.
 	double contact (const Vamos_Geometry::Three_Vector& impulse,

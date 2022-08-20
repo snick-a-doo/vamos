@@ -1,80 +1,49 @@
-//  Clutch.cc - a clutch for the drivetrain.
-//
-//  Copyright (C) 2001 Sam Varner
+//  Copyright (C) 2001-2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
+#include "../geometry/numeric.h"
 #include "clutch.h"
 
-#include <iostream>
 #include <cmath>
 
-//* Class Clutch
+/// The clutch is fully engaged when engine speed - transmission speed <
+/// normal force x @p lock_threshold
+double constexpr lock_threshold{0.01};
 
-//** Constructor
-Vamos_Body::Clutch::
-Clutch (double sliding, double radius, double area, double max_pressure) :
-  m_sliding_friction (sliding),
-  m_radius (radius),
-  m_area (area),
-  m_pressure (0.0),
-  m_max_pressure (max_pressure),
-  m_threshold (0.01),
-  m_engaged (false)
+using namespace Vamos_Body;
+
+Clutch::Clutch(double sliding, double radius, double area, double max_pressure)
+    : m_sliding_friction{sliding},
+      m_radius{radius},
+      m_area{area},
+      m_max_pressure{max_pressure}
 {
 }
 
-// Return the drag caused by friction between the clutch plates.
-double Vamos_Body::Clutch::
-drag (double engine_speed, double drive_speed)
+double Clutch::drag(double engine_speed, double drive_speed)
 {
-  double normal = m_pressure * m_area;
-
-  if (std::abs (engine_speed - drive_speed) < (m_threshold * normal))
-	{
-	  // Setting m_engaged to true will cause the drivetrain to ignore
-	  // the return value and act as though the clutch is fully
-	  // engaged.
-	  m_engaged = true;
-	  return 0.0;
-	}
-
-  double force = m_sliding_friction * normal;
-  if (engine_speed < drive_speed)
-	force *= -1;
-
-  // The pressure is considered to be concentrated at m_radius from
-  // the center.
-  return force * m_radius;
+    using Vamos_Geometry::sign;
+    double normal{m_pressure * m_area};
+    double rel_speed{engine_speed - drive_speed};
+    if (std::abs(rel_speed) < lock_threshold * normal)
+        m_engaged = true;
+    return m_engaged ? 0.0 : m_sliding_friction * normal * m_radius * sign(rel_speed);
 }
 
-// Set the pressure on the plates to FACTOR * m_max_pressure.
-void Vamos_Body::Clutch::
-position (double factor)
+void Clutch::set_position(double factor)
 {
-  // If FACTOR >= 1.0, the clutch is fully engaged.  Allow for
-  // inaccuracy in FACTOR.
-  if ((factor + 0.0001) > 1.0)
-	{
-	  m_engaged = true;
-	  m_pressure = m_max_pressure;
-	}
-  else 
-	{
-	  m_engaged = false;
-	  m_pressure = factor * m_max_pressure;
-	}
+    m_engaged = factor >= 1.0;
+    m_pressure = std::min(factor, 1.0) * m_max_pressure;
 }

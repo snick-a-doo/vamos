@@ -88,9 +88,6 @@ namespace Vamos_Body
 	// Advance this suspension component forward in time by TIME.
 	void propagate (double time);
 
-	// Undo the last propagation.
-	void rewind ();
-
 	// Specify the suspension component that is attached to this one
 	// with an anti-roll bar.  The anti-roll bar will have a spring
 	// constant of SPRING_CONSTANT.

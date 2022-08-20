@@ -30,6 +30,7 @@
 #include "tire.h"
 #include "transmission.h"
 #include "wheel.h"
+#include "../geometry/conversions.h"
 #include "../geometry/numeric.h"
 #include "../media/texture-image.h"
 
@@ -478,29 +479,23 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
                               m_doubles [3]);
     }
 
-  else if (label () == "transmission")
-    {
-      if (m_doubles.size () == 4)
-        {
-          mp_transmission = new Transmission (int (m_doubles [0]),
-                                              m_doubles [1],
-                                              m_doubles [2]);
-          mp_car->shift_delay (m_doubles [3]);
-        }
+  else if (label() == "transmission")
+  {
+      if (m_doubles.size() == 4)
+      {
+            mp_transmission = new Transmission(static_cast<int>(m_doubles[0]),
+                                               m_doubles[1], m_doubles[2]);
+            mp_car->shift_delay(m_doubles[3]);
+      }
       else
-        {
+      {
           mp_transmission = new Transmission;
-          for (std::vector <std::pair <int, double> >::const_iterator 
-                 it = m_gears.begin ();
-               it != m_gears.end ();
-               it++)
-            {
-              mp_transmission->gear_ratio (it->first, it->second);
-            } 
-          mp_car->shift_delay (m_doubles [1]);
-        }
-    }
-  
+          for (auto gear : m_gears)
+              mp_transmission->set_gear_ratio(gear.first, gear.second);
+          mp_car->shift_delay(m_doubles[1]);
+      }
+  }
+
   else if (label () == "differential")
     {
       if (m_doubles.size () != 2)
@@ -510,17 +505,12 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
       mp_differential = new Differential (m_doubles [0], m_doubles [1]);
     }
 
-  else if (path () == "/car/drivetrain/auto-neutral")
-    {
-      m_bools [0] = true;
-    }
   else if (label () == "drivetrain")
     {
       delete mp_car->mp_drivetrain;
       mp_car->mp_drivetrain = 
         new Drivetrain (mp_engine, mp_clutch, 
                         mp_transmission, mp_differential);
-      mp_car->mp_drivetrain->set_auto_neutral (m_bools [0]);
     }
 
   else if (label () == "fuel-tank")

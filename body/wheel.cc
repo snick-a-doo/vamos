@@ -95,12 +95,6 @@ Wheel::propagate (double time)
   m_rotation += speed () * time / m_tire.radius ();
 }
 
-void
-Wheel::rewind ()
-{
-  m_tire.rewind ();
-}
-
 // Handle collisions.  The return value is the displacement of the
 // wheel as a result of the contact.
 double

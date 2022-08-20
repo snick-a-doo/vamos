@@ -228,12 +228,6 @@ Suspension::propagate (double time)
   rotate (m_steer_angle * STEER_AXIS);
 }
 
-// Undo the last propagation.
-void
-Suspension::rewind ()
-{
-}
-
 // Set the steering angle.
 void
 Suspension::steer (double degree_angle)

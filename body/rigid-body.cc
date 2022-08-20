@@ -272,42 +272,26 @@ Rigid_Body::propagate (double time)
 
   Three_Vector delta_omega = time * total_torque * invert(m_inertia);
   Three_Vector delta_theta = (angular_velocity () + delta_omega) * time;
-  m_last_angular_velocity = angular_velocity ();
-  angular_accelerate (delta_omega);
+    angular_accelerate (delta_omega);
 
   m_acceleration = total_force / m_mass;
   Three_Vector delta_v = m_acceleration * time;
   Three_Vector delta_r = (m_cm_velocity + delta_v) * time;
-  m_last_cm_velocity = m_cm_velocity;
   m_cm_velocity += delta_v;
 
   // Because the body's origin is not necessarily coincident with the
   // center of mass, the body's translation has a component that
   // depends on the orientation.  Place the Body by translating to the
   // cm, rotating and then translating back.
-  m_last_position = position ();
+  auto pos{position()};
   translate (orientation () * m_body_cm);
 
   // rotate() acts in the body frame.
-  m_last_orientation = orientation ();
   rotate (delta_theta);
   translate (orientation () * -m_body_cm + delta_r);
 
   // Determine the velocity of the origin.
-  m_last_velocity = Frame::velocity ();
-  set_velocity ((position () - m_last_position) / time);
-}
-
-// Undo the last propagation.
-void 
-Rigid_Body::rewind ()
-{
-  set_position (m_last_position);
-  set_velocity (m_last_velocity);
-  m_cm_velocity = m_last_cm_velocity;
-
-  set_orientation (m_last_orientation);
-  set_angular_velocity (m_last_angular_velocity);
+  set_velocity((position() - pos) / time);
 }
 
 // Finish the timestep.

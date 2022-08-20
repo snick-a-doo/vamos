@@ -111,9 +111,6 @@ namespace Vamos_Body
 	// Propagate the Particle forward in time by TIME.
       virtual void propagate(double /* time */) {};
 
-	// Undo the last propagation.
-	virtual void rewind () {}
-
 	// Do any necessary cleanup at the end of a time step.
 	virtual void end_timestep () {}
 

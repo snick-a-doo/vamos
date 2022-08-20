@@ -171,9 +171,6 @@ namespace Vamos_Body
 	/// The rotational speed of the tire in radians per second.
 	double m_rotational_speed;
 
-	/// The rotational speed of in the previous time step.
-	double m_last_rotational_speed;
-
 	/// How fast the tire is sliding.
 	double m_slide;
 

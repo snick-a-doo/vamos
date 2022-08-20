@@ -217,7 +217,6 @@ Tire::Tire (double radius,
     m_tire_friction (friction),
     m_inertia (inertia),
     m_rotational_speed (0.0),
-    m_last_rotational_speed (0.0),
     m_slide (0.0),
     m_hardness (hardness),
     m_temperature (345.0),
@@ -337,7 +336,6 @@ Tire::find_forces ()
 void
 Tire::propagate (double time) 
 {
-  m_last_rotational_speed = m_rotational_speed;
   if (m_is_locked)
 	{
 	  // This causes speed() to return 0.0.
@@ -377,12 +375,6 @@ Tire::propagate (double time)
 double Tire::grip () const
 {
   return std::max (m_temperature / 380.0 - m_wear, 0.3);
-}
-
-void
-Tire::rewind ()
-{
-  m_rotational_speed = m_last_rotational_speed;
 }
 
 // Fill in the longitudinal (sigma) and transverse (alpha) slip ratios.

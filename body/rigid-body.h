@@ -57,20 +57,10 @@ namespace Vamos_Body
       Vamos_Geometry::Three_Matrix m_initial_orientation{1.0};
     Vamos_Geometry::Three_Vector m_initial_angular_velocity;
 
-    Vamos_Geometry::Three_Vector m_last_position;
-
     Vamos_Geometry::Three_Vector m_acceleration;
 
     // The velocity of the center of mass.
     Vamos_Geometry::Three_Vector m_cm_velocity;
-
-    Vamos_Geometry::Three_Vector m_last_cm_velocity;
-
-    Vamos_Geometry::Three_Vector m_last_velocity;
-
-      Vamos_Geometry::Three_Matrix m_last_orientation{1.0};
-
-    Vamos_Geometry::Three_Vector m_last_angular_velocity;
 
     // The acceleration due to gravity, distance/time^2.  The units
     // determine the distance and time units used in the rest of the
@@ -165,9 +155,6 @@ namespace Vamos_Body
 
     // Advance the body in time by TIME.
     void propagate (double time);
-
-    // Undo the last propagation.
-    void rewind ();
 
     // Finish the timestep.
     void end_timestep ();

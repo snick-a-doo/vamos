@@ -358,8 +358,8 @@ Robot_Driver::target_slip_angle () const
 void
 Robot_Driver::choose_gear ()
 {
-  if (!mp_car->clutch ()->engaged ())
-    return;
+  if (!mp_car->clutch()->is_engaged())
+      return;
 
   // Avoid shifting too frequently.
   m_shift_time += m_timestep;
@@ -375,11 +375,11 @@ Robot_Driver::choose_gear ()
   // downshifting to 1st and to prevent too much engine drag under braking.
   double omega = mp_car->engine ()->rotational_speed ();
   double up_omega = omega
-    * mp_car->transmission ()->gear_ratio (gear + 1)
-    / mp_car->transmission ()->gear_ratio (gear);
+    * mp_car->transmission()->gear_ratio(gear + 1)
+    / mp_car->transmission()->gear_ratio(gear);
   double down2_omega = omega
-    * mp_car->transmission ()->gear_ratio (gear - 2)
-    / mp_car->transmission ()->gear_ratio (gear);
+    * mp_car->transmission()->gear_ratio(gear - 2)
+    / mp_car->transmission()->gear_ratio(gear);
 
   double current_power = mp_car->engine ()->power (throttle, omega);
   double power = mp_car->engine ()->power (1.0, omega);
@@ -469,7 +469,7 @@ Robot_Driver::set_speed (double target_speed)
   double d2 = m_traction_control.propagate (total_slip (), m_timestep);
   double gas = std::min (d1, d2);
 
-  if (!mp_car->clutch ()->engaged ())
+  if (!mp_car->clutch()->is_engaged())
     {
       // Keep the revs in check if the clutch is not fully engaged.
       m_speed_control.set (0.0);
