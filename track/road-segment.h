@@ -26,9 +26,7 @@
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
 
-#include <string>
 #include <vector>
-#include <complex>
 
 namespace Vamos_Track
 {

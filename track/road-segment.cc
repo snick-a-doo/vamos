@@ -20,8 +20,9 @@
 #include "../media/texture-image.h"
 #include "road-segment.h"
 
-#include <cmath>
 #include <cassert>
+#include <cmath>
+#include <complex>
 #include <iostream>
 
 using namespace Vamos_Geometry;

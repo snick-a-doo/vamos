@@ -33,6 +33,7 @@
 
 #include <exception>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -169,7 +170,7 @@ namespace Vamos_Track
 
     /// @param along distance along the track
     /// @return world coordinates of the racing line at 'along'
-    Vamos_Geometry::Two_Vector position (double along) const;
+    Vamos_Geometry::Three_Vector position(double along) const;
 
     /// @param along distance along the track
     /// @return vector that points from center of curvature the racing line at
@@ -220,7 +221,7 @@ namespace Vamos_Track
                          const Road& segment);
 
       double m_length{0.0};
-      Vamos_Geometry::Parametric_Spline m_line;
+      Vamos_Geometry::Vector_Spline m_line;
       Vamos_Geometry::Vector_Spline m_curvature;
       Vamos_Geometry::Vector_Spline m_left_curvature;
       Vamos_Geometry::Vector_Spline m_right_curvature;
@@ -245,8 +246,7 @@ namespace Vamos_Track
     friend class Strip_Track_Reader;
 
   public:
-    Road ();
-    ~Road ();
+      Road();
 
     void clear ();
     size_t add_segment (Gl_Road_Segment* segment);
@@ -257,7 +257,7 @@ namespace Vamos_Track
 
     const Vamos_Geometry::Rectangle& bounds () const { return m_bounds; }
     const Segment_List& segments () const { return m_segments; }
-    const Vamos_Geometry::Spline& elevation () const { return *mp_elevation; }
+    const Vamos_Geometry::Spline& elevation () const { return m_elevation; }
     double length () const { return m_length; }
     double start_direction () const { return m_start_direction; }
 
@@ -314,19 +314,19 @@ namespace Vamos_Track
                          double start_bank);
 
 	Segment_List m_segments;
-	Vamos_Geometry::Spline* mp_elevation;
-	double m_length;
+      Vamos_Geometry::Spline m_elevation;
+      double m_length{0.0};
 
   private:
     void connect (Segment_List::iterator it);
     void narrow_pit_segments ();
 
     Vamos_Geometry::Rectangle m_bounds;
-    double m_start_direction;
-    Racing_Line m_racing_line;
+      double m_start_direction{0.0};
+      Racing_Line m_racing_line;
       bool m_build_racing_line{false};
       bool m_show_racing_line{false};
-    bool m_is_closed;
+      bool m_is_closed{false};
   };
 
   class Pit_Lane : public Road

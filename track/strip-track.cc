@@ -270,7 +270,7 @@ Racing_Line::~Racing_Line()
     glDeleteLists (m_list_id, 1);
 }
 
-Two_Vector Racing_Line::position(double along) const
+Three_Vector Racing_Line::position(double along) const
 {
     return m_line.interpolate(along);
 }
@@ -448,7 +448,7 @@ Racing_Line::load_curvature (double along,
                              const Road& road)
 {
   const Gl_Road_Segment& segment = *road.segment_at (along);
-  m_line.load(along, p2.x, p2.y);
+  m_line.load(along, p2);
 
   m_tangent.load (along, (p3 - p1).unit ());
 
@@ -514,8 +514,7 @@ Racing_Line::build_list (const Road& road)
   {
       auto const& world = m_line[i];
       // Draw a dot a little above the line.
-      glVertex3d(world.x, world.y,
-                 road.segment_at(m_line.parameter(i))->world_elevation(world) + 0.06);
+      glVertex3d(world.x, world.y, world.z + 0.06);
   }
   glEnd ();
 
@@ -529,37 +528,21 @@ Racing_Line::draw () const
   glCallList (m_list_id);
 }
 
-//* Class Road
-Road::Road ()
-  : mp_elevation (new Spline ()),
-    m_start_direction (0.0),
-    m_racing_line (),
-    m_is_closed (false)
+//----------------------------------------------------------------------------------------
+Road::Road()
 {
-  clear ();
+    m_elevation.load({0.0, 0.0});
 }
 
-Road::~Road ()
+void Road::clear()
 {
-  clear ();
-  delete mp_elevation;
-}
+    m_elevation.replace({{0.0, 0.0}});
+    m_length = 0.0;
+    m_bounds = Rectangle();
 
-void
-Road::clear ()
-{
-  mp_elevation->clear ();
-  mp_elevation->load (0.0, 0.0);
-  m_length = 0.0;
-  m_bounds = Rectangle ();
-
-  for (Segment_List::iterator it = m_segments.begin ();
-	   it != m_segments.end ();
-	   it++)
-	{
-	  delete (*it);
-	}
-  m_segments.clear ();
+    for (auto* seg : m_segments)
+        delete seg;
+    m_segments.clear();
 }
 
 size_t
@@ -586,11 +569,11 @@ Road::build_elevation (bool periodic)
 	   it != m_segments.end ();
 	   it++)
 	{
-	  (*it)->build_elevation (mp_elevation, length);
+	  (*it)->build_elevation (&m_elevation, length);
 	  length += (*it)->length ();
 	}
   if (periodic)
-    mp_elevation->set_periodic (length);
+      m_elevation.set_periodic(length);
   return length;
 }
 
@@ -1111,7 +1094,7 @@ Pit_Lane::build (bool join_to_track,
   // Load the pit lane with elevations from the track.
   {
     m_length = build_elevation (false);
-    mp_elevation->clear ();
+    m_elevation.clear();
     double in_distance = 
       pit_in.start_distance () + pit_in.pit ().split_or_join ();
     double out_distance = 
@@ -1125,9 +1108,9 @@ Pit_Lane::build (bool join_to_track,
         double along_pit = i * m_length / elevations;
         double along_track = wrap (in_distance + i * delta / elevations, track_length);
         double z = track_elevation.interpolate (along_track);
-        mp_elevation->load (along_pit, z);
+        m_elevation.load(along_pit, z);
       }
-    mp_elevation->load (m_length, track_elevation.interpolate (out_distance));
+    m_elevation.load(m_length, track_elevation.interpolate(out_distance));
   }
 
   // Finalize the elevations and segments.

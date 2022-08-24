@@ -140,7 +140,7 @@ TEST_CASE("vector spline")
     Three_Vector p2(1.0, 2.0, 3.0);
     spline.load(1.0, p1);
     spline.load(2.0, p2);
-    spline.load(3.0, 2.0, 4.0, 8.0);
+    spline.load(3.0, {2.0, 4.0, 8.0});
     spline.load(4.0, p1);
 
     x_spline.load(1.0, p1.x);

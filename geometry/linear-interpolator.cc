@@ -1,21 +1,17 @@
-// Linear_Interpolator.h - a piecewise-linear interpolator.
-//
-//  Copyright (C) 2003 Sam Varner
+//  Copyright (C) 2003-2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
 #include "linear-interpolator.h"
 #include "numeric.h"
@@ -23,119 +19,41 @@
 #include <cmath>
 #include <cassert>
 
-Vamos_Geometry::
-Linear_Interpolator::Linear_Interpolator () 
+using namespace Vamos_Geometry;
+
+Linear_Interpolator::Linear_Interpolator()
 {
 }
 
-Vamos_Geometry::
-Linear_Interpolator::
-Linear_Interpolator (const std::vector <Two_Vector>& points) 
-  : Interpolator (points)
+Linear_Interpolator::Linear_Interpolator(std::vector<Two_Vector> const& points)
+    : Interpolator(points)
 {
-  m_points = points;
 }
 
-void Vamos_Geometry::
-Linear_Interpolator::load (const Two_Vector& point)
+double Linear_Interpolator::interpolate(double x) const
 {
-  m_points.push_back (point);
+    assert(!m_points.empty());
+    Interpolator::interpolate(x);
+
+    if (m_points.size() == 1)
+        return m_points[0].y;
+    // Clamp to endpoints.
+    if (x <= m_points.front().x)
+        return m_points.front().y;
+    if (x >= m_points.back().x)
+        return m_points.back().y;
+
+    auto low{low_index(x)};
+    return Vamos_Geometry::interpolate(x, m_points[low].x, m_points[low].y,
+                                       m_points[low + 1].x, m_points [low + 1].y);
 }
 
-void Vamos_Geometry::
-Linear_Interpolator::load (const std::vector <Two_Vector>& points)
+Two_Vector Linear_Interpolator::normal(double x) const
 {
-  for (std::vector <Two_Vector>::const_iterator it = points.begin ();
-	   it != points.end ();
-	   it++)
-	{
-	  m_points.push_back (*it);
-	}
-}
+    if (m_points.size() == 1 || x <= m_points.front().x || x > m_points.back().x)
+        return {0.0, 1.0};
 
-void Vamos_Geometry::
-Linear_Interpolator::clear ()
-{
-  m_points.clear ();
-  clear_cache ();
-}
-
-// Remove points with x > LIMIT.
-void Vamos_Geometry::
-Linear_Interpolator::remove_greater (double limit)
-{
-  clear_cache ();
-  size_t size = 0;
-  for (std::vector <Two_Vector>::const_iterator it = m_points.begin ();
-	   it != m_points.end ();
-	   it++)
-	{
-	  if (it->x > limit)
-		{
-		  m_points.resize (size);
-		  break;
-		}
-	  size++;
-	}
-}
-
-void Vamos_Geometry::
-Linear_Interpolator::scale (double factor)
-{
-  for (std::vector <Two_Vector>::iterator it = m_points.begin ();
-	   it != m_points.end ();
-	   it++)
-	{
-	  it->x *= factor;
-	}
-}
-
-double Vamos_Geometry::
-Linear_Interpolator::interpolate (double dist) const
-{
-  Interpolator::interpolate (dist);
-
-  assert (m_points.size () > 0);
-
-  if (m_points.size () == 1)
-	return m_points [0].y;
-
-  if (dist < m_points.begin ()->x)
-    return m_points.begin ()->y;
-  if (dist > (m_points.end () - 1)->x)
-    return (m_points.end () - 1)->y;
-
-  const size_t low = low_index (dist);
-  const size_t high = low + 1;
-
-  return Vamos_Geometry::interpolate (dist, 
-                                      m_points [low].x, m_points [low].y, 
-                                      m_points [high].x, m_points [high].y);
-}
-
-Vamos_Geometry::Two_Vector Vamos_Geometry::
-Linear_Interpolator::normal (double dist) const
-{
-  if ((m_points.size () == 1)
-      || (dist < m_points.begin ()->x)
-      || (dist > (m_points.end () - 1)->x))
-	return Two_Vector (0.0, 1.0);
-
-  const size_t low = low_index (dist);
-  const size_t high = low + 1;
-
-  return Two_Vector (m_points [low].y - m_points [high].y, 
-                     m_points [high].x - m_points [low].x).unit ();
-}
-
-// Add 'delta' to all points.
-void Vamos_Geometry::
-Linear_Interpolator::shift (double delta)
-{
-  for (std::vector <Two_Vector>::iterator it = m_points.begin ();
-	   it != m_points.end ();
-	   it++)
-	{
-	  it->y += delta;
-	}
+    auto low{low_index(x)};
+    return Two_Vector{m_points[low].y - m_points[low + 1].y,
+                      m_points[low + 1].x - m_points[low].x}.unit ();
 }

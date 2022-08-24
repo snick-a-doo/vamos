@@ -95,9 +95,9 @@ void Engine::propagate(double time)
 double Engine::torque_map(double gas, double rot_speed)
 {
     // See "Motor Vehicle Dynamics" Genta, Section 4.2.2
-    auto torque = m_torque_curve.size() == 0
-        ? m_max_power * (1.0 + rot_speed / m_peak_engine_speed) / m_peak_engine_speed
-        : m_torque_curve.interpolate(rot_speed);
+    auto torque{m_torque_curve.empty()
+                ? m_max_power * (1.0 + rot_speed / m_peak_engine_speed) / m_peak_engine_speed
+                : m_torque_curve.interpolate(rot_speed)};
     auto friction{m_friction * rot_speed * rot_speed};
     return gas * torque - friction;
 }
