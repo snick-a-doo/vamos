@@ -719,7 +719,6 @@ Gl_World::reshape (int width, int height)
 void 
 Gl_World::draw_timing_info () const
 {
-  if (!m_track.has_starting_lights ())
     set_starting_lights ();
 
   Vamos_Media::Two_D screen;

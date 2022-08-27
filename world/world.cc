@@ -288,47 +288,30 @@ World::interact (Car* car,
         }
     }
 
-  // Check for contact with track objects.
-  for (std::vector <Vamos_Track::Track_Object>::const_iterator 
-         object = m_track.objects ().begin ();
-       object != m_track.objects ().end ();
-       object++)
+    // Check for contact with track objects.
+    for (auto const& object : m_track.objects())
     {
-      const Contact_Info info = car->collision (object->position, 
-                                                Three_Vector (),
-                                                true);
-      
-      if (info.contact)
-        {
-          Three_Vector velocity = car->chassis ().velocity 
-            (car->chassis ().transform_from_world (object->position));
-          Three_Vector j = impulse (car->chassis ().world_moment (object->position),
-                                    velocity,
-                                    car->chassis ().mass (),
-                                    car->chassis ().inertia (),
-                                    object->material.restitution_factor () 
-                                    * info.material.restitution_factor (),
-                                    object->material.friction_factor ()
-                                    * info.material.friction_factor (),
-                                    info.normal);
-          
-          car->chassis ().temporary_contact 
-            (object->position,
-             j,
-             velocity,
-             info.depth,
-             info.normal,
-             info.material);
-          
-          Three_Vector v_perp = velocity.project (info.normal);
-          Three_Vector v_par = velocity - v_perp;
-          m_interaction_info.
-            push_back (Interaction_Info (car,
-                                         object->material.type (), 
-                                         info.material.type (),
-                                         v_par.magnitude (), 
-                                         v_perp.magnitude ()));
-        }
+        auto info{car->collision(object.position, Three_Vector(), true)};
+        if (!info.contact)
+            continue;
+
+        auto velocity{car->chassis().velocity(
+                car->chassis().transform_from_world(object.position))};
+        auto j{impulse(car->chassis().world_moment(object.position),
+                       velocity,
+                       car->chassis().mass(),
+                       car->chassis().inertia(),
+                       object.material.restitution_factor() * info.material.restitution_factor(),
+                       object.material.friction_factor() * info.material.friction_factor(),
+                       info.normal)};
+        car->chassis().temporary_contact(object.position, j, velocity,
+                                         info.depth, info.normal, info.material);
+        auto v_perp{velocity.project(info.normal)};
+        auto v_par{velocity - v_perp};
+        m_interaction_info.push_back(Interaction_Info(
+                                         car, object.material.type(), info.material.type(),
+                                         v_par.magnitude(),
+                                         v_perp.magnitude()));
     }
 }
 
@@ -473,7 +456,7 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
       gap = std::min (gap, p.z - segment.world_elevation (p));
     }
   // Move the car to its initial x-y position.
-  car->set_front_position (road.position (track_pos.x, track_pos.y));
+  car->set_front_position(road.position(track_pos.x, track_pos.y));
   car->chassis ().translate (Three_Vector (0.0, 0.0, track_pos.z - gap));
 }
 

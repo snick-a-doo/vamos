@@ -44,7 +44,7 @@ public:
     /// Scale the x values.
     virtual void scale(double factor);
     /// Add an offset to the y values.
-    virtual void shift (double delta);
+    virtual void shift(double delta);
 
     /// @return the y value at the given x.
     virtual double interpolate(double x) const;

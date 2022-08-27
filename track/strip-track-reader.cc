@@ -31,9 +31,9 @@ using namespace Vamos_Geometry;
 
 //** Constructor
 
-Strip_Track_Reader::Strip_Track_Reader (std::string data_dir, 
-										std::string track_file, 
-										Strip_Track* road) 
+Strip_Track_Reader::Strip_Track_Reader(std::string const& data_dir,
+                                       std::string const& track_file,
+                                       Strip_Track* road)
   : m_first_road (true),
 	m_data_dir (data_dir),
 	mp_road (road),

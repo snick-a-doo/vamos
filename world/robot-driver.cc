@@ -1077,6 +1077,8 @@ Braking_Operation::maximum_speed (double speed,
   double delta_speed = start_speed - m_speed_vs_distance [0].y;
   for (size_t i = 0; i < m_speed_vs_distance.size (); i++)
     {
+        //!! Use the interpolator's scale() and shift(). Remove modifying subscript
+        //!! operator.
       m_speed_vs_distance [i].x -= 
         stretch * (m_speed_vs_distance.size () - i)/m_speed_vs_distance.size ();
 
