@@ -320,7 +320,8 @@ namespace Vamos_World
     Unknown_Function (std::string func) : m_function (func) {};
   };
   
-  // Controls_Reader is here because it needs Gl_World's
+
+// Controls_Reader is here because it needs Gl_World's
   // declarations.   If it were in Controls.h, then Controls.h and
   // Gl_World.h would be dependent on each other.
   class Controls_Reader : public Vamos_Media::XML_Parser
@@ -348,7 +349,7 @@ namespace Vamos_World
 
     Control_Type m_type;
     int m_control;
-    Vamos_Geometry::Direction m_direction;
+    Direct m_direction;
     std::string m_function;
     double m_factor;
     double m_offset;

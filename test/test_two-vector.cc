@@ -56,7 +56,7 @@ TEST_CASE("input/output")
 
     SUBCASE("input")
     {
-        std::string s = "[ 1.2, -3.4 ]";
+        std::string s = "[1.2, -3.4]";
         std::istringstream is(s);
         is >> v;
         CHECK(v.x == 1.2);
@@ -66,6 +66,6 @@ TEST_CASE("input/output")
     {
         std::ostringstream os;
         os << v;
-        CHECK(os.str() == "[ -2.2, 3.3 ]");
+        CHECK(os.str() == "[-2.2, 3.3]");
     }
 }

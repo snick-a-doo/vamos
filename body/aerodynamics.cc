@@ -16,7 +16,6 @@
 //  USA
 
 #include "aerodynamics.h"
-#include "../geometry/constants.h"
 
 #include <cmath>
 

@@ -3,7 +3,6 @@
 #include "test.h"
 
 #include <body/rigid-body.h>
-#include <geometry/constants.h>
 
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;

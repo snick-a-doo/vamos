@@ -2,7 +2,6 @@
 
 #include "test.h"
 
-#include <geometry/constants.h>
 #include <geometry/three-matrix.h>
 
 #include <numbers>

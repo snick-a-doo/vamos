@@ -14,8 +14,8 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 /// @file Unit conversions.
-#ifndef _CONVERSIONS_H_
-#define _CONVERSIONS_H_
+#ifndef VAMOS_GEOMETRY_CONVERSIONS_H_INCLUDED
+#define VAMOS_GEOMETRY_CONVERSIONS_H_INCLUDED
 
 #include <numbers>
 
@@ -33,4 +33,4 @@ namespace Vamos_Geometry
      constexpr double km_h_to_m_s(double km_h) { return km_h / 3.6; }
 }
 
-#endif
+#endif // VAMOS_GEOMETRY_CONVERSIONS_H_INCLUDED

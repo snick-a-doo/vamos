@@ -90,20 +90,20 @@ Callback_List::call (int index, double value)
 //-----------------------------------------------------------------------------
 void 
 Control::bind_action (int index, 
-                      Direction direction,
+                      Direct direction,
                       Control_Handler* object,
                       Callback_Function function,
                       double time)
 {
-  if (direction == UP)
-    m_release_callbacks.add (index, object, function, Calibration (), time);
+    if (direction == Direct::up)
+        m_release_callbacks.add(index, object, function, Calibration(), time);
   else
     m_press_callbacks.add (index, object, function, Calibration (), time);
 } 
 
 void 
 Control::bind_motion (int axis,
-                      Direction direction,
+                      Direct direction,
                       Control_Handler* object, 
                       Callback_Function function,
                       double factor,
@@ -111,8 +111,8 @@ Control::bind_motion (int axis,
                       double deadband,
                       double upper_deadband)
 {
-  const bool negative = (direction != FORWARD && direction != RIGHT);
-  const bool positive = (direction != BACKWARD && direction != LEFT);
+    const bool negative = (direction != Direct::forward && direction != Direct::right);
+    const bool positive = (direction != Direct::backward && direction != Direct::left);
   m_motion_callbacks.add (axis, object, function,
                           Calibration (negative,
                                        positive, 

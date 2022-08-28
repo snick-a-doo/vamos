@@ -24,7 +24,6 @@
 #include "tire.h"
 #include "brake.h"
 #include "contact-point.h"
-#include "../geometry/constants.h"
 #include "../geometry/material.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
@@ -83,8 +82,8 @@ namespace Vamos_Body
 	// True if the wheel is driven.
 	bool m_driven;
 
-	// The side of the car that the wheel is on.
-	Vamos_Geometry::Direction m_side;
+      // The side of the car that the wheel is on.
+      Side m_side;
 
 	// The ID of the display lists for the wheel.
 	GLuint m_slow_wheel_list;
@@ -119,7 +118,7 @@ namespace Vamos_Body
 		   const Brake& brake,
 		   bool steered,
 		   bool driven,
-		   Vamos_Geometry::Direction side);
+           Side side);
 
 	// Find and store the forces and torques for the current
 	// configuration.
@@ -187,7 +186,7 @@ namespace Vamos_Body
 	bool steered () const { return m_steered; }
 	bool driven () const { return m_driven; }
 
-	Vamos_Geometry::Direction side () const { return m_side; }
+      Side side() const { return m_side; }
 
 	void set_models (std::string slow_file, 
 					 std::string fast_file, 

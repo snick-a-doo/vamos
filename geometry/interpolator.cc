@@ -15,6 +15,7 @@
 
 #include "interpolator.h"
 
+#include <iostream>
 #include <numeric>
 
 using namespace Vamos_Geometry;

@@ -84,7 +84,7 @@ void Drivetrain::reset()
     mp_transmission->shift(0);
 }
 
-double Drivetrain::torque(Vamos_Geometry::Direction side) const
+std::tuple<double, double> Drivetrain::get_torque() const
 {
-    return mp_differential->get_torque(side);
+    return mp_differential->get_torque();
 }

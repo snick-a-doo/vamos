@@ -532,7 +532,7 @@ private:
     double m_split_or_join;
     double m_merge;
     double m_angle;
-    Vamos_Geometry::Direction m_pit_side;
+    Side m_pit_side;
     bool m_pit_in_active;
     bool m_pit_out_active;
     int m_adjusted_pit_segments;

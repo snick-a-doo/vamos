@@ -579,7 +579,7 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
     }
   else if (label () == "wheel")
     {
-      Direction side = (m_strings [0] == "left") ? LEFT : RIGHT;
+        auto side = m_strings[0] == "left" ? Side::left : Side::right;
       Suspension* suspension =
         new Suspension (m_vectors [1], m_vectors [2], side, m_doubles [0],
                         m_doubles [1], m_doubles [2], m_doubles [3],

@@ -17,6 +17,7 @@
 #include "three-matrix.h"
 #include "two-vector.h"
 
+#include <cmath>
 #include <iostream>
 #include <sstream>
 
@@ -37,7 +38,7 @@ Three_Vector::Three_Vector(double x, double y, double z)
 }
 
 Three_Vector::Three_Vector(double length, double angle)
-    : Three_Vector{length * cos(angle), length * sin(angle), 0.0}
+    : Three_Vector{length * std::cos(angle), length * std::sin(angle), 0.0}
 {
 }
 

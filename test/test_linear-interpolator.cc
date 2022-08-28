@@ -2,10 +2,10 @@
 
 #include "test.h"
 
-#include <geometry/constants.h>
 #include <geometry/linear-interpolator.h>
 #include <geometry/three-vector.h>
 
+#include <cmath>
 #include <numbers>
 
 using namespace Vamos_Geometry;

@@ -37,12 +37,12 @@ Wheel::Wheel (double mass,
 			  const Brake& brake,
 			  bool steered,
 			  bool driven,
-			  Direction side) :
+			  Side side) :
   // Friction is handled by the tire.
   Contact_Point (mass, position, Material::RUBBER,
 				 0.0, restitution),
   m_original_position (position),
-  m_tire_offset ((side == RIGHT) ? -tire_offset : tire_offset),
+  m_tire_offset (side == Side::right ? -tire_offset : tire_offset),
   m_roll_height (roll_height),
   mp_suspension (suspension),
   m_tire (tire),
@@ -209,7 +209,7 @@ Wheel::set_models (std::string slow_file,
   Three_Vector offset;
   if (stator_file != "")
 	{
-	  offset.y += (m_side == RIGHT) ? stator_offset : -stator_offset;
+        offset.y += (m_side == Side::right) ? stator_offset : -stator_offset;
 	}
 
   if (m_slow_wheel_list != 0)

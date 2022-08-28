@@ -2,7 +2,6 @@
 
 #include "test.h"
 
-#include <geometry/constants.h>
 #include <geometry/three-vector.h>
 #include <geometry/two-vector.h>
 

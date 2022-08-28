@@ -35,6 +35,7 @@
 #include "../geometry/numeric.h"
 #include "../media/texture-image.h"
 
+#include <cmath>
 #include <cassert>
 #include <sstream>
 #include <iostream>
@@ -329,38 +330,27 @@ Car::propagate (double time)
     }
 
   m_slide = 0.0;
-  double right_wheel_speed = 0.0;
-  double left_wheel_speed = 0.0;
-  for (std::vector <Wheel*>::iterator it = m_wheels.begin ();
-       it != m_wheels.end ();
-       it++)
-    {
-      // Steer.
-      if ((*it)->steered ())
-        {
-          (*it)->steer (m_steer_key_control.value ());
-        }
-
-      // Apply the brakes.
-      (*it)->brake (m_brake_key_control.value ()); 
-      if (!going)
-        (*it)->brake (1.0);
-        
-      if (mp_drivetrain && (*it)->driven ())
-        {
+  auto [left_torque, right_torque] = mp_drivetrain
+      ? mp_drivetrain->get_torque()
+      : std::tuple{0.0, 0.0};
+  auto right_wheel_speed{0.0};
+  auto left_wheel_speed{0.0};
+  for (auto const& wheel : m_wheels)
+  {
+      if (wheel->steered()) //!! put this logic in the wheel.
+          wheel->steer(m_steer_key_control.value());
+      wheel->brake(going ? m_brake_key_control.value() : 1.0);
+      if (mp_drivetrain && wheel->driven())
+      {
           // Apply the driving torque.
-          (*it)->drive_torque (mp_drivetrain->torque ((*it)->side ()));
-
-          if ((*it)->side () == RIGHT)
-            right_wheel_speed = (*it)->rotational_speed ();
-          else if ((*it)->side () == LEFT)
-            left_wheel_speed = (*it)->rotational_speed ();
-        }
-
+          auto left{wheel->side() == Side::left};
+          wheel->drive_torque(left ? left_torque :right_torque);
+          (left ? left_wheel_speed : right_wheel_speed) = wheel->rotational_speed();
+      }
       // Sum the sliding speeds of the tires.
-      m_slide += (*it)->slide ();
-    }
-  m_slide = std::min (1.0, m_slide / m_wheels.size ());
+      m_slide += wheel->slide();
+  }
+  m_slide = std::min(1.0, m_slide / m_wheels.size());
 
   // Update the drivetrain.
   if (mp_drivetrain)

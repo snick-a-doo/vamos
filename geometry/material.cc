@@ -15,6 +15,7 @@
 
 #include "material.h"
 
+#include <cmath>
 #include <numbers>
 
 using namespace Vamos_Geometry;
@@ -54,7 +55,7 @@ Three_Vector Material::bump(double x, double y) const
     using namespace std::numbers;
     auto bump_function = [](double x, double y) {
         auto phase{pi * (x + y)};
-        return 0.25 * (sin(phase) + sin(sqrt2 * phase));
+        return 0.25 * (std::sin(phase) + sin(sqrt2 * phase));
     };
 
     // To avoid interfering with the initial placement of the car, don't return a positive

@@ -1,5 +1,3 @@
-//  Parameter.h - numbers passed from the command line.
-//
 //  Copyright (C) 2011 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
@@ -21,10 +19,14 @@
 
 using namespace Vamos_Geometry;
 
-std::vector <double> Parameter::m_values;
+std::vector<double> Parameter::m_values;
 
-double 
-Parameter::get (size_t i, double fallback)
-{ 
-  return i < size () ? m_values [i] : fallback; 
+void Parameter::set(double value)
+{
+    m_values.push_back(value);
+}
+
+double Parameter::get(size_t i, double fallback)
+{
+    return i < size() ? m_values[i] : fallback;
 }

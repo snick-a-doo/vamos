@@ -74,7 +74,7 @@ struct Vamos_Body::Suspension_Model
 //** Constructor
 Suspension::Suspension (const Three_Vector& pos,
 						const Three_Vector& center_of_translation,
-						Direction side_of_car, 
+						Side side_of_car,
                         double spring_constant, 
 						double bounce, 
                         double rebound, 
@@ -239,8 +239,8 @@ Suspension::steer (double degree_angle)
 void
 Suspension::camber (double degree_angle)
 {
-  if (m_side == LEFT)
-	degree_angle *= -1.0;
+    if (m_side == Side::left)
+        degree_angle *= -1.0;
 
   // Undo the current camber setting before applying the new one.
   m_static_orientation.rotate (Three_Vector (-m_camber, 0.0, 0.0));
@@ -264,8 +264,8 @@ Suspension::caster (double degree_angle)
 void
 Suspension::toe (double degree_angle)
 {
-  if (m_side == LEFT)
-  	degree_angle *= -1.0;
+    if (m_side == Side::left)
+        degree_angle *= -1.0;
 
   // Undo the current toe setting before applying the new one.
   m_static_orientation.rotate (-m_toe * STEER_AXIS);
@@ -301,7 +301,7 @@ Suspension::set_model (std::string file_name,
 {
   Three_Vector position = translation;
   Three_Vector orientation = rotation;
-  if (m_side == LEFT)
+  if (m_side == Side::left)
 	{
 	  // Make the right and left sides symmetric.
 	  position.y *= -1.0;

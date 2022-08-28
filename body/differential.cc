@@ -33,9 +33,9 @@ double Differential::get_driveshaft_speed(double left_speed, double right_speed)
     return m_final_drive * std::midpoint(left_speed, right_speed);
 }
 
-double Differential::get_torque(Vamos_Geometry::Direction side) const
+std::tuple<double, double> Differential::get_torque() const
 {
-    return side == Vamos_Geometry::LEFT ? m_left_torque : m_right_torque;
+    return {m_left_torque, m_right_torque};
 }
 
 void Differential::find_torques(double driveshaft_torque)

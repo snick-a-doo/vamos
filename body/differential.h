@@ -16,7 +16,7 @@
 #ifndef VAMOS_BODY_DIFFERENTIAL_H_INCLUDED
 #define VAMOS_BODY_DIFFERENTIAL_H_INCLUDED
 
-#include "../geometry/constants.h"
+#include <tuple>
 
 namespace Vamos_Body
 {
@@ -32,8 +32,8 @@ public:
     double get_driveshaft_speed(double left_wheel_speed, double right_wheel_speed);
     /// Calculate the torques on the wheels.
     void find_torques(double driveshaft_torque);
-    /// @return The torque on the left or right wheel depending on @p side.
-    double get_torque(Vamos_Geometry::Direction side) const;
+    /// @return The torque on the wheels.
+    std::tuple<double, double> get_torque() const;
 
 private:
     double m_final_drive; ///< The differential's gear ratio.

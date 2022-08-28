@@ -38,14 +38,14 @@ namespace Vamos_Track
   {
     Vamos_Media::Facade* mp_image;
     double m_distance;
-    Vamos_Geometry::Direction m_side;
+    Side m_side;
     double m_from_edge;
     double m_off_ground;
 
   public:
     Braking_Marker (std::string image_file,
                     double distance,
-                    Vamos_Geometry::Direction side,
+                    Side side,
                     double from_edge,
                     double off_ground,
                     double width,
@@ -53,7 +53,7 @@ namespace Vamos_Track
     ~Braking_Marker ();
 
     double distance () const { return m_distance; }
-    Vamos_Geometry::Direction side () const { return m_side; }
+    Side side() const { return m_side; }
     double from_edge () const { return m_from_edge; }
     double off_ground () const { return m_off_ground; }
     double width () const;

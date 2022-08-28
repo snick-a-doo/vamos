@@ -25,7 +25,6 @@
 #include <SDL/SDL.h>
 #include <GL/glut.h>
 
-#include "../geometry/constants.h"
 #include "../media/texture-image.h"
 
 Sky::Sky (std::string image, int width, int height) : 

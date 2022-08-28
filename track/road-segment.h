@@ -18,7 +18,6 @@
 #ifndef _ROAD_SEGMENT_H_
 #define _ROAD_SEGMENT_H_
 
-#include "../geometry/constants.h"
 #include "../geometry/conversions.h"
 #include "../geometry/linear-interpolator.h"
 #include "../geometry/rectangle.h"
@@ -26,11 +25,14 @@
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
 
+#include <cmath>
 #include <vector>
 
 namespace Vamos_Track
 {
   typedef std::vector <Vamos_Geometry::Two_Vector> TPoints;
+
+enum class Side{ left, right };
 
   //===========================================================================
   /// @class Kerb
@@ -146,30 +148,32 @@ namespace Vamos_Track
   public:
     Pit_Lane_Transition ();
 
-    void set_merge (Vamos_Geometry::Direction direction, 
-                    Vamos_Geometry::Direction side,
+      enum class End{in, out};
+
+      void set_merge (End end,
+                    Side side,
                     double split_or_join, 
                     double merge,
                     double angle);
     void set_width (double pit_width, 
                     double left_shoulder, 
                     double right_shoulder);
-    Vamos_Geometry::Direction direction () const { return m_direction; }
-    Vamos_Geometry::Direction side () const { return m_side; }
+      End end() const { return m_end; }
+    Side side () const { return m_side; }
     double merge () const { return active () ? m_merge : 0.0; }
     double split_or_join () const { return active () ? m_split_or_join : 0.0; }
-    double width (Vamos_Geometry::Direction side, double distance, bool narrow) const;
+    double width (Side side, double distance, bool narrow) const;
     double shoulder_width () const { return m_pit_shoulder_width; }
     void scale (double factor);
     double angle () const { return m_angle; }
-    double skew (double length) const { return length / cos (m_angle); }
+      double skew (double length) const { return length / std::cos (m_angle); }
     // Scale length to account for the skew.
 
     bool active () const { return m_merge_is_set && m_width_is_set; }
 
   private:
-    Vamos_Geometry::Direction m_direction;
-    Vamos_Geometry::Direction m_side;
+      End m_end;
+    Side m_side;
     double m_split_or_join;
     double m_merge;
     double m_angle;
@@ -298,12 +302,12 @@ namespace Vamos_Track
     double angle (double along) const 
     { return m_start_angle + arc () * along / m_length; }
 
-    void set_kerb (Kerb* kerb, Vamos_Geometry::Direction side);
+    void set_kerb (Kerb* kerb, Side side);
 
     void scale (double factor);
 
-    void set_pit_lane (Vamos_Geometry::Direction direction,
-                       Vamos_Geometry::Direction side,
+      void set_pit_lane (Pit_Lane_Transition::End end,
+                       Side side,
                        double split_or_join, 
                        double merge,
                        double angle);
@@ -342,7 +346,7 @@ namespace Vamos_Track
 
     const Pit_Lane_Transition& pit () const;
 
-    void narrow (Vamos_Geometry::Direction side, double delta_width);
+    void narrow(Side side, double delta_width);
     // Subtract delta_width from this segment's width.
 
     void set_racing_line_curvature_factor (double factor)
@@ -352,7 +356,7 @@ namespace Vamos_Track
     { return m_racing_line_curvature_factor; }
 
   protected:
-    double kerb_width (Vamos_Geometry::Direction side, double along) const;
+    double kerb_width(Side side, double along) const;
     void set_banking (double end_angle, double pivot)
     { m_banking.set (end_angle, pivot); }
 
@@ -421,9 +425,7 @@ namespace Vamos_Track
     double off_track_distance (const Vamos_Geometry::Three_Vector& 
                                track_position) const;
 
-    double extra_road_width (Vamos_Geometry::Direction side, 
-                             double distance,
-                             bool narrow) const;
+    double extra_road_width(Side side, double distance, bool narrow) const;
   };
 }
 

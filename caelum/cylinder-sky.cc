@@ -18,7 +18,6 @@
 //  along with Caelum.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "cylinder-sky.h"
-#include "../geometry/constants.h"
 
 #include <GL/gl.h>
 

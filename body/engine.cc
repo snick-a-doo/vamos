@@ -16,6 +16,8 @@
 #include "engine.h"
 #include "../geometry/conversions.h"
 
+#include <cmath>
+
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 
@@ -40,7 +42,7 @@ Engine::Engine(double mass,
       m_stall_speed{rpm_to_rad_s(stall_speed)},
       m_fuel_consumption{fuel_consumption},
       // See "Motor Vehicle Dynamics" Genta, Section 4.2.2
-      m_friction{m_max_power / pow(m_peak_engine_speed, 3)}
+      m_friction{m_max_power / std::pow(m_peak_engine_speed, 3)}
 {
 }
 

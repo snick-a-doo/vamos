@@ -89,6 +89,6 @@ Three_Vector operator / (Three_Vector const& vec, double factor);
 
 std::istream& operator >> (std::istream& is, Vamos_Geometry::Three_Vector& vec);
 std::ostream& operator << (std::ostream& os, Vamos_Geometry::Three_Vector const& vec);
-}
+} // namespace Vamos_Geometry
 
 #endif // VAMOS_GEOMETRY_THREE_VECTOR_H_INCLUDED

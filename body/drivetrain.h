@@ -16,13 +16,13 @@
 #ifndef VAMOS_BODY_DRIVETRAIN_H_INCLUDED
 #define VAMOS_BODY_DRIVETRAIN_H_INCLUDED
 
-#include "../geometry/constants.h"
 #include "clutch.h"
 #include "differential.h"
 #include "engine.h"
 #include "transmission.h"
 
 #include <memory>
+#include <tuple>
 
 namespace Vamos_Body
 {
@@ -51,7 +51,7 @@ public:
     Clutch* clutch() { return mp_clutch.get(); }
     /// @}
     /// @return The torque for a driven wheel.
-    double torque(Vamos_Geometry::Direction side) const;
+    std::tuple<double, double> get_torque() const;
 
 private:
     std::unique_ptr<Engine> mp_engine;

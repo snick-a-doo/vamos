@@ -22,7 +22,6 @@
 
 #include "controls.h"
 #include "driver.h"
-#include "../geometry/constants.h"
 #include "../geometry/linear-interpolator.h"
 #include "../geometry/numeric.h"
 #include "../geometry/pid.h"
@@ -49,7 +48,7 @@ namespace Vamos_World
 {
   struct Car_Information;
 
-  /// The robot's interface to the track's racing line. 
+  /// The robot's interface to the track's racing line.
   class Robot_Racing_Line
   {
   public:
@@ -273,20 +272,15 @@ namespace Vamos_World
     double target_slip_ratio () const;
     double target_slip_angle () const;
 
-    Vamos_Geometry::Direction 
-    relative_position (const Vamos_Geometry::Three_Vector& r1_track,
-                       const Vamos_Geometry::Three_Vector& r2_track) const;
+    Direct relative_position(Vamos_Geometry::Three_Vector const& r1_track,
+                             Vamos_Geometry::Three_Vector const& r2_track) const;
 
     Vamos_Geometry::Three_Vector 
     find_gap (const Vamos_Geometry::Three_Vector& r1_track,
               const Vamos_Geometry::Three_Vector& r2_track) const;
     bool maybe_passable (double along, size_t segment) const;
-    Vamos_Geometry::Direction get_pass_side (double along, 
-                                             double delta_x, 
-                                             double delta_v,
-                                             size_t segment) const;
-    Vamos_Geometry::Direction pass_side (double start, double delta, size_t n,
-                                         size_t segment) const;
+    Direct get_pass_side(double along, double delta_x, double delta_v, size_t segment) const;
+    Direct pass_side(double start, double delta, size_t n, size_t segment) const;
     Track_Side get_block_side (double along, size_t segment) const;
 
     void set_steering (double angle);

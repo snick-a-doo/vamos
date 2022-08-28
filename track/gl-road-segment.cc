@@ -22,6 +22,7 @@
 
 #include <GL/glut.h>
 
+#include <cmath>
 #include <cassert>
 #include <algorithm>
 
@@ -37,7 +38,7 @@ static const Material s_no_material (Material::AIR, 0.0, 0.0);
 
 Braking_Marker::Braking_Marker (std::string image_file,
                                 double distance,
-                                Direction side,
+                                Side side,
                                 double from_edge,
                                 double off_ground,
                                 double width,
@@ -110,7 +111,7 @@ namespace Vamos_Track
     Gl_Road_Segment::Strip m_strip;
     size_t m_substrip;
     double m_distance;
-    Direction m_side;
+    Side m_side;
 
     enum Segment_position
       {
@@ -146,7 +147,7 @@ namespace Vamos_Track
     m_distance = 0.0;
     m_strip = strip;
 
-    m_side = LEFT;
+    m_side = Side::left;
     m_position = BEGIN;
     m_substrip = 0;
   }
@@ -216,10 +217,9 @@ Segment_Iterator::operator ++ ()
 		  right_end_transition = true;
 	}
 
-  bool no_pit = 
-    (m_segment.pit ().active () 
-     && (((m_segment.pit ().direction () == IN) && m_after_connection)
-         || ((m_segment.pit ().direction () == OUT) && !m_after_connection)));
+  auto no_pit{m_segment.pit().active()
+              && ((m_segment.pit().end() == Pit_Lane_Transition::End::in && m_after_connection)
+                  || (m_segment.pit ().end() == Pit_Lane_Transition::End::out && !m_after_connection))};
 
   // Calculate the geometry of the strip.
   double across = 0.0;
@@ -228,7 +228,7 @@ Segment_Iterator::operator ++ ()
 	{
 	case Gl_Road_Segment::LEFT_BARRIER:
 	  across = m_segment.left_width (m_distance, no_pit);
-	  up = (m_side == LEFT) ? m_segment.m_left_wall_height : 0.0;
+	  up = m_side == Side::left ? m_segment.m_left_wall_height : 0.0;
 	  m_texture_coordinates.x = up;
 	  m_normal = m_segment.barrier_normal (m_distance, across);
       if (m_after_connection)
@@ -236,19 +236,19 @@ Segment_Iterator::operator ++ ()
 	  break;
 	case Gl_Road_Segment::LEFT_SHOULDER:
 	  up = 0.0;
-	  across = (m_side == LEFT) 
+	  across = m_side == Side::left
         ? m_segment.left_width (m_distance, no_pit)
         : m_segment.left_road_width (m_distance, no_pit);
 	  m_texture_coordinates.x = across;
 	  m_normal = m_segment.normal (m_distance, across, false);
 	  break;
 	case Gl_Road_Segment::LEFT_KERB:
-	  up = (m_side == LEFT)
-        ? m_segment.mp_left_kerb->point (m_substrip + 1).y
-        : m_segment.mp_left_kerb->point (m_substrip).y;
-	  across = (m_side == LEFT)
-        ? m_segment.mp_left_kerb->point (m_substrip + 1).x
-        : m_segment.mp_left_kerb->point (m_substrip).x;
+        up = m_side == Side::left
+            ? m_segment.mp_left_kerb->point(m_substrip + 1).y
+            : m_segment.mp_left_kerb->point(m_substrip).y;
+        across = m_side == Side::left
+            ? m_segment.mp_left_kerb->point(m_substrip + 1).x
+            : m_segment.mp_left_kerb->point(m_substrip).x;
 	  if (left_start_transition)
 		{
 		  up = 0.0;
@@ -267,7 +267,7 @@ Segment_Iterator::operator ++ ()
 	  break;
 	case Gl_Road_Segment::TRACK:
 	  up = 0.0;
-      across = (m_side == LEFT)
+      across = m_side == Side::left
         ? m_segment.left_road_width (m_distance, no_pit)
         : -m_segment.right_road_width (m_distance, no_pit);
 	  m_texture_coordinates.x 
@@ -279,7 +279,7 @@ Segment_Iterator::operator ++ ()
 	case Gl_Road_Segment::RIGHT_KERB:
 	  up = 0.0;
 	  across = 0.0;
-	  if (m_side == LEFT)
+	  if (m_side == Side::left)
 		{
 		  up = m_segment.mp_right_kerb->point (m_substrip).y;
 		  across = -m_segment.mp_right_kerb->point (m_substrip).x;
@@ -308,7 +308,7 @@ Segment_Iterator::operator ++ ()
 	  break;
 	case Gl_Road_Segment::RIGHT_SHOULDER:
 	  up = 0.0;
-	  across = (m_side == LEFT) 
+	  across = m_side == Side::left
         ? -m_segment.right_road_width (m_distance, no_pit)
         : -m_segment.right_width (m_distance, no_pit);
 	  m_texture_coordinates.x = across;
@@ -316,7 +316,7 @@ Segment_Iterator::operator ++ ()
 	  break;
 	case Gl_Road_Segment::RIGHT_BARRIER:
       across = -m_segment.right_width (m_distance, no_pit);
-	  up = (m_side == LEFT) ? 0.0 : m_segment.m_right_wall_height;
+	  up = (m_side == Side::left) ? 0.0 : m_segment.m_right_wall_height;
 	  m_texture_coordinates.x = up;
 	  m_normal = m_segment.barrier_normal (m_distance, across);
       if (m_after_connection)
@@ -333,9 +333,9 @@ Segment_Iterator::operator ++ ()
 	  // Return to the origin if we're at the end of the track.
       const double angle = m_segment.angle (m_distance);
 	  m_coordinates = 
-        Three_Vector (-across * sin (angle), 
-                      across * cos (angle), 
-                      up + m_segment.banking ().height (m_distance, across));
+          Three_Vector{-across * std::sin(angle),
+                       across * std::cos(angle),
+                       up + m_segment.banking ().height(m_distance, across)};
 	}
   else
     {
@@ -347,7 +347,7 @@ Segment_Iterator::operator ++ ()
 	  && ((m_strip == Gl_Road_Segment::LEFT_BARRIER) 
           || (m_strip == Gl_Road_Segment::RIGHT_BARRIER)))
 	{
-	  if (m_side == LEFT)
+        if (m_side == Side::left)
 		{
 		  double dx = m_coordinates.x - last_coords.x;
 		  double dy = m_coordinates.y - last_coords.y;
@@ -358,7 +358,7 @@ Segment_Iterator::operator ++ ()
   else
 	  m_texture_coordinates.y = m_distance;
   
-  if ((m_position == END) && (m_side == RIGHT))
+  if (m_position == END && m_side == Side::right)
 	{
 	  m_substrip++;
       if (m_substrip != substrips ())
@@ -367,7 +367,7 @@ Segment_Iterator::operator ++ ()
   else if (m_position == BEGIN)
     m_position = MIDDLE;
 
-  m_side = (m_side == LEFT) ? RIGHT : LEFT;
+  m_side = m_side == Side::left ? Side::right : Side::left;
   return *this;
 }
 
@@ -389,7 +389,7 @@ Segment_Iterator::increment_distance ()
 		}
       return;
 	}
-  if (m_side != LEFT) 
+  if (m_side != Side::left)
     return;
 
   if (m_strip == Gl_Road_Segment::LEFT_KERB)
@@ -488,8 +488,8 @@ Gl_Road_Segment::Gl_Road_Segment
   set_start_skew (skew);
   set_end_skew (skew);
 
-  set_kerb (left_kerb, LEFT);
-  set_kerb (right_kerb, RIGHT);
+  set_kerb(left_kerb, Side::left);
+  set_kerb(right_kerb, Side::right);
 
   set_wall_heights (left_wall_height, right_wall_height);
   set_elevation_points (elevation_points);
@@ -580,13 +580,13 @@ Gl_Road_Segment::right_material (double height) const
 const Material& 
 Gl_Road_Segment::material_at (double along, double from_center)
 {
-  if (from_center > left_road_width (along) + kerb_width (LEFT, along))
+    if (from_center > left_road_width (along) + kerb_width(Side::left, along))
     return m_materials [LEFT_SHOULDER];
   else if (from_center > left_road_width (along))
     return m_materials [LEFT_KERB];
   else if (from_center > -right_road_width (along))
     return m_materials [TRACK];
-  else if (from_center > -right_road_width (along) - kerb_width (RIGHT, along))
+  else if (from_center > -right_road_width (along) - kerb_width(Side::right, along))
     return m_materials [RIGHT_KERB];
   else
     return m_materials [RIGHT_SHOULDER];
@@ -669,21 +669,18 @@ Gl_Road_Segment::build ()
 	{
 	  double along = length () - (*it)->distance ();
 	  double from_center = (*it)->from_edge ();
- 	  if ((*it)->side () == RIGHT)
- 		{
+ 	  if ((*it)->side() == Side::right)
  		  from_center = -(from_center + right_road_width (along));
- 		}
  	  else
- 		{
  		  from_center += left_road_width (along) + (*it)->width ();
- 		}
 
+      using std::sin, std::cos;
 	  double angle = start_angle () + arc () * along / length ();
-	  double x = center_of_curve ().x - from_center * sin (angle);
-	  double y = center_of_curve ().y + from_center * cos (angle);
+	  auto x{center_of_curve().x - from_center * sin(angle)};
+	  auto y{center_of_curve().y + from_center * cos(angle)};
 	  if (is_straight ())
 		{
-		  x += along * cos (angle);
+            x += along * cos (angle);
 		  y += along * sin (angle);
 		}
 	  else

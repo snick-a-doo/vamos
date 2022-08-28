@@ -30,6 +30,7 @@
 #include <GL/glut.h>
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <iomanip>
 #include <sstream>
@@ -128,7 +129,7 @@ Rear_View_Mirror::set_viewport (int window_width, int window_height,
                                 double pan)
 {
     auto pos{rotate(m_position - driver_position, -deg_to_rad(pan) * Three_Vector::Z)};
-  const double y_factor = -1.0 / (pos.x * tan (0.5 * deg_to_rad (driver_field_of_view)));
+    const double y_factor = -1.0 / (pos.x * std::tan (0.5 * deg_to_rad (driver_field_of_view)));
   const double aspect = double (window_width) / window_height;
   const double x_factor = -y_factor / aspect;
 

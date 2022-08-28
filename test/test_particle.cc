@@ -3,7 +3,6 @@
 #include "test.h"
 
 #include <body/particle.h>
-#include <geometry/constants.h>
 
 #include <numbers>
 

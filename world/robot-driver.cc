@@ -20,7 +20,6 @@
 #include "robot-driver.h"
 #include "../body/car.h"
 #include "../body/wheel.h"
-#include "../geometry/constants.h"
 #include "../geometry/parameter.h"
 #include "../geometry/three-vector.h"
 #include "../media/two-d.h"
@@ -557,7 +556,7 @@ Robot_Driver::avoid_collisions ()
                               ? 0.5 
                               : 1.5));
   double crash_time = 2.0*CRASH_TIME_LIMIT;
-  Direction pass_side = NONE;
+  auto pass_side{Direct::none};
   Three_Vector v1
     = mp_car->chassis ().rotate_from_world (mp_car->chassis ().cm_velocity ());
 
@@ -584,7 +583,7 @@ Robot_Driver::avoid_collisions ()
                                             it->m_pointer_position);
       switch (relative_position (info ().track_position (), it->track_position ()))
         {
-        case FORWARD:
+        case Direct::forward:
           if (distance_gap.x < min_forward_distance_gap)
             {
               min_forward_distance_gap = distance_gap.x;
@@ -604,14 +603,14 @@ Robot_Driver::avoid_collisions ()
                                          info ().segment_index);
             }
           break;
-        case LEFT:
+        case Direct::left:
           if (distance_gap.y < min_left_distance_gap)
             {
               min_left_distance_gap = distance_gap.y;
               crash_time = -distance_gap.y / delta_v.y;
             }
           break;
-        case RIGHT:
+        case Direct::right:
           if (distance_gap.y < min_right_distance_gap)
             {
               min_right_distance_gap = distance_gap.y;
@@ -664,12 +663,12 @@ Robot_Driver::avoid_collisions ()
       // Go offline to pass.
       switch (pass_side)
         {
-        case LEFT:
+        case Direct::left:
           m_passing = true;
           m_lane_shift = std::min (1.0, m_lane_shift + shift_step);
           m_lane_shift_timer = 0.0;
           break;
-        case RIGHT:
+        case Direct::right:
           m_passing = true;
           m_lane_shift = std::max (-1.0, m_lane_shift - shift_step);
           m_lane_shift_timer = 0.0;
@@ -691,21 +690,19 @@ Robot_Driver::avoid_collisions ()
                 0.0, 1.0);
 }
 
-Direction
-Robot_Driver::relative_position (const Three_Vector& r1_track,
-                                 const Three_Vector& r2_track) const
+Direct Robot_Driver::relative_position(Three_Vector const& r1_track,
+                                       Three_Vector const& r2_track) const
 {
   const double corner = mp_car->width () / mp_car->length ();
   Three_Vector delta = r2_track - r1_track;
   const double slope = delta.y / delta.x;
 
-  if (((delta.x > mp_car->length ()) && (std::abs (delta.y) > mp_car->width ()))
-      || (delta.x < -mp_car->length ()))
-    return NONE;
-  if (std::abs (slope) < corner)
-    return (delta.x > 0) ? FORWARD : NONE;
-
-  return (delta.y > 0) ? LEFT : RIGHT;
+  if ((delta.x > mp_car->length () && std::abs (delta.y) > mp_car->width ())
+      || delta.x < -mp_car->length ())
+      return Direct::none;
+  if (std::abs(slope) < corner)
+      return delta.x > 0 ? Direct::forward : Direct::none;
+  return delta.y > 0 ? Direct::left : Direct::right;
 }
 
 Three_Vector
@@ -720,20 +717,19 @@ Robot_Driver::find_gap (const Three_Vector& r1_track,
 bool
 Robot_Driver::maybe_passable (double along, size_t segment) const
 {
-  return (pass_side (along, 0.5*m_speed, 10, segment) != NONE);
+    return pass_side (along, 0.5 * m_speed, 10, segment) != Direct::none;
 }
 
-Direction
-Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
-                             size_t segment) const
+Direct Robot_Driver::get_pass_side(double along, double delta_x, double delta_v,
+                                   size_t segment) const
 {
-  // Return 'RIGHT' if we should try to pass on the right, 'LEFT' if we should
-  // try to pass on the left, 'NONE' if it's better not to try.
+  // Return 'left' if we should try to pass on the right, 'right' if we should
+  // try to pass on the left, 'none' if it's better not to try.
 
   // Give up immediately if we're not closing at a significant rate. Returning
   // here avoids a possible divide-by-zero below. 
   if (delta_v < 1e-6)
-    return NONE;
+        return Direct::none;
 
   // We'll try to pass if the racing line stays on one side of the track far
   // enough ahead for us to pull alongside the opponent's car at our current
@@ -743,16 +739,15 @@ Robot_Driver::get_pass_side (double along, double delta_x, double delta_v,
   //!! Account for deceleration? 
   double pass_distance = delta_x * m_speed / delta_v;
   if (pass_distance > lengths (100))
-    return NONE;
+      return Direct::none;
 
   return pass_side (along + pass_distance/2, pass_distance/20, 10, segment);
 }
 
-Direction
-Robot_Driver::pass_side (double start, double delta, size_t n, size_t segment) const
+Direct Robot_Driver::pass_side (double start, double delta, size_t n, size_t segment) const
 {
   // The logic here requires that *_SIDE are all single bits. Don't use the
-  // Direction enum.
+  // Direct enum.
 
   //!! calls to get_block_side and from_center sometime increment the segment
   //!! excessively. 
@@ -762,18 +757,18 @@ Robot_Driver::pass_side (double start, double delta, size_t n, size_t segment) c
     block |= get_block_side (start + i*delta, segment);
 
   if (block & LEFT_SIDE)
-    return (block & RIGHT_SIDE) ? NONE : RIGHT;
+      return (block & RIGHT_SIDE) ? Direct::none : Direct::right;
   if (block & RIGHT_SIDE)
-    return LEFT;
+      return Direct::left;
 
-  return (m_racing_line.from_center (start, segment) > 0.0) ? RIGHT : LEFT;
+  return m_racing_line.from_center(start, segment) > 0.0 ? Direct::right : Direct::left;
 }
 
 Robot_Driver::Track_Side
 Robot_Driver::get_block_side (double along, size_t segment) const
 {
   // The logic here requires that *_SIDE are all single bits. Don't use the
-  // Direction enum.
+  // Direct enum.
   const double across = m_racing_line.from_center (along, segment);
   if (across < -m_road.right_racing_line_width (along) + mp_car->width ())
     return RIGHT_SIDE;

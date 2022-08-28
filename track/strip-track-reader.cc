@@ -22,6 +22,7 @@
 #include "../geometry/conversions.h"
 #include "../geometry/numeric.h"
 
+#include <iostream>
 #include <sstream>
 
 using namespace Vamos_Track;
@@ -287,12 +288,14 @@ void Strip_Track_Reader::on_end_tag(const Vamos_Media::XML_Tag&)
           if (m_pit_in_active)
             {
               mp_road->set_pit_in (size - 1, m_angle);
-              segment->set_pit_lane (IN, m_pit_side, m_split_or_join, m_merge, m_angle);
+              segment->set_pit_lane (Pit_Lane_Transition::End::in, m_pit_side,
+                                     m_split_or_join, m_merge, m_angle);
             }
           if (m_pit_out_active)
             {
               mp_road->set_pit_out (size - 1, m_angle);
-              segment->set_pit_lane (OUT, m_pit_side, m_split_or_join, m_merge, m_angle);
+              segment->set_pit_lane (Pit_Lane_Transition::End::out, m_pit_side,
+                                     m_split_or_join, m_merge, m_angle);
             }
           m_pit_in_active = false;
           m_pit_out_active = false;
@@ -370,7 +373,7 @@ void Strip_Track_Reader::on_end_tag(const Vamos_Media::XML_Tag&)
 	}
   else if (label () == "braking-marker")
 	{
-      Direction side = m_bools [7] ? RIGHT : LEFT;
+        auto side{m_bools[7] ? Side::right : Side::left};
       m_braking_markers.
         push_back (new Braking_Marker (m_data_dir + m_strings [1],
                                        m_doubles [19],
@@ -724,10 +727,7 @@ Strip_Track_Reader::on_data (std::string data)
     {
       std::string side;
       is >> side;
-      if (side == "left")
-        m_pit_side = LEFT;
-      else
-        m_pit_side = RIGHT;
+      m_pit_side = side == "left" ? Side::left : Side::right;
     }
   else
 	{

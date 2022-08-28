@@ -38,12 +38,12 @@ public:
     double top() const { return m_top; }
     double right() const { return m_right; }
     double bottom() const { return m_bottom; }
-    double width() const { return std::abs(m_right - m_left); }
-    double height() const { return std::abs(m_top - m_bottom); }
+    double width() const;
+    double height() const;
     /// @return The position of the midpoint of the rectangle.
     Vamos_Geometry::Two_Vector center() const;
     /// @return The aspect ratio.
-    double aspect() const { return width() / height(); }
+    double aspect() const;
 
     friend bool operator==(Rectangle const& r1, Rectangle const& r2) = default;
 

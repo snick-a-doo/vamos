@@ -1,65 +1,71 @@
-//	Vamos - a driving simulator
+//  Copyright (C) 2001-2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
 #include "two-vector.h"
 
-Vamos_Geometry::Two_Vector Vamos_Geometry::
-operator + (const Two_Vector& p1, const Two_Vector& p2)
+#include <cmath>
+#include <iostream>
+
+using namespace Vamos_Geometry;
+
+double Two_Vector::magnitude() const
 {
-  return Two_Vector (p1.x + p2.x, p1.y + p2.y);
+    return std::sqrt(x * x + y * y);
 }
 
-Vamos_Geometry::Two_Vector Vamos_Geometry::
-operator - (const Two_Vector& p1, const Two_Vector& p2)
+Two_Vector Two_Vector::unit() const
 {
-  return Two_Vector (p1.x - p2.x, p1.y - p2.y);
+    auto length{magnitude()};
+    return length == 0.0 ? Two_Vector{0.0, 1.0} : *this / length;
 }
-
-Vamos_Geometry::Two_Vector Vamos_Geometry::
-operator * (const Two_Vector& p, double scalar)
-{
-  return Two_Vector (p.x * scalar, p.y * scalar);
-}
-
-Vamos_Geometry::Two_Vector Vamos_Geometry::
-operator * (double scalar, const Two_Vector& p)
-{
-  return p * scalar;
-}
-
-Vamos_Geometry::Two_Vector Vamos_Geometry::
-operator / (const Two_Vector& p, double scalar)
-{
-  return Two_Vector (p.x / scalar, p.y / scalar);
-}
-
 
 namespace Vamos_Geometry
 {
-std::istream& operator>>(std::istream& is, Vamos_Geometry::Two_Vector& vector)
+Two_Vector operator+(Two_Vector const& p1, Two_Vector const& p2)
 {
-  char delim;
-  is >> delim >> vector.x >> delim >> vector.y >> delim;
-  return is;
+    return {p1.x + p2.x, p1.y + p2.y};
 }
 
-std::ostream& operator<<(std::ostream& os, Vamos_Geometry::Two_Vector const& vector)
+Two_Vector operator-(Two_Vector const& p1, Two_Vector const& p2)
 {
-  os << "[ " << vector.x << ", " << vector.y << " ]";
-  return os;
+    return {p1.x - p2.x, p1.y - p2.y};
 }
+
+Two_Vector operator*(Two_Vector const& p, double scalar)
+{
+    return {p.x * scalar, p.y * scalar};
 }
+
+Two_Vector operator*(double scalar, Two_Vector const& p)
+{
+    return p * scalar;
+}
+
+Two_Vector operator/(Two_Vector const& p, double scalar)
+{
+    return {p.x / scalar, p.y / scalar};
+}
+
+std::istream& operator>>(std::istream& is, Two_Vector& vector)
+{
+    char delim;
+    return is >> delim >> vector.x >> delim >> vector.y >> delim;
+}
+
+std::ostream& operator<<(std::ostream& os, Two_Vector const& vector)
+{
+    return os << "[" << vector.x << ", " << vector.y << "]";
+}
+} // namespace Vamos_Geometry

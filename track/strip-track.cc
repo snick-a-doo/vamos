@@ -24,7 +24,7 @@
 
 #include <cassert>
 #include <cmath>
-#include <functional>
+#include <iostream>
 #include <memory>
 #include <numeric>
 
@@ -626,7 +626,7 @@ void Road::narrow_pit_segments()
         const auto& pit{(*it)->pit()};
         if (!pit.active())
             continue;
-        if (pit.direction() == OUT)
+        if (pit.end() == Pit_Lane_Transition::End::out)
         {
             for (Segment_List::reverse_iterator rit(it);
                  (rit != m_segments.rend() && *rit != last_from_in && !(*rit)->pit().active());
@@ -803,12 +803,12 @@ Three_Vector pit_offset(Gl_Road_Segment const& road_seg,
 {
     auto side{road_seg.pit().side()};
     auto width = [side](auto const& segment, double along){
-        return side == LEFT ? segment.left_width(along) : segment.right_width(along);
+        return side == Side::left ? segment.left_width(along) : segment.right_width(along);
     };
 
     auto pit_width{width(pit_seg, x) / cos(direction)};
     auto along{road_seg.pit().split_or_join()};
-    auto offset{(width(road_seg, along) - pit_width) * (side == LEFT ? 1.0 : -1.0)};
+    auto offset{(width(road_seg, along) - pit_width) * (side == Side::left ? 1.0 : -1.0)};
 
     if (road_seg.radius() == 0.0)
         return rotate(Three_Vector{along, offset, 0.0},
@@ -952,18 +952,22 @@ void Strip_Track::build(bool close, int adjusted_road_segments, double track_len
         mp_pit_lane->build(join_pit_lane, adjusted_pit_segments, in, out, mp_track->elevation());
 
         auto along{in.pit().split_or_join() + 1.0e-6};
-        auto from_center{in.pit().side() == RIGHT
+        auto from_center{in.pit().side() == Side::right
                          ? -in.right_width(along)
                          : in.left_width(along)};
-        m_objects.push_back(Track_Object(position(along + in.start_distance(), from_center),
-                                         in.pit().side() == RIGHT ? in.right_material(0.0)
-                                                                  : in.left_material(0.0)));
+        m_objects.emplace_back(position(along + in.start_distance(), from_center),
+                               in.pit().side() == Side::right
+                               ? in.right_material(0.0)
+                               : in.left_material(0.0));
 
         along = out.pit().split_or_join() - 1.0e-6;
-        from_center = out.pit().side() == RIGHT ? -out.right_width(along) : out.left_width(along);
-        m_objects.push_back(Track_Object(position(along + out.start_distance(), from_center),
-                                         in.pit().side() == RIGHT ? out.right_material(0.0)
-                                                                  : out.left_material(0.0)));
+        from_center = out.pit().side() == Side::right ?
+            -out.right_width(along)
+            : out.left_width(along);
+        m_objects.emplace_back(position(along + out.start_distance(), from_center),
+                               in.pit().side() == Side::right
+                               ? out.right_material(0.0)
+                               : out.left_material(0.0));
     }
 }
 

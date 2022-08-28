@@ -21,7 +21,6 @@
 #define _SUSPENSION_H_
 
 #include "particle.h"
-#include "../geometry/constants.h"
 #include "../geometry/three-vector.h"
 
 #include <vector>
@@ -30,6 +29,8 @@
 namespace Vamos_Body
 {
   struct Suspension_Model;
+
+enum class Side{ left, right };
 
   class Hinge : public Particle
   {
@@ -47,7 +48,7 @@ namespace Vamos_Body
   public:
 	Suspension (const Vamos_Geometry::Three_Vector& position,
 				const Vamos_Geometry::Three_Vector& center_of_translation,
-				Vamos_Geometry::Direction side_of_car, 
+                Side side_of_car,
                 double spring_constant, 
 				double bounce, 
                 double rebound, 
@@ -188,10 +189,9 @@ namespace Vamos_Body
 	// The toe angle in radians.  Positive is toe-in.
 	double m_toe;
 
-	// The side, RIGHT or LEFT, that the suspension is on.  This is
-	// used to choose the right direction for camber, caster and toe
-	// adjustments.
-	Vamos_Geometry::Direction m_side;
+	// The side of the car the suspension is on. This is used to choose the right
+	// direction for camber, caster and toe adjustments.
+      Side m_side;
 
 	// The orientation of the wheel in the absence of steering and
 	// displacement.

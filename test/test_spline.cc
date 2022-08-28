@@ -4,6 +4,8 @@
 
 #include <geometry/spline.h>
 
+#include <cmath>
+
 using namespace Vamos_Geometry;
 
 TEST_CASE("no slope")

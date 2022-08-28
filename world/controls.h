@@ -20,7 +20,6 @@
 #ifndef _CONTROLS_H_
 #define _CONTROLS_H_
 
-#include "../geometry/constants.h"
 
 #include <vector>
 #include <map>
@@ -28,7 +27,16 @@
 
 namespace Vamos_World
 {
-  class Control;
+enum class Direct{none, up, down, left, right, forward, backward, in, out};
+
+/// Convert a scoped enum to its integral type. See https://stackoverflow.com/a/14589519.
+template<typename E>
+constexpr auto to_integral(E e) -> typename std::underlying_type<E>::type
+{
+   return static_cast<typename std::underlying_type<E>::type>(e);
+}
+
+class Control;
 
     /// The base class for classes that can set control callbacks
     class Control_Handler
@@ -102,13 +110,13 @@ namespace Vamos_World
   {
   public:
     void bind_action (int index, 
-                      Vamos_Geometry::Direction direction,
+                      Direct direction,
                       Control_Handler* object,
                       Callback_Function function,
                       double time);
 
     void bind_motion (int axis,
-                      Vamos_Geometry::Direction direction,
+                      Direct direction,
                       Control_Handler* object, 
                       Callback_Function func,
                       double factor,

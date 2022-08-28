@@ -2,7 +2,6 @@
 
 #include "test.h"
 
-#include <geometry/constants.h>
 #include <world/controls.h>
 
 using namespace Vamos_World;
@@ -73,16 +72,16 @@ Keyboard_Fixture::Keyboard_Fixture()
       up_called(false),
       up_arg(0.0)
 {
-    c.bind_action(12, DOWN, (Control_Handler*)this,
+    c.bind_action(12, Direct::down, (Control_Handler*)this,
                   (Callback_Function)&Keyboard_Fixture::on_down_1,
                   1.0);
-    c.bind_action(12, NONE, (Control_Handler*)this,
+    c.bind_action(12, Direct::none, (Control_Handler*)this,
                   (Callback_Function)&Keyboard_Fixture::on_down_2,
                   2.0);
-    c.bind_action(12, DOWN, (Control_Handler*)this,
+    c.bind_action(12, Direct::down, (Control_Handler*)this,
                   (Callback_Function)&Keyboard_Fixture::on_down_3,
                   3.0);
-    c.bind_action(13, UP, (Control_Handler*)this,
+    c.bind_action(13, Direct::up, (Control_Handler*)this,
                   (Callback_Function)&Keyboard_Fixture::on_up, 4.0);
 }
 
@@ -143,13 +142,14 @@ struct Motion_Fixture : public Control_Fixture
 
 Motion_Fixture::Motion_Fixture()
 {
-    c.bind_motion(4, FORWARD, (Control_Handler*)this,
+    c.bind_motion(4, Direct::forward, (Control_Handler*)this,
                   (Callback_Function)&Motion_Fixture::on_move_1_forward,
                   1.0, 0.0, 0.0, 0.0);
-    c.bind_motion(4, BACKWARD, (Control_Handler*)this,
+    c.bind_motion(4, Direct::backward, (Control_Handler*)this,
                   (Callback_Function)&Motion_Fixture::on_move_1_backward,
                   -1.0, 0.0, 0.0, 0.0);
-    c.bind_motion(7, NONE, (Control_Handler*)this, (Callback_Function)&Motion_Fixture::on_move_2,
+    c.bind_motion(7, Direct::none, (Control_Handler*)this,
+                  (Callback_Function)&Motion_Fixture::on_move_2,
                   0.5, 0.5, 0.0, 0.0);
 }
 
@@ -190,7 +190,7 @@ struct Deadband_Fixture : public Control_Fixture
 
 Deadband_Fixture::Deadband_Fixture()
 {
-    c.bind_motion(5, NONE, (Control_Handler*)this,
+    c.bind_motion(5, Direct::none, (Control_Handler*)this,
                   (Callback_Function)&Deadband_Fixture::on_move,
                   2.0, 1.0, 0.1, 0.2);
 }

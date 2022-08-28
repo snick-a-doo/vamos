@@ -145,8 +145,8 @@ Banking::set_start (double start_angle, double length)
 
 //=============================================================================
 Pit_Lane_Transition::Pit_Lane_Transition ()
-  : m_direction (IN),
-    m_side (LEFT),
+    : m_end(End::in),
+    m_side(Side::left),
     m_split_or_join (0.0),
     m_merge (0.0),
     m_angle (0.0),
@@ -157,14 +157,10 @@ Pit_Lane_Transition::Pit_Lane_Transition ()
 {
 }
 
-void
-Pit_Lane_Transition::set_merge (Direction direction,
-                                Direction side,
-                                double split_or_join,
-                                double merge,
-                                double angle)
+void Pit_Lane_Transition::set_merge(End end, Side side, double split_or_join,
+                                    double merge, double angle)
 {
-  m_direction = direction;
+  m_end = end;
   m_side = side;
   m_split_or_join = split_or_join;
   m_merge = merge;
@@ -178,19 +174,20 @@ Pit_Lane_Transition::set_width (double pit_width,
                                 double right_shoulder)
 {
   m_pit_width = skew (pit_width);
-  m_pit_shoulder_width = skew ((m_side == LEFT) ? left_shoulder : right_shoulder);
+  m_pit_shoulder_width = skew(m_side == Side::left ? left_shoulder : right_shoulder);
   m_width_is_set = true;
 }
 
-double
-Pit_Lane_Transition::width (Direction pit_side, double distance, bool narrow) const
+double Pit_Lane_Transition::width(Side pit_side, double distance, bool narrow) const
 {
-  if (pit_side != m_side) return 0.0;
-  if (narrow) return m_pit_width;
-  if (((m_direction == IN) && distance <= m_split_or_join)
-      || ((m_direction == OUT) && distance >= m_split_or_join))
-    return 0.0;
-  return m_pit_width;
+    if (pit_side != m_side)
+        return 0.0;
+    if (narrow)
+        return m_pit_width;
+    if ((m_end == End::in && distance <= m_split_or_join)
+        || (m_end == End::out && distance >= m_split_or_join))
+        return 0.0;
+    return m_pit_width;
 }
 
 void
@@ -301,10 +298,9 @@ Road_Segment::scale_widths (double factor)
   m_right_road_width.scale (factor);
 }
 
-void
-Road_Segment::set_kerb (Kerb* kerb, Direction side)
+void Road_Segment::set_kerb(Kerb* kerb, Side side)
 {
-  if (side == LEFT)
+    if (side == Side::left)
     {
       delete mp_left_kerb;
       mp_left_kerb = kerb;
@@ -316,13 +312,10 @@ Road_Segment::set_kerb (Kerb* kerb, Direction side)
     }
 }
 
-double
-Road_Segment::kerb_width (Vamos_Geometry::Direction side, double along) const
+double Road_Segment::kerb_width(Side side, double along) const
 {
-  const Kerb* kerb = (side == LEFT) ? mp_left_kerb : mp_right_kerb;
-  if ((kerb != 0) && kerb->on_kerb (along))
-    return kerb->width ();
-  return 0.0;
+    const auto* kerb{side == Side::left ? mp_left_kerb : mp_right_kerb};
+    return kerb && kerb->on_kerb(along) ? kerb->width() : 0.0;
 }
 
 void
@@ -458,18 +451,16 @@ Road_Segment::end_coords () const
       - Three_Vector (m_radius, m_start_angle + arc () + pi/2);
 }
 
-double 
-Road_Segment::left_width (double distance, bool narrow) const
+double Road_Segment::left_width (double distance, bool narrow) const
 {
-  return m_left_width.interpolate (distance)
-    - m_pit.width (LEFT, distance, narrow);
+  return m_left_width.interpolate(distance)
+      - m_pit.width(Side::left, distance, narrow);
 }
 
-double 
-Road_Segment::right_width (double distance, bool narrow) const
+double Road_Segment::right_width(double distance, bool narrow) const
 {
-  return m_right_width.interpolate (distance)
-    - m_pit.width (RIGHT, distance, narrow);
+    return m_right_width.interpolate(distance)
+        - m_pit.width (Side::right, distance, narrow);
 }
 
 void 
@@ -537,15 +528,13 @@ Road_Segment::pit_road_connection () const
   return m_pit.split_or_join ();
 }
 
-double
-Road_Segment::extra_road_width (Direction pit_side, 
-                                double distance,
-                                bool narrow) const
+double Road_Segment::extra_road_width(Side pit_side, double distance, bool narrow) const
 {
-  if (narrow || (pit_side != m_pit.side ())) return 0.0;
+  if (narrow || pit_side != m_pit.side())
+      return 0.0;
 
   double width = -m_pit.shoulder_width ();
-  if (pit_side == LEFT)
+  if (pit_side == Side::left)
     width += left_width (distance) - left_road_width (distance, true);
   else
     width += right_width (distance) - right_road_width (distance, true);
@@ -553,11 +542,11 @@ Road_Segment::extra_road_width (Direction pit_side,
   const double extra = width * (distance - m_pit.merge ())
     / (m_pit.split_or_join () - m_pit.merge ());
    
-  if ((m_pit.direction () == IN)
+  if ((m_pit.end() == Pit_Lane_Transition::End::in)
       && (distance > m_pit.merge ())
       && (distance <= m_pit.split_or_join ()))
     return extra;
-  if ((m_pit.direction () == OUT)
+  if ((m_pit.end() == Pit_Lane_Transition::End::out)
       && (distance < m_pit.merge ())
       && (distance >= m_pit.split_or_join ()))
     return extra;
@@ -577,18 +566,16 @@ Road_Segment::right_road_width_no_pit (double distance) const
   return m_right_road_width.interpolate (distance);
 }
 
-double 
-Road_Segment::left_road_width (double distance, bool narrow) const
+double Road_Segment::left_road_width(double distance, bool narrow) const
 {
-  return left_road_width_no_pit (distance)
-    + extra_road_width (LEFT, distance, narrow);
+  return left_road_width_no_pit(distance)
+      + extra_road_width(Side::left, distance, narrow);
 }
 
-double 
-Road_Segment::right_road_width (double distance, bool narrow) const
+double Road_Segment::right_road_width(double distance, bool narrow) const
 {
-  return right_road_width_no_pit (distance)
-    + extra_road_width (RIGHT, distance, narrow);
+    return right_road_width_no_pit(distance)
+        + extra_road_width(Side::right, distance, narrow);
 }
 
 const 
@@ -605,14 +592,13 @@ Road_Segment::set_pit_width (double width,
   m_pit.set_width (width, left_shoulder, right_shoulder);
 }
 
-void 
-Road_Segment::set_pit_lane (Direction direction,
-                            Direction side, 
-                            double split_or_join, 
-                            double merge,
-                            double angle)
+void Road_Segment::set_pit_lane(Pit_Lane_Transition::End end,
+                                Side side,
+                                double split_or_join,
+                                double merge,
+                                double angle)
 {
-  m_pit.set_merge (direction, side, split_or_join, merge, deg_to_rad (angle));
+  m_pit.set_merge (end, side, split_or_join, merge, deg_to_rad (angle));
 }
 
 std::complex <double> 
@@ -696,12 +682,12 @@ double
 Road_Segment::off_track_distance (const Three_Vector& track_position) const
 {
   const double max
-    = ((m_pit.direction () == IN)
+      = ((m_pit.end() == Pit_Lane_Transition::End::in)
        && on_pit_merge (track_position.x, track_position.y))
     ? m_pit.split_or_join () : m_length;
 
   const double min
-    = ((m_pit.direction () == OUT) 
+      = ((m_pit.end() == Pit_Lane_Transition::End::out)
        && on_pit_merge (track_position.x, track_position.y))
     ? m_pit.split_or_join () : 0.0;
 
@@ -719,10 +705,10 @@ Road_Segment::on_pit_merge (double distance, double from_center) const
     return false;
 
   const double from_split = (distance - m_pit.split_or_join ())
-    * ((m_pit.direction () == IN) ? 1.0 : -1.0); 
-  const double from_wall = (m_pit.side () == RIGHT)
-    ? -from_center - right_width (distance)
-    : from_center - left_width (distance);
+      * ((m_pit.end() == Pit_Lane_Transition::End::in) ? 1.0 : -1.0);
+  auto from_wall{m_pit.side () == Side::right
+                 ? -from_center - right_width(distance)
+                 : from_center - left_width(distance)};
 
   return m_pit.active () 
     && (from_split > 0.0) 
@@ -749,11 +735,7 @@ Three_Vector Road_Segment::position(double along, double from_center) const
     return pos + center - rotate(radius * Three_Vector::Y, angle * Three_Vector::Z);
 }
 
-void
-Road_Segment::narrow (Direction side, double delta_width)
+void Road_Segment::narrow(Side side, double delta_width)
 {
-  if (side == RIGHT)
-    m_right_width.shift (-delta_width);
-  else
-    m_left_width.shift (-delta_width);
+    (side == Side::right ? m_right_width : m_left_width).shift (-delta_width);
 }

@@ -55,5 +55,5 @@ Two_Vector Linear_Interpolator::normal(double x) const
 
     auto low{low_index(x)};
     return Two_Vector{m_points[low].y - m_points[low + 1].y,
-                      m_points[low + 1].x - m_points[low].x}.unit ();
+                      m_points[low + 1].x - m_points[low].x}.unit();
 }

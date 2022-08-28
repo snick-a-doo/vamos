@@ -18,7 +18,6 @@
 //  along with Caelum.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "sphere-sky.h"
-#include "../geometry/constants.h"
 
 #include <GL/gl.h>
 

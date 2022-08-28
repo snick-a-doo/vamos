@@ -16,6 +16,8 @@
 #include "rectangle.h"
 
 #include <algorithm>
+#include <cmath>
+#include <iostream>
 #include <numeric>
 
 using namespace Vamos_Geometry;
@@ -40,9 +42,24 @@ Rectangle::Rectangle(const Two_Vector& upper_left, const Two_Vector& lower_right
 {
 }
 
-Vamos_Geometry::Two_Vector Rectangle::center() const
+double Rectangle::width() const
+{
+    return std::abs(m_right - m_left);
+}
+
+double Rectangle::height() const
+{
+    return std::abs(m_top - m_bottom);
+}
+
+Two_Vector Rectangle::center() const
 {
     return {std::midpoint(m_left, m_right), std::midpoint(m_top, m_bottom)};
+}
+
+double Rectangle::aspect() const
+{
+    return width() / height();
 }
 
 Rectangle& Rectangle::enclose(const Rectangle& other)

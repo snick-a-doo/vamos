@@ -976,22 +976,29 @@ Gl_World::set_focused_car (size_t index)
 }
 
 //-----------------------------------------------------------------------------
-
 Map::Map ()
 {
-  m_keyboard.bind_action (SDLK_RIGHT, DOWN, this, (Callback_Function)&Map::pan, RIGHT);
-  m_keyboard.bind_action (SDLK_LEFT, DOWN, this, (Callback_Function)&Map::pan, LEFT);
-  m_keyboard.bind_action (SDLK_UP, DOWN, this, (Callback_Function)&Map::pan, UP);
-  m_keyboard.bind_action (SDLK_DOWN, DOWN, this, (Callback_Function)&Map::pan, DOWN);
+  m_keyboard.bind_action (SDLK_RIGHT, Direct::down, this,
+                          (Callback_Function)&Map::pan, to_integral(Direct::right));
+  m_keyboard.bind_action (SDLK_LEFT, Direct::down, this,
+                          (Callback_Function)&Map::pan, to_integral(Direct::left));
+  m_keyboard.bind_action (SDLK_UP, Direct::down, this,
+                          (Callback_Function)&Map::pan, to_integral(Direct::up));
+  m_keyboard.bind_action (SDLK_DOWN, Direct::down, this,
+                          (Callback_Function)&Map::pan, to_integral(Direct::down));
 
-  m_keyboard.bind_action ('=', DOWN, this, (Callback_Function)&Map::zoom, IN);
-  m_keyboard.bind_action ('+', DOWN, this, (Callback_Function)&Map::zoom, IN);
-  m_keyboard.bind_action ('-', DOWN, this, (Callback_Function)&Map::zoom, OUT);
-  m_keyboard.bind_action ('_', DOWN, this, (Callback_Function)&Map::zoom, OUT);
+  m_keyboard.bind_action ('=', Direct::down, this,
+                          (Callback_Function)&Map::zoom, to_integral(Direct::in));
+  m_keyboard.bind_action ('+', Direct::down, this,
+                          (Callback_Function)&Map::zoom, to_integral(Direct::in));
+  m_keyboard.bind_action ('-', Direct::down, this,
+                          (Callback_Function)&Map::zoom, to_integral(Direct::out));
+  m_keyboard.bind_action ('_', Direct::down, this,
+                          (Callback_Function)&Map::zoom, to_integral(Direct::out));
 
   for (char c = '1'; c <= '9'; c++)
-    m_keyboard.bind_action (c, DOWN, this, (Callback_Function)&Map::set_zoom, 
-                            c - '1' + 1);
+    m_keyboard.bind_action (c, Direct::down, this,
+                            (Callback_Function)&Map::set_zoom, c - '1' + 1);
 }
 
 void
@@ -1027,20 +1034,23 @@ bool
 Map::pan (double, double direction)
 {
   const double delta = 0.05 * std::max (m_bounds.width (), m_bounds.height ());
-  switch (int (direction))
+  switch (Direct(direction))
     {
-    case LEFT:
+    case Direct::left:
       m_bounds.move (Two_Vector (-delta, 0));
       break;
-    case RIGHT:
+    case Direct::right:
       m_bounds.move (Two_Vector (delta, 0));
       break;
-    case UP:
+    case Direct::up:
       m_bounds.move (Two_Vector (0, delta));
       break;
-    case DOWN:
+    case Direct::down:
       m_bounds.move (Two_Vector (0, -delta));
       break;
+    default:
+        assert(false);
+        break;
     }
   return true;
 }
@@ -1049,14 +1059,17 @@ bool
 Map::zoom (double, double direction)
 {
   static const double factor = 1.1;
-  switch (int (direction))
+  switch (Direct(direction))
     {
-    case IN:
+    case Direct::in:
       m_bounds.scale (1.0 / factor);
       break;
-    case OUT:
+    case Direct::out:
       m_bounds.scale (factor);
       break;
+    default:
+        assert(false);
+        break;
     }
   return true;
 }
@@ -1274,7 +1287,7 @@ void Controls_Reader::on_start_tag(const Vamos_Media::XML_Tag&)
     {
       m_function = "";
       m_control = 0;
-      m_direction = NONE;
+      m_direction = Direct::none;
       m_factor = 1.0;
       m_offset = 0.0;
       m_deadband = 0.0;
@@ -1340,17 +1353,17 @@ Controls_Reader::register_callback
 void Controls_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
 {
   if (label () == "up")
-    m_direction = UP;
+    m_direction = Direct::up;
   else if (label () == "down")
-    m_direction = DOWN;
+    m_direction = Direct::down;
   else if (label () == "left")
-    m_direction = LEFT;
+    m_direction = Direct::left;
   else if (label () == "right")
-    m_direction = RIGHT;
+    m_direction = Direct::right;
   else if (label () == "forward")
-    m_direction = FORWARD;
+    m_direction = Direct::forward;
   else if (label () == "backward")
-    m_direction = BACKWARD;
+      m_direction = Direct::backward;
 
   else if (label () == "bind")
     {

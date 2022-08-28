@@ -19,7 +19,6 @@
 
 #include "model.h"
 #include "texture-image.h"
-#include "../geometry/constants.h"
 #include "../geometry/three-matrix.h"
 
 #include <algorithm>
