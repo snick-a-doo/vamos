@@ -35,42 +35,35 @@ using namespace Vamos_Track;
 const double slipstream_time_constant = 0.7;
 
 //-----------------------------------------------------------------------------
-
-Car_Information::Car_Information (Car* car_in, Driver* driver_in) 
- : road_index (0), 
-   segment_index (0), 
-   car (car_in),
-   driver (driver_in),
-   m_record (1000)
+Car_Information::Car_Information(Car* car_in, Driver* driver_in)
+    : car{car_in},
+      driver{driver_in}
 {
 }
 
-void Car_Information::reset ()
+void Car_Information::reset()
 {
-  road_index = 0;
-  segment_index = 0;
-  if (driver != 0)
+    road_index = 0;
+    segment_index = 0;
     driver->reset ();
-  car->reset ();
+    car->reset();
 }
 
-void Car_Information::propagate (double time_step,
-                                 double total_time,
-                                 const Three_Vector& track_position,
-                                 const Three_Vector& pointer_position)
+void Car_Information::propagate(double time_step, double total_time,
+                                Three_Vector const& track_position,
+                                Three_Vector const& pointer_position)
 {
-  m_record.push_back (Record (total_time, car, track_position));
-  m_pointer_position = pointer_position;
-  if (driver != 0)
-    driver->propagate (time_step);
-  car->propagate (time_step);
+    m_record.emplace_back(total_time, car, track_position);
+    m_pointer_position = pointer_position;
+    driver->propagate(time_step);
+    car->propagate (time_step);
 }
 
-const Three_Vector& Car_Information::track_position () const
+const Three_Vector& Car_Information::track_position() const
 {
-  if (m_record.size () == 0)
-    return Three_Vector::ZERO;
-  return m_record.back ().m_track_position; 
+    if (m_record.empty())
+        return Three_Vector::ZERO;
+    return m_record.back().m_track_position;
 }
 
 //-----------------------------------------------------------------------------
@@ -281,8 +274,8 @@ World::interact (Car* car,
           Three_Vector v_par = velocity - v_perp;
           m_interaction_info.
             push_back (Interaction_Info (car,
-                                         (*it)->material ().type (), 
-                                         info.material.type (),
+                                         (*it)->material().composition(),
+                                         info.material.composition(),
                                          v_par.magnitude (), 
                                          v_perp.magnitude ()));
         }
@@ -309,7 +302,8 @@ World::interact (Car* car,
         auto v_perp{velocity.project(info.normal)};
         auto v_par{velocity - v_perp};
         m_interaction_info.push_back(Interaction_Info(
-                                         car, object.material.type(), info.material.type(),
+                                         car, object.material.composition(),
+                                         info.material.composition(),
                                          v_par.magnitude(),
                                          v_perp.magnitude()));
     }
@@ -377,8 +371,8 @@ World::collide (Car_Information* car1_info, Car_Information* car2_info)
           Three_Vector v_par = velocity - v_perp;
           m_interaction_info.
             push_back (Interaction_Info (car1,
-                                         info.material.type (),
-                                         info.material.type (),
+                                         info.material.composition(),
+                                         info.material.composition(),
                                          v_par.magnitude (), 
                                          v_perp.magnitude ()));
         }
@@ -460,17 +454,16 @@ World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
   car->chassis ().translate (Three_Vector (0.0, 0.0, track_pos.z - gap));
 }
 
-void 
-World::add_car (Car& car, Driver& driver)
+void World::add_car(Car& car, Driver& driver)
 {
-  car.chassis ().gravity (Three_Vector (0.0, 0.0, -m_gravity));
-  m_cars.push_back (Car_Information (&car, &driver));
-  driver.set_cars (&m_cars);
+    car.chassis().gravity(-m_gravity * Three_Vector::Z);
+    m_cars.emplace_back(&car, &driver);
+    driver.set_cars (&m_cars);
 
-  place_car (&car, car.chassis ().position (), m_track.get_road (0));
+    place_car(&car, car.chassis ().position (), m_track.get_road (0));
 
-  if (driver.is_interactive ())
-    set_controlled_car (m_cars.size () - 1);
+    if (driver.is_interactive())
+        set_controlled_car(m_cars.size() - 1);
 }
 
 void 

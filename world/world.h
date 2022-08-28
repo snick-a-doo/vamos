@@ -48,44 +48,42 @@ namespace Vamos_Track
 
 namespace Vamos_World
 {
-  class Driver;
+class Driver;
 
-  struct Car_Information
-  {
-    Car_Information (Vamos_Body::Car* car_in, Driver* driver_in);
+struct Car_Information
+{
+    Car_Information(Vamos_Body::Car* car_in, Driver* driver_in);
 
-    void reset ();
-    void propagate (double time_step, 
-                    double total_time,
-                    const Vamos_Geometry::Three_Vector& track_position,
-                    const Vamos_Geometry::Three_Vector& pointer_position);
-    const Vamos_Geometry::Three_Vector& track_position () const;
+    void reset();
+    void propagate(double time_step, double total_time,
+                   Vamos_Geometry::Three_Vector const& track_position,
+                   Vamos_Geometry::Three_Vector const& pointer_position);
+    Vamos_Geometry::Three_Vector const& track_position() const;
 
-    size_t road_index;
-    size_t segment_index;
-    Vamos_Body::Car* car;
-    Driver* driver;
+    size_t road_index{0};
+    size_t segment_index{0};
+    Vamos_Body::Car* car{nullptr};
+    Driver* driver{nullptr};
     Vamos_Geometry::Three_Vector m_pointer_position;
 
     struct Record
     {
-      Record () {};
-      Record (double time, 
-              Vamos_Body::Car* car,
-              const Vamos_Geometry::Three_Vector& track_position);
+        Record(){};
+        Record(double time, Vamos_Body::Car* car,
+               Vamos_Geometry::Three_Vector const& track_position);
 
-      double m_time;
-      Vamos_Geometry::Three_Vector m_track_position;
-      Vamos_Geometry::Three_Vector m_position;
+        double m_time{0.0};
+        Vamos_Geometry::Three_Vector m_track_position;
+        Vamos_Geometry::Three_Vector m_position;
         Vamos_Geometry::Three_Matrix m_orientation{1.0};
     };
 
-    Vamos_Geometry::Circular_Buffer <Record> m_record;
-  };
+    Vamos_Geometry::Circular_Buffer<Record, 1000> m_record;
+};
 
   struct Interaction_Info
   {
-    typedef Vamos_Geometry::Material::Material_Type Mat_Type;
+    using Mat_Type = Vamos_Geometry::Material::Composition;
 
     Interaction_Info (Vamos_Body::Car* car_in, 
                       Mat_Type car_material_type, 

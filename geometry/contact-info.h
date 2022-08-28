@@ -24,13 +24,10 @@ namespace Vamos_Geometry
 /// Information about a collision between a point and a surface.
 struct Contact_Info
 {
-    /// True if a collision occurred, false otherwise.
-    bool contact{false};
+    bool contact{false}; ///< True if a collision occurred, false otherwise.
     /// How far the point had penetrated the surface when the collision was detected.
-    double depth{0.0};
-    /// The vector normal to the surface.
-    Three_Vector normal;
-    /// The material of the surface.
+    double depth{0.0}; ///< The vector normal to the surface.
+    Three_Vector normal; ///< The material of the surface.
 	Material material;
 };
 }

@@ -398,7 +398,7 @@ Rigid_Body::temporary_contact (const Three_Vector& position,
 {
   Contact_Point* point = new Contact_Point (0.0,
                                             transform_from_parent (position),
-                                            material.type (), 0.0, 1.0, 
+                                            material.composition(), 0.0, 1.0,
                                             this);
 
   // The material, restitution and friction are not used for temporaries.

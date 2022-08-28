@@ -34,14 +34,14 @@ namespace Vamos_Body
 	Contact_Point (double mass, 
                    const Vamos_Geometry::Three_Vector& position, 
 				   const Vamos_Geometry::Three_Matrix& orientation,
-				   Vamos_Geometry::Material::Material_Type type,
+				   Vamos_Geometry::Material::Composition type,
 				   double friction, 
                    double restitution,
                    const Frame* parent = 0);
 
 	// Take the parent's orientation.
 	Contact_Point (double mass, const Vamos_Geometry::Three_Vector& position,
-				   Vamos_Geometry::Material::Material_Type type,
+				   Vamos_Geometry::Material::Composition type,
 				   double friction, double restitution,
                    const Frame* parent = 0);
 

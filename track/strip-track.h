@@ -521,7 +521,7 @@ private:
     bool m_join_pit_lane;
     double m_length;
 
-    Vamos_Geometry::Material::Material_Type m_material_type;
+    Vamos_Geometry::Material::Composition m_material_type;
     Vamos_Geometry::Two_Vector m_bump_amplitude;
 
     std::vector<Gl_Road_Segment::Model_Info> m_model_info;

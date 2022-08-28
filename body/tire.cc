@@ -275,7 +275,7 @@ Tire::find_forces ()
   // foces (acceleration and braking).
 
   // Skip this step if we don't have a surface yet.
-  if (m_surface_material.type () == Material::UNKNOWN)
+  if (m_surface_material.composition() == Material::UNKNOWN)
       return;
 
   m_slide = 0.0;

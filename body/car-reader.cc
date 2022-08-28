@@ -538,7 +538,7 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
     }
   else if (label () == "contact-point")
     {
-      Material::Material_Type material = Material::UNKNOWN;
+      Material::Composition material = Material::UNKNOWN;
       if (m_strings [0] == "rubber")
         material = Material::RUBBER;
       else if (m_strings [0] == "metal")

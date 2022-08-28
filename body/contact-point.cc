@@ -27,7 +27,7 @@ using namespace Vamos_Body;
 Contact_Point::Contact_Point (double mass, 
                               const Three_Vector& position, 
                               const Three_Matrix& orientation,
-                              Material::Material_Type type,
+                              Material::Composition type,
                               double friction, 
                               double restitution,
                               const Frame* parent) 
@@ -40,7 +40,7 @@ Contact_Point::Contact_Point (double mass,
 // Take the parent's orientation.
 Contact_Point::Contact_Point (double mass, 
                const Three_Vector& position,
-			   Material::Material_Type type,
+			   Material::Composition type,
 			   double friction, 
                double restitution,
                const Frame* parent) 
