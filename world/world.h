@@ -50,6 +50,12 @@ namespace Vamos_World
 {
 class Driver;
 
+struct Atmosphere
+{
+    double density; ///< Gas density in kg/m³.
+    Vamos_Geometry::Three_Vector velocity; ///< Wind speed
+};
+
 struct Car_Information
 {
     Car_Information(Vamos_Body::Car* car_in, Driver* driver_in);

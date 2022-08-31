@@ -488,7 +488,7 @@
     </road>
     <road segment="straight">
       <resolution>10.0</resolution>
-	  <length>350.0</length>
+	  <length>300.0</length>
       <model>
 	    <file>garage.ac</file>
 	    <scale>10.0</scale>

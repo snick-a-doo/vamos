@@ -15,7 +15,6 @@
 //  You should have received a copy of the GNU General Public License
 //  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "atmosphere.h"
 #include "driver.h"
 #include "timing-info.h"
 #include "world.h"
@@ -185,8 +184,7 @@ World::propagate_cars (double time_step)
         }
       
       // Handle air resistance.
-      info.car->wind (m_atmosphere.velocity (), 
-                      m_atmosphere.density () * air_density_factor);
+      info.car->wind(m_atmosphere.velocity, m_atmosphere.density * air_density_factor);
     }
 }
 

@@ -24,7 +24,8 @@
 #include "controls.h"
 
 #include "../geometry/rectangle.h"
-#include "../media/xml-parser.h"
+
+#include <GL/gl.h>
 
 namespace Vamos_Geometry
 {
@@ -43,7 +44,9 @@ namespace Vamos_Track
 
 namespace Vamos_World
 {
+class Controls_Reader;
   class Sounds;
+class World_Reader;
 
   class Gl_Window
   {
@@ -176,9 +179,9 @@ namespace Vamos_World
                      const Gl_Window& window);
     void set_view ();
 
-    virtual Control& joystick () { return m_joystick; }
-    virtual Control& keyboard () { return m_keyboard; }
-    virtual Control& mouse () { return m_mouse; }
+      virtual Control& joystick() override { return m_joystick; }
+      virtual Control& keyboard() override { return m_keyboard; }
+      virtual Control& mouse() override { return m_mouse; }
 
     Control m_joystick;
     Control m_keyboard;
@@ -300,66 +303,11 @@ namespace Vamos_World
     void set_attributes ();
   };
 
-  class World_Reader : public Vamos_Media::XML_Parser
-  {
-    void on_start_tag (const Vamos_Media::XML_Tag& tag); 
-    void on_end_tag (const Vamos_Media::XML_Tag& tag); 
-    void on_data (std::string data_string);
-
-    std::string m_path;
-
-    Gl_World* mp_world;
-
-  public:
-    World_Reader (std::string file_name, Gl_World* world);
-  };
-
   struct Unknown_Function
   {
     std::string m_function;
     Unknown_Function (std::string func) : m_function (func) {};
   };
-  
-
-// Controls_Reader is here because it needs Gl_World's
-  // declarations.   If it were in Controls.h, then Controls.h and
-  // Gl_World.h would be dependent on each other.
-  class Controls_Reader : public Vamos_Media::XML_Parser
-  {
-    void on_start_tag (const Vamos_Media::XML_Tag& tag); 
-    void on_end_tag (const Vamos_Media::XML_Tag& tag); 
-    void on_data (std::string data_string);
-
-    void register_callback (std::map <std::string, Callback_Function>::iterator it,
-                            Control_Handler* handler);
-
-    Gl_World* mp_world;
-
-    std::map <std::string, Callback_Function> m_world_function_map;
-    std::map <std::string, Callback_Function> m_driver_function_map;
-
-    enum Control_Type
-      {
-        KEY,
-        JOYSTICK_BUTTON,
-        JOYSTICK_AXIS,
-        MOUSE_BUTTON,
-        MOUSE_MOTION
-      };
-
-    Control_Type m_type;
-    int m_control;
-    Direct m_direction;
-    std::string m_function;
-    double m_factor;
-    double m_offset;
-    double m_deadband;
-    double m_upper_deadband;
-    double m_time;
-
-  public:
-    Controls_Reader (std::string file_name, Gl_World* world);
-  };
-}
+} // namespace Vamos_World
 
 #endif // not _GL_WORLD_

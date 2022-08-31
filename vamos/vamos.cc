@@ -18,7 +18,6 @@
 #include "../body/gl-car.h"
 #include "../media/model.h"
 #include "../track/strip-track.h"
-#include "../world/atmosphere.h"
 #include "../world/gl-world.h"
 #include "../world/sounds.h"
 #include "../world/interactive-driver.h"
@@ -26,6 +25,7 @@
 #include "options.h"
 
 #include <filesystem>
+#include <iostream>
 
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;

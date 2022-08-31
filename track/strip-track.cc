@@ -722,7 +722,7 @@ void Road::join(Three_Vector const&, // start_coords,
     // Make the last segment parallel to the first by changing the length of the last
     // curve.
     auto last_arc{0.0};
-    if (last_curve != 0)
+    if (last_curve)
     {
         last_arc = last_curve->arc() + branch(end_angle - last_curve->end_angle(), -pi);
         last_curve->set_arc(last_arc);
@@ -732,13 +732,12 @@ void Road::join(Three_Vector const&, // start_coords,
     }
     if (adjusted_segments > 1)
     {
-        // Make the last segment collinear with the first.
+        // Make the last segment colinear with the first.
         const auto perp{perpendicular_distance(last_curve->end_coords(), end_coords, end_angle)};
         switch (adjusted_segments)
         {
         case 2:
             // Change the radius of the curve.
-            //  last_curve->set_radius (last_curve->radius () + perp / cos (last_arc));
             last_curve->set_radius(last_curve->radius() + perp / (1.0 - cos(last_arc)));
             break;
         case 3:
@@ -750,7 +749,7 @@ void Road::join(Three_Vector const&, // start_coords,
             assert(false);
         }
         // Propagate any adjustments to the end of the track.
-        connect(m_segments.end() - 2);
+        connect(m_segments.end() - adjusted_segments + 1);
     }
 
     // Extend the last segment to meet the first.  Assume they are collinear.
@@ -779,7 +778,7 @@ void Road::connect(Segment_List::iterator it)
     if (it == m_segments.begin())
         ++it;
 
-    const auto* last = *(it - 1);
+    const auto* last{*(it - 1)};
     for (; it != m_segments.end(); ++it)
     {
         (*it)->set_start_angle(last->end_angle());

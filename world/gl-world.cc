@@ -15,19 +15,18 @@
 //  You should have received a copy of the GNU General Public License
 //  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "../body/gl-car.h"
-#include "../body/fuel-tank.h"
-#include "../body/wheel.h"
-#include "../geometry/conversions.h"
-#include "../media/two-d.h"
-#include "../track/strip-track.h"
-
-#include "atmosphere.h"
 #include "gl-world.h"
 #include "interactive-driver.h"
 #include "robot-driver.h"
 #include "sounds.h"
 #include "timing-info.h"
+
+#include "../body/gl-car.h"
+#include "../body/wheel.h"
+#include "../geometry/conversions.h"
+#include "../media/xml-parser.h"
+#include "../media/two-d.h"
+#include "../track/strip-track.h"
 
 #include <SDL/SDL.h>
 #include <GL/glut.h>
@@ -46,6 +45,69 @@ using namespace Vamos_Geometry;
 using namespace Vamos_World;
 
 enum Mouse_Axis{X, Y};
+
+namespace Vamos_World
+{
+/// Reader for the file with bindings for keyboard, mouse, and joystick.
+class Controls_Reader : public Vamos_Media::XML_Parser
+{
+public:
+    /// Read the controls file.
+    Controls_Reader(std::string const& file_name, Gl_World* world);
+
+private:
+    /// XML_Parser methods
+    /// @{
+    virtual void on_start_tag(Vamos_Media::XML_Tag const& tag) override;
+    virtual void on_end_tag(Vamos_Media::XML_Tag const& tag) override;
+    virtual void on_data(std::string data_string) override;
+    /// @}
+
+    using Call_Map = std::map<std::string, Callback_Fn>;
+
+    /// Register a callback for the given handler.
+    void register_callback(Call_Map::iterator it, Control_Handler* handler);
+
+    Gl_World* mp_world; ///< The world object whose methods we're binding.
+
+    Call_Map m_world_function_map;  ///< Map for looking up world functions by name.
+    Call_Map m_driver_function_map; ///< Map for looking up driver functions by name.
+
+    enum class Control
+    {
+        key,
+        joystick_button,
+        joystick_axis,
+        mouse_button,
+        mouse_motion
+    };
+
+    Control m_type{Control::key}; ///< The kind of control being bound.
+    int m_control{0}; ///< ID of the button, key, axis, etc.
+    Direct m_direction{Direct::none}; ///< The direction of actuation.
+    /// The name of the function to call when the control is actuated. Must be a key in
+    /// one of the call maps above.
+    std::string m_function;
+    Calibration m_calib{}; ///< Scaling, offset, etc. of the control value.
+    double m_time{0.0}; ///< How long to fade in the effect of actuation.
+};
+
+//----------------------------------------------------------------------------------------
+class World_Reader : public Vamos_Media::XML_Parser
+{
+public:
+    World_Reader(std::string const& file_name, Gl_World* world);
+
+    virtual void on_start_tag(const Vamos_Media::XML_Tag&) override {}
+    virtual void on_end_tag(const Vamos_Media::XML_Tag&) override {}
+    virtual void on_data(std::string data_string) override;
+
+private:
+    std::string m_path;
+
+    Gl_World* mp_world;
+};
+} // namespace Vamos_World
 
 //-----------------------------------------------------------------------------
 static std::string 
@@ -510,18 +572,16 @@ Gl_World::play_sounds ()
     }
 
   m_interaction_info.clear ();
-  const Three_Vector& p = focused_car ()->car->chassis ().position ();
-
-  m_sounds.play_tire_squeal_sound (tire_slide, p);
-  m_sounds.play_kerb_sound (kerb_speed, p);
-  m_sounds.play_grass_sound (grass_speed, p);
-  m_sounds.play_gravel_sound (gravel_speed, p);
-  m_sounds.play_scrape_sound (scrape_speed, p);
-  m_sounds.play_wind_sound ((focused_car ()->car->chassis ().cm_velocity () 
-                             - m_atmosphere.velocity ()).magnitude (),
-                            p);
-  m_sounds.play_hard_crash_sound (hard_crash_speed, p);
-  m_sounds.play_soft_crash_sound (soft_crash_speed, p);
+  auto const& chassis{focused_car()->car->chassis()};
+  m_sounds.play_tire_squeal_sound (tire_slide, chassis.position());
+  m_sounds.play_kerb_sound (kerb_speed, chassis.position());
+  m_sounds.play_grass_sound (grass_speed, chassis.position());
+  m_sounds.play_gravel_sound (gravel_speed, chassis.position());
+  m_sounds.play_scrape_sound (scrape_speed, chassis.position());
+  m_sounds.play_wind_sound((chassis.cm_velocity() - m_atmosphere.velocity).magnitude(),
+                           chassis.position());
+  m_sounds.play_hard_crash_sound (hard_crash_speed, chassis.position());
+  m_sounds.play_soft_crash_sound (soft_crash_speed, chassis.position());
 }
 
 void 
@@ -978,27 +1038,27 @@ Gl_World::set_focused_car (size_t index)
 //-----------------------------------------------------------------------------
 Map::Map ()
 {
-  m_keyboard.bind_action (SDLK_RIGHT, Direct::down, this,
-                          (Callback_Function)&Map::pan, to_integral(Direct::right));
-  m_keyboard.bind_action (SDLK_LEFT, Direct::down, this,
-                          (Callback_Function)&Map::pan, to_integral(Direct::left));
-  m_keyboard.bind_action (SDLK_UP, Direct::down, this,
-                          (Callback_Function)&Map::pan, to_integral(Direct::up));
-  m_keyboard.bind_action (SDLK_DOWN, Direct::down, this,
-                          (Callback_Function)&Map::pan, to_integral(Direct::down));
+    m_keyboard.bind_action(SDLK_RIGHT, Direct::down, std::bind_front(&Map::pan, this),
+                           to_integral(Direct::right));
+    m_keyboard.bind_action(SDLK_LEFT, Direct::down, std::bind_front(&Map::pan, this),
+                          to_integral(Direct::left));
+    m_keyboard.bind_action(SDLK_UP, Direct::down, std::bind_front(&Map::pan, this),
+                          to_integral(Direct::up));
+    m_keyboard.bind_action(SDLK_DOWN, Direct::down, std::bind_front(&Map::pan, this),
+                          to_integral(Direct::down));
 
-  m_keyboard.bind_action ('=', Direct::down, this,
-                          (Callback_Function)&Map::zoom, to_integral(Direct::in));
-  m_keyboard.bind_action ('+', Direct::down, this,
-                          (Callback_Function)&Map::zoom, to_integral(Direct::in));
-  m_keyboard.bind_action ('-', Direct::down, this,
-                          (Callback_Function)&Map::zoom, to_integral(Direct::out));
-  m_keyboard.bind_action ('_', Direct::down, this,
-                          (Callback_Function)&Map::zoom, to_integral(Direct::out));
+    m_keyboard.bind_action('=', Direct::down, std::bind_front(&Map::zoom, this),
+                           to_integral(Direct::in));
+    m_keyboard.bind_action('+', Direct::down, std::bind_front(&Map::zoom, this),
+                           to_integral(Direct::in));
+    m_keyboard.bind_action('-', Direct::down, std::bind_front(&Map::zoom, this),
+                           to_integral(Direct::out));
+    m_keyboard.bind_action('_', Direct::down, std::bind_front(&Map::zoom, this),
+                           to_integral(Direct::out));
 
-  for (char c = '1'; c <= '9'; c++)
-    m_keyboard.bind_action (c, Direct::down, this,
-                            (Callback_Function)&Map::set_zoom, c - '1' + 1);
+    for (char c = '1'; c <= '9'; c++)
+        m_keyboard.bind_action(c, Direct::down, std::bind_front(&Map::set_zoom, this),
+                               c - '1' + 1);
 }
 
 void
@@ -1082,363 +1142,260 @@ Map::set_zoom (double, double factor)
   return true;
 }
 
-//* Class World_Reader
-
-//** Constructor
-
-World_Reader::World_Reader (std::string file_name, Gl_World* world) 
-  : mp_world (world)
+//----------------------------------------------------------------------------------------
+World_Reader::World_Reader(std::string const& file_name, Gl_World* world)
+    : mp_world{world}
 {
-  read (file_name);
+    read(file_name);
 }
 
-void World_Reader::on_start_tag(Vamos_Media::XML_Tag const&)
+void World_Reader::on_data(std::string data)
 {
-}
+    if (data.empty())
+        return;
 
-void World_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
-{
-}
+    std::istringstream is(data.c_str());
 
-void 
-World_Reader::on_data (std::string data)
-{
-  if (data.size () == 0)
+    if (path() == "/world/gravity")
     {
-      return;
+        double grav;
+        is >> grav;
+        mp_world->gravity(grav);
     }
-  std::istringstream is (data.c_str ());
-
-  if (path () == "/world/gravity")
+    else if (path() == "/world/atmosphere/density")
+        is >> mp_world->m_atmosphere.density;
+    else if (path() == "/world/atmosphere/velocity")
+        is >> mp_world->m_atmosphere.velocity;
+    else if (path() == "/world/atmosphere/speed-of-sound")
     {
-      double grav;
-      is >> grav;
-      mp_world->gravity (grav);
+        float v_s;
+        is >> v_s;
+        alSpeedOfSound(v_s);
     }
-  else if (path () == "/world/atmosphere/density")
+    else if (path() == "/world/lighting/source-position")
     {
-      double density;
-      is >> density;
-      mp_world->m_atmosphere.density (density);
+        Three_Vector pos;
+        is >> pos;
+        GLfloat position[] = {float(pos.x), float(pos.y), float(pos.z), 0.0f};
+        glLightfv(GL_LIGHT0, GL_POSITION, position);
     }
-  else if (path () == "/world/atmosphere/velocity")
+    else if (path() == "/world/lighting/ambient")
     {
-      Three_Vector velocity;
-      is >> velocity;
-      mp_world->m_atmosphere.velocity (velocity);
-    }
-  else if (path () == "/world/atmosphere/speed-of-sound")
-    {
-      float v_s;
-      is >> v_s;
-      alSpeedOfSound (v_s);
-    }
-  else if (path () == "/world/lighting/source-position")
-    {
-      Three_Vector pos;
-      is >> pos;
-      GLfloat position [] = { float (pos.x), float (pos.y), float (pos.z), 0.0f };
-      glLightfv (GL_LIGHT0, GL_POSITION, position);
-    }
-  else if (path () == "/world/lighting/ambient")
-    {
-      Three_Vector amb;
-      is >> amb;
-      GLfloat ambient [] = { float (amb.x), float (amb.y), float (amb.z), 1.0f };
-      glLightfv (GL_LIGHT0, GL_AMBIENT, ambient);
+        Three_Vector amb;
+        is >> amb;
+        GLfloat ambient[] = {float(amb.x), float(amb.y), float(amb.z), 1.0f};
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
     }
 }
 
-//* Class Controls_Reader
-static int 
-translate_key (std::string key_name)
+//----------------------------------------------------------------------------------------
+std::map<std::string, int> key_map{
+    {"escape", 27}, {"delete", 127},
+    {"up", SDLK_UP}, {"down", SDLK_DOWN},
+    {"left", SDLK_LEFT}, {"right", SDLK_RIGHT},
+    {"insert", SDLK_INSERT}, {"home", SDLK_HOME}, {"end", SDLK_END},
+    {"page up", SDLK_PAGEUP}, {"page down", SDLK_PAGEDOWN},
+    {"f1", SDLK_F1}, {"f2", SDLK_F2}, {"f3", SDLK_F3}, {"f4", SDLK_F4},
+    {"f5", SDLK_F5}, {"f6", SDLK_F6}, {"f7", SDLK_F7}, {"f8", SDLK_F8},
+    {"f9", SDLK_F9}, {"f10", SDLK_F10}, {"f11", SDLK_F11}, {"f12", SDLK_F12},
+    {"left", SDL_BUTTON_LEFT}, {"middle", SDL_BUTTON_MIDDLE}, {"middle", SDL_BUTTON_RIGHT},
+};
+
+static int translate_key(std::string key_name)
 {
-  // If key_name is a single character, return its integer value...
-  if (key_name.size () == 1)
-    return int (key_name [0]);
-
-  // ...otherwise, try to interpret it as the name of a special key.
-
-  // Downcase the string to do case-insensinive comparisons.
-  std::transform (key_name.begin (), key_name.end (), key_name.begin (),
-                  ::tolower);
-
-  if (key_name == "escape")
-      return 27;
-  if (key_name == "delete")
-      return 127;
-  if (key_name == "up")
-      return SDLK_UP;
-  if (key_name == "down")
-      return SDLK_DOWN;
-  if (key_name == "left")
-      return SDLK_LEFT;
-  if (key_name == "right")
-      return SDLK_RIGHT;
-  if (key_name == "insert")
-      return SDLK_INSERT;
-  if (key_name == "home")
-      return SDLK_HOME;
-  if (key_name == "end")
-      return SDLK_END;
-  if (key_name == "page up")
-      return SDLK_PAGEUP;
-  if (key_name == "page down")
-      return SDLK_PAGEDOWN;
-  if (key_name == "f1")
-      return SDLK_F1;
-  if (key_name == "f2")
-      return SDLK_F2;
-  if (key_name == "f3")
-      return SDLK_F3;
-  if (key_name == "f4")
-      return SDLK_F4;
-  if (key_name == "f5")
-      return SDLK_F5;
-  if (key_name == "f6")
-      return SDLK_F6;
-  if (key_name == "f7")
-      return SDLK_F7;
-  if (key_name == "f8")
-      return SDLK_F8;
-  if (key_name == "f9")
-      return SDLK_F9;
-  if (key_name == "f10")
-      return SDLK_F10;
-  if (key_name == "f11")
-      return SDLK_F11;
-  if (key_name == "f12")
-      return SDLK_F12;
-
-  assert (false);
-  return 0;
+  // If key_name is a single character, return its integer value.
+  if (key_name.size() == 1)
+      return static_cast<int>(key_name[0]);
+  // Downcase the string to do case-insensitive lookup.
+  std::transform(key_name.begin(), key_name.end(), key_name.begin(), ::tolower);
+  return key_map[key_name];
 }
 
-static int 
-mouse_button_to_control (std::string button)
+//----------------------------------------------------------------------------------------
+Controls_Reader::Controls_Reader(std::string const& file_name, Gl_World* world)
+    : mp_world{world}
 {
-  if ((button == "middle") || (button == "Middle") || (button == "MIDDLE"))
-      return SDL_BUTTON_MIDDLE;
-  if ((button == "right") || (button == "Right") || (button == "RIGHT"))
-      return SDL_BUTTON_RIGHT;
-  return SDL_BUTTON_LEFT;
-}
+    // Turn on if we bind mouse motion events.
+    SDL_ShowCursor(false);
 
-//** Constructor
-
-Controls_Reader::Controls_Reader (std::string file_name, Gl_World* world) 
-  : mp_world (world)
-{
-  SDL_ShowCursor (false);
-  // Turn on if we bind mouse motion events.
-
-  m_world_function_map ["pause"] = (Callback_Function)&Gl_World::pause;
-  m_world_function_map ["quit"] = (Callback_Function)&Gl_World::quit;
-  m_world_function_map ["read track"] = (Callback_Function)&Gl_World::read_track;
-  m_world_function_map ["read world"] = (Callback_Function)&Gl_World::read_world;
-  m_world_function_map ["cycle view"] = (Callback_Function)&Gl_World::cycle_view;
-  m_world_function_map ["toggle graphics"] = (Callback_Function)&Gl_World::toggle_graphics;;
-  m_world_function_map ["reset car"] = (Callback_Function)&Gl_World::reset_car;
-  m_world_function_map ["read car"] = (Callback_Function)&Gl_World::read_car;
-  m_world_function_map ["restart car"] = (Callback_Function)&Gl_World::restart_car;
-  m_world_function_map ["focus previous car"] = (Callback_Function)&Gl_World::focus_previous_car;
-  m_world_function_map ["focus next car"] = (Callback_Function)&Gl_World::focus_next_car;
-  m_world_function_map ["replay" ] = (Callback_Function)&Gl_World::replay;
-
-  m_driver_function_map ["start engine"] = (Callback_Function)&Interactive_Driver::start_engine;
-  m_driver_function_map ["fill tank"] = (Callback_Function)&Interactive_Driver::fill_tank;
-
-  m_driver_function_map ["initial shift up"] = (Callback_Function)&Interactive_Driver::initial_shift_up;
-  m_driver_function_map ["initial shift down"] = (Callback_Function)&Interactive_Driver::initial_shift_down;
-  m_driver_function_map ["shift up"] = (Callback_Function)&Interactive_Driver::shift_up;
-  m_driver_function_map ["shift down"] = (Callback_Function)&Interactive_Driver::shift_down;
-  m_driver_function_map ["initial shift up disengage"] 
-    = (Callback_Function)&Interactive_Driver::initial_shift_up_disengage;
-  m_driver_function_map ["initial shift down disengage"] 
-    = (Callback_Function)&Interactive_Driver::initial_shift_down_disengage;
-  m_driver_function_map ["shift up disengage"] 
-    = (Callback_Function)&Interactive_Driver::shift_up_disengage;
-  m_driver_function_map ["shift down disengage"] 
-    = (Callback_Function)&Interactive_Driver::shift_down_disengage;
-  m_driver_function_map ["initial engage clutch"] 
-    = (Callback_Function)&Interactive_Driver::initial_engage_clutch;
-  m_driver_function_map ["initial disengage clutch"] 
-    = (Callback_Function)&Interactive_Driver::initial_disengage_clutch;
-  m_driver_function_map ["engage clutch"] = (Callback_Function)&Interactive_Driver::engage_clutch;
-  m_driver_function_map ["disengage clutch"] = (Callback_Function)&Interactive_Driver::disengage_clutch;
-  m_driver_function_map ["initial clutch"] = (Callback_Function)&Interactive_Driver::initial_clutch;
-  m_driver_function_map ["clutch"] = (Callback_Function)&Interactive_Driver::clutch;
-
-  m_driver_function_map ["steer"] = (Callback_Function)&Interactive_Driver::steer;
-  m_driver_function_map ["steer right"] = (Callback_Function)&Interactive_Driver::steer_right;
-  m_driver_function_map ["steer left"] = (Callback_Function)&Interactive_Driver::steer_left;
-  m_driver_function_map ["gas"] = (Callback_Function)&Interactive_Driver::gas;
-  m_driver_function_map ["brake"] = (Callback_Function)&Interactive_Driver::brake;
-
-  m_driver_function_map ["pan left"] = (Callback_Function)&Interactive_Driver::pan_left;
-  m_driver_function_map ["pan right"] = (Callback_Function)&Interactive_Driver::pan_right;
-
-  read (file_name);
-}
-
-void Controls_Reader::on_start_tag(const Vamos_Media::XML_Tag&)
-{
-  if (label () == "bind")
+    /// Turn a map of names and callbacks into a Call_Map for the given object.
+    auto bindings = [](auto const& fns, auto* obj)
     {
-      m_function = "";
-      m_control = 0;
-      m_direction = Direct::none;
-      m_factor = 1.0;
-      m_offset = 0.0;
-      m_deadband = 0.0;
-      m_upper_deadband = 0.0;
-      m_time = 0.0;
-    }
+        Call_Map call;
+        for (auto fn : fns)
+            call[fn.first] = std::bind_front(fn.second, obj);
+        return call;
+    };
+
+    using World_CBs = std::map<std::string, std::function<bool(Gl_World*, double, double)>>;
+    m_world_function_map = bindings(
+        World_CBs{{"pause", &Gl_World::pause},
+                  {"quit", &Gl_World::quit},
+                  {"read track", &Gl_World::read_track},
+                  {"read world", &Gl_World::read_world},
+                  {"cycle view", &Gl_World::cycle_view},
+                  {"toggle graphics", &Gl_World::toggle_graphics},
+                  {"reset car", &Gl_World::reset_car},
+                  {"read car", &Gl_World::read_car},
+                  {"restart car", &Gl_World::restart_car},
+                  {"focus previous car", &Gl_World::focus_previous_car},
+                  {"focus next car", &Gl_World::focus_next_car},
+                  {"replay", &Gl_World::replay}},
+        mp_world);
+
+    auto car{mp_world->controlled_car()};
+    auto driver{car ? dynamic_cast<Interactive_Driver*>(car->driver) : nullptr};
+    using Driver_CBs
+        = std::map<std::string, std::function<bool(Interactive_Driver*, double, double)>>;
+    m_driver_function_map = bindings(
+        Driver_CBs{{"start engine", &Interactive_Driver::start_engine},
+                   {"fill tank", &Interactive_Driver::fill_tank},
+                   {"initial shift up", &Interactive_Driver::initial_shift_up},
+                   {"initial shift down", &Interactive_Driver::initial_shift_down},
+                   {"shift up", &Interactive_Driver::shift_up},
+                   {"shift down", &Interactive_Driver::shift_down},
+                   {"initial shift up disengage", &Interactive_Driver::initial_shift_up_disengage},
+                   {"initial shift down disengage", &Interactive_Driver::initial_shift_down_disengage},
+                   {"shift up disengage", &Interactive_Driver::shift_up_disengage},
+                   {"shift down disengage", &Interactive_Driver::shift_down_disengage},
+                   {"initial engage clutch", &Interactive_Driver::initial_engage_clutch},
+                   {"initial disengage clutch", &Interactive_Driver::initial_disengage_clutch},
+                   {"engage clutch", &Interactive_Driver::engage_clutch},
+                   {"disengage clutch", &Interactive_Driver::disengage_clutch},
+                   {"initial clutch", &Interactive_Driver::initial_clutch},
+                   {"clutch", &Interactive_Driver::clutch},
+                   {"steer", &Interactive_Driver::steer},
+                   {"steer right", &Interactive_Driver::steer_right},
+                   {"steer left", &Interactive_Driver::steer_left},
+                   {"gas", &Interactive_Driver::gas},
+                   {"brake", &Interactive_Driver::brake},
+                   {"pan left", &Interactive_Driver::pan_left},
+                   {"pan right", &Interactive_Driver::pan_right}},
+        driver);
+
+    read(file_name);
 }
 
-void
-Controls_Reader::register_callback 
-(std::map <std::string, Callback_Function>::iterator it,
- Control_Handler* handler)
+void Controls_Reader::on_start_tag(Vamos_Media::XML_Tag const&)
 {
-  switch (m_type)
+    if (label() != "bind")
+        return;
+
+    m_function = "";
+    m_control = 0;
+    m_direction = Direct::none;
+    m_calib = {};
+    m_time = 0.0;
+}
+
+void Controls_Reader::register_callback(Call_Map::iterator it, Control_Handler* handler)
+{
+    switch (m_type)
     {
-    case KEY:
-      handler->keyboard ().bind_action (m_control,
-                                        m_direction,
-                                        handler,
-                                        it->second,
-                                        m_time);
-      break;
-    case JOYSTICK_BUTTON:
-      handler->joystick ().bind_action (m_control,
-                                        m_direction,
-                                        handler,
-                                        it->second, 
-                                        m_time);
-      break;
-    case JOYSTICK_AXIS:
-      handler->joystick ().bind_motion (m_control, 
-                                        m_direction,
-                                        handler,
-                                        it->second,
-                                        m_factor, 
-                                        m_offset, 
-                                        m_deadband,
-                                        m_upper_deadband);
-      break;
-    case MOUSE_BUTTON:
-      handler->mouse ().bind_action (m_control, 
-                                     m_direction,
-                                     handler,
-                                     it->second, 
-                                     m_time);
-      break;
-    case MOUSE_MOTION:
-      SDL_ShowCursor (true);
-      handler->mouse ().bind_motion (m_control,
-                                     m_direction,
-                                     handler,
-                                     it->second,
-                                     m_factor, 
-                                     m_offset, 
-                                     m_deadband,
-                                     m_upper_deadband);
-      break;
+    case Control::key:
+        handler->keyboard().bind_action(m_control, m_direction, it->second, m_time);
+        break;
+    case Control::joystick_button:
+        handler->joystick().bind_action(m_control, m_direction, it->second, m_time);
+        break;
+    case Control::joystick_axis:
+        handler->joystick().bind_motion(m_control, it->second, m_calib);
+        break;
+    case Control::mouse_button:
+        handler->mouse().bind_action(m_control, m_direction, it->second, m_time);
+        break;
+    case Control::mouse_motion:
+        SDL_ShowCursor(true);
+        handler->mouse().bind_motion(m_control, it->second, m_calib);
+        break;
     default:
-      assert (false);
+        assert(false);
     }
 }
 
 void Controls_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
 {
-  if (label () == "up")
-    m_direction = Direct::up;
-  else if (label () == "down")
-    m_direction = Direct::down;
-  else if (label () == "left")
-    m_direction = Direct::left;
-  else if (label () == "right")
-    m_direction = Direct::right;
-  else if (label () == "forward")
-    m_direction = Direct::forward;
-  else if (label () == "backward")
-      m_direction = Direct::backward;
-
-  else if (label () == "bind")
+    if (label() == "up")
+        m_direction = Direct::up;
+    else if (label() == "down")
+        m_direction = Direct::down;
+    else if (label() == "left")
+        m_direction = Direct::left;
+    else if (label() == "right")
+        m_direction = Direct::right;
+    else if (label() == "forward")
+        m_direction = Direct::forward;
+    else if (label() == "backward")
+        m_direction = Direct::backward;
+    else if (label() == "bind")
     {
-      std::map <std::string, Callback_Function>
-        ::iterator it = m_world_function_map.find (m_function);
-      if (it != m_world_function_map.end ())
+        // Use a one-sided calibration if only one direction was specified.
+        m_calib.negative = m_direction != Direct::forward && m_direction != Direct::left;
+        m_calib.positive = m_direction != Direct::backward && m_direction != Direct::right;
+        auto wit{m_world_function_map.find(m_function)};
+        auto dit{m_driver_function_map.find(m_function)};
+        auto car{mp_world->controlled_car()};
+        auto driver{car ? dynamic_cast<Interactive_Driver*>(car->driver) : nullptr};
+        if (wit != m_world_function_map.end())
+            register_callback(wit, mp_world);
+        else if (dit != m_driver_function_map.end())
         {
-          register_callback (it, mp_world);
+            if (driver)
+                register_callback(dit, driver);
         }
-      else if ((it = m_driver_function_map.find (m_function))
-               != m_driver_function_map.end ())
-        {
-          if (mp_world->controlled_car () != 0)
-            {
-              register_callback 
-                (it, 
-                 static_cast <Control_Handler*> 
-                 (dynamic_cast <Interactive_Driver*> (mp_world->controlled_car ()->driver)));
-            }
-        }
-      else
-        {
-          throw Unknown_Function (m_function);
-        }
+        else
+            throw Unknown_Function(m_function);
     }
 }
 
-void 
-Controls_Reader::on_data (std::string data)
+void Controls_Reader::on_data(std::string data)
 {
-  if (data.size () == 0) return;
+    if (data.empty())
+        return;
 
-  std::istringstream is (data.c_str ());
-  
-  if (label () == "key")
+    std::istringstream is{data.c_str()};
+
+    if (label() == "key")
     {
-      m_type = KEY;
-      std::string key;
-      is >> key;
-      m_control = translate_key (key);
+        m_type = Control::key;
+        std::string key;
+        is >> key;
+        m_control = translate_key(key);
     }
-  else if (label () == "button")
+    else if (label() == "button")
     {
-      m_type = JOYSTICK_BUTTON;
-      is >> m_control;
+        m_type = Control::joystick_button;
+        is >> m_control;
     }
-  else if (label () == "mouse-button")
+    else if (label() == "mouse-button")
     {
-      m_type = MOUSE_BUTTON;
-      std::string button;
-      is >> button;
-      m_control = mouse_button_to_control (button);
+        m_type = Control::mouse_button;
+        std::string button;
+        is >> button;
+        m_control = translate_key(button);
     }
-  else if (label () == "axis")
+    else if (label() == "axis")
     {
-      m_type = JOYSTICK_AXIS;
-      std::string axis;
-      is >> m_control;
+        m_type = Control::joystick_axis;
+        std::string axis;
+        is >> m_control;
     }
-  else if (label () == "mouse-direction")
+    else if (label() == "mouse-direction")
     {
-      m_type = MOUSE_MOTION;
-      std::string axis;
-      is >> m_control;
+        m_type = Control::mouse_motion;
+        std::string axis;
+        is >> m_control;
     }
-  else if (label () == "function")
-      m_function = data;
-  else if (label () == "factor")
-      is >> m_factor;
-  else if (label () == "offset")
-      is >> m_offset;
-  else if (label () == "deadband")
-      is >> m_deadband;
-  else if (label () == "upper-deadband")
-      is >> m_upper_deadband;
-  else if (label () == "time")
-      is >> m_time;
+    else if (label() == "function")
+        m_function = data;
+    else if (label() == "factor")
+        is >> m_calib.factor;
+    else if (label() == "offset")
+        is >> m_calib.offset;
+    else if (label() == "deadband")
+        is >> m_calib.deadband;
+    else if (label() == "upper-deadband")
+        is >> m_calib.upper_deadband;
+    else if (label() == "time")
+        is >> m_time;
 }

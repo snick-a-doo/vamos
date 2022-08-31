@@ -1,5 +1,4 @@
 world_sources = [
-  'atmosphere.cc',
   'controls.cc',
   'gl-world.cc',
   'interactive-driver.cc',

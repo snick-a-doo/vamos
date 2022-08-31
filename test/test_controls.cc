@@ -72,17 +72,14 @@ Keyboard_Fixture::Keyboard_Fixture()
       up_called(false),
       up_arg(0.0)
 {
-    c.bind_action(12, Direct::down, (Control_Handler*)this,
-                  (Callback_Function)&Keyboard_Fixture::on_down_1,
+    using namespace std::placeholders;
+    c.bind_action(12, Direct::down, std::bind_front(&Keyboard_Fixture::on_down_1, this),
                   1.0);
-    c.bind_action(12, Direct::none, (Control_Handler*)this,
-                  (Callback_Function)&Keyboard_Fixture::on_down_2,
+    c.bind_action(12, Direct::none, std::bind_front(&Keyboard_Fixture::on_down_2, this),
                   2.0);
-    c.bind_action(12, Direct::down, (Control_Handler*)this,
-                  (Callback_Function)&Keyboard_Fixture::on_down_3,
+    c.bind_action(12, Direct::down, std::bind_front(&Keyboard_Fixture::on_down_3, this),
                   3.0);
-    c.bind_action(13, Direct::up, (Control_Handler*)this,
-                  (Callback_Function)&Keyboard_Fixture::on_up, 4.0);
+    c.bind_action(13, Direct::up, std::bind_front(&Keyboard_Fixture::on_up, this), 4.0);
 }
 
 TEST_CASE("press_12")
@@ -142,15 +139,13 @@ struct Motion_Fixture : public Control_Fixture
 
 Motion_Fixture::Motion_Fixture()
 {
-    c.bind_motion(4, Direct::forward, (Control_Handler*)this,
-                  (Callback_Function)&Motion_Fixture::on_move_1_forward,
-                  1.0, 0.0, 0.0, 0.0);
-    c.bind_motion(4, Direct::backward, (Control_Handler*)this,
-                  (Callback_Function)&Motion_Fixture::on_move_1_backward,
-                  -1.0, 0.0, 0.0, 0.0);
-    c.bind_motion(7, Direct::none, (Control_Handler*)this,
-                  (Callback_Function)&Motion_Fixture::on_move_2,
-                  0.5, 0.5, 0.0, 0.0);
+    using namespace std::placeholders;
+    c.bind_motion(4, std::bind_front(&Motion_Fixture::on_move_1_forward, this),
+                  {false, true, 1.0, 0.0, 0.0, 0.0});
+    c.bind_motion(4, std::bind_front(&Motion_Fixture::on_move_1_backward, this),
+                  {true, false, -1.0, 0.0, 0.0, 0.0});
+    c.bind_motion(7, std::bind_front(&Motion_Fixture::on_move_2, this),
+                  {true, true, 0.5, 0.5, 0.0, 0.0});
 }
 
 TEST_CASE("half range")
@@ -190,9 +185,9 @@ struct Deadband_Fixture : public Control_Fixture
 
 Deadband_Fixture::Deadband_Fixture()
 {
-    c.bind_motion(5, Direct::none, (Control_Handler*)this,
-                  (Callback_Function)&Deadband_Fixture::on_move,
-                  2.0, 1.0, 0.1, 0.2);
+    using namespace std::placeholders;
+    c.bind_motion(5, std::bind_front(&Deadband_Fixture::on_move, this),
+                  {true, true, 2.0, 1.0, 0.1, 0.2});
 }
 
 TEST_CASE("deadband")
