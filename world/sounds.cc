@@ -1,387 +1,205 @@
-//  Sounds.cc - sound management
-//
-//  Copyright (C) 2003--2004 Sam Varner
+//  Copyright (C) 2003-2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
 #include "sounds.h"
 #include "../geometry/numeric.h"
 
 #include <AL/alut.h>
 
-#include <sstream>
 #include <cassert>
+#include <sstream>
 
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 using namespace Vamos_World;
 
-// Define an OpenAL exit handler so resources will be freed when the sound
-// object is destroyed.
-void exit_alut ()
+namespace Vamos_World
 {
-  alutExit ();
+class Sounds_Reader : public XML_Parser
+{
+public:
+    /// Modify the Sounds object according to the definition file.
+    Sounds_Reader(std::string const& file_name, Sounds& sounds);
+
+private:
+    void on_start_tag(XML_Tag const&) override {};
+    void on_end_tag(XML_Tag const& tag) override;
+    void on_data(std::string data_string) override;
+
+    std::string m_file; ///< The name of the WAV file with the sample.
+    Sounds& m_sounds; ///< The sound object to be modified.
+    double m_pitch{1.0};
+    double m_volume{1.0};
+    int m_rate{8000}; ///< The sample rate in Hz.
+    /// The number of seconds of sound buffered for playing. Delay in responding to a
+    /// change in a sound may be as long as this.
+    double m_buffer_duration{0.2};
+};
 }
 
-Vamos_World::
-Sounds::Sounds (double volume) :
-  mp_tire_squeal_sound (0),
-  mp_kerb_sound (0),
-  mp_grass_sound (0),
-  mp_gravel_sound (0),
-  mp_scrape_sound (0),
-  mp_wind_sound (0),
-  mp_soft_crash_sound (0),
-  mp_hard_crash_sound (0)
+//----------------------------------------------------------------------------------------
+/// OpenAL exit handler to ensure resources are freed when the sound object is destroyed.
+void exit_alut()
 {
-  alutInit (0, 0);
-  alDistanceModel (AL_INVERSE_DISTANCE);
-  master_volume (volume);
-  // Register the exit handler.
-  atexit (exit_alut);
+    alutExit();
 }
 
-Vamos_World::
-Sounds::~Sounds ()
+Sounds::Sounds(double volume)
 {
-  delete mp_soft_crash_sound;
-  delete mp_hard_crash_sound;
-  delete mp_wind_sound;
-  delete mp_scrape_sound;
-  delete mp_gravel_sound;
-  delete mp_grass_sound;
-  delete mp_kerb_sound;
-  delete mp_tire_squeal_sound;
+    alutInit(0, 0);
+    alDistanceModel(AL_INVERSE_DISTANCE);
+    overall_volume(volume);
+    // Register the exit handler.
+    atexit(exit_alut);
 }
 
-void Vamos_World::
-Sounds::master_volume (double volume)
+void Sounds::overall_volume(double volume)
 {
-  alListenerf (AL_GAIN, volume);
+    alListenerf(AL_GAIN, volume);
 }
 
-void Vamos_World::
-Sounds::add_sample (std::string file, Sound_Type type, 
-                    double volume, double pitch)
+void Sounds::read(std::string const& data_dir, std::string const& sounds_file)
 {
-  file = m_data_dir + file;
-  switch (type)
-    {
-    case TIRE_SQUEAL:
-      mp_tire_squeal_sound = new Sample (file, volume, pitch, true);
-      break;
-    case KERB:
-      mp_kerb_sound = new Sample (file, volume, pitch, true);
-      break;
-    case GRASS:
-      mp_grass_sound = new Sample (file, volume, pitch, true);
-      break;
-    case GRAVEL:
-      mp_gravel_sound = new Sample (file, volume, pitch, true);
-      break;
-    case SCRAPE:
-      mp_scrape_sound = new Sample (file, volume, pitch, true);
-      break;
-    case WIND:
-      mp_wind_sound = new Sample (file, volume, pitch, true);
-      break;
-    case SOFT_CRASH:
-      mp_soft_crash_sound = new Sample (file, volume, pitch, false);
-      break;
-    case HARD_CRASH:
-      mp_hard_crash_sound = new Sample (file, volume, pitch, false);
-      break;
-    default:
-      assert (false);
-    }
+    if (!data_dir.empty())
+        m_data_dir = data_dir;
+    if (!sounds_file.empty())
+        m_sounds_file = sounds_file;
+
+    Sounds_Reader(m_data_dir + m_sounds_file, *this);
 }
 
-void Vamos_World::
-Sounds::read (std::string data_dir, std::string sounds_file)
+void Sounds::play(Sound playing, std::initializer_list<Sound> const& paused,
+                  double volume, double pitch, Three_Vector const& pos)
 {
-  delete mp_soft_crash_sound;
-  delete mp_hard_crash_sound;
-  delete mp_wind_sound;
-  delete mp_scrape_sound;
-  delete mp_gravel_sound;
-  delete mp_grass_sound;
-  delete mp_kerb_sound;
-  delete mp_tire_squeal_sound;
-    
-  mp_soft_crash_sound = 0;
-  mp_hard_crash_sound = 0;
-  mp_wind_sound = 0;
-  mp_scrape_sound = 0;
-  mp_gravel_sound = 0;
-  mp_grass_sound = 0;
-  mp_kerb_sound = 0;
-  mp_tire_squeal_sound = 0;
+    auto& sample{*m_samples[playing]};
+    if (volume <= 0.0)
+        return sample.pause();
 
-  if (data_dir != "")
-      m_data_dir = data_dir;
-
-  if (sounds_file != "")
-      m_sounds_file = sounds_file;
-
-  Sounds_Reader reader (m_data_dir + m_sounds_file, this);
+    sample.volume(volume);
+    sample.pitch(pitch);
+    sample.position(pos);
+    sample.play();
+    for (auto s : paused)
+        m_samples[s]->pause();
 }
 
-void Vamos_World::
-Sounds::play_tire_squeal_sound (double slide, const Three_Vector& position)
+void Sounds::play_tire_squeal(double slide, Three_Vector const& position)
 {
-  double volume = slide;
-  if (volume > 0.5)
-    {
-      const double pitch = clip (2.0 * (1.0 - slide), 0.8, 4.0);
-      mp_tire_squeal_sound->pitch (pitch);
-      mp_tire_squeal_sound->volume (0.1 * volume);
-      mp_tire_squeal_sound->position (position);
-
-      mp_grass_sound->pause ();
-      mp_gravel_sound->pause ();
-      mp_scrape_sound->pause ();
-      mp_tire_squeal_sound->play ();
-    }
-  else
-    {
-      mp_tire_squeal_sound->pause ();
-    }
+    play(Sound::tire_squeal, {Sound::grass, Sound::gravel, Sound::scrape},
+         slide > 0.5 ? 0.1 * slide : 0.0,
+         clip(2.0 * (1.0 - slide), 0.8, 4.0),
+         position);
 }
 
-void Vamos_World::
-Sounds::play_kerb_sound (double speed, const Three_Vector& position)
+void Sounds::play_kerb(double speed, Three_Vector const& position)
 {
-  if (speed > 0.0)
-    {
-      mp_kerb_sound->volume (1.0);
-      mp_kerb_sound->pitch (speed);
-      mp_kerb_sound->position (position);
-      mp_kerb_sound->play ();
-    }
-  else
-    {
-      mp_kerb_sound->pause ();
-    }
+    play(Sound::kerb, {}, speed > 0.0 ? 1.0 : 0.0, speed, position);
 }
 
-void Vamos_World::
-Sounds::play_grass_sound (double speed, const Three_Vector& position)
+void Sounds::play_grass(double speed, Three_Vector const& position)
 {
-  double volume = clip (0.05 * speed, 0.0, 1.0);
-  if (speed > 0.0)
-    {
-      mp_grass_sound->volume (volume);
-      mp_grass_sound->position (position);
-
-      mp_gravel_sound->pause ();
-      mp_grass_sound->play ();
-    }
-  else
-    {
-      mp_grass_sound->pause ();
-    }
+    play(Sound::grass, {Sound::gravel, Sound::scrape},
+         clip(0.05 * speed, 0.0, 1.0), 1.0, position);
 }
 
-void Vamos_World::
-Sounds::play_gravel_sound (double speed, const Three_Vector& position)
+void Sounds::play_gravel(double speed, Three_Vector const& position)
 {
-  double volume = clip (0.08 * speed, 0.0, 1.0);
-  if (speed > 0.0)
-    {
-      mp_gravel_sound->volume (volume);
-      mp_gravel_sound->position (position);
-
-      mp_grass_sound->pause ();
-      mp_gravel_sound->play ();
-    }
-  else
-    {
-      mp_gravel_sound->pause ();
-    }
+    play(Sound::gravel, {Sound::grass, Sound::scrape},
+         clip(0.08 * speed, 0.0, 1.0), 1.0, position);
 }
 
-void Vamos_World::
-Sounds::play_scrape_sound (double speed, const Three_Vector& position)
+void Sounds::play_scrape(double speed, Three_Vector const& position)
 {
-  double volume = clip (0.1 * speed, 0.0, 1.0);
-  if (speed > 0.0)
-    {
-      mp_scrape_sound->volume (volume);
-      mp_scrape_sound->position (position);
-
-      mp_tire_squeal_sound->pause ();
-      mp_grass_sound->pause ();
-      mp_gravel_sound->pause ();
-      mp_scrape_sound->play ();
-    }
-  else
-    {
-      mp_scrape_sound->pause();
-    }
+    play(Sound::scrape, {Sound::grass, Sound::gravel},
+         clip(0.1 * speed, 0.0, 1.0), 1.0, position);
 }
 
-void Vamos_World::
-Sounds::play_wind_sound (double speed, const Three_Vector& position)
+void Sounds::play_wind(double speed, Three_Vector const& position)
 {
-  double volume = clip (0.005 * speed, 0.0, 1.0);
-  if (volume > 0.0)
-    {
-      mp_wind_sound->volume (volume);
-      mp_wind_sound->position (position);
-      mp_wind_sound->play ();
-    }
-  else
-    {
-      mp_wind_sound->pause ();
-    }
+    play(Sound::wind, {}, clip(0.005 * speed, 0.0, 1.0), 1.0, position);
 }
 
-void Vamos_World::
-Sounds::play_hard_crash_sound (double speed, const Three_Vector& position)
+#include <iostream>
+void Sounds::play_hard_crash(double speed, Three_Vector const& position)
 {
-  double volume = clip (0.1 * (speed - 1.0), 0.0, 1.0);
-  if (volume > 0.0)
-    {
-      mp_hard_crash_sound->volume (volume);
-      mp_hard_crash_sound->position (position);
-      mp_hard_crash_sound->play ();
-    }
+    play(Sound::hard_crash, {}, clip(0.1 * (speed - 1.0), 0.0, 1.0), 1.0, position);
 }
 
-void Vamos_World::
-Sounds::play_soft_crash_sound (double speed, const Three_Vector& position)
+void Sounds::play_soft_crash(double speed, Three_Vector const& position)
 {
-  double volume = clip (0.1 * (speed - 1.0), 0.0, 1.0);
-  if (volume > 0.0)
-    {
-      mp_soft_crash_sound->volume (volume);
-      mp_soft_crash_sound->position (position);
-      mp_soft_crash_sound->play ();
-    }
+    play(Sound::soft_crash, {}, clip(0.1 * (speed - 1.0), 0.0, 1.0), 1.0, position);
 }
 
-// Pause all sounds.
-void Vamos_World::
-Sounds::pause ()
+void Sounds::pause()
 {
-  //! Might be good to have a registration system to make it easier
-  //! to do something to all sounds.
-  if (mp_tire_squeal_sound)
-    mp_tire_squeal_sound->pause ();
-  if (mp_kerb_sound)
-    mp_kerb_sound->pause ();
-  if (mp_grass_sound)
-    mp_grass_sound->pause ();
-  if (mp_gravel_sound)
-    mp_gravel_sound->pause ();
-  if (mp_scrape_sound)
-    mp_scrape_sound->pause ();
-  if (mp_wind_sound)
-    mp_wind_sound->pause ();
-  if (mp_soft_crash_sound)
-    mp_soft_crash_sound->pause ();
-  if (mp_hard_crash_sound)
-    mp_hard_crash_sound->pause ();
+    for (auto& s : m_samples)
+        s.second->pause();
 }
 
-//* Class Sounds_Reader
-
-//** Constructor
-Vamos_World::
-Sounds_Reader::Sounds_Reader (std::string file_name, Sounds* sounds) 
-  : mp_sounds (sounds),
-    m_rate (8000), // The default sample rate is 8 kHz.
-    m_buffer_duration (0.2)
+//----------------------------------------------------------------------------------------
+Sounds_Reader::Sounds_Reader(std::string const& file_name, Sounds& sounds)
+    : m_sounds{sounds}
 {
-  read (file_name);
-}
-
-void Sounds_Reader::on_start_tag(XML_Tag const&)
-{
+    read(file_name);
 }
 
 void Sounds_Reader::on_end_tag(XML_Tag const&)
 {
-  Sounds::Sound_Type type = Sounds::NONE;
+    Sound type;
+    if (label() == "tire-squeal")
+        type = Sound::tire_squeal;
+    else if (label() == "kerb-sound")
+        type = Sound::kerb;
+    else if (label() == "grass-sound")
+        type = Sound::grass;
+    else if (label() == "gravel-sound")
+        type = Sound::gravel;
+    else if (label() == "scrape-sound")
+        type = Sound::scrape;
+    else if (label() == "wind-sound")
+        type = Sound::wind;
+    else if (label() == "soft-crash-sound")
+        type = Sound::soft_crash;
+    else if (label() == "hard-crash-sound")
+        type = Sound::hard_crash;
+    else
+        return;
 
-  if (label () == "tire-squeal")
-    {
-      type = Sounds::TIRE_SQUEAL;
-    }
-  else if (label () == "kerb-sound")
-    {
-      type = Sounds::KERB;
-    }
-  else if (label () == "grass-sound")
-    {
-      type = Sounds::GRASS;
-    }
-  else if (label () == "gravel-sound")
-    {
-      type = Sounds::GRAVEL;
-    }
-  else if (label () == "scrape-sound")
-    {
-      type = Sounds::SCRAPE;
-    }
-  else if (label () == "wind-sound")
-    {
-      type = Sounds::WIND;
-    }
-  else if (label () == "soft-crash-sound")
-    {
-      type = Sounds::SOFT_CRASH;
-    }
-  else if (label () == "hard-crash-sound")
-    {
-      type = Sounds::HARD_CRASH;
-    }
-  if (type != Sounds::NONE)
-    {
-      mp_sounds->add_sample (m_file, type, m_volume, m_pitch);
-    }
+    auto loop{type != Sound::soft_crash && type != Sound::hard_crash};
+    m_sounds.m_samples[type] = std::make_unique<Sample>(
+        m_sounds.m_data_dir + m_file, m_volume, m_pitch, loop);
+
+    // Don't carry over pitch and volume to the next sound.
+    m_pitch = 1.0;
+    m_volume = 1.0;
 }
 
-void Vamos_World::
-Sounds_Reader::on_data (std::string data)
+void Sounds_Reader::on_data(std::string data)
 {
-  if (data.size () == 0)
-    {
-      return;
-    }
-  std::istringstream is (data.c_str ());
+    if (data.empty())
+        return;
 
-  if (label () == "file")
-    {
-      m_file = data;
-    }
-  else if (label () == "pitch")
-    {
-      is >> m_pitch;
-    }
-  else if (label () == "volume")
-    {
-      is >> m_volume;
-    }
-  else if (label () == "sample-rate")
-    {
-      is >> m_rate;
-    }
-  else if (label () == "buffer-duration")
-    {
-      is >> m_buffer_duration;
-    }
+    std::istringstream is{data};
+    if (label() == "file")
+        m_file = data;
+    else if (label() == "pitch")
+        is >> m_pitch;
+    else if (label() == "volume")
+        is >> m_volume;
+    else if (label() == "sample-rate")
+        is >> m_rate;
+    else if (label() == "buffer-duration")
+        is >> m_buffer_duration;
 }

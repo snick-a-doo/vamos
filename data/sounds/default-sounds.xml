@@ -26,11 +26,13 @@
   <!-- Anything on gravel -->
   <gravel-sound>
     <file>rumble.wav</file>
+    <pitch>1.1</pitch>
   </gravel-sound>
 
   <!-- Metal on pavement or concrete -->
   <scrape-sound>
     <file>rumble.wav</file>
+    <pitch>1.2</pitch>
   </scrape-sound>
 
   <!-- Wind noise -->
@@ -42,6 +44,7 @@
   <!-- Collision with grass or gravel -->
   <soft-crash-sound>
     <file>rumble.wav</file>
+    <pitch>0.8</pitch>
   </soft-crash-sound>
 
   <!-- Collision with pavement or concrete -->

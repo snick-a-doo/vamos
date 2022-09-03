@@ -521,67 +521,63 @@ Gl_World::update_car_timing ()
     }
 }
 
-void
-Gl_World::play_sounds ()
+void Gl_World::play_sounds()
 {
-  double tire_slide = 0.0;
-  double kerb_speed = 0.0;
-  double grass_speed = 0.0;
-  double gravel_speed = 0.0;
-  double scrape_speed = 0.0;
-  double hard_crash_speed = 0.0;
-  double soft_crash_speed = 0.0;
-  
-  for (std::vector <Interaction_Info>::const_iterator 
-         it = m_interaction_info.begin ();
-       it != m_interaction_info.end ();
-       it++)
-    {
-      if (it->car != focused_car ()->car) continue;
+    auto tire_slide{0.0};
+    auto kerb_speed{0.0};
+    auto grass_speed{0.0};
+    auto gravel_speed{0.0};
+    auto scrape_speed{0.0};
+    auto hard_crash_speed{0.0};
+    auto soft_crash_speed{0.0};
 
-      switch (it->track_material)
+    for (auto const& touch : m_interaction_info)
+    {
+        if (touch.car != focused_car()->car)
+            continue;
+
+        switch (touch.track_material)
         {
         case Material::ASPHALT:
         case Material::CONCRETE:
         case Material::METAL:
-          if (it->car_material == Material::RUBBER)
+            if (touch.car_material == Material::RUBBER)
+                tire_slide = touch.car->slide();
+            else if (touch.car_material == Material::METAL)
             {
-              tire_slide = it->car->slide ();
+                scrape_speed = touch.parallel_speed;
+                hard_crash_speed = touch.perpendicular_speed;
             }
-          else if (it->car_material == Material::METAL)
-            {
-              scrape_speed = it->parallel_speed;
-              hard_crash_speed = it->perpendicular_speed;
-            }
-          break;
+            break;
         case Material::KERB:
-          kerb_speed = it->parallel_speed;
-          break;
+            kerb_speed = touch.parallel_speed;
+            break;
         case Material::GRASS:
-          grass_speed = it->parallel_speed;
-          break;
+            grass_speed = touch.parallel_speed;
+            break;
         case Material::GRAVEL:
-          gravel_speed = it->parallel_speed;
-          break;
+            gravel_speed = touch.parallel_speed;
+            break;
         case Material::RUBBER:
-          soft_crash_speed = it->perpendicular_speed;
-          break;
+            soft_crash_speed = touch.perpendicular_speed;
+            break;
         default:
-          break;
+            break;
         }
     }
+    m_interaction_info.clear();
 
-  m_interaction_info.clear ();
-  auto const& chassis{focused_car()->car->chassis()};
-  m_sounds.play_tire_squeal_sound (tire_slide, chassis.position());
-  m_sounds.play_kerb_sound (kerb_speed, chassis.position());
-  m_sounds.play_grass_sound (grass_speed, chassis.position());
-  m_sounds.play_gravel_sound (gravel_speed, chassis.position());
-  m_sounds.play_scrape_sound (scrape_speed, chassis.position());
-  m_sounds.play_wind_sound((chassis.cm_velocity() - m_atmosphere.velocity).magnitude(),
-                           chassis.position());
-  m_sounds.play_hard_crash_sound (hard_crash_speed, chassis.position());
-  m_sounds.play_soft_crash_sound (soft_crash_speed, chassis.position());
+    auto const& chassis{focused_car()->car->chassis()};
+    auto const& pos{chassis.position()};
+    auto wind_speed{(chassis.cm_velocity() - m_atmosphere.velocity).magnitude()};
+    m_sounds.play_tire_squeal(tire_slide, pos);
+    m_sounds.play_kerb(kerb_speed, pos);
+    m_sounds.play_grass(grass_speed, pos);
+    m_sounds.play_gravel(gravel_speed, pos);
+    m_sounds.play_scrape(scrape_speed, pos);
+    m_sounds.play_wind(wind_speed, pos);
+    m_sounds.play_hard_crash(hard_crash_speed, pos);
+    m_sounds.play_soft_crash(soft_crash_speed, pos);
 }
 
 void 
