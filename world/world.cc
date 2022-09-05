@@ -81,7 +81,6 @@ World::World (Vamos_Track::Strip_Track& track, Atmosphere& atmosphere)
   : m_track (track),
     m_atmosphere (atmosphere),
     m_gravity (9.8),
-    mp_timing (0),
     m_focused_car_index (0),
     m_cars_can_interact (true),
     m_has_controlled_car (false),
@@ -89,27 +88,18 @@ World::World (Vamos_Track::Strip_Track& track, Atmosphere& atmosphere)
 {
 }
 
-World::~World ()
+void World::start(bool qualify, size_t laps_or_minutes)
 {
-  delete mp_timing;
-}
-
-void
-World::start (bool qualify, size_t laps_or_minutes)
-{
-  // Here qualifying implies no start sequence, but that's not necessarily the
-  // case.  That's why we pass !qualify to the constructor and also call
-  // set_qualifying();
-  mp_timing = new Timing_Info (m_cars.size (), 
-                               m_track.timing_lines (), 
-                               !qualify && m_cars.size () > 1);
-  if (qualify)
+    mp_timing = std::make_unique<Timing_Info>(m_cars.size(),
+                                              m_track.timing_lines(),
+                                              !qualify && m_cars.size() > 1);
+    if (qualify)
     {
-      mp_timing->set_qualifying ();
-      mp_timing->set_time_limit (laps_or_minutes);
+        mp_timing->set_qualifying();
+        mp_timing->set_time_limit(laps_or_minutes);
     }
-  else
-    mp_timing->set_lap_limit (laps_or_minutes);
+    else
+        mp_timing->set_lap_limit(laps_or_minutes);
 }
 
 Three_Vector rotation_term(Three_Matrix const& I,
@@ -159,7 +149,7 @@ World::propagate_cars (double time_step)
     {
       Car_Information& info = m_cars [i];
       info.propagate (time_step, 
-                      mp_timing->total_time (),
+                      mp_timing->elapsed_time(),
                       m_track.track_coordinates (info.car->front_position (),
                                                  info.road_index,
                                                  info.segment_index),
@@ -202,7 +192,7 @@ World::slipstream_air_density_factor (Car_Information& car1, Car_Information& ca
   if (road.distance (p1.x, p2.x) > 0.0)
    return 1.0;
 
-  const double now = mp_timing->total_time ();
+  const auto now{mp_timing->elapsed_time()};
 
   // Go through car2's history starting with the most recent event to find out
   // how long ago car2 was at car1's position. Calculate the reduction in air
@@ -503,7 +493,7 @@ World::controlled_car ()
 void
 World::write_results (const std::string& file) const
 {
-  const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
+    const auto* p_fastest{mp_timing->fastest_lap_timing()};
 
   std::ofstream os (file.c_str ());
 

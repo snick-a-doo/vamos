@@ -27,6 +27,8 @@
 
 #include <GL/gl.h>
 
+#include <memory>
+
 namespace Vamos_Geometry
 {
   class Three_Vector;
@@ -45,7 +47,8 @@ namespace Vamos_Track
 namespace Vamos_World
 {
 class Controls_Reader;
-  class Sounds;
+class Sounds;
+class Timer;
 class World_Reader;
 
   class Gl_Window
@@ -65,93 +68,6 @@ class World_Reader;
     int height () const { return m_height; }
 
     void resize (int width, int height);
-  };
-
-  typedef unsigned int Tick;
-
-  /// \brief The timekeeper for the simulation.
-  ///
-  /// Reports simulation time accounting for pauses and non-realtime
-  /// operation.  Gives the size of the timestep when queried.  Time
-  /// steps are averaged to smooth out variations.
-  class Timer
-  {
-  public:
-    /// Initialize the timer.
-    /// \param interval the time interval (ms) to average over when
-    ///        determining the current time step.
-    /// \param fixed_time_step the time step (ms) for non-realtime
-    ///        operation.
-    Timer (Tick interval, Tick fixed_time_step);
-
-    /// Set the timer to zero.
-    void reset ();
-
-    /// Recalculate the time step.
-    void update ();
-
-    /// Stop time.
-    void set_paused (bool is_paused);
-
-    /// Tell the time that a frame has been rendered.
-    void add_frame () { m_frames++; }
-
-    /// Set the time step for non-realtime operation.
-    void set_fixed_time_step (double step) { m_fixed_time_step = step; }
-
-    /// Start and stop non-realtime operation.
-    void use_fixed_time_step (bool use);
-
-    /// Return the time in seconds since the last reset.
-    double get_current_time () const
-    { return ticks_to_seconds (m_current_ticks - m_pause_ticks + m_fixed_time); }
-
-    /// Return the current time step.
-    double get_time_step () const
-    {  
-      return (m_use_fixed_time_step) 
-        ? ticks_to_seconds (m_fixed_time_step) 
-        : m_frame_step / steps_per_frame (); 
-    }
-
-    /// Return the number of times to propagate the simulation before
-    /// rendering.
-    int steps_per_frame () const { return 3; }
-
-    /// Return the current frame rate.
-    double get_frame_rate () const
-    { return (m_use_fixed_time_step) ? 0.0 : 1.0 / m_frame_step; }
-
-  private:
-    /// Start a new averaging interval.
-    void start_averaging ();
-
-    /// Convert ticks (integer milliseconds) to seconds.
-    static double ticks_to_seconds (unsigned ticks) 
-    { return 0.001 * ticks; }
-
-    /// Convert seconds to ticks (integer milliseconds).
-    static double seconds_to_ticks (double seconds) 
-    { return unsigned (1000.0 * seconds); }
-
-    /// How long to average the time step.
-    Tick m_timeout;
-    /// The current interval between rendered frames.
-    double m_frame_step;
-    /// The number of machine ticks since program start
-    Tick m_current_ticks;
-    /// How many machine ticks we've been paused for.
-    Tick m_pause_ticks;
-    /// When the last averaging cycle wast started.
-    Tick m_start_ticks;
-    /// The total number of frames rendered.
-    int m_frames;
-    bool m_is_paused;
-    /// The time step for non-realtime operation.
-    Tick m_fixed_time_step;
-    bool m_use_fixed_time_step;
-    /// How many machine ticks we've been using a fixed time step.
-    Tick m_fixed_time;
   };
 
   struct Can_Not_Intialize_SDL
@@ -251,7 +167,7 @@ class World_Reader;
     std::string m_world_file;
     std::string m_controls_file;
 
-    Timer m_timer;
+      std::unique_ptr<Timer> mp_timer;
     Sounds& m_sounds;
 
     Control m_keyboard;
@@ -279,8 +195,6 @@ class World_Reader;
     void check_for_events ();
     void animate ();
     void update_car_timing ();
-    /// Set the starting lights at the beginning of the race.
-    void set_starting_lights () const;
     void play_sounds ();
 
     void reshape (int width, int height);

@@ -42,9 +42,12 @@
 #undef min
 
 using namespace Vamos_Geometry;
+using namespace Vamos_Media;;
 using namespace Vamos_World;
 
 enum Mouse_Axis{X, Y};
+
+auto constexpr steps_per_frame{1};
 
 namespace Vamos_World
 {
@@ -107,38 +110,85 @@ private:
 
     Gl_World* mp_world;
 };
+
+//----------------------------------------------------------------------------------------
+using Tick = int;
+
+/// @brief The timekeeper for the simulation.
+///
+/// Reports simulation time accounting for pauses and non-realtime operation.  Gives the
+/// size of the timestep when queried. Time steps are averaged to smooth out variations.
+class Timer
+{
+public:
+    /// Initialize the timer.
+    /// @param interval the time interval (ms) to average over when determining the
+    /// current time step.
+    /// @param fixed_time_step the time step (ms) for non-realtime operation.
+    Timer(Tick interval, Tick fixed_time_step);
+    /// Set the timer to zero.
+    void reset();
+    /// Advance the timer.
+    void update();
+    /// Stop time.
+    void set_paused(bool is_paused);
+    /// Tell the time that a frame has been rendered.
+    void add_frame() { ++m_frames; }
+    /// Set the time step for non-realtime operation.
+    void set_fixed_time_step(double step) { m_fixed_time_step = step; }
+    /// Start and stop non-realtime operation.
+    void use_fixed_time_step(bool fixed);
+    /// Return the time in seconds since the last reset.
+    double get_current_time() const;
+    /// Return the current time step.
+    double get_time_step() const;
+    /// Return the current frame rate.
+    double get_frame_rate() const;
+
+private:
+    /// Start a new averaging interval.
+    void start_averaging();
+
+    Tick m_timeout{0}; ///< How long to average the time step.
+    double m_frame_step{0.001}; ///< The current interval between rendered frames.
+    Tick m_current_ticks{0}; ///< The number of machine ticks since program start.
+    Tick m_pause_ticks{0}; ///< How many machine ticks we've been paused for.
+    Tick m_start_ticks{0}; ///< When the last averaging cycle was started.
+    int m_frames{0}; ///< The total number of frames rendered.
+    bool m_is_paused{false};
+    Tick m_fixed_time_step{10}; ///< The time step for non-realtime operation.
+    bool m_use_fixed_time_step{false};
+    Tick m_fixed_time{0}; ///< How many machine ticks we've been using a fixed time step.
+};
 } // namespace Vamos_World
 
 //-----------------------------------------------------------------------------
-static std::string 
-format_time (double time, int precision = 3)
+static std::string time_str(double time, int precision = 3)
 {
-  if (time == Timing_Info::NO_TIME) return "";
+  if (time == Timing_Info::no_time)
+      return "";
 
-  int minutes = int (time / 60.0);
-  double seconds = time - 60 * minutes;
-  int width = 2; // Show the leading zero on the seconds.
-  if (precision > 0)
-    width += precision + 1; // Add 1 for the decimal point.
+  auto minutes{static_cast<int>(time / 60.0)};
+  auto seconds{time - 60 * minutes};
+  // Show the leading zero on the seconds. Add 1 for the decimal point if present.
+  auto width{precision > 0 ? precision + 3 : 2};
 
   std::ostringstream os;
-  os << minutes << ':' 
-     << std::fixed << std::setfill ('0') 
-     << std::setw (width) << std::setprecision (precision)
+  os << minutes << ':'
+     << std::fixed << std::setfill('0') << std::setw(width) << std::setprecision(precision)
      << seconds;
-  return os.str ();
+  return os.str();
 }
 
-static std::string 
-format_time_difference (double delta_time, int precision = 3)
+static std::string dtime_str(double delta_time, int precision = 3)
 {
-  if (delta_time == Timing_Info::NO_TIME) return "";
+  if (delta_time == Timing_Info::no_time)
+      return "";
 
   std::ostringstream os;
   if (delta_time > 0.0)
       os << '+';
-
-  os << std::fixed << std::setprecision (precision) << delta_time;
+  os << std::fixed << std::setprecision(precision) << delta_time;
   return os.str ();
 }
 
@@ -180,71 +230,85 @@ Gl_Window::resize (int width, int height)
 }
 
 //-----------------------------------------------------------------------------
-Timer::Timer (Tick interval, Tick fixed_time_step) :
-  m_timeout (interval),
-  m_frame_step (0.001),
-  m_is_paused (false),
-  m_fixed_time_step (fixed_time_step),
-  m_use_fixed_time_step (false)
+/// Convert ticks (integer milliseconds) to seconds.
+static double ticks_to_seconds(Tick ticks)
 {
-  reset ();
+    return 0.001 * ticks;
 }
 
-void
-Timer::reset ()
+Timer::Timer(Tick interval, Tick fixed_time_step)
+    : m_timeout{interval},
+      m_fixed_time_step{fixed_time_step}
 {
-  start_averaging ();
-  // Pretend that the simulation was paused until now.
-  m_pause_ticks = m_start_ticks;
-  m_fixed_time = 0;
+    reset();
 }
 
-void 
-Timer::update ()
+void Timer::reset()
 {
-  if (m_is_paused) return;
+    start_averaging();
+    // Pretend that the simulation was paused until now.
+    m_pause_ticks = m_start_ticks;
+    m_fixed_time = 0;
+}
 
-  m_current_ticks = SDL_GetTicks ();
+void Timer::update()
+{
+    if (m_is_paused)
+        return;
 
-  if (m_use_fixed_time_step)
-    m_fixed_time += m_fixed_time_step;
-
-  const unsigned elapsed = m_current_ticks - m_start_ticks;
-  if ((elapsed > m_timeout) && (m_frames > 0))
+    if (m_use_fixed_time_step)
+        m_fixed_time += m_fixed_time_step;
+    m_current_ticks = SDL_GetTicks();
+    auto elapsed{m_current_ticks - m_start_ticks};
+    if (elapsed > m_timeout && m_frames > 0)
     {
-      m_frame_step = ticks_to_seconds (elapsed) / m_frames;
-      start_averaging ();
+        m_frame_step = ticks_to_seconds(elapsed) / m_frames;
+        start_averaging();
     }
 }
 
-void 
-Timer::start_averaging ()
+void Timer::start_averaging()
 {
-  m_start_ticks = SDL_GetTicks ();
-  m_frames = 0;
+    m_start_ticks = SDL_GetTicks();
+    m_frames = 0;
 }
 
-void 
-Timer::set_paused (bool is_paused)
+void Timer::set_paused(bool is_paused)
 {
-  m_is_paused = is_paused;
-  if (!is_paused)
+    m_is_paused = is_paused;
+    if (!is_paused)
     {
-      start_averaging ();
-      m_pause_ticks += m_start_ticks - m_current_ticks; 
-      update ();
+        start_averaging();
+        m_pause_ticks += m_start_ticks - m_current_ticks;
+        update();
     }
 }
 
-void 
-Timer::use_fixed_time_step (bool use) 
-{ 
-  if (!use)
+void Timer::use_fixed_time_step(bool fixed)
+{
+    m_use_fixed_time_step = fixed;
+    if (!fixed)
     {
-      start_averaging ();
-      update ();
+        start_averaging();
+        update();
     }
-  m_use_fixed_time_step = use; 
+}
+
+double Timer::get_current_time() const
+{
+    return ticks_to_seconds(m_current_ticks - m_pause_ticks + m_fixed_time);
+}
+
+double Timer::get_time_step() const
+{
+    return m_use_fixed_time_step
+        ? ticks_to_seconds(m_fixed_time_step)
+        : m_frame_step / steps_per_frame;
+}
+
+double Timer::get_frame_rate() const
+{
+    return m_use_fixed_time_step ? 0.0 : 1.0 / m_frame_step;
 }
 
 //-----------------------------------------------------------------------------
@@ -253,7 +317,7 @@ Gl_World::Gl_World (Vamos_Track::Strip_Track& track,
                     Sounds& sounds,
                     bool full_screen)
   : World (track, atmosphere),
-    m_timer (100, 10),
+    mp_timer{std::make_unique<Timer>(100, 10)},
     m_sounds (sounds),
     mp_window (0),
     m_view (MAP_VIEW),
@@ -339,7 +403,7 @@ Gl_World::read (std::string world_file,
 void 
 Gl_World::set_paused (bool is_paused)
 {
-  m_timer.set_paused (is_paused);
+  mp_timer->set_paused (is_paused);
   m_paused = is_paused;
 
   for (std::vector <Car_Information>::iterator it = m_cars.begin ();
@@ -437,7 +501,7 @@ bool
 Gl_World::toggle_graphics (double, double)
 {
   m_update_graphics = !m_update_graphics;
-  m_timer.use_fixed_time_step (!m_update_graphics);
+  mp_timer->use_fixed_time_step (!m_update_graphics);
   return true;
 }
 
@@ -489,20 +553,16 @@ Gl_World::replay (double, double)
   return true;
 }
 
-// The main loop of the simulation
-void 
-Gl_World::animate ()
+void Gl_World::animate()
 {
-  if (focused_car () != 0)
+    if (focused_car())
     {
-      for (int loop = 0; loop < m_timer.steps_per_frame (); loop++)
-        {
-          propagate_cars (m_timer.get_time_step ());
-        }
-      play_sounds ();
-      update_car_timing ();
-   }
-  m_timer.add_frame ();
+        for (int loop = 0; loop < steps_per_frame; ++loop)
+            propagate_cars (mp_timer->get_time_step());
+        play_sounds();
+        update_car_timing();
+    }
+    mp_timer->add_frame();
 }
 
 void
@@ -515,7 +575,7 @@ Gl_World::update_car_timing ()
         car.driver->start (mp_timing->countdown ());
       const double distance = car.track_position ().x;
       const int sector = m_track.sector (distance);
-      mp_timing->update (m_timer.get_current_time (), i, distance, sector);
+      mp_timing->update(mp_timer->get_current_time(), i, distance, sector);
       if (mp_timing->timing_at_index (i).is_finished ())
         car.driver->finish ();
     }
@@ -772,141 +832,101 @@ Gl_World::reshape (int width, int height)
   m_map.set_bounds (m_track, *mp_window);
 }
 
-void 
-Gl_World::draw_timing_info () const
+void Gl_World::draw_timing_info() const
 {
-    set_starting_lights ();
+    Two_D screen;
+    auto count{mp_timing->countdown()};
+    if (count > 0)
+        screen.lights(50.0, 60.0, 1.0, 5, count, 0.9, 0.0, 0.0, 0.23, 0.2, 0.2);
 
-  Vamos_Media::Two_D screen;
+    if (mp_timing->running_order().size() > 1)
+        draw_leaderboard(screen);
+    else
+        draw_lap_times(screen);
 
-  if (mp_timing->running_order ().size () > 1 )
-    draw_leaderboard (screen);
-  else
-    draw_lap_times (screen);
+    // Draw timing info for the focused car.
+    auto car{mp_timing->timing_at_index(m_focused_car_index)};
+    auto x{55};
+    auto dt{dtime_str(car.lap_time_difference())};
+    screen.text(x, 14, "Lap Time", time_str(car.lap_time()));
+    screen.text(x, 10, "    Last", time_str(car.previous_lap_time()), dt);
+    screen.text(x, 6,  "    Best", time_str(car.best_lap_time()));
+    screen.text(x, 2,  "frames/s", static_cast<int>(mp_timer->get_frame_rate() + 0.5));
 
-  const Timing_Info::Car_Timing& car = mp_timing->timing_at_index (m_focused_car_index);
-
-  double x = 55;
-  screen.text (x, 14, "Lap Time", format_time (car.lap_time ()));
-  screen.text (x, 10, "    Last", format_time (car.previous_lap_time ()),
-               format_time_difference (car.lap_time_difference ()));
-  screen.text (x, 6, "    Best", format_time (car.best_lap_time ()));
-  screen.text (x, 2, "frames/s", int (m_timer.get_frame_rate () + 0.5));
-
-  x = 75;
-  screen.text (x, 14, "     Sector", format_time (car.sector_time ()));
-  screen.text (x, 10, "       Best",
-               car.current_sector () == 0 ? "" : format_time (car.best_sector_time ()));
-  screen.text (x, 6, "Last Sector",
-               format_time (car.previous_sector_time ()) + "  " 
-               + format_time_difference (car.previous_sector_time_difference ()));
-
-  screen.text (x, 2, "Distance", int (car.lap_distance ()), " m");
+    x = 75;
+    dt = dtime_str(car.previous_sector_time_difference());
+    screen.text(x, 14, "     Sector", time_str(car.sector_time()));
+    screen.text(x, 10, "       Best", time_str(car.best_sector_time()));
+    screen.text(x, 6,  "Last Sector", time_str(car.previous_sector_time()), dt);
+    screen.text(x, 2,  "Distance", static_cast<int>(car.lap_distance()), " m");
 }
 
-void
-Gl_World::set_starting_lights () const
+void Gl_World::draw_leaderboard(Vamos_Media::Two_D& screen) const
 {
-  const int count = mp_timing->countdown ();
-  if (count == 0)
-    return;
+    auto x{2};
+    auto y{95};
 
-  Vamos_Media::Two_D screen;
-  screen.lights (50.0, 60.0, 1.0,
-                 5, count,
-                 0.9, 0.0, 0.0,
-                 0.23, 0.2, 0.2);
-}
-
-void
-Gl_World::draw_leaderboard (Vamos_Media::Two_D& screen) const
-{
-  double x = 2;
-  double y = 95;
-
-  const Timing_Info::Running_Order& order = mp_timing->running_order ();
-  Timing_Info::Running_Order::const_iterator it = order.begin ();
-
-  if (m_track.get_road (0).is_closed ())
+    auto const& order{mp_timing->running_order()};
+    if (m_track.get_road(0).is_closed())
     {
-      const size_t lap = (*it)->current_lap ();
-      const size_t total_laps = mp_timing->total_laps ();
-      if (mp_timing->is_finished ())
+        auto total_laps{mp_timing->total_laps()};
+        if (mp_timing->is_finished())
+            screen.text(x, y, "Finish");
+        else if (mp_timing->is_qualifying() && total_laps == 0)
+            screen.text(x, y, "", time_str(mp_timing->time_remaining(), 0));
+        else
         {
-          screen.text (x, y, "Finish");
-        }
-      else if (mp_timing->qualifying () && (total_laps == 0))
-        {
-          screen.text (x, y, "", format_time (mp_timing->time_remaining (), 0));
-        }
-      else
-        {
-          std::ostringstream os;
-          os << lap << '/' << total_laps;
-          screen.text (x, y, "Lap", os.str ());
+            std::ostringstream os;
+            os << order.front()->current_lap() << '/' << total_laps;
+            screen.text(x, y, "Lap", os.str());
         }
     }
 
-  y -= 3;
-  std::string time = format_time (mp_timing->qualifying ()
-                                  ? (*it)->best_lap_time () 
-                                  : (*it)->previous_lap_time ());
-  screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (), time);
-
-  while (++it != order.end ())
+    y -= 3;
+    // Show absolute lap time for the leader.
+    auto time{time_str(mp_timing->is_qualifying()
+                       ? order.front()->best_lap_time() : order.front()->previous_lap_time())};
+    screen.text(x, y, m_cars[order.front()->grid_position() - 1].car->name(), time);
+    y -= 3;
+    // Show relative times for the rest.
+    for (auto it{order.cbegin()}; it != order.cend(); ++it, y -= 3)
     {
-      y -= 3;
-      time = mp_timing->qualifying () 
-        ? format_time ((*it)->best_lap_time ()) 
-        : format_time_difference ((*it)->interval ());
-      screen.text (x, y, m_cars [(*it)->grid_position () - 1].car->name (), time);
+        time = mp_timing->is_qualifying()
+            ? time_str((*it)->best_lap_time()) : dtime_str((*it)->interval());
+        screen.text(x, y, m_cars[(*it)->grid_position() - 1].car->name(), time);
     }
-
-  if (!mp_timing->qualifying () && m_track.get_road (0).is_closed ())
-    draw_fastest_lap (screen, x, y - 3);
+    if (!mp_timing->is_qualifying() && m_track.get_road(0).is_closed())
+        draw_fastest_lap(screen, x, y);
 }
 
-void
-Gl_World::draw_lap_times (Vamos_Media::Two_D& screen) const
+void Gl_World::draw_lap_times(Vamos_Media::Two_D& screen) const
 {
-  const Timing_Info::Running_Order& order = mp_timing->running_order ();
-  Timing_Info::Running_Order::const_iterator it = order.begin ();
+    const auto& order{mp_timing->running_order()};
+    auto it{order.cbegin()};
 
-  static std::vector <double> a_time;
-  const double lap_time = (*it)->previous_lap_time ();
-  const size_t lap = (*it)->current_lap ();
-  if ((lap_time != Timing_Info::NO_TIME) 
-      && (lap > 0)
-      && (lap - 1) > a_time.size ())
-    a_time.push_back (lap_time);
+    std::vector<double> a_time;
+    auto lap_time{(*it)->previous_lap_time()};
+    auto lap{(*it)->current_lap()};
+    if (lap_time != Timing_Info::no_time && lap > 0 && lap - 1 > a_time.size())
+        a_time.push_back(lap_time);
 
-  double x = 2;
-  double y = 95;
-  screen.text (x, y, "Lap", "Time");
-  y -= 3;
-
-  for (size_t i = 0; i < a_time.size (); i++, y -= 3)
-    {
-      screen.text (x, y, i + 1, format_time (a_time [i]));
-    }
-
-  // Draw the lap number with no time for the current lap.
-  screen.text (x, y, a_time.size () + 1, "");
-
-  draw_fastest_lap (screen, x, y - 3);
+    auto x{2};
+    auto y{95};
+    screen.text(x, y, "Lap", "Time");
+    for (auto i = 0; auto time : a_time)
+        screen.text(x, y -= 3, ++i, time_str(time));
+    // Draw the lap number with no time for the current lap.
+    screen.text(x, y, a_time.size() + 1, "");
+    draw_fastest_lap(screen, x, y - 3);
 }
 
-void
-Gl_World::draw_fastest_lap (Vamos_Media::Two_D& screen, int x, int y) const
+void Gl_World::draw_fastest_lap(Vamos_Media::Two_D& screen, int x, int y) const
 {
-  screen.text (x, y, "Fastest Lap");
-  y -= 2;
-  const Timing_Info::Car_Timing* p_fastest = mp_timing->fastest_lap_timing ();
-  if (p_fastest && (p_fastest->best_lap_time () != Timing_Info::NO_TIME))
-    {
-      screen.text (x, y, m_cars [p_fastest->grid_position () - 1].car->name (),
-                   format_time (p_fastest->best_lap_time ()));
-    }
+    screen.text(x, y, "Fastest Lap");
+    const auto* p_fastest{mp_timing->fastest_lap_timing()};
+    if (p_fastest && (p_fastest->best_lap_time() != Timing_Info::no_time))
+        screen.text(x, y - 3, m_cars[p_fastest->grid_position() - 1].car->name(),
+                    time_str(p_fastest->best_lap_time()));
 }
 
 void 
@@ -916,7 +936,7 @@ Gl_World::start (bool qualifying, size_t laps_or_minutes)
   m_map.set_bounds (m_track, *mp_window);
   if (!m_cars.empty ())
     set_paused (false);
-  m_timer.reset ();
+  mp_timer->reset();
 
   SDL_Event event;
 
@@ -926,7 +946,7 @@ Gl_World::start (bool qualifying, size_t laps_or_minutes)
 
   while (!m_done)
     {
-      m_timer.update ();
+      mp_timer->update();
       check_for_events ();
 
       if (m_paused)

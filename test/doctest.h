@@ -5006,7 +5006,7 @@ namespace {
 #ifndef DOCTEST_CONFIG_NO_UNPREFIXED_OPTIONS
             s << Color::Cyan << "[doctest]\n" << Color::None;
             s << Color::Cyan << "[doctest] " << Color::None;
-            s << "ALL FLAGS, OPTIONS AND FILTERS ALSO AVAILABLE WITH A \"" DOCTEST_CONFIG_OPTIONS_PREFIX "\" PREFIX!!!\n";
+            s << "All flags, options and filters also available with a \"" DOCTEST_CONFIG_OPTIONS_PREFIX "\" prefix.\n";
 #endif
             s << Color::Cyan << "[doctest]\n" << Color::None;
             s << Color::Cyan << "[doctest] " << Color::None;

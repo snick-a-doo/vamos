@@ -15,7 +15,7 @@ struct Timing_Fixture
         : timing(n_cars, n_sectors, false) // Skip the start sequence.
     {
     }
-    const Timing_Info::Car_Timing& car(size_t n) const { return timing.timing_at_index(n - 1); }
+    const Car_Timing& car(size_t n) const { return timing.timing_at_index(n - 1); }
     Timing_Info timing;
 };
 
@@ -31,29 +31,29 @@ struct Lap_Race_Fixture : public Timing_Fixture
 TEST_CASE("initial state")
 {
     Lap_Race_Fixture f(3, 3, 4);
-    CHECK(f.timing.total_time() == 0.0);
+    CHECK(f.timing.elapsed_time() == 0.0);
     CHECK(f.timing.total_laps() == 4);
     CHECK(f.car(1).current_lap() == 0);
     CHECK(f.car(2).current_lap() == 0);
     CHECK(f.car(3).current_lap() == 0);
-    CHECK(f.car(1).interval() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).interval() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).interval() == Timing_Info::NO_TIME);
+    CHECK(f.car(1).interval() == Timing_Info::no_time);
+    CHECK(f.car(2).interval() == Timing_Info::no_time);
+    CHECK(f.car(3).interval() == Timing_Info::no_time);
     CHECK(f.car(1).current_lap() == 0);
     CHECK(f.car(2).current_lap() == 0);
     CHECK(f.car(3).current_lap() == 0);
     CHECK(f.car(1).lap_time() == 0);
     CHECK(f.car(2).lap_time() == 0);
     CHECK(f.car(3).lap_time() == 0);
-    CHECK(f.car(1).previous_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).previous_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).previous_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(1).best_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).best_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).best_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(1).lap_time_difference() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).lap_time_difference() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).lap_time_difference() == Timing_Info::NO_TIME);
+    CHECK(f.car(1).previous_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(2).previous_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(3).previous_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(1).best_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(2).best_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(3).best_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(1).lap_time_difference() == Timing_Info::no_time);
+    CHECK(f.car(2).lap_time_difference() == Timing_Info::no_time);
+    CHECK(f.car(3).lap_time_difference() == Timing_Info::no_time);
     CHECK(f.car(1).current_sector() == 0);
     CHECK(f.car(2).current_sector() == 0);
     CHECK(f.car(3).current_sector() == 0);
@@ -63,15 +63,15 @@ TEST_CASE("initial state")
     CHECK(f.car(1).sector_time() == 0);
     CHECK(f.car(2).sector_time() == 0);
     CHECK(f.car(3).sector_time() == 0);
-    CHECK(f.car(1).previous_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).previous_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).previous_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(1).best_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).best_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).best_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(1).previous_sector_time_difference() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).previous_sector_time_difference() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).previous_sector_time_difference() == Timing_Info::NO_TIME);
+    CHECK(f.car(1).previous_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(2).previous_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(3).previous_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(1).best_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(2).best_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(3).best_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(1).previous_sector_time_difference() == Timing_Info::no_time);
+    CHECK(f.car(2).previous_sector_time_difference() == Timing_Info::no_time);
+    CHECK(f.car(3).previous_sector_time_difference() == Timing_Info::no_time);
 }
 
 TEST_CASE("second sector")
@@ -87,9 +87,9 @@ TEST_CASE("second sector")
     f.timing.update(70.0, 0, 600.0, 2);
     f.timing.update(81.0, 1, 900.0, 2);
     f.timing.update(92.0, 2, 750.0, 2);
-    CHECK(f.timing.total_time() == 92.0);
+    CHECK(f.timing.elapsed_time() == 92.0);
     CHECK(f.car(1).interval() == 19);
-    CHECK(f.car(2).interval() == Timing_Info::NO_TIME);
+    CHECK(f.car(2).interval() == Timing_Info::no_time);
     CHECK(f.car(3).interval() == 22);
     CHECK(f.car(1).lap_distance() == 600);
     CHECK(f.car(2).lap_distance() == 900);
@@ -100,15 +100,15 @@ TEST_CASE("second sector")
     CHECK(f.car(1).lap_time() == 70);
     CHECK(f.car(2).lap_time() == 81);
     CHECK(f.car(3).lap_time() == 92);
-    CHECK(f.car(1).previous_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).previous_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).previous_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(1).best_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).best_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).best_lap_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(1).lap_time_difference() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).lap_time_difference() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).lap_time_difference() == Timing_Info::NO_TIME);
+    CHECK(f.car(1).previous_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(2).previous_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(3).previous_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(1).best_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(2).best_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(3).best_lap_time() == Timing_Info::no_time);
+    CHECK(f.car(1).lap_time_difference() == Timing_Info::no_time);
+    CHECK(f.car(2).lap_time_difference() == Timing_Info::no_time);
+    CHECK(f.car(3).lap_time_difference() == Timing_Info::no_time);
     CHECK(f.car(1).current_sector() == 2);
     CHECK(f.car(2).current_sector() == 2);
     CHECK(f.car(3).current_sector() == 2);
@@ -121,12 +121,12 @@ TEST_CASE("second sector")
     CHECK(f.car(1).previous_sector_time() == 70);
     CHECK(f.car(2).previous_sector_time() == 51);
     CHECK(f.car(3).previous_sector_time() == 92);
-    CHECK(f.car(1).best_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).best_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).best_sector_time() == Timing_Info::NO_TIME);
-    CHECK(f.car(1).previous_sector_time_difference() == Timing_Info::NO_TIME);
-    CHECK(f.car(2).previous_sector_time_difference() == Timing_Info::NO_TIME);
-    CHECK(f.car(3).previous_sector_time_difference() == Timing_Info::NO_TIME);
+    CHECK(f.car(1).best_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(2).best_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(3).best_sector_time() == Timing_Info::no_time);
+    CHECK(f.car(1).previous_sector_time_difference() == Timing_Info::no_time);
+    CHECK(f.car(2).previous_sector_time_difference() == Timing_Info::no_time);
+    CHECK(f.car(3).previous_sector_time_difference() == Timing_Info::no_time);
 }
 
 TEST_CASE("third lap")
@@ -139,8 +139,8 @@ TEST_CASE("third lap")
     f.timing.update(51.0, 0, 3.0, 1);
     f.timing.update(57.0, 0, 100.0, 1);
 
-    CHECK(f.timing.total_time() == 57.0);
-    CHECK(f.car(1).interval() == Timing_Info::NO_TIME);
+    CHECK(f.timing.elapsed_time() == 57.0);
+    CHECK(f.car(1).interval() == Timing_Info::no_time);
     CHECK(f.car(1).lap_distance() == 100);
     CHECK(f.car(1).current_lap() == 3);
     CHECK(f.car(1).lap_time() == 6);
@@ -185,43 +185,43 @@ TEST_CASE("end of race")
 
     // Total time keeps running. If race time is needed it could be provided by
     // the winner's Car_Timing.
-    CHECK(f.timing.total_time() == 180);
+    CHECK(f.timing.elapsed_time() == 180);
 
-    CHECK(&(f.timing.timing_at_index(1)) == *it);
+    CHECK(&(f.timing.timing_at_index(1)) == it->get());
     CHECK((*it)->current_lap() == 3);
-    CHECK((*it)->interval() == Timing_Info::NO_TIME);
+    CHECK((*it)->interval() == Timing_Info::no_time);
     CHECK((*it)->lap_distance() == 116);
-    CHECK((*it)->lap_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->lap_time() == Timing_Info::no_time);
     CHECK((*it)->previous_lap_time() == 40); // last race lap
-    CHECK(f.timing.fastest_lap_timing() == *it);
+    CHECK(f.timing.fastest_lap_timing() == it->get());
     CHECK((*it)->best_lap_time() == 40);
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
-    CHECK((*it)->sector_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->sector_time() == Timing_Info::no_time);
     CHECK((*it)->previous_sector_time() == 20); // last race sector
 
     ++it;
-    CHECK(&(f.timing.timing_at_index(0)) == *it);
+    CHECK(&(f.timing.timing_at_index(0)) == it->get());
     CHECK((*it)->current_lap() == 3);
     CHECK((*it)->interval() == 20);
     CHECK((*it)->lap_distance() == 117);
-    CHECK((*it)->lap_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->lap_time() == Timing_Info::no_time);
     CHECK((*it)->previous_lap_time() == 50); // last race lap
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
-    CHECK((*it)->sector_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->sector_time() == Timing_Info::no_time);
     CHECK((*it)->previous_sector_time() == 25); // last race sector
 
     ++it;
-    CHECK(&(f.timing.timing_at_index(2)) == *it);
+    CHECK(&(f.timing.timing_at_index(2)) == it->get());
     CHECK((*it)->current_lap() == 2);
     CHECK((*it)->interval() == 41);
     CHECK((*it)->lap_distance() == 115);
-    CHECK((*it)->lap_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->lap_time() == Timing_Info::no_time);
     CHECK((*it)->previous_lap_time() == 111); // last race lap
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
-    CHECK((*it)->sector_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->sector_time() == Timing_Info::no_time);
     CHECK((*it)->previous_sector_time() == 21); // last race sector
 }
 
@@ -262,43 +262,43 @@ TEST_CASE("end of timed race")
 
     // Total time keeps running. If race time is needed it could be provided by
     // the winner's Car_Timing.
-    CHECK(f.timing.total_time() == 180);
+    CHECK(f.timing.elapsed_time() == 180);
 
-    CHECK(&(f.timing.timing_at_index(1)) == *it);
+    CHECK(&(f.timing.timing_at_index(1)) == it->get());
     CHECK((*it)->current_lap() == 3);
-    CHECK((*it)->interval() == Timing_Info::NO_TIME);
+    CHECK((*it)->interval() == Timing_Info::no_time);
     CHECK((*it)->lap_distance() == 116);
-    CHECK((*it)->lap_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->lap_time() == Timing_Info::no_time);
     CHECK((*it)->previous_lap_time() == 40); // last race lap
-    CHECK(f.timing.fastest_lap_timing() == *it);
+    CHECK(f.timing.fastest_lap_timing() == it->get());
     CHECK((*it)->best_lap_time() == 40);
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
-    CHECK((*it)->sector_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->sector_time() == Timing_Info::no_time);
     CHECK((*it)->previous_sector_time() == 20); // last race sector
 
     ++it;
-    CHECK(&(f.timing.timing_at_index(0)) == *it);
+    CHECK(&(f.timing.timing_at_index(0)) == it->get());
     CHECK((*it)->current_lap() == 3);
     CHECK((*it)->interval() == 20);
     CHECK((*it)->lap_distance() == 117);
-    CHECK((*it)->lap_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->lap_time() == Timing_Info::no_time);
     CHECK((*it)->previous_lap_time() == 50); // last race lap
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
-    CHECK((*it)->sector_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->sector_time() == Timing_Info::no_time);
     CHECK((*it)->previous_sector_time() == 25); // last race sector
 
     ++it;
-    CHECK(&(f.timing.timing_at_index(2)) == *it);
+    CHECK(&(f.timing.timing_at_index(2)) == it->get());
     CHECK((*it)->current_lap() == 2);
     CHECK((*it)->interval() == 41);
     CHECK((*it)->lap_distance() == 115);
-    CHECK((*it)->lap_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->lap_time() == Timing_Info::no_time);
     CHECK((*it)->previous_lap_time() == 111); // last race lap
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
-    CHECK((*it)->sector_time() == Timing_Info::NO_TIME);
+    CHECK((*it)->sector_time() == Timing_Info::no_time);
     CHECK((*it)->previous_sector_time() == 21); // last race sector
 }
 
@@ -338,7 +338,7 @@ TEST_CASE("qualifying")
     CHECK(f.timing.timing_at_index(1).best_lap_time() == 45);
     CHECK(f.timing.timing_at_index(2).best_lap_time() == 111);
 
-    CHECK(&(f.timing.timing_at_index(1)) == *it++);
-    CHECK(&(f.timing.timing_at_index(0)) == *it++);
-    CHECK(&(f.timing.timing_at_index(2)) == *it++);
+    CHECK(&(f.timing.timing_at_index(1)) == (it++)->get());
+    CHECK(&(f.timing.timing_at_index(0)) == (it++)->get());
+    CHECK(&(f.timing.timing_at_index(2)) == (it++)->get());
 }

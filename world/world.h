@@ -28,6 +28,7 @@
 #include "timing-info.h"
 
 #include <string>
+#include <memory>
 #include <vector>
 
 namespace Vamos_Body
@@ -116,7 +117,7 @@ struct Car_Information
   {
   public:
     World (Vamos_Track::Strip_Track& track, Atmosphere& atmosphere);
-    virtual ~World ();
+    virtual ~World () = default;
 
     void interact (Vamos_Body::Car* car, 
                    size_t road_index,
@@ -139,7 +140,7 @@ struct Car_Information
 
     std::vector <Car_Information> m_cars;
     /// The times for all cars.
-    Timing_Info* mp_timing;
+      std::unique_ptr<Timing_Info> mp_timing;
     std::vector <Interaction_Info> m_interaction_info;
     size_t m_focused_car_index;
 
