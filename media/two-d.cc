@@ -117,6 +117,7 @@ void Two_D::lights (double x, double y, double r, int n, int n_on,
   y *= m_height/100.0;
   r *= m_height/100.0;
 
+  glPushMatrix();
   glTranslatef (x + 6*r, y, 0.0);
 
   GLUquadricObj* disk = gluNewQuadric();
@@ -132,6 +133,7 @@ void Two_D::lights (double x, double y, double r, int n, int n_on,
     }
 
   gluDeleteQuadric (disk);
+  glPopMatrix();
 }
 
 void Two_D::vector (double x, double y, double r,

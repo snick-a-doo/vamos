@@ -34,7 +34,7 @@ public:
     /// element is lost.
     template <typename... Args> void emplace_back(Args&&... args);
     /// Return an element. The oldest element has index 0.
-    const T& operator[](size_t index);
+    const T& operator[](size_t index) const;
     /// Return the most recently added element.
     const T& back() const;
 
@@ -52,7 +52,8 @@ void Circular_Buffer<T, N>::emplace_back(Args&&... args)
     m_start_index = (m_start_index + 1) % N;
 }
 
-template <typename T, size_t N> const T& Circular_Buffer<T, N>::operator[](size_t index)
+template <typename T, size_t N>
+const T& Circular_Buffer<T, N>::operator[](size_t index) const
 {
     assert(index < m_used);
     return m_elements[(m_start_index + index) % m_used];

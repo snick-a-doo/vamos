@@ -133,9 +133,9 @@ int main (int argc, char* argv [])
   Strip_Track track;
   track.set_racing_line(opt.show_line || opt.demo || opt.number_of_cars > 1,
                         opt.show_line);
-  Atmosphere air (1.2, Three_Vector (0.0, 0.0, 0.0));
-  Sounds sounds (opt.volume);
-  Gl_World world (track, air, sounds, opt.full_screen);
+  Atmosphere air{1.2, {0.0, 0.0, 0.0}};
+  Sounds sounds(opt.volume);
+  Gl_World world(track, air, sounds, opt.full_screen);
 
   try
     {
@@ -145,8 +145,6 @@ int main (int argc, char* argv [])
 
       if (!opt.map_mode)
         {
-          bool robots = false;
-          bool interactive = false;
           Three_Matrix orientation{1.0};
 
           for (Entry_List::const_iterator itEntry = entries.begin ();
@@ -163,19 +161,15 @@ int main (int argc, char* argv [])
               car->start_engine ();
               if (itEntry->interactive)
                 {
-                  interactive = true;
                   Interactive_Driver* driver = new Interactive_Driver (*car);
                   world.add_car (*car, *driver);
-                  world.set_focused_car (place - 1);
                 }
               else
                 {
-                  robots = true;
-                  car->adjust_robot_parameters (opt.performance, 
+                  car->adjust_robot_parameters (opt.performance,
                                                 opt.performance,
                                                 opt.performance);
-                  Robot_Driver* driver
-                    = new Robot_Driver (*car, track, world.get_gravity ());
+                  Robot_Driver* driver = new Robot_Driver (*car, track);
                   if (opt.qualifying)
                     driver->qualify ();
                   driver->interact (opt.interact);
@@ -184,9 +178,7 @@ int main (int argc, char* argv [])
                 }
             }
 
-          if (robots && !interactive)
-            world.set_focused_car (0);
-          world.cars_can_interact (opt.interact);
+          world.cars_interact(opt.interact);
         }
 
       world.read(get_path(opt.data_dir, "worlds", opt.world_file, true),

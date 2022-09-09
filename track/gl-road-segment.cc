@@ -577,19 +577,17 @@ Gl_Road_Segment::right_material (double height) const
 }
 
 
-const Material& 
-Gl_Road_Segment::material_at (double along, double from_center)
+Material const& Gl_Road_Segment::material_at(double along, double from_center) const
 {
     if (from_center > left_road_width (along) + kerb_width(Side::left, along))
-    return m_materials [LEFT_SHOULDER];
-  else if (from_center > left_road_width (along))
-    return m_materials [LEFT_KERB];
-  else if (from_center > -right_road_width (along))
-    return m_materials [TRACK];
-  else if (from_center > -right_road_width (along) - kerb_width(Side::right, along))
-    return m_materials [RIGHT_KERB];
-  else
-    return m_materials [RIGHT_SHOULDER];
+        return m_materials[LEFT_SHOULDER];
+    if (from_center > left_road_width (along))
+        return m_materials[LEFT_KERB];
+    if (from_center > -right_road_width (along))
+        return m_materials[TRACK];
+    if (from_center > -right_road_width (along) - kerb_width(Side::right, along))
+        return m_materials[RIGHT_KERB];
+    return m_materials[RIGHT_SHOULDER];
 }
 
 void

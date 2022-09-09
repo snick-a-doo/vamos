@@ -399,24 +399,18 @@ public:
     // Scale the track to a particular length.
     void set_length(double length) { mp_track->set_length(length); }
 
-    // Return the new position for a vehicle at POS when a reset is
-    // performed.
+    // Return the new position for a vehicle at POS when a reset is performed.
     Vamos_Geometry::Three_Vector reset_position(Vamos_Geometry::Three_Vector const& pos,
-                                                size_t& road_index, size_t& segment_index);
-
-    // Return the new orientation for a vehicle at POS when a reset is
-    // performed.
+                                                size_t& road_index,
+                                                size_t& segment_index) const;
+    // Return the new orientation for a vehicle at POS when a reset is performed.
     Vamos_Geometry::Three_Matrix reset_orientation(Vamos_Geometry::Three_Vector const& pos,
-                                                   size_t& road_index, size_t& segment_index);
-
-    // Return the elevation of the track at the x and y components of
-    // POS.
-    double elevation(Vamos_Geometry::Three_Vector const& pos, double x, double y,
-                     size_t& road_index, size_t& segment_index);
+                                                   size_t& road_index,
+                                                   size_t& segment_index) const;
 
     Vamos_Geometry::Contact_Info test_for_contact(Vamos_Geometry::Three_Vector const& pos,
                                                   double bump_parameter, size_t& road_index,
-                                                  size_t& segment_index);
+                                                  size_t& segment_index) const;
 
     const Road& get_road(size_t road_index) const;
 
@@ -424,7 +418,8 @@ public:
     // SEGMENT_INDEX will be modified if the position on another
     // segment.
     Vamos_Geometry::Three_Vector track_coordinates(Vamos_Geometry::Three_Vector const& world_pos,
-                                                   size_t& road_index, size_t& segment_index);
+                                                   size_t& road_index, size_t& segment_index)
+        const;
 
     // Return the distance along the track for the given position.
     double from_center(Vamos_Geometry::Three_Vector const& pos, size_t& road_index,
@@ -434,7 +429,7 @@ public:
     Vamos_Geometry::Three_Vector position(double along, double from_center) const;
 
     // Return the timing sector at the given distance.
-    int sector(double distance);
+    int sector(double distance) const;
 
     /// @return Objects that need collision checking.
     const std::vector<Track_Object>& objects() const { return m_objects; }
@@ -444,6 +439,11 @@ public:
     Vamos_Geometry::Three_Vector grid_position(int place, int total, bool pit) const;
 
 private:
+    // Return the elevation of the track at the x and y components of
+    // POS.
+    double elevation(Vamos_Geometry::Three_Vector const& pos, double x, double y,
+                     size_t& road_index, size_t& segment_index);
+
     double m_start_direction;
 
     std::vector<double> m_timing_lines;

@@ -159,9 +159,8 @@ namespace Vamos_Body
     // Finish the timestep.
     void end_timestep ();
 
-    // Called by the world to tell the body what the acceleration due
-    // to gravity is.
-    void gravity (const Vamos_Geometry::Three_Vector& grav) { m_gravity = grav; }
+    // Called by the world to tell the body what the acceleration due to gravity is.
+    void set_gravity(Vamos_Geometry::Three_Vector const& grav) { m_gravity = grav; }
 
     // Return the velocity of the particle in the parent frame.
     Vamos_Geometry::Three_Vector velocity (Particle* particle);

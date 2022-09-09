@@ -122,7 +122,7 @@ namespace Vamos_Track
 
 	const Vamos_Geometry::Material& left_material (double height) const;
 	const Vamos_Geometry::Material& right_material (double height) const; 
-	const Vamos_Geometry::Material& material_at (double along, double from_center);
+    Vamos_Geometry::Material const& material_at(double along, double from_center) const;
 
   private:
 	std::vector <Model_Info> m_models;

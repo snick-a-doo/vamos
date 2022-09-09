@@ -1004,13 +1004,13 @@ void Strip_Track::draw() const
 }
 
 Three_Vector Strip_Track::reset_position(Three_Vector const& pos,
-                                         size_t& road_index, size_t& segment_index)
+                                         size_t& road_index, size_t& segment_index) const
 {
     return {track_coordinates(pos, road_index, segment_index).x, 0.0, 0.0};
 }
 
 Three_Matrix Strip_Track::reset_orientation(Three_Vector const& pos,
-                                            size_t& road_index, size_t& segment_index)
+                                            size_t& road_index, size_t& segment_index) const
 {
     Three_Matrix orientation{1.0};
 
@@ -1024,15 +1024,8 @@ Three_Matrix Strip_Track::reset_orientation(Three_Vector const& pos,
         Three_Vector(-asin(normal.y), asin(normal.x), segment->angle(along)));
 }
 
-double Strip_Track::elevation(Three_Vector const& pos, double x, double y,
-                              size_t& road_index, size_t& segment_index)
-{
-    auto bump{m_material.bump(x, y)};
-    return track_coordinates(pos, road_index, segment_index).z + bump.z;
-}
-
 Three_Vector Strip_Track::track_coordinates(Three_Vector const& world_pos,
-                                            size_t& road_index, size_t& segment_index)
+                                            size_t& road_index, size_t& segment_index) const
 {
     // Find the distance along the track, distance from center, and elevation
     // for the world coordinates `world_pos.x' and `world_pos.y'.
@@ -1117,7 +1110,6 @@ Three_Vector Strip_Track::track_coordinates(Three_Vector const& world_pos,
     }
 
     assert(segment_index < segments->size());
-    m_material = segment->material_at(track_pos.x, track_pos.y);
     return track_pos + segment->start_distance() * Three_Vector::X;
 }
 
@@ -1129,16 +1121,19 @@ Road const& Strip_Track::get_road(size_t road_index) const
 
 Contact_Info Strip_Track::test_for_contact(Three_Vector const& pos,
                                            double, // bump_parameter
-                                           size_t& road_index, size_t& segment_index)
+                                           size_t& road_index, size_t& segment_index) const
 {
-    const auto track_pos{track_coordinates(pos, road_index, segment_index)};
-    const auto* segment{get_road(road_index).segments()[segment_index]};
-    const auto segment_distance{track_pos.x - segment->start_distance()};
+    auto const track_pos{track_coordinates(pos, road_index, segment_index)};
+    auto const* segment{get_road(road_index).segments()[segment_index]};
+    auto const segment_distance{track_pos.x - segment->start_distance()};
+    auto material{segment->material_at(track_pos.x, track_pos.y)};
     auto contact{false};
     Three_Vector normal;
 
     // Test for contact with the road.
-    auto diff{elevation(pos, track_pos.x, track_pos.y, road_index, segment_index) - pos.z};
+    auto bump{material.bump(track_pos.x, track_pos.y)};
+    auto elev{track_coordinates(pos, road_index, segment_index).z + bump.z};
+    auto diff{elev - pos.z};
     if (diff >= 0.0)
     {
         contact = true;
@@ -1148,31 +1143,29 @@ Contact_Info Strip_Track::test_for_contact(Three_Vector const& pos,
     // Test for contact with the left wall.
     if (!contact)
     {
-        const auto& material{segment->left_material(pos.z)};
+        material = segment->left_material(pos.z);
         auto bump{material.bump(track_pos.x, track_pos.y)};
         diff = track_pos.y - (segment->left_width(segment_distance) + bump.z);
         if (diff >= 0.0)
         {
             contact = true;
-            m_material = material;
             normal = segment->barrier_normal(segment_distance, track_pos.y, bump);
         }
     }
     // Test for contact with the right wall.
     if (!contact)
     {
-        const auto& material{segment->right_material(pos.z)};
+        material = segment->right_material(pos.z);
         auto bump{material.bump(track_pos.x, track_pos.y)};
         diff = -track_pos.y - (segment->right_width(segment_distance) + bump.z);
         if (diff >= 0.0)
         {
             contact = true;
-            m_material = material;
             normal = segment->barrier_normal(segment_distance, track_pos.y, bump);
         }
     }
 
-    return Contact_Info(contact, diff, normal, m_material);
+    return Contact_Info(contact, diff, normal, material);
 }
 
 Three_Vector Strip_Track::position(double along, double from_center) const
@@ -1180,7 +1173,7 @@ Three_Vector Strip_Track::position(double along, double from_center) const
     return mp_track->position(along, from_center);
 }
 
-int Strip_Track::sector(double distance)
+int Strip_Track::sector(double distance) const
 {
     for (size_t i{0}; i < m_timing_lines.size(); ++i)
         if (m_timing_lines[i] > distance)

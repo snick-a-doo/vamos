@@ -46,15 +46,14 @@ namespace Vamos_Track
 
 namespace Vamos_World
 {
-  struct Car_Information;
+  struct Car_Info;
 
   /// The robot's interface to the track's racing line.
   class Robot_Racing_Line
   {
   public:
-    Robot_Racing_Line (const Vamos_Track::Road& road,
-                       double lateral_acceleration,
-                       double gravity);
+      Robot_Racing_Line(Vamos_Track::Road const& road, double lateral_acceleration);
+      void set_gravity(Vamos_Geometry::Three_Vector const& g) { m_gravity = g; }
     Vamos_Geometry::Three_Vector target (double along, double lead) const;
     double maximum_speed (double distance, 
                           double lane_shift,
@@ -69,7 +68,7 @@ namespace Vamos_World
   private:
     const Vamos_Track::Road* mp_road;
     double m_lateral_acceleration;
-    double m_gravity;
+      Vamos_Geometry::Three_Vector m_gravity;
   };
 
   /// Information about a braking operation.  A braking operation begins when
@@ -86,10 +85,10 @@ namespace Vamos_World
     ///                     the end of the track.  
     Braking_Operation (const Vamos_Track::Road& road,
                        double deceleration,
-                       double gravity,
                        const Robot_Racing_Line& line);
     ~Braking_Operation ();
 
+      void set_gravity(Vamos_Geometry::Three_Vector const& g) { m_gravity = g; }
     /// True if a braking operation is in progress, i.e. 'start()' has been
     /// called but 'end()' has not.
     bool is_braking () const { return m_is_braking; }
@@ -149,8 +148,8 @@ namespace Vamos_World
     double m_deceleration;
 
     Vamos_Geometry::Linear_Interpolator m_speed_vs_distance;
-    double m_gravity;
     const Robot_Racing_Line& m_line;
+      Vamos_Geometry::Three_Vector m_gravity;
   };
 
   /// A computer-controlled driver
@@ -202,15 +201,15 @@ namespace Vamos_World
   public:
     /// Provide pointers to the robot's car and the track.
     Robot_Driver (Vamos_Body::Car& car_in, 
-                  Vamos_Track::Strip_Track& track_in,
-                  double gravity);
+                  Vamos_Track::Strip_Track& track_in);
     virtual ~Robot_Driver () {};
 
     void qualify ();
 
+      virtual void set_gravity(Vamos_Geometry::Three_Vector const& g) override;
     /// Provide pointers to the other cars so the robot can pass or avoid
     /// collisions. 
-    void set_cars (const std::vector <Car_Information>* cars);
+    void set_cars (const std::vector <Car_Info>* cars);
 
     /// Called to signal the start of the race.
     virtual void start (double to_go);
@@ -236,7 +235,7 @@ namespace Vamos_World
     virtual bool is_driving () const;
 
   private:
-    const Car_Information& info () const { return (*mp_cars)[m_info_index]; }
+    const Car_Info& info () const { return (*mp_cars)[m_info_index]; }
 
     void set_event (Event::Type type, double delay = 0);
     void handle_event ();
@@ -305,7 +304,7 @@ namespace Vamos_World
     State m_state;
     Event m_event;
 
-    const std::vector <Car_Information>* mp_cars;
+    const std::vector <Car_Info>* mp_cars;
     size_t m_info_index;
 
     Vamos_Geometry::PID m_speed_control;

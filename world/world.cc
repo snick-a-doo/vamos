@@ -1,23 +1,21 @@
-//  Copyright (C) 2001--2004 Sam Varner
+//  Copyright (C) 2001-2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
+#include "world.h"
 #include "driver.h"
 #include "timing-info.h"
-#include "world.h"
 
 #include "../body/car.h"
 #include "../geometry/three-vector.h"
@@ -31,34 +29,35 @@ using namespace Vamos_Geometry;
 using namespace Vamos_World;
 using namespace Vamos_Track;
 
-const double slipstream_time_constant = 0.7;
+double constexpr slipstream_time_constant{0.7};
 
 //-----------------------------------------------------------------------------
-Car_Information::Car_Information(Car* car_in, Driver* driver_in)
+Car_Info::Car_Info(Car* car_in, Driver* driver_in)
     : car{car_in},
       driver{driver_in}
 {
 }
 
-void Car_Information::reset()
+void Car_Info::reset()
 {
     road_index = 0;
     segment_index = 0;
-    driver->reset ();
+    driver->reset();
     car->reset();
 }
 
-void Car_Information::propagate(double time_step, double total_time,
+void Car_Info::propagate(double time_step, double total_time,
                                 Three_Vector const& track_position,
                                 Three_Vector const& pointer_position)
 {
-    m_record.emplace_back(total_time, car, track_position);
+    m_record.emplace_back(total_time, track_position,
+                          car->chassis().position(), car->chassis().orientation());
     m_pointer_position = pointer_position;
     driver->propagate(time_step);
-    car->propagate (time_step);
+    car->propagate(time_step);
 }
 
-const Three_Vector& Car_Information::track_position() const
+const Three_Vector& Car_Info::track_position() const
 {
     if (m_record.empty())
         return Three_Vector::ZERO;
@@ -66,32 +65,15 @@ const Three_Vector& Car_Information::track_position() const
 }
 
 //-----------------------------------------------------------------------------
-Car_Information::Record::Record (double time, 
-                                 Car* car,
-                                 const Three_Vector& track_position)
-  : m_time (time),
-    m_track_position (track_position),
-    m_position (car->chassis ().position ()),
-    m_orientation (car->chassis ().orientation())
-{
-}
-
-//-----------------------------------------------------------------------------
-World::World (Vamos_Track::Strip_Track& track, Atmosphere& atmosphere)
-  : m_track (track),
-    m_atmosphere (atmosphere),
-    m_gravity (9.8),
-    m_focused_car_index (0),
-    m_cars_can_interact (true),
-    m_has_controlled_car (false),
-    m_controlled_car_index (0)
+World::World(Vamos_Track::Strip_Track& track, Atmosphere const& atmosphere)
+    : m_track{track},
+      m_atmosphere{atmosphere}
 {
 }
 
 void World::start(bool qualify, size_t laps_or_minutes)
 {
-    mp_timing = std::make_unique<Timing_Info>(m_cars.size(),
-                                              m_track.timing_lines(),
+    mp_timing = std::make_unique<Timing_Info>(m_cars.size(), m_track.timing_lines(),
                                               !qualify && m_cars.size() > 1);
     if (qualify)
     {
@@ -102,416 +84,268 @@ void World::start(bool qualify, size_t laps_or_minutes)
         mp_timing->set_lap_limit(laps_or_minutes);
 }
 
-Three_Vector rotation_term(Three_Matrix const& I,
-                           Three_Vector const& r,
-                           Three_Vector const& n)
+Three_Vector rotation_term(Three_Matrix const& I, Three_Vector const& r, Three_Vector const& n)
 {
     return (invert(I) * r.cross(n)).cross(r);
 }
 
-Three_Vector
-impulse (const Three_Vector& r1,
-         double m1,
-         const Three_Matrix& I1,
-         const Three_Vector& r2,
-         double m2,
-         const Three_Matrix& I2,
-         const Three_Vector& v,
-         double restitution,
-         double friction,
-         const Three_Vector& normal)
+Three_Vector impulse(Three_Vector const& r1, double m1, Three_Matrix const& I1,
+                     Three_Vector const& r2, double m2, Three_Matrix const& I2,
+                     Three_Vector const& v, double restitution, double friction,
+                     Three_Vector const& normal)
 {
-  return -normal * (1.0 + restitution) * v.dot (normal)
-    / (normal.dot (normal) * (1.0 / m1 + 1.0 / m2)
-       + (rotation_term (I1, r1, normal) 
-          + rotation_term (I2, r2, normal)).dot (normal))
-    + friction * (v.project (normal) - v);
+    return -normal * (1.0 + restitution) * v.dot(normal)
+               / (normal.dot(normal) * (1.0 / m1 + 1.0 / m2)
+                  + (rotation_term(I1, r1, normal) + rotation_term(I2, r2, normal)).dot(normal))
+           + friction * (v.project(normal) - v);
 }
 
-Three_Vector
-impulse (const Three_Vector& r,
-         const Three_Vector& v,
-         double m,
-         const Three_Matrix& I,
-         double restitution,
-         double friction,
-         const Three_Vector& normal)
+Three_Vector impulse(Three_Vector const& r, Three_Vector const& v, double m,
+                     Three_Matrix const& I, double restitution, double friction,
+                     Three_Vector const& normal)
 {
-  return -normal * (1.0 + restitution) * v.dot (normal)
-    / (normal.dot (normal) / m + rotation_term (I, r, normal).dot (normal))
-    + friction * (v.project (normal) - v);
+    return -normal * (1.0 + restitution) * v.dot(normal)
+               / (normal.dot(normal) / m + rotation_term(I, r, normal).dot(normal))
+           + friction * (v.project(normal) - v);
 }
 
-void
-World::propagate_cars (double time_step)
+void World::propagate_cars(double time_step)
 {
-  for (size_t i = 0; i < m_cars.size (); i++)
+    for (auto& info : m_cars)
     {
-      Car_Information& info = m_cars [i];
-      info.propagate (time_step, 
-                      mp_timing->elapsed_time(),
-                      m_track.track_coordinates (info.car->front_position (),
-                                                 info.road_index,
+        info.propagate(time_step, mp_timing->elapsed_time(),
+                       m_track.track_coordinates(info.car->front_position(), info.road_index,
                                                  info.segment_index),
-                      m_track.track_coordinates (info.car->target_position (),
-                                                 info.road_index,
+                       m_track.track_coordinates(info.car->target_position(), info.road_index,
                                                  info.segment_index));
-      interact (info.car, info.road_index, info.segment_index);
+        interact(info.car, info.road_index, info.segment_index);
 
-      double air_density_factor = 1.0;
-      if (m_cars_can_interact)
+        // Handle air resistance.
+        auto slipstream{1.0};
+        if (m_cars_interact)
         {
-          for (size_t j = 0; j < m_cars.size (); j++)
+            for (auto& other : m_cars)
             {
-              if (j == i)
-                continue;
-
-              Car_Information& other = m_cars [j];
-              collide (&info, &other);
-              air_density_factor = std::min (air_density_factor, 
-                                             slipstream_air_density_factor (info, other));
+                if (other.car == info.car)
+                    continue;
+                collide(&info, &other);
+                slipstream = std::min(slipstream, air_density_factor(info, other));
             }
         }
-      
-      // Handle air resistance.
-      info.car->wind(m_atmosphere.velocity, m_atmosphere.density * air_density_factor);
+        info.car->wind(m_atmosphere.velocity, m_atmosphere.density * slipstream);
     }
 }
 
-// Return the fraction of air density at car1 due to the slipstream of car2.
-double 
-World::slipstream_air_density_factor (Car_Information& car1, Car_Information& car2)
+double World::air_density_factor(Car_Info const& car1, Car_Info const& car2)
 {
-  if (car1.road_index != car2.road_index)
-    return 1.0;
+    if (car1.road_index != car2.road_index)
+        return 1.0;
 
-  const Three_Vector& p1 = car1.track_position ();
-  const Three_Vector& p2 = car2.track_position ();
+    auto const& p1{car1.track_position()};
+    auto const& p2{car2.track_position()};
+    auto const& road{m_track.get_road(car1.road_index)};
+    if (road.distance(p1.x, p2.x) > 0.0)
+        return 1.0;
 
-  const Vamos_Track::Road& road = m_track.get_road (car1.road_index);
-  if (road.distance (p1.x, p2.x) > 0.0)
-   return 1.0;
-
-  const auto now{mp_timing->elapsed_time()};
-
-  // Go through car2's history starting with the most recent event to find out
-  // how long ago car2 was at car1's position. Calculate the reduction in air
-  // density as a function of that time and distance across the track.
-  for (size_t i = car2.m_record.size (); i > 0; i--)
+    // Go through car2's history starting with the most recent event to find out how long
+    // ago car2 was at car1's position. Calculate the reduction in air density as a
+    // function of that time and distance across the track.
+    const auto now{mp_timing->elapsed_time()};
+    for (size_t i = car2.m_record.size(); i > 0; i--)
     {
-      const double arg = (now - car2.m_record [i - 1].m_time) / slipstream_time_constant;
-      // If we're more than 5 time constants behind the density factor would be
-      // at least 1-exp(-5) ~ 0.993. Not far enough away from 1.0 to worry about.
-      if (arg > 5.0)
-        break;
+        const auto arg{(now - car2.m_record[i - 1].m_time) / slipstream_time_constant};
+        // If we're more than 5 time constants behind the density factor would be at least
+        // 1-exp(-5) ~ 0.993. Not far enough away from 1.0 to worry about.
+        if (arg > 5.0)
+            return 1.0;
 
-      const Three_Vector& p2 = car2.m_record [i - 1].m_track_position;
-      if (road.distance (p1.x, p2.x) > 0.0)
+        auto const& p2{car2.m_record[i - 1].m_track_position};
+        if (road.distance(p1.x, p2.x) > 0.0)
         {
-          const double longitudinal = std::exp (-arg);
-          const double transverse = longitudinal
-            * std::max (1.0 - std::abs (p2.y - p1.y) / car2.car->width (),
-                        0.0);
-          return 1.0 - longitudinal * transverse;
+            auto longi{std::exp(-arg)};
+            auto trans{longi * std::max(1.0 - std::abs(p2.y - p1.y) / car2.car->width(), 0.0)};
+            return 1.0 - longi * trans;
         }
     }
-
-  return 1.0;
+    return 1.0;
 }
 
-void 
-World::interact (Car* car, 
-                 size_t road_index,
-                 size_t segment_index)
+void World::interact(Car* car, size_t road_index, size_t segment_index)
 {
-  size_t i = 0;
-  for (std::vector <Particle*>::iterator 
-         it = car->chassis ().particles ().begin ();
-       it != car->chassis ().particles ().end ();
-       it++, i++)
+    for (auto p : car->chassis().particles())
     {
-      const Three_Vector& pos = car->chassis ().contact_position (*it);
-      double bump_parameter = 
-        car->distance_traveled () + (*it)->position ().x;
-      const Contact_Info info = m_track.test_for_contact (pos, 
-                                                          bump_parameter, 
-                                                          road_index,
-                                                          segment_index);
-
-      const Three_Vector& velocity = car->chassis ().velocity (*it);
-      if (info.contact)
+        auto const& pos{car->chassis().contact_position(p)};
+        auto bump_parameter{car->distance_traveled() + p->position().x};
+        auto info{m_track.test_for_contact(pos, bump_parameter, road_index, segment_index)};
+        auto const& velocity{car->chassis().velocity(p)};
+        if (info.contact)
         {
-          Three_Vector j = impulse (car->chassis ().world_moment (pos),
-                                    velocity,
-                                    car->chassis ().mass (),
-                                    car->chassis ().inertia (),
-                                    (*it)->material ().restitution_factor ()
-                                    * info.material.restitution_factor (),
-                                    (*it)->material ().friction_factor ()
-                                    * info.material.friction_factor (),
-                                    info.normal);
-
-          car->chassis ().contact (*it, 
-                                   j, 
-                                   velocity,
-                                   info.depth, 
-                                   info.normal, 
-                                   info.material);
-
-          Three_Vector v_perp = velocity.project (info.normal);
-          Three_Vector v_par = velocity - v_perp;
-          m_interaction_info.
-            push_back (Interaction_Info (car,
-                                         (*it)->material().composition(),
-                                         info.material.composition(),
-                                         v_par.magnitude (), 
-                                         v_perp.magnitude ()));
+            auto j{impulse(
+                    car->chassis().world_moment(pos), velocity, car->chassis().mass(),
+                    car->chassis().inertia(),
+                    p->material().restitution_factor() * info.material.restitution_factor(),
+                    p->material().friction_factor() * info.material.friction_factor(), info.normal)};
+            car->chassis().contact(p, j, velocity, info.depth, info.normal, info.material);
+            auto v_perp{velocity.project(info.normal)};
+            auto v_par{velocity - v_perp};
+            m_interaction_info.emplace_back(car, p->material().composition(),
+                                            info.material.composition(),
+                                            v_par.magnitude(), v_perp.magnitude());
         }
     }
 
     // Check for contact with track objects.
     for (auto const& object : m_track.objects())
     {
-        auto info{car->collision(object.position, Three_Vector(), true)};
+        auto info{car->collision(object.position, Three_Vector::ZERO, true)};
         if (!info.contact)
             continue;
 
-        auto velocity{car->chassis().velocity(
-                car->chassis().transform_from_world(object.position))};
-        auto j{impulse(car->chassis().world_moment(object.position),
-                       velocity,
-                       car->chassis().mass(),
-                       car->chassis().inertia(),
+        auto velocity{
+            car->chassis().velocity(car->chassis().transform_from_world(object.position))};
+        auto j{impulse(car->chassis().world_moment(object.position), velocity,
+                       car->chassis().mass(), car->chassis().inertia(),
                        object.material.restitution_factor() * info.material.restitution_factor(),
                        object.material.friction_factor() * info.material.friction_factor(),
                        info.normal)};
-        car->chassis().temporary_contact(object.position, j, velocity,
-                                         info.depth, info.normal, info.material);
+        car->chassis().temporary_contact(object.position, j, velocity, info.depth, info.normal,
+                                         info.material);
         auto v_perp{velocity.project(info.normal)};
         auto v_par{velocity - v_perp};
-        m_interaction_info.push_back(Interaction_Info(
-                                         car, object.material.composition(),
-                                         info.material.composition(),
-                                         v_par.magnitude(),
-                                         v_perp.magnitude()));
+        m_interaction_info.emplace_back(car, object.material.composition(),
+                                        info.material.composition(),
+                                        v_par.magnitude(), v_perp.magnitude());
     }
 }
 
-void 
-World::collide (Car_Information* car1_info, Car_Information* car2_info)
+void World::collide(Car_Info* car1_info, Car_Info* car2_info)
 {
-  Car* car1 = car1_info->car;
-  Car* car2 = car2_info->car;
-  assert (car1 != car2);
+    auto car1{car1_info->car};
+    auto car2{car2_info->car};
+    assert(car1 != car2);
+    auto delta_r{car1->chassis().cm_position() - car2->chassis().cm_position()};
 
-  const Three_Vector delta_r = car1->chassis ().cm_position () 
-    - car2->chassis ().cm_position ();
+    // Ignore cars that are too far away to make contact.
+    if (delta_r.magnitude() > 1.5 * car2->length())
+        return;
 
-  // Ignore cars that are too far away to make contact.
-  if (delta_r.magnitude () > 1.5 * car2->length ())
-    return;
-
-  const Three_Vector delta_v = car1->chassis ().cm_velocity () 
-    - car2->chassis ().cm_velocity ();
-
-  // Handle collisions between the contact points of car 1 and the
-  // crash box of car 2. 
-  for (std::vector <Particle*>::iterator 
-         it = car1->chassis ().particles ().begin ();
-       it != car1->chassis ().particles ().end ();
-       it++)
+    auto delta_v{car1->chassis().cm_velocity() - car2->chassis().cm_velocity()};
+    // Handle collisions between the contact points of car 1 and the
+    // crash box of car 2.
+    for (auto p : car1->chassis().particles())
     {
-      const Three_Vector& pos = car1->chassis ().contact_position (*it);
-      const Contact_Info info = car2->collision (pos, car1->chassis ().velocity (*it));
-
-      if (info.contact)
+        auto const& pos{car1->chassis().contact_position(p)};
+        auto info{car2->collision(pos, car1->chassis().velocity(p))};
+        if (info.contact)
         {
-          const Three_Vector& velocity = car1->chassis ().velocity (*it)
-            - car2->chassis ().velocity (*it);
-          Three_Vector j = impulse (car1->chassis ().world_moment (pos),
-                                    car1->chassis ().mass (),
-                                    car1->chassis ().inertia (),
-                                    car2->chassis ().world_moment (pos),
-                                    car2->chassis ().mass (),
-                                    car2->chassis ().inertia (),
-                                    delta_v,
-                                    (*it)->material ().restitution_factor ()
-                                    * (*it)->material ().restitution_factor (),
-                                    (*it)->material ().friction_factor ()
-                                    * (*it)->material ().friction_factor (),
-                                    info.normal);
-
-          car1->chassis ().contact (*it, 
-                                    j,
-                                    delta_v,
-                                    info.depth,
-                                    info.normal, 
-                                    info.material);
-
-          car2->chassis ().temporary_contact (car1->chassis ().contact_position (*it),
-                                              -j,
-                                              -delta_v,
-                                              info.depth,
-                                              -info.normal, 
-                                              info.material);
-
-          Three_Vector v_perp = velocity.project (info.normal);
-          Three_Vector v_par = velocity - v_perp;
-          m_interaction_info.
-            push_back (Interaction_Info (car1,
-                                         info.material.composition(),
-                                         info.material.composition(),
-                                         v_par.magnitude (), 
-                                         v_perp.magnitude ()));
+            auto velocity{car1->chassis().velocity(p) - car2->chassis().velocity(p)};
+            auto j{impulse(
+                    car1->chassis().world_moment(pos), car1->chassis().mass(),
+                    car1->chassis().inertia(), car2->chassis().world_moment(pos),
+                    car2->chassis().mass(), car2->chassis().inertia(), delta_v,
+                    p->material().restitution_factor() * p->material().restitution_factor(),
+                    p->material().friction_factor() * p->material().friction_factor(),
+                    info.normal)};
+            car1->chassis().contact(p, j, delta_v, info.depth, info.normal, info.material);
+            car2->chassis().temporary_contact(car1->chassis().contact_position(p), -j, -delta_v,
+                                              info.depth, -info.normal, info.material);
+            auto v_perp{velocity.project(info.normal)};
+            auto v_par{velocity - v_perp};
+            m_interaction_info.emplace_back(car1, info.material.composition(),
+                                           info.material.composition(),
+                                           v_par.magnitude(), v_perp.magnitude());
         }
     }
 }
 
-// Place the car back on the track at its current position.
-void 
-World::reset ()
+void World::reset()
 {
-  if (!m_has_controlled_car)
-    return;
+    auto* ccar{controlled_car()};
+    if (!ccar)
+        return;
 
-  size_t& segment_index = controlled_car ()->segment_index;
-  size_t& road_index = controlled_car ()->road_index;
-  Car* car = controlled_car ()->car;
-  car->reset ();
-  place_car (car,
-             m_track.reset_position (car->chassis ().position (), 
-                                     road_index, 
-                                     segment_index),
-             m_track.get_road (road_index));
+    auto* car{ccar->car};
+    car->reset();
+    place_car(car, m_track.reset_position(car->chassis().position(),
+                                          ccar->road_index, ccar->segment_index),
+              m_track.get_road(ccar->road_index));
 }
 
-// Place the car back on the track at the starting line.
-void 
-World::restart ()
+void World::restart()
 {
-  mp_timing->reset ();
-  if (m_has_controlled_car)
-    controlled_car ()->reset ();
+    mp_timing->reset();
+    if (controlled_car())
+        controlled_car()->reset();
 }
 
-// Set the acceleration due to gravity.  Always downward, regardless
-// of sign.
-void 
-World::gravity (double g)
+void World::set_gravity(double g)
 {
-  m_gravity = std::abs (g);
-  for (std::vector <Car_Information>::iterator it = m_cars.begin ();
-       it != m_cars.end ();
-       it++)
+    m_gravity = Three_Vector{0.0, 0.0, -std::abs(g)};
+    for (auto& car : m_cars)
     {
-      if (it->car != 0)
-          it->car->chassis ().gravity (Three_Vector (0.0, 0.0, -m_gravity));
+        if (!car.car)
+            continue;
+        car.car->chassis().set_gravity(m_gravity);
+        car.driver->set_gravity(m_gravity);
     }
 }
 
-void
-World::place_car (Car* car, const Three_Vector& track_pos, const Road& road)
+void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
 {
-  const Road_Segment& segment = *road.segment_at (track_pos.x);
-
-  car->chassis ().reset (0.0);
-
-  // Orient the car to be level with the track.
-  {
-      Three_Matrix orientation{1.0};
-    double along = track_pos.x - segment.start_distance ();
-    double angle = segment.angle (along);
-    orientation.rotate (Three_Vector (0.0, 0.0, angle));
-    orientation.rotate (Three_Vector (-segment.banking ().angle (along), 0.0, 0.0));
-    Two_Vector up = road.elevation ().normal (track_pos.x);
-    orientation.rotate (Three_Vector (0.0, atan2 (up.x, up.y), 0.0));
-    car->chassis ().set_orientation (orientation);
-  }
-
-  // Raise the car to the requested height above the track.
-  double gap = std::numeric_limits <double>::max ();
-  for (std::vector <Particle*>::const_iterator it = car->chassis ().particles ().begin ();
-       it != car->chassis ().particles ().end ();
-       it++)
+    const auto& segment{*road.segment_at(track_pos.x)};
+    car->chassis().reset(0.0);
+    // Orient the car to be level with the track.
     {
-      Three_Vector p = car->chassis ().transform_to_world ((*it)->contact_position ());
-      gap = std::min (gap, p.z - segment.world_elevation (p));
+        Three_Matrix orientation{1.0};
+        auto along{track_pos.x - segment.start_distance()};
+        auto angle{segment.angle(along)};
+        orientation.rotate({0.0, 0.0, angle});
+        orientation.rotate({-segment.banking().angle(along), 0.0, 0.0});
+        auto up{road.elevation().normal(track_pos.x)};
+        orientation.rotate({0.0, atan2(up.x, up.y), 0.0});
+        car->chassis().set_orientation(orientation);
     }
-  // Move the car to its initial x-y position.
-  car->set_front_position(road.position(track_pos.x, track_pos.y));
-  car->chassis ().translate (Three_Vector (0.0, 0.0, track_pos.z - gap));
+    // Raise the car to the requested height above the track.
+    auto gap{std::numeric_limits<double>::max()};
+    for (auto p : car->chassis().particles())
+    {
+        auto pos{car->chassis().transform_to_world(p->contact_position())};
+        gap = std::min(gap, pos.z - segment.world_elevation(pos));
+    }
+    // Move the car to its initial x-y position.
+    car->set_front_position(road.position(track_pos.x, track_pos.y));
+    car->chassis().translate({0.0, 0.0, track_pos.z - gap});
 }
 
 void World::add_car(Car& car, Driver& driver)
 {
-    car.chassis().gravity(-m_gravity * Three_Vector::Z);
+    car.chassis().set_gravity(m_gravity);
     m_cars.emplace_back(&car, &driver);
-    driver.set_cars (&m_cars);
-
-    place_car(&car, car.chassis ().position (), m_track.get_road (0));
-
+    driver.set_cars(&m_cars);
+    place_car(&car, car.chassis().position(), m_track.get_road(0));
     if (driver.is_interactive())
-        set_controlled_car(m_cars.size() - 1);
+        mo_controlled_car_index = m_cars.size() - 1;
 }
 
-void 
-World::set_focused_car (size_t index)
+Car_Info* World::controlled_car()
 {
-  assert (index < m_cars.size ());
-  m_focused_car_index = index;
+    return mo_controlled_car_index ? &m_cars[*mo_controlled_car_index] : nullptr;
 }
 
-void 
-World::focus_other_car (int delta)
-{
-  set_focused_car ((m_focused_car_index + delta) % m_cars.size ());
-}
-
-Car_Information* 
-World::focused_car ()
-{
-  if (m_focused_car_index >= m_cars.size ()) return 0;
-  return &m_cars [m_focused_car_index];
-}
-
-void 
-World::set_controlled_car (size_t index)
-{
-  assert (index < m_cars.size ());
-  m_has_controlled_car = true;
-  m_controlled_car_index = index;
-}
-
-Car_Information* 
-World::controlled_car ()
-{
-  if (!m_has_controlled_car || (m_controlled_car_index >= m_cars.size ()))
-      return 0;
-  return &m_cars [m_controlled_car_index];
-}
-
-void
-World::write_results (const std::string& file) const
+void World::write_results(const std::string& file) const
 {
     const auto* p_fastest{mp_timing->fastest_lap_timing()};
+    std::ofstream os(file);
+    os << m_track.track_file() << std::endl
+       << (p_fastest ? p_fastest->laps_complete() : 0) << std::endl
+       << mp_timing->total_laps() << std::endl
+       << (p_fastest ? p_fastest->best_lap_time() : 0) << std::endl;
 
-  std::ofstream os (file.c_str ());
-
-  os << m_track.track_file () << std::endl
-     << (p_fastest ? p_fastest->laps_complete () : 0) << std::endl
-     << mp_timing->total_laps () << std::endl
-     << (p_fastest ? p_fastest->best_lap_time () : 0) << std::endl;
-
-  const Timing_Info::Running_Order& order = mp_timing->running_order ();
-  for (Timing_Info::Running_Order::const_iterator it = order.begin ();
-       it != order.end ();
-       ++it)
+    for (auto const& timing : mp_timing->running_order())
     {
-      const Car_Information& info = m_cars [(*it)->grid_position () - 1];
-      os << info.car->car_file () << '\t'
-         << info.car->name () << '\t'
-         << (info.driver->is_interactive () ? "interactive" : "robot") << '\t'
-         << (*it)->laps_complete () << '\t'
-         << (*it)->best_lap_time () << std::endl;
+        const auto& info{m_cars[timing->grid_position() - 1]};
+        os << info.car->car_file() << '\t' << info.car->name() << '\t'
+           << (info.driver->is_interactive() ? "interactive" : "robot") << '\t'
+           << timing->laps_complete() << '\t' << timing->best_lap_time() << std::endl;
     }
 }

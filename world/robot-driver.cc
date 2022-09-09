@@ -49,9 +49,7 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-Robot_Driver::Robot_Driver (Car& car_in, 
-                            Strip_Track& track_in,
-                            double gravity)
+Robot_Driver::Robot_Driver(Car& car_in, Strip_Track& track_in)
 : Driver (car_in),
   m_mode (RACE),
   m_state (PARKED),
@@ -74,13 +72,8 @@ Robot_Driver::Robot_Driver (Car& car_in,
   m_interact (true),
   m_show_steering_target (false),
   m_road (mp_track->get_road (0)),
-  m_racing_line (m_road,
-                 car_in.get_robot_parameters ().lateral_acceleration,
-                 gravity),
-  m_braking (m_road,
-             car_in.get_robot_parameters ().deceleration,
-             gravity,
-             m_racing_line),
+  m_racing_line{m_road, car_in.get_robot_parameters ().lateral_acceleration},
+  m_braking{m_road, car_in.get_robot_parameters ().deceleration, m_racing_line},
   m_speed_factor (1.0),
   m_passing (false)
 {
@@ -89,7 +82,13 @@ Robot_Driver::Robot_Driver (Car& car_in,
     m_gap [i] = 0;
 }
 
-void Robot_Driver::set_cars (const std::vector <Car_Information>* cars)
+void Robot_Driver::set_gravity(Three_Vector const& g)
+{
+    m_braking.set_gravity(g);
+    m_racing_line.set_gravity(g);
+}
+
+void Robot_Driver::set_cars (const std::vector <Car_Info>* cars)
 { 
   mp_cars = cars;
   m_info_index = cars->size () - 1;
@@ -215,7 +214,7 @@ double Robot_Driver::lengths (double n) const
 bool Robot_Driver::has_gap () const
 {
   double along = info ().track_position ().x;
-  for (std::vector <Car_Information>::const_iterator it = mp_cars->begin ();
+  for (std::vector <Car_Info>::const_iterator it = mp_cars->begin ();
        it != mp_cars->end ();
        it++)
     {
@@ -563,7 +562,7 @@ Robot_Driver::avoid_collisions ()
   // Break out immediately if the interact flag is false. We still need the lane
   // shift code after the loop so the cars will get to the racing line after the
   // start.  
-  for (std::vector <Car_Information>::const_iterator it = mp_cars->begin ();
+  for (std::vector <Car_Info>::const_iterator it = mp_cars->begin ();
        it != mp_cars->end () && m_interact;
        it++)
     {
@@ -825,14 +824,12 @@ static const double fade_in = 20.0;
 
 Braking_Operation::Braking_Operation (const Road& road,
                                       double deceleration,
-                                      double gravity,
                                       const Robot_Racing_Line& line)
   : m_start (0.0),
     m_length (0.0),
     m_is_braking (false),
     m_road (road),
     m_deceleration (deceleration),
-    m_gravity (gravity),
     m_line (line)
 {
 }
@@ -902,9 +899,9 @@ Braking_Operation::deceleration (const Three_Vector& curvature,
   double mu = m_deceleration * fraction;
   double v2 = speed * speed;
   Three_Vector r_hat = curvature.unit ();
-  return (m_gravity*p_hat.z 
+  return (-m_gravity.dot(p_hat)
           - v2*drag/mass
-          + mu * (m_gravity*n_hat.z - v2*(lift/mass + c*r_hat.dot (n_hat))));
+          - mu * (m_gravity.dot(n_hat) + v2*(lift/mass + c*r_hat.dot(n_hat))));
 }
 
 Three_Vector
@@ -1091,12 +1088,9 @@ Braking_Operation::maximum_speed (double speed,
 }
 
 //-----------------------------------------------------------------------------
-Robot_Racing_Line::Robot_Racing_Line (const Road& road,
-                                      double lateral_acceleration,
-                                      double gravity)
-  : mp_road (&road),
-    m_lateral_acceleration (lateral_acceleration),
-    m_gravity (gravity)
+Robot_Racing_Line::Robot_Racing_Line(Road const& road, double lateral_acceleration)
+    : mp_road{&road},
+      m_lateral_acceleration{lateral_acceleration}
 {
 }
 
@@ -1112,27 +1106,19 @@ Robot_Racing_Line::tangent (double along) const
   return mp_road->racing_line ().tangent (along);
 }
 
-double
-Robot_Racing_Line::maximum_speed (double distance, 
-                                  double lane_shift,
-                                  double lift,
-                                  const Three_Vector& n_hat,
-                                  double mass) const
+double Robot_Racing_Line::maximum_speed(double distance, double lane_shift, double lift,
+                                        Three_Vector const& n_hat, double mass) const
 {
-  const Three_Vector curve = curvature (distance, lane_shift);
-  double c = curve.magnitude ();
-  double mu = m_lateral_acceleration;
-  Three_Vector r_hat = curve.unit ();
-  Three_Vector r_perp (-r_hat.y, r_hat.x, 0.0);
-  auto q_hat{rotate(n_hat, pi/2.0 * r_perp.unit())};
+    const auto curve{curvature (distance, lane_shift)};
+    auto c{curve.magnitude ()};
+    auto mu{m_lateral_acceleration};
+    auto r_hat{curve.unit()};
+    Three_Vector r_perp{-r_hat.y, r_hat.x, 0.0};
+    auto q_hat{rotate(n_hat, pi/2.0 * r_perp.unit())};
 
-  double upper = m_gravity*(q_hat.z + mu*n_hat.z);
-  double lower = c*(r_hat.dot(q_hat) + mu*r_hat.dot(n_hat)) + mu*lift/mass;
-
-  if (lower > 1e-9)
-    return std::sqrt (upper / lower);
-  else
-    return UNLIMITED_SPEED;
+    auto upper{-m_gravity.dot(q_hat + mu*n_hat)};
+    auto lower{c*(r_hat.dot(q_hat) + mu*r_hat.dot(n_hat)) + mu*lift/mass};
+    return lower > 1e-9 ? std::sqrt(upper / lower) : UNLIMITED_SPEED;
 }
 
 Three_Vector

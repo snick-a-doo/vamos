@@ -26,10 +26,14 @@ namespace Vamos_Body
 {
   class Car;
 }
+namespace Vamos_Geometry
+{
+  class Three_Vector;
+}
 
 namespace Vamos_World
 {
-  struct Car_Information;
+  struct Car_Info;
 
   class Driver
   {
@@ -41,7 +45,8 @@ namespace Vamos_World
 
     virtual ~Driver () {}
 
-      virtual void set_cars(std::vector<Car_Information> const* /* cars */) {}
+      virtual void set_gravity(Vamos_Geometry::Three_Vector const&) {}
+      virtual void set_cars(std::vector<Car_Info> const* /* cars */) {}
       /// Start driving.
       virtual void start (double /* to_go */) {}
     virtual void finish () {}
