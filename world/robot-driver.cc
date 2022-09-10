@@ -346,43 +346,45 @@ double
 Robot_Driver::target_slip_angle () const
 {
   //! Can we use a constant instead?
-  return abs_max (mp_car->wheel (0)->peak_slip_angle (),
-                  mp_car->wheel (1)->peak_slip_angle (),
-                  mp_car->wheel (2)->peak_slip_angle (),
-                  mp_car->wheel (3)->peak_slip_angle ());
+  return abs_max(mp_car->wheel(0).peak_slip_angle(),
+                 mp_car->wheel(1).peak_slip_angle(),
+                 mp_car->wheel(2).peak_slip_angle(),
+                 mp_car->wheel(3).peak_slip_angle());
 }
 
 //** Choose Gear
 void
 Robot_Driver::choose_gear ()
 {
-  if (!mp_car->clutch()->is_engaged())
-      return;
+    auto& dt{*mp_car->drivetrain()};
+    if (!dt.clutch().is_engaged())
+        return;
 
-  // Avoid shifting too frequently.
+    // Avoid shifting too frequently.
   m_shift_time += m_timestep;
   if (m_shift_time < 0.3)
-    return;
+      return;
 
-  // Save some values that show up often in this method.
-  const int gear = mp_car->gear ();
-  const double throttle = mp_car->engine ()->throttle ();
+  // The selected gear. Use Car::gear() rather than Transmission() because the shift to
+  // the selected gear may be delayed.
+  const auto gear{mp_car->gear()};
+  const auto throttle{dt.engine().throttle()};
 
   // Find current the engine power and the power at maximum throttle in 1) the
   // current gear 2) the next gear up 3) 2 gears down. Two gears to prevent
   // downshifting to 1st and to prevent too much engine drag under braking.
-  double omega = mp_car->engine ()->rotational_speed ();
-  double up_omega = omega
-    * mp_car->transmission()->gear_ratio(gear + 1)
-    / mp_car->transmission()->gear_ratio(gear);
-  double down2_omega = omega
-    * mp_car->transmission()->gear_ratio(gear - 2)
-    / mp_car->transmission()->gear_ratio(gear);
+  auto omega{dt.engine().rotational_speed()};
+  auto up_omega{omega
+                * dt.transmission().gear_ratio(gear + 1)
+                / dt.transmission().gear_ratio(gear)};
+  auto down2_omega{omega
+                   * dt.transmission().gear_ratio(gear - 2)
+                   / dt.transmission().gear_ratio(gear)};
 
-  double current_power = mp_car->engine ()->power (throttle, omega);
-  double power = mp_car->engine ()->power (1.0, omega);
-  double up_power = mp_car->engine ()->power (1.0, up_omega);
-  double down2_power = mp_car->engine ()->power (1.0, down2_omega);
+  auto current_power{dt.engine().power(throttle, omega)};
+  auto power{dt.engine().power(1.0, omega)};
+  auto up_power{dt.engine().power(1.0, up_omega)};
+  auto down2_power{dt.engine().power(1.0, down2_omega)};
 
   // Shift up if there's more power at the current revs in the next higher
   // gear. 
@@ -429,9 +431,7 @@ Robot_Driver::accelerate ()
   const Three_Vector normal = mp_segment->normal (along_segment, 
                                                   info ().track_position ().y, 
                                                   false);
-  const double drag = mp_car->chassis ().aerodynamic_drag ();
-  const double lift = mp_car->chassis ().aerodynamic_lift ();
-
+  auto lift{mp_car->chassis().lift()};
   double along = info ().track_position ().x;
   double cornering_speed 
     = m_racing_line.maximum_speed (along,
@@ -444,7 +444,7 @@ Robot_Driver::accelerate ()
                                along,
                                (m_speed_factor < 1.0) ? lengths (2.0) : 0.0,
                                m_lane_shift,
-                               drag,
+                               mp_car->chassis().drag(),
                                lift,
                                mp_car->chassis ().mass ());
 
@@ -467,14 +467,14 @@ Robot_Driver::set_speed (double target_speed)
   double d2 = m_traction_control.propagate (total_slip (), m_timestep);
   double gas = std::min (d1, d2);
 
-  if (!mp_car->clutch()->is_engaged())
-    {
+  auto const& dt{*mp_car->drivetrain()};
+  if (!dt.clutch().is_engaged())
+  {
       // Keep the revs in check if the clutch is not fully engaged.
-      m_speed_control.set (0.0);
-      double error = (mp_car->engine ()->rotational_speed ()
-                      - mp_car->engine ()->peak_engine_speed ());
-      gas = std::min (gas, m_speed_control.propagate (0.01 * error, m_timestep));
-    }
+      m_speed_control.set(0.0);
+      auto error{dt.engine().rotational_speed() - dt.engine().peak_engine_speed()};
+      gas = std::min(gas, m_speed_control.propagate (0.01 * error, m_timestep));
+  }
 
   if (gas >= 1.0)
     gas *= m_speed_factor;
@@ -497,19 +497,19 @@ Robot_Driver::total_slip () const
 double
 Robot_Driver::longitudinal_slip () const
 {
-  return abs_max (mp_car->wheel (0)->slip ().x,
-                  mp_car->wheel (1)->slip ().x,
-                  mp_car->wheel (2)->slip ().x,
-                  mp_car->wheel (3)->slip ().x);
+  return abs_max (mp_car->wheel(0).slip().x,
+                  mp_car->wheel(1).slip().x,
+                  mp_car->wheel(2).slip().x,
+                  mp_car->wheel(3).slip().x);
 }
 
 double
 Robot_Driver::transverse_slip () const
 {
-  return abs_max (mp_car->wheel (0)->slip ().y,
-                  mp_car->wheel (1)->slip ().y,
-                  mp_car->wheel (2)->slip ().y,
-                  mp_car->wheel (3)->slip ().y);
+  return abs_max (mp_car->wheel(0).slip().y,
+                  mp_car->wheel(1).slip().y,
+                  mp_car->wheel(2).slip().y,
+                  mp_car->wheel(3).slip().y);
 }
 
 void

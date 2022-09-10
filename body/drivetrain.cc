@@ -19,18 +19,18 @@
 
 using namespace Vamos_Body;
 
-Drivetrain::Drivetrain(Engine* engine,
-                       Clutch* clutch,
-                       Transmission* transmission,
-                       Differential* differential)
+Drivetrain::Drivetrain(std::shared_ptr<Engine> engine,
+                       std::unique_ptr<Clutch> clutch,
+                       std::unique_ptr<Transmission> transmission,
+                       std::unique_ptr<Differential> differential)
     : mp_engine{engine},
-      mp_clutch{clutch},
-      mp_transmission{transmission},
-      mp_differential{differential}
+      mp_clutch{std::move(clutch)},
+      mp_transmission{std::move(transmission)},
+      mp_differential{std::move(differential)}
 {
+    assert(mp_engine && mp_clutch && mp_transmission && mp_differential);
 }
 
-// Process the input parameters.
 void Drivetrain::input(double gas,
                        double clutch,
                        double left_wheel_speed,

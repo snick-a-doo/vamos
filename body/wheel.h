@@ -20,16 +20,18 @@
 #ifndef _WHEEL_H_
 #define _WHEEL_H_
 
+#include "brake.h"
+#include "particle.h"
 #include "suspension.h"
 #include "tire.h"
-#include "brake.h"
-#include "contact-point.h"
+
 #include "../geometry/material.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
 
 #include <GL/gl.h>
 
+#include <memory>
 #include <string>
 
 namespace Vamos_Body
@@ -37,7 +39,7 @@ namespace Vamos_Body
   //* A wheel.  
   // Handles wheel geometry.  See Tire, Brake and Suspension for
   // related functionality.
-  class Wheel : public Contact_Point
+  class Wheel : public Particle
   {
   private:
 
@@ -52,7 +54,7 @@ namespace Vamos_Body
 	// How far off the road lateral forces are applied to the chassis.
 
 	// The suspension that the wheel is attached to.
-	Suspension* mp_suspension;
+      std::shared_ptr<Suspension> mp_suspension;
 
 	// The tire that is attached to the wheel.
 	Tire m_tire;
@@ -113,7 +115,7 @@ namespace Vamos_Body
 		   double tire_offset,
 		   double roll_height,
 		   double restitution,
-		   Suspension* suspension, 
+		   std::shared_ptr<Suspension> suspension,
 		   const Tire& tire, 
 		   const Brake& brake,
 		   bool steered,
@@ -129,12 +131,12 @@ namespace Vamos_Body
 
  	// Handle collisions.  The return value is how much the wheel was
  	// displaced by the collision.
-	double contact (const Vamos_Geometry::Three_Vector& impulse,
-					const Vamos_Geometry::Three_Vector& velocity, 
-					double distance,
-					const Vamos_Geometry::Three_Vector& normal,
-					const Vamos_Geometry::Three_Vector& angular_velocity,
-					const Vamos_Geometry::Material& surface_material);
+      virtual double contact(const Vamos_Geometry::Three_Vector& impulse,
+                             const Vamos_Geometry::Three_Vector& velocity,
+                             double distance,
+                             const Vamos_Geometry::Three_Vector& normal,
+                             const Vamos_Geometry::Three_Vector& angular_velocity,
+                             const Vamos_Geometry::Material& surface_material) override;
 
 	// Apply the torque TORQUE_IN to the wheel.  This torque results
 	// from acceleration or braking.

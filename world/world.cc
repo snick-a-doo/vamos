@@ -172,12 +172,12 @@ double World::air_density_factor(Car_Info const& car1, Car_Info const& car2)
 
 void World::interact(Car* car, size_t road_index, size_t segment_index)
 {
-    for (auto p : car->chassis().particles())
+    for (auto const& p : car->chassis().particles())
     {
-        auto const& pos{car->chassis().contact_position(p)};
+        auto const& pos{car->chassis().contact_position(*p)};
         auto bump_parameter{car->distance_traveled() + p->position().x};
         auto info{m_track.test_for_contact(pos, bump_parameter, road_index, segment_index)};
-        auto const& velocity{car->chassis().velocity(p)};
+        auto const& velocity{car->chassis().velocity(*p)};
         if (info.contact)
         {
             auto j{impulse(
@@ -185,7 +185,7 @@ void World::interact(Car* car, size_t road_index, size_t segment_index)
                     car->chassis().inertia(),
                     p->material().restitution_factor() * info.material.restitution_factor(),
                     p->material().friction_factor() * info.material.friction_factor(), info.normal)};
-            car->chassis().contact(p, j, velocity, info.depth, info.normal, info.material);
+            car->chassis().contact(*p, j, velocity, info.depth, info.normal, info.material);
             auto v_perp{velocity.project(info.normal)};
             auto v_par{velocity - v_perp};
             m_interaction_info.emplace_back(car, p->material().composition(),
@@ -232,13 +232,13 @@ void World::collide(Car_Info* car1_info, Car_Info* car2_info)
     auto delta_v{car1->chassis().cm_velocity() - car2->chassis().cm_velocity()};
     // Handle collisions between the contact points of car 1 and the
     // crash box of car 2.
-    for (auto p : car1->chassis().particles())
+    for (auto const& p : car1->chassis().particles())
     {
-        auto const& pos{car1->chassis().contact_position(p)};
-        auto info{car2->collision(pos, car1->chassis().velocity(p))};
+        auto const& pos{car1->chassis().contact_position(*p)};
+        auto info{car2->collision(pos, car1->chassis().velocity(*p))};
         if (info.contact)
         {
-            auto velocity{car1->chassis().velocity(p) - car2->chassis().velocity(p)};
+            auto velocity{car1->chassis().velocity(*p) - car2->chassis().velocity(*p)};
             auto j{impulse(
                     car1->chassis().world_moment(pos), car1->chassis().mass(),
                     car1->chassis().inertia(), car2->chassis().world_moment(pos),
@@ -246,8 +246,8 @@ void World::collide(Car_Info* car1_info, Car_Info* car2_info)
                     p->material().restitution_factor() * p->material().restitution_factor(),
                     p->material().friction_factor() * p->material().friction_factor(),
                     info.normal)};
-            car1->chassis().contact(p, j, delta_v, info.depth, info.normal, info.material);
-            car2->chassis().temporary_contact(car1->chassis().contact_position(p), -j, -delta_v,
+            car1->chassis().contact(*p, j, delta_v, info.depth, info.normal, info.material);
+            car2->chassis().temporary_contact(car1->chassis().contact_position(*p), -j, -delta_v,
                                               info.depth, -info.normal, info.material);
             auto v_perp{velocity.project(info.normal)};
             auto v_par{velocity - v_perp};

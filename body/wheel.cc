@@ -32,15 +32,14 @@ Wheel::Wheel (double mass,
 			  double tire_offset,
 			  double roll_height,
 			  double restitution,
-			  Suspension* suspension, 
+			  std::shared_ptr<Suspension> suspension,
 			  const Tire& tire, 
 			  const Brake& brake,
 			  bool steered,
 			  bool driven,
 			  Side side) :
   // Friction is handled by the tire.
-  Contact_Point (mass, position, Material::RUBBER,
-				 0.0, restitution),
+    Particle{mass, position, Material{Material::RUBBER, 0.0, restitution}},
   m_original_position (position),
   m_tire_offset (side == Side::right ? -tire_offset : tire_offset),
   m_roll_height (roll_height),
@@ -66,7 +65,7 @@ Wheel::Wheel (double mass,
 void
 Wheel::find_forces ()
 {
-  if (!m_contact)
+    if (!is_in_contact())
 	{
       Particle::reset ();
 	  set_position (m_original_position);
@@ -95,45 +94,31 @@ Wheel::propagate (double time)
   m_rotation += speed () * time / m_tire.radius ();
 }
 
-// Handle collisions.  The return value is the displacement of the
-// wheel as a result of the contact.
-double
-Wheel::contact (const Three_Vector& impulse,
-				const Three_Vector& velocity, 
-				double distance,
-				const Three_Vector& normal,
-				const Three_Vector& angular_velocity,
-				const Material& surface_material)
+double Wheel::contact(const Three_Vector& impulse, const Three_Vector& velocity, double distance,
+                      const Three_Vector& normal, const Three_Vector& angular_velocity,
+                      const Material& surface_material)
 {
-  m_contact = true;
-  if (mp_suspension->bottomed_out ())
-	{
-	  Particle::contact (impulse,
-						 rotate_from_parent (velocity), 
-						 distance, 
-						 rotate_from_parent (normal), 
-						 rotate_from_parent (angular_velocity), 
-						 surface_material);
-	}
-  else
-    set_impulse (Three_Vector (0.0, 0.0, 0.0));
-  
-  m_normal = rotate_from_parent (normal);
-  const Three_Vector v_perp = rotate_from_parent (velocity).project (m_normal);
-  m_ground_velocity = rotate_from_parent (velocity) - v_perp;
-  m_angular_velocity = angular_velocity;
+    Particle::contact(impulse, rotate_from_parent(velocity), distance,
+                      rotate_from_parent(normal), rotate_from_parent(angular_velocity),
+                      surface_material);
+    if (!mp_suspension->bottomed_out())
+        set_impulse(Three_Vector::ZERO);
 
-  mp_suspension->
-    displace (((m_normal * distance).back_project (Three_Vector::Z)).magnitude ());
-  set_position (m_original_position + mp_suspension->displacement () * Three_Vector::Z);
-  // The suspension displacement may be different from the argument to
-  // displace() if it bottoms out.  Ask the suspension for the actual
-  // displacement.
+    m_normal = rotate_from_parent(normal);
+    const Three_Vector v_perp = rotate_from_parent(velocity).project(m_normal);
+    m_ground_velocity = rotate_from_parent(velocity) - v_perp;
+    m_angular_velocity = angular_velocity;
 
-  mp_suspension->input (force (), m_normal);
-  mp_suspension->torque (m_braking_torque);
-  m_surface_material = surface_material;
-  return -mp_suspension->displacement ();
+    mp_suspension->displace(((m_normal * distance).back_project(Three_Vector::Z)).magnitude());
+    set_position(m_original_position + mp_suspension->displacement() * Three_Vector::Z);
+    // The suspension displacement may be different from the argument to
+    // displace() if it bottoms out.  Ask the suspension for the actual
+    // displacement.
+
+    mp_suspension->input(force(), m_normal);
+    mp_suspension->torque(m_braking_torque);
+    m_surface_material = surface_material;
+    return -mp_suspension->displacement();
 }
 
 void
@@ -238,13 +223,12 @@ Wheel::set_models (std::string slow_file,
 	}
 }
 
-void
-Wheel::transform ()
+void Wheel::transform()
 {
-  glTranslatef (position ().x, position ().y, position ().z);
-  double angle;
-  Three_Vector axis = axis_angle (&angle);
-  glRotatef (angle, axis.x, axis.y, axis.z);
+    glTranslatef(position().x, position().y, position().z);
+    double angle;
+    auto axis{axis_angle(angle)};
+    glRotatef(angle, axis.x, axis.y, axis.z);
 }
 
 // Draw the wheel.

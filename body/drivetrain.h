@@ -30,10 +30,10 @@ namespace Vamos_Body
 class Drivetrain
 {
 public:
-    Drivetrain(Engine* engine,
-               Clutch* clutch,
-               Transmission* transmission,
-               Differential* differential);
+    Drivetrain(std::shared_ptr<Engine> engine,
+               std::unique_ptr<Clutch> clutch,
+               std::unique_ptr<Transmission> transmission,
+               std::unique_ptr<Differential> differential);
 
     /// Process the input parameters.
     void input(double gas, double clutch, double left_wheel_speed, double right_wheel_speed);
@@ -46,15 +46,18 @@ public:
 
     /// Allow access to the components.
     /// @{
-    Engine* engine() { return mp_engine.get(); }
-    Transmission* transmission() { return mp_transmission.get(); }
-    Clutch* clutch() { return mp_clutch.get(); }
+    Engine& engine() { return *mp_engine; }
+    Engine const& engine() const { return *mp_engine; }
+    Transmission& transmission() { return *mp_transmission; }
+    Transmission const& transmission() const { return *mp_transmission; }
+    Clutch& clutch() { return *mp_clutch; }
+    Clutch const& clutch() const { return *mp_clutch; }
     /// @}
     /// @return The torque for a driven wheel.
     std::tuple<double, double> get_torque() const;
 
 private:
-    std::unique_ptr<Engine> mp_engine;
+    std::shared_ptr<Engine> mp_engine;
     std::unique_ptr<Clutch> mp_clutch;
     std::unique_ptr<Transmission> mp_transmission;
     std::unique_ptr<Differential> mp_differential;

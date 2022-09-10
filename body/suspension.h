@@ -21,10 +21,12 @@
 #define _SUSPENSION_H_
 
 #include "particle.h"
+
 #include "../geometry/three-vector.h"
 
-#include <vector>
+#include <memory>
 #include <string>
+#include <vector>
 
 namespace Vamos_Body
 {
@@ -72,7 +74,7 @@ enum class Side{ left, right };
 	// Set the toe angle.
 	void toe (double degree_angle);
 
-	Hinge* hinge () const { return mp_hinge; }
+      std::shared_ptr<Hinge> hinge() const { return mp_hinge; }
 
 	Vamos_Geometry::Three_Vector force () const { return Particle::force (); }
 	Vamos_Geometry::Three_Vector torque () const 
@@ -128,7 +130,7 @@ enum class Side{ left, right };
 	// The axis of rotation for steering.
 	const static Vamos_Geometry::Three_Vector STEER_AXIS;
 
-	Hinge* mp_hinge;
+      std::shared_ptr<Hinge> mp_hinge;
 	Vamos_Geometry::Three_Vector m_radius;
 	Vamos_Geometry::Three_Vector m_initial_radius;
 	double m_radius_magnitude;

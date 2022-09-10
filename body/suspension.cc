@@ -82,7 +82,7 @@ Suspension::Suspension (const Three_Vector& pos,
 						double max_compression_velocity,
                         const Frame* parent) 
   : Particle (0.0, pos, parent),
-    mp_hinge (new Hinge (center_of_translation)),
+    mp_hinge{std::make_shared<Hinge>(center_of_translation)},
     m_radius (center_of_translation - pos),
     m_initial_radius (m_radius),
     m_radius_magnitude (m_radius.magnitude ()),

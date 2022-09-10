@@ -3,7 +3,6 @@ body_sources = [
   'brake.cc',
   'car.cc',
   'car-reader.cc',
-  'contact-point.cc',
   'clutch.cc',
   'dashboard.cc',
   'differential.cc',

@@ -18,7 +18,8 @@ const Three_Matrix rotated(Three_Matrix{1.0}.rotate(ones.unit() * 2.0 * pi / 3.0
 TEST_CASE("particle")
 {
     Frame frame(Three_Vector(1.0, 0.0, 0.0), rotated);
-    Particle particle(2.0, Three_Vector(0.0, 1.0, 1.0), rotated, &frame);
+    Particle particle(2.0, Three_Vector(0.0, 1.0, 1.0), &frame);
+    particle.rotate(ones.unit() * 2.0 * pi / 3.0);
 
     CHECK(particle.position() == Three_Vector(0.0, 1.0, 1.0));
     CHECK(particle.contact_position() == Three_Vector(0.0, 1.0, 1.0));

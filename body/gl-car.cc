@@ -30,6 +30,7 @@
 #include <GL/glut.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <functional>
 #include <iomanip>
@@ -397,8 +398,8 @@ Gl_Car::transform_body ()
   glTranslatef (position.x, position.y, position.z);
   
   double angle;
-  Three_Vector axis = m_chassis.axis_angle (&angle);
-  glRotatef (angle, axis.x, axis.y, axis.z);
+  auto axis{m_chassis.axis_angle(angle)};
+  glRotatef(angle, axis.x, axis.y, axis.z);
 }
 
 // Render the car according to its current position and orientation.
@@ -426,14 +427,15 @@ Gl_Car::draw_interior ()
     draw_dashboard ();
 }
 
-void 
-Gl_Car::draw_dashboard ()
+void Gl_Car::draw_dashboard()
 {
-  mp_dashboard->set_tachometer (rad_s_to_rpm (engine ()->rotational_speed ()));
-  mp_dashboard->set_speedometer (m_s_to_km_h (wheel (2)->speed ()));
-  mp_dashboard->set_fuel_gauge (fuel_tank ()->fuel ());
-  mp_dashboard->set_gear_indicator (transmission ()->gear ());
-  mp_dashboard->set_steering_wheel (m_steer_key_control.value ());
+    assert(mp_drivetrain);
+    auto const& dt{*mp_drivetrain};
+    mp_dashboard->set_tachometer(rad_s_to_rpm(dt.engine().rotational_speed ()));
+  mp_dashboard->set_speedometer(m_s_to_km_h(wheel(2).speed()));
+  mp_dashboard->set_fuel_gauge(fuel_tank ()->fuel ());
+  mp_dashboard->set_gear_indicator(dt.transmission().gear());
+  mp_dashboard->set_steering_wheel(m_steer_key_control.value ());
 
   mp_dashboard->draw ();
   if (m_show_dashboard_extras)
@@ -442,25 +444,27 @@ Gl_Car::draw_dashboard ()
     }
 }
 
-void 
-Gl_Car::draw_dashboard_extras ()
+void Gl_Car::draw_dashboard_extras()
 { 
-  Two_D screen;
+    assert(mp_drivetrain);
+    auto const& dt{*mp_drivetrain};
+
+    Two_D screen;
   
   const double bottom = 2;
   const double top = 20;
 
   std::string gear = "N";
-  if (transmission ()->gear () == -1)
+  if (dt.transmission().gear() == -1)
     gear = "R";
-  else if (transmission ()->gear () > 0)
-    gear = std::string (1, transmission ()->gear () + '0');
+  else if (dt.transmission().gear() > 0)
+    gear = std::string (1, dt.transmission().gear() + '0');
 
-  screen.text (4, 18, "RPM", rad_s_to_rpm (engine ()->rotational_speed ()));
-  screen.text (4, 14, "Torque", engine ()->drive_torque (), "Nm");
-  screen.text (4, 10, "Speed", m_s_to_km_h (wheel (2)->speed ()), "km/h");
-  screen.text (4, 6, "Mass", m_chassis.mass (), "kg");
-  screen.text (4, 2, "Gear", gear);
+  screen.text(4, 18, "RPM", rad_s_to_rpm(dt.engine().rotational_speed()));
+  screen.text(4, 14, "Torque", dt.engine().drive_torque(), "Nm");
+  screen.text(4, 10, "Speed", m_s_to_km_h(wheel(2).speed()), "km/h");
+  screen.text(4, 6, "Mass", m_chassis.mass(), "kg");
+  screen.text(4, 2, "Gear", gear);
 
   screen.bar (Rectangle (19, bottom, 2, top - bottom),
               0.0, 1.0, 1.0,
@@ -520,12 +524,12 @@ Gl_Car::view ()
   alListener3f (AL_POSITION, pos.x, pos.y, pos.z);
   alListenerfv (AL_ORIENTATION, at_up); 
 
-  if (engine ())
-    {
-      Three_Vector v = m_chassis.velocity (engine ()->position ());
-      const double v_s = alGetDouble (AL_SPEED_OF_SOUND);
-      alListener3f (AL_VELOCITY, v.x / v_s, v.y / v_s, v.z / v_s);
-    }
+  if (mp_drivetrain)
+  {
+      auto v{m_chassis.velocity(mp_drivetrain->engine().position())};
+      auto v_s{alGetDouble(AL_SPEED_OF_SOUND)};
+      alListener3f(AL_VELOCITY, v.x / v_s, v.y / v_s, v.z / v_s);
+  }
 }
 
 void 
@@ -534,7 +538,7 @@ Gl_Car::view (double pan, const Three_Vector& view_position)
   // Find the angle-axis representation of the car's orientation.
   // Called for the front view and rear views.
   double angle;
-  Three_Vector axis = m_chassis.axis_angle (&angle);
+  auto axis{m_chassis.axis_angle(angle)};
 
   const Three_Vector& a = acceleration (true);
 
@@ -568,42 +572,36 @@ void Gl_Car::engine_sound(std::string const& file,
 	}
 }
 
-double 
-Gl_Car::engine_pitch ()
+double Gl_Car::engine_pitch()
 {
-  return engine ()->rotational_speed ();
+    return mp_drivetrain->engine().rotational_speed();
 }
 
-double 
-Gl_Car::engine_volume ()
+double Gl_Car::engine_volume()
 {
-  return 1.0 + m_throttle_volume_factor * engine ()->throttle ()
-	+ m_engine_speed_volume_factor * engine ()->rotational_speed ();
+    auto const& engine{mp_drivetrain->engine()};
+    return 1.0 + m_throttle_volume_factor * engine.throttle()
+        + m_engine_speed_volume_factor * engine.rotational_speed();
 }
 
-void
-Gl_Car::propagate (double time)
+void Gl_Car::propagate(double time)
 {
-  Car::propagate (time);
-
-  if (mp_engine_sample != 0)
-    {
-      mp_engine_sample->pitch (engine_pitch ());
-      mp_engine_sample->volume (engine_volume ());
-      mp_engine_sample->position (chassis ().position (engine ()));
-      mp_engine_sample->velocity (chassis ().velocity (engine ()));
-      mp_engine_sample->play ();
-    }
+    Car::propagate(time);
+    if (!mp_engine_sample)
+        return;
+    mp_engine_sample->pitch(engine_pitch());
+    mp_engine_sample->volume(engine_volume());
+    mp_engine_sample->position(chassis().position(mp_drivetrain->engine()));
+    mp_engine_sample->velocity(chassis().velocity(mp_drivetrain->engine()));
+    mp_engine_sample->play();
 }
 
-void
-Gl_Car::set_paused (bool is_paused)
+void Gl_Car::set_paused(bool is_paused)
 {
-  if (mp_engine_sample != 0)
-    {
-      if (is_paused)
-        mp_engine_sample->pause ();
-      else
-        mp_engine_sample->play ();
-    }
+    if (!mp_engine_sample)
+        return;
+    if (is_paused)
+        mp_engine_sample->pause();
+    else
+        mp_engine_sample->play();
 }
