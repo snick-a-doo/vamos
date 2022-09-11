@@ -100,18 +100,18 @@ Tire_Friction::Tire_Friction (const std::vector <double>& long_parameters,
 // Return the longitudinal (first) and transverse (second) slip ratios.
 void
 Tire_Friction::slip (double patch_speed, const Three_Vector& hub_velocity,
-                     double* sigma, double* alpha)
+                     double& sigma, double& alpha)
 {
   // Leave the slip parameters at zero if the difference between the
   // patch speed and the hub velocity is very small.
-  *sigma = 0.0;
-  *alpha = 0.0;
+  sigma = 0.0;
+  alpha = 0.0;
 
   // Put a lower limit on the denominator to keep sigma and
   // tan_alpha from getting out of hand at low speeds.
   double denom = std::max (std::abs (hub_velocity.x), 3.0);
-  *sigma = 100.0 * (patch_speed - hub_velocity.x) / denom;
-  *alpha = -rad_to_deg (atan2 (hub_velocity.y, denom));
+  sigma = 100.0 * (patch_speed - hub_velocity.x) / denom;
+  alpha = -rad_to_deg (atan2 (hub_velocity.y, denom));
 }
 
 // Return the friction vector calculated from the magic formula.
@@ -160,7 +160,7 @@ Tire_Friction::friction_forces (double normal_force, double friction_factor,
 
   double sigma;
   double alpha;
-  slip (patch_speed, hub_velocity, &sigma, &alpha);
+  slip (patch_speed, hub_velocity, sigma, alpha);
 
   m_peak_slip = peak_slip (Bx, Cx, Ex, Shx, m_peak_slip);
   Three_Vector slip;
@@ -377,11 +377,11 @@ double Tire::grip () const
   return std::max (m_temperature / 380.0 - m_wear, 0.3);
 }
 
-// Fill in the longitudinal (sigma) and transverse (alpha) slip ratios.
-void 
-Tire::slip (double* sigma, double* alpha) const
+Two_Vector Tire::slip() const
 {
-  m_tire_friction.slip (speed (), m_velocity, sigma, alpha);
+    Two_Vector slips;
+    m_tire_friction.slip(speed(), m_velocity, slips.x, slips.y);
+    return slips;
 }
 
 // Return the position of the contact patch in the wheel's coordinate

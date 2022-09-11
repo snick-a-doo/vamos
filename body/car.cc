@@ -104,7 +104,7 @@ double Key_Control::update(double time)
             target(m_next_target, m_next_time, m_next_delay);
     }
 
-    m_value = new_value;
+    ;    m_value = new_value;
     return m_value;
 }
 
@@ -117,23 +117,13 @@ void Key_Control::end()
 
 //----------------------------------------------------------------------------------------
 Car::Car(const Three_Vector& position, const Three_Matrix& orientation)
-    : m_chassis(position, orientation),
-      m_max_steer_angle(15.0),
-      m_steer_exponent(1.0),
-      m_slide(0.0),
-      m_shift_pending(false),
-      m_shift_timer(0.0),
-      m_shift_delay(0.2),
-      m_new_gear(0),
-      m_last_gear(0),
-      m_clutch_key_control(true),
-      mp_front_particle(0),
-      m_distance_traveled(0.0),
-      m_field_of_view(60.0),
-      m_pan_angle(90.0),
-      m_show_dashboard_extras(false),
-      m_air_density(0.0)
+    : m_chassis(position, orientation)
 {
+}
+
+Car::~Car()
+{
+    // Trivial destructor instead of = default because of shared_ptrs.
 }
 
 void Car::read(std::string data_dir, std::string car_file)
@@ -155,8 +145,6 @@ void Car::read(std::string data_dir, std::string car_file)
     for (auto const& p : m_chassis.particles())
     {
         const auto& pos{p->position()};
-        if (pos.x > m_crash_box.front)
-            mp_front_particle = p.get();
         m_crash_box.front = std::max(m_crash_box.front, pos.x);
         m_crash_box.back = std::min(m_crash_box.back, pos.x);
         m_crash_box.left = std::max(m_crash_box.left, pos.y);
@@ -182,14 +170,8 @@ void Car::adjust_robot_parameters(double slip_ratio_factor, double deceleration_
         += lateral_acceleration_factor * m_robot_parameters.lateral_acceleration;
 }
 
-// Advance the car in time by TIME.  This method assumes that the
-// first four members of m_particles are the left-front, right-front,
-// left-rear, and right-rear wheels, and that the front wheels are
-// steered and the rear wheels are driven.  Re-define this virtual
-// function if you want to change these conditions.
 void Car::propagate(double time)
 {
-    // Propagate the key controls.
     m_steer_key_control.update(time);
     m_gas_key_control.update(time);
     m_brake_key_control.update(time);
@@ -232,18 +214,17 @@ void Car::propagate(double time)
     auto left_wheel_speed{0.0};
     for (auto const& wheel : m_wheels)
     {
-        if (wheel->steered()) //!! put this logic in the wheel.
-            wheel->steer(m_steer_key_control.value());
+        wheel->steer(m_steer_key_control.value());
         wheel->brake(going ? m_brake_key_control.value() : 1.0);
-        if (mp_drivetrain && wheel->driven())
+        if (mp_drivetrain)
         {
             // Apply the driving torque.
             auto left{wheel->side() == Side::left};
-            wheel->drive_torque(left ? left_torque : right_torque);
+            wheel->set_drive_torque(left ? left_torque : right_torque);
             (left ? left_wheel_speed : right_wheel_speed) = wheel->rotational_speed();
         }
         // Sum the sliding speeds of the tires.
-        m_slide += wheel->slide();
+        m_slide += wheel->get_tire().slide();
     }
     m_slide = std::min(1.0, m_slide / m_wheels.size());
 
@@ -272,8 +253,7 @@ void Car::propagate(double time)
         = (1.0 - weight) * m_smoothed_acceleration + weight * m_chassis.acceleration();
 }
 
-// Change the steering angle to ANGLE with a time constant of TIME.
-void Car::steer(double angle, double time, bool direct /* = false */)
+void Car::steer(double angle, double time, bool direct)
 {
     if (!direct)
     {
@@ -477,7 +457,8 @@ double Car::target_distance() const
 double Car::grip() const
 {
     return std::accumulate(m_wheels.begin(), m_wheels.end(), 0.0,
-                           [](double total, auto wheel) { return total + wheel->grip(); })
+                           [](double total, auto wheel) {
+                               return total + wheel->get_tire().grip(); })
         / m_wheels.size();
 }
 

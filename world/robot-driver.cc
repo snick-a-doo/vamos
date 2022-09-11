@@ -18,13 +18,18 @@
 //  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "robot-driver.h"
+
+#include "world.h"
+
 #include "../body/car.h"
+#include "../body/clutch.h"
+#include "../body/engine.h"
+#include "../body/transmission.h"
 #include "../body/wheel.h"
 #include "../geometry/parameter.h"
 #include "../geometry/three-vector.h"
 #include "../media/two-d.h"
 #include "../track/strip-track.h"
-#include "world.h"
 
 #include <algorithm>
 #include <limits>
@@ -346,10 +351,10 @@ double
 Robot_Driver::target_slip_angle () const
 {
   //! Can we use a constant instead?
-  return abs_max(mp_car->wheel(0).peak_slip_angle(),
-                 mp_car->wheel(1).peak_slip_angle(),
-                 mp_car->wheel(2).peak_slip_angle(),
-                 mp_car->wheel(3).peak_slip_angle());
+  return abs_max(mp_car->wheel(0).get_tire().peak_slip_angle(),
+                 mp_car->wheel(1).get_tire().peak_slip_angle(),
+                 mp_car->wheel(2).get_tire().peak_slip_angle(),
+                 mp_car->wheel(3).get_tire().peak_slip_angle());
 }
 
 //** Choose Gear
@@ -497,19 +502,19 @@ Robot_Driver::total_slip () const
 double
 Robot_Driver::longitudinal_slip () const
 {
-  return abs_max (mp_car->wheel(0).slip().x,
-                  mp_car->wheel(1).slip().x,
-                  mp_car->wheel(2).slip().x,
-                  mp_car->wheel(3).slip().x);
+  return abs_max (mp_car->wheel(0).get_tire().slip().x,
+                  mp_car->wheel(1).get_tire().slip().x,
+                  mp_car->wheel(2).get_tire().slip().x,
+                  mp_car->wheel(3).get_tire().slip().x);
 }
 
 double
 Robot_Driver::transverse_slip () const
 {
-  return abs_max (mp_car->wheel(0).slip().y,
-                  mp_car->wheel(1).slip().y,
-                  mp_car->wheel(2).slip().y,
-                  mp_car->wheel(3).slip().y);
+  return abs_max (mp_car->wheel(0).get_tire().slip().y,
+                  mp_car->wheel(1).get_tire().slip().y,
+                  mp_car->wheel(2).get_tire().slip().y,
+                  mp_car->wheel(3).get_tire().slip().y);
 }
 
 void

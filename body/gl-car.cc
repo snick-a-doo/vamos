@@ -18,6 +18,10 @@
 //  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "gl-car.h"
+
+#include "clutch.h"
+#include "engine.h"
+#include "transmission.h"
 #include "fuel-tank.h"
 #include "dashboard.h"
 #include "wheel.h"

@@ -37,18 +37,13 @@ class Sample;
 
 namespace Vamos_Body
 {
-class Car_Reader;
-class Dashboard;
-class Fuel_Tank;
-class Particle;
-class Wheel;
-
 /// A class that handles gradual application of a control that's operated by a button,
 /// such as the clutch.  If you're using a keyboard instead of a joystick, it also handles
 /// steering, gas and brake.
 class Key_Control
 {
 public:
+    /// @param block Wait until hitting target before responding to the next setting.
     Key_Control(bool block = false);
 
     // Set the target setting of this control.
@@ -78,31 +73,29 @@ private:
     double m_next_time{0.0};
 };
 
+class Dashboard;
+class Fuel_Tank;
+class Particle;
+class Wheel;
+
 /// A body with wheels.
 class Car
 {
     friend class Car_Reader;
-
-private:
-    struct Robot_Parameters
-    {
-        double slip_ratio;
-        double deceleration;
-        double lateral_acceleration;
-    };
+    struct Robot_Parameters;
 
 public:
     Car(Vamos_Geometry::Three_Vector const& position,
         Vamos_Geometry::Three_Matrix const& orientation);
-    virtual ~Car() = default;
+    virtual ~Car();
 
     Rigid_Body& chassis() { return m_chassis; }
     const Rigid_Body& chassis() const { return m_chassis; }
 
-    // Read the car definition file.
+    /// Read the car definition file.
     virtual void read(std::string data_dir = "", std::string car_file = "");
 
-    // Define a sound for the engine.
+    /// Define a sound for the engine.
     virtual void engine_sound(std::string const&, // file
                               double,             // volume,
                               double,             // throttle_volume_factor,
@@ -110,17 +103,17 @@ public:
                               double)             // pitch
         {};
 
-    // Set and get the parameters for computer control.
+    /// Set and get the parameters for computer control.
     void set_robot_parameters(double slip_ratio, double deceleration, double lateral_acceleration);
 
-    // Change the performance parameters by the given fraction of the current
-    // value. I.e. param <- param + factor*param.
+    /// Change the performance parameters by the given fraction of the current
+    /// value, i.e. param <- param + factor*param.
     void adjust_robot_parameters(double slip_ratio_factor, double deceleration_factor,
                                  double lateral_acceleration_factor);
 
     const Robot_Parameters& get_robot_parameters() const { return m_robot_parameters; }
 
-    // Set the 3D models.
+    /// Set the 3D models.
     virtual void exterior_model(std::string const&,                  // file
                                 double,                              // scale
                                 Vamos_Geometry::Three_Vector const&, // translation
@@ -134,105 +127,82 @@ public:
     {
     }
 
-    // Set the dashboard.
+    /// Set the dashboard.
     virtual void dashboard(Dashboard* /* dash */) {}
 
-    // Advance the car in time by TIME.
     virtual void propagate(double time);
-
     virtual void set_paused(bool){};
 
-    // Pan the view.
+    /// Pan the view.
     void pan(double factor, double time = 0.0);
-
-    // Change the steering angle to ANGLE with a time constant of TIME.
+    /// Change the steering angle.
+    /// @param direct Ignore non-linearity if true.
     void steer(double angle, double time = 0.0, bool direct = false);
-
+    /// @return The current steering angle.
     double steer_angle() const { return m_steer_key_control.value(); }
-
-    // Change the throttle to FACTOR with a time constant of TIME.
+    /// Set the throttle.
     void gas(double factor, double time = 0.0);
-
-    // Change the brakes to FACTOR with a time constant of TIME.
+    /// Set the brakes.
     void brake(double factor, double time = 0.0);
-
-    // Shift to the next lower gear.  The chosen gear is returned.
+    /// Shift to the next lower gear if possible.
+    /// @return The new gear.
     int shift_down();
-
-    // Shift to the next higher gear.  The chosen gear is returned.
+    /// Shift to the next higher gear if possible.
+    /// @return The new gear.
     int shift_up();
-
-    // Shift to GEAR.  The chosen gear is returned.
+    /// Shift directly to a gear.
+    /// @return The new gear.
     int shift(int gear);
-
+    /// Set the clutch.
     void clutch(double factor, double time = 0.0);
-
+    /// Fully engage the clutch.
     void engage_clutch(double time);
+    /// Fully disengage the clutch.
     void disengage_clutch(double time);
+    /// Start the engine.
     void start_engine();
 
-    // Return the current steer angle as a fraction of maximum.
-    double steer_fraction() const { return m_steer_key_control.value() / m_max_steer_angle; }
-
+    /// @return The brake setting as a fraction of maximum.
     double brake_fraction() const { return m_brake_key_control.value(); }
-
+    /// @return The throttle setting as a fraction of maximum.
     double throttle_fraction() const { return m_gas_key_control.value(); }
 
-    // Set the largest possible steering angle.
+    /// Set the largest possible steering angle.
     void max_steer_angle(double degree_angle) { m_max_steer_angle = degree_angle; }
-
-    // Set the steering non-linearity.
+    /// Set the steering non-linearity.
     void steer_exponent(double exponent) { m_steer_exponent = exponent; }
-
-    // Set the amount of decrease in sensitivity with speed.
+    /// Set the amount of decrease in sensitivity with speed.
     void steer_speed_sensitivity(double sensitivity) { m_steer_speed_sensitivity = sensitivity; }
-
-    // Set the amount of time for gear changes.
+    /// Set the amount of time for gear changes.
     void shift_delay(double time) { m_shift_delay = time; }
-
-    // Set the amount of time for operating the clutch.  The first
-    // time is for shifting from nuetral.
+    /// Set the amount of time for operating the clutch. The first time is for shifting
+    /// from nuetral.
     void clutch_time(double from_neutral, double others);
-
-    // Return the average of the degree of sliding of the tires.
+    /// @return The average of the degree of sliding of the tires.
     double slide() const { return m_slide; }
-
-    // Return the pointer to the WHEEL_INDEXth wheel.
+    /// @return A wheel according to index.
     Wheel& wheel(size_t wheel_index) const;
-
-    // Return the pointer to the front-most particle.
-    Particle* front_particle() const { return mp_front_particle; }
-
     /// @return A pointer to the drivetrain which can be used to access the engine,
     /// clutch, and transmission. Nullptr if a drivetrain is not present.
     Drivetrain* drivetrain() { return mp_drivetrain.get(); }
-
-    // Return a pointer to the fuel tank.
+    /// @return a pointer to the fuel tank.
     Fuel_Tank* fuel_tank() { return mp_fuel_tank.get(); }
-
-    // Return the most recent gear selected.  The shift may not have
-    // occurred yet due to the shift delay specified in the call to
-    // `shift_up ()', `shift_down ()', or `shift ()'.
+    /// Return the most recent gear selected.  The shift may not have
+    /// occurred yet due to the shift delay specified in the call to
+    /// `shift_up ()', `shift_down ()', or `shift ()'.
     int gear() const { return m_new_gear; }
 
     // Retrun the previous gear selected.
     int last_gear() const { return m_last_gear; }
 
-    //** Enhance Body's reset methods by re-initializing the engine
-    // and gearbox.
-
-    // Restore the initial conditions.
+    /// Restore the initial conditions.
     void reset();
-
-    // Restore the initial conditions and then set the position to
-    // POSITION and the orientation to ORIENTATION.
-    void reset(const Vamos_Geometry::Three_Vector& position,
-               const Vamos_Geometry::Three_Matrix& orientation);
-
-    // Return the total distance traveled since the start of the
-    // simulation.
+    /// Restore the initial conditions and then set position and orientation.
+    void reset(Vamos_Geometry::Three_Vector const& position,
+               Vamos_Geometry::Three_Matrix const& orientation);
+    /// @return the total distance traveled since the start of the simulation.
     double distance_traveled() const { return m_distance_traveled; }
-
+    /// Take ownership of the pointer to the drivetrain.
     void set_drivetrain(std::unique_ptr<Drivetrain> drivetrain);
 
     virtual void set_view(Vamos_Geometry::Three_Vector const&, // position
@@ -244,8 +214,7 @@ public:
     }
 
     virtual void set_perspective(double /* aspect */){};
-
-    // Add a rearview mirror.
+    /// Add a rearview mirror.
     virtual void add_rear_view(Vamos_Geometry::Three_Vector const&, // position
                                double,                              // width
                                double,                              // height
@@ -256,7 +225,6 @@ public:
                                std::string const&)                  // mask_file
     {
     }
-
     // Return the driver's field of view in degrees.
     double field_of_view() const { return m_field_of_view; }
 
@@ -266,10 +234,7 @@ public:
     // Return the position of the viewpont.
     Vamos_Geometry::Three_Vector view_position(bool world, bool bob) const;
 
-    //* Methods to be defined in derived classes.
-
-    // Render the car according to its current position and
-    // orientation.
+    // Render the car according to its current position and orientation.
     virtual void draw(){};
     virtual void draw_interior(){};
     virtual Vamos_Geometry::Three_Vector draw_rear_view(double /* aspect */, int /* index */);
@@ -280,18 +245,16 @@ public:
     // Perform the transformations for the driver's view.
     virtual void view(double,                              // pan
                       Vamos_Geometry::Three_Vector const&) // view_position
-    {
-    }
+    {}
     virtual void view() {}
 
-    // Return true if there is no shift delay.
+    /// @return true if there is no shift delay.
     bool fast_shift() const { return m_shift_delay <= 0.0; }
-
+    /// @return true if extra info should be shown on screen.
     void show_dashboard_extras(bool show) { m_show_dashboard_extras = show; }
 
-    // Return the contact information for the given position and
-    // velocity.  If 'ignore_z' is true, only consider the x- and
-    // y-values of 'position'.
+    // Return the contact information for the given position and velocity.  If 'ignore_z'
+    // is true, only consider the x- and y-values of 'position'.
     Vamos_Geometry::Contact_Info collision(const Vamos_Geometry::Three_Vector& position,
                                            const Vamos_Geometry::Three_Vector& velocity,
                                            bool ignore_z = false) const;
@@ -363,82 +326,68 @@ protected:
     // A pointer to the car's fuel tank.
     std::shared_ptr<Fuel_Tank> mp_fuel_tank;
     // The maximum angle for the steered wheels.
-    double m_max_steer_angle;
+    double m_max_steer_angle{15};
     // Steering non-linearity
-    double m_steer_exponent;
+    double m_steer_exponent{1.0};
     // Set the amount of decrease in sensitivity with speed.
-    double m_steer_speed_sensitivity;
+    double m_steer_speed_sensitivity{0.0};
     // The sum of the sliding speeds of the tires.
-    double m_slide;
+    double m_slide{0.0};
     // True if a shift has been requested but not yet made due to the
     // delay `m_shift_delay'.
-    bool m_shift_pending;
+    bool m_shift_pending{false};
     // The amount of time elapsed after the shift request.
-    double m_shift_timer;
+    double m_shift_timer{0.0};
     // How long to wait between getting a shift request and actually
     // shifting.
-    double m_shift_delay;
+    double m_shift_delay{0.2};
     // The gear to shift to when `m_shift_timer' reaches
     // `m_shift_delay'.
-    int m_new_gear;
+    int m_new_gear{0};
     // The gear we were in before the last shift was requested.
-    int m_last_gear;
-    // The control that gradually applies steering when the keyboard
-    // is used.
-    Key_Control m_steer_key_control;
-    // The control that gradually applies the throttle when the
-    // keyboard is used.
-    Key_Control m_gas_key_control;
-    // The control that gradually applies braking when the keyboard
-    // is used.
-    Key_Control m_brake_key_control;
-
-    // The control that gradually applies the clutch when the keyboard
-    // is used.
-    Key_Control m_clutch_key_control;
-
+    int m_last_gear{0};
+    // The control that gradually applies steering when the keyboard is used.
+    Key_Control m_steer_key_control{false};
+    // The control that gradually applies the throttle when the keyboard is used.
+    Key_Control m_gas_key_control{false};
+    // The control that gradually applies braking when the keyboard is used.
+    Key_Control m_brake_key_control{false};
+    // The control that gradually applies the clutch when the keyboard is used.
+    Key_Control m_clutch_key_control{true};
     // The control that gradually pans the view.
-    Key_Control m_pan_key_control;
-
-    // A pointer to the frontmost particle of the car.
-    Particle* mp_front_particle;
-
+    Key_Control m_pan_key_control{false};
     // The total distance traveled since the start of the simulation.
-    double m_distance_traveled;
-
+    double m_distance_traveled{0.0};
     std::vector<std::shared_ptr<Wheel>> m_wheels;
-
     // The position of the driver's eyes.
     Vamos_Geometry::Three_Vector m_driver_view;
-
     // The driver's field of view.
-    double m_field_of_view;
-
+    double m_field_of_view{60.0};
     // The maximum pan angle.
-    double m_pan_angle;
-
+    double m_pan_angle{90.0};
     // Display additional information if true.
-    bool m_show_dashboard_extras;
+    bool m_show_dashboard_extras{false};
+    double m_air_density{0.0};
 
+private:
     // Perform operations common to both reset() methods.
     void private_reset();
 
-    double m_air_density;
-
-private:
     std::string m_data_dir;
     std::string m_car_file;
     std::string m_name;
     Crash_Box m_crash_box;
 
+    struct Robot_Parameters
+    {
+        double slip_ratio;
+        double deceleration;
+        double lateral_acceleration;
+    };
     Robot_Parameters m_robot_parameters;
 
     Vamos_Geometry::Three_Vector m_smoothed_acceleration;
 };
-
-class Gauge;
-class Gear_Indicator;
-class Steering_Wheel;
 
 struct Model_Info
 {
@@ -446,15 +395,11 @@ struct Model_Info
     double scale;
     Vamos_Geometry::Three_Vector translate;
     Vamos_Geometry::Three_Vector rotate;
-
-    Model_Info(std::string file_in, double scale_in,
-               const Vamos_Geometry::Three_Vector& translate_in,
-               const Vamos_Geometry::Three_Vector& rotate_in)
-        : file(file_in),
-          scale(scale_in),
-          translate(translate_in),
-          rotate(rotate_in){};
 };
+
+class Gauge;
+class Gear_Indicator;
+class Steering_Wheel;
 
 class Car_Reader : public Vamos_Media::XML_Parser
 {

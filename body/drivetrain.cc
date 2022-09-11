@@ -15,6 +15,11 @@
 
 #include "drivetrain.h"
 
+#include "clutch.h"
+#include "differential.h"
+#include "engine.h"
+#include "transmission.h"
+
 #include <cassert>
 
 using namespace Vamos_Body;

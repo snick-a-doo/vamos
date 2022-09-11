@@ -16,16 +16,16 @@
 #ifndef VAMOS_BODY_DRIVETRAIN_H_INCLUDED
 #define VAMOS_BODY_DRIVETRAIN_H_INCLUDED
 
-#include "clutch.h"
-#include "differential.h"
-#include "engine.h"
-#include "transmission.h"
-
 #include <memory>
 #include <tuple>
 
 namespace Vamos_Body
 {
+class Clutch;
+class Differential;
+class Engine;
+class Transmission;
+
 /// The drivetrain manages the engine, clutch, transmission and differential.
 class Drivetrain
 {

@@ -20,9 +20,11 @@
 #ifndef _TIRE_H_
 #define _TIRE_H_
 
+#include "particle.h"
+
 #include "../geometry/material.h"
 #include "../geometry/three-vector.h"
-#include "particle.h"
+#include "../geometry/two-vector.h"
 
 #include <vector>
 
@@ -52,8 +54,8 @@ namespace Vamos_Body
     // Fill in the longitudinal (sigma) and transverse (alpha) slip ratios.
     static void slip (double patch_speed, 
                       const Vamos_Geometry::Three_Vector& hub_velocity,
-                      double* sigma, 
-                      double* alpha);
+                      double& sigma,
+                      double& alpha);
 
     // Return the slip ratio that gives maximum force.
     double peak_slip_ratio () const { return m_peak_slip; }
@@ -121,8 +123,8 @@ namespace Vamos_Body
 	// Return the linear speed of the tread.
 	double speed () const { return m_rotational_speed * m_radius; }
     
-    // Fill in the longitudinal (sigma) and transverse (alpha) slip ratios.
-    void slip (double* sigma, double* alpha) const;
+    // Fill in the longitudinal (sigma) and transverse (alpha) slip ratios as x and y.
+      Vamos_Geometry::Two_Vector slip() const;
 
     double temperature () const { return m_temperature - 273.15; }
     /// A traction factor that depends on tire temperature and wear.
