@@ -378,7 +378,7 @@ Three_Vector Gl_Car::draw_rear_view(double, int index)
 {
   Rear_View_Mirror* mirror = m_mirrors [index];
   mirror->set_view ();
-  Three_Vector pos = m_chassis.position () + m_chassis.rotate_to_world (mirror->get_center ());
+  Three_Vector pos = m_chassis.position () + m_chassis.rotate_out(mirror->get_center ());
   view (mirror->get_direction (), pos);
   return pos;
 }
@@ -521,8 +521,8 @@ Gl_Car::view ()
   view (m_pan_key_control.value (), pos);
   const double pan = deg_to_rad (m_pan_key_control.value ());
 
-  auto z{m_chassis.rotate_to_world(Three_Vector::Z)};
-  auto x{m_chassis.rotate_to_world(rotate(Three_Vector::X, pan * Three_Vector::Z))};
+  auto z{m_chassis.rotate_out(Three_Vector::Z)};
+  auto x{m_chassis.rotate_out(rotate(Three_Vector::X, pan * Three_Vector::Z))};
   float at_up[6] = {float(x.x), float(x.y), float(x.z), float(z.x), float(z.y), float(z.z)};
 
   alListener3f (AL_POSITION, pos.x, pos.y, pos.z);
@@ -553,7 +553,7 @@ Gl_Car::view (double pan, const Three_Vector& view_position)
   glRotated (view_tilt_factor*a.x, 0.0, 1.0, 0.0);
   glRotated (-angle, axis.x, axis.y, axis.z);
 
-  Three_Vector z = m_chassis.rotate_to_world (Three_Vector (0.0, 0.0, 1.0));
+  auto z{m_chassis.rotate_out({0.0, 0.0, 1.0})};
   glRotated (-pan, z.x, z.y, z.z);
 
   glTranslated (-view_position.x, -view_position.y, -view_position.z);

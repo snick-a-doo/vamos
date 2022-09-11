@@ -202,7 +202,7 @@ void World::interact(Car* car, size_t road_index, size_t segment_index)
             continue;
 
         auto velocity{
-            car->chassis().velocity(car->chassis().transform_from_world(object.position))};
+            car->chassis().velocity(car->chassis().transform_in(object.position))};
         auto j{impulse(car->chassis().world_moment(object.position), velocity,
                        car->chassis().mass(), car->chassis().inertia(),
                        object.material.restitution_factor() * info.material.restitution_factor(),
@@ -309,7 +309,7 @@ void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
     auto gap{std::numeric_limits<double>::max()};
     for (auto p : car->chassis().particles())
     {
-        auto pos{car->chassis().transform_to_world(p->contact_position())};
+        auto pos{car->chassis().transform_out(p->contact_position())};
         gap = std::min(gap, pos.z - segment.world_elevation(pos));
     }
     // Move the car to its initial x-y position.

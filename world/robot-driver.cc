@@ -561,8 +561,7 @@ Robot_Driver::avoid_collisions ()
                               : 1.5));
   double crash_time = 2.0*CRASH_TIME_LIMIT;
   auto pass_side{Direct::none};
-  Three_Vector v1
-    = mp_car->chassis ().rotate_from_world (mp_car->chassis ().cm_velocity ());
+  auto v1{mp_car->chassis().rotate_in(mp_car->chassis().cm_velocity())};
 
   // Break out immediately if the interact flag is false. We still need the lane
   // shift code after the loop so the cars will get to the racing line after the
@@ -579,8 +578,7 @@ Robot_Driver::avoid_collisions ()
       if (std::abs (it->track_position ().x - along) > lengths (10))
         continue;
 
-      Three_Vector v2 
-        = it->car->chassis ().rotate_from_world (it->car->chassis ().cm_velocity ());
+      auto v2{it->car->chassis().rotate_in(it->car->chassis().cm_velocity())};
 
       Three_Vector delta_v = (v2 - v1);
       Three_Vector distance_gap = find_gap (info ().m_pointer_position,

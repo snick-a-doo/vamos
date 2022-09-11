@@ -30,9 +30,8 @@ Engine::Engine(double mass,
                double idle_throttle,
                double start_speed,
                double stall_speed,
-               double fuel_consumption,
-               Frame const* parent)
-    : Particle{mass, position, parent},
+               double fuel_consumption)
+    : Particle{mass, position},
       m_max_power{max_power},
       m_peak_engine_speed{rpm_to_rad_s(peak_engine_rpm)},
       m_engine_speed_limit{rpm_to_rad_s(rpm_limit)},

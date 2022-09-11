@@ -33,6 +33,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 
 using namespace Vamos_Body;
@@ -189,9 +190,6 @@ void Car_Reader::on_start_tag(const Vamos_Media::XML_Tag& tag)
             m_doubles[8] = 0.0;
             m_doubles[20] = 0.0;
             m_doubles[23] = 1.0;
-            m_long_parameters.resize(11);
-            m_trans_parameters.resize(15);
-            m_align_parameters.resize(18);
             m_strings.resize(3);
             m_vectors.resize(5);
         }
@@ -433,9 +431,9 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
         suspension->toe(m_doubles[7]);
         if (m_doubles[8] != 0.0)
         {
-            //!!!!
-            auto other
-                = static_cast<Suspension*>((mp_car->chassis().particles().end() - 2)->get());
+            //!!!! Need a better way to identify the paired suspension
+            auto other = std::static_pointer_cast<Suspension>(
+                *std::next(mp_car->chassis().particles().rbegin()));
             assert(other);
             suspension->anti_roll(other, m_doubles[8]);
             m_doubles[8] = 0.0;
@@ -445,9 +443,9 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
             suspension->set_model(m_data_dir + "cars/" + (*it)->file, (*it)->scale,
                                   (*it)->translate, (*it)->rotate);
         }
-        mp_car->chassis().add_particle(suspension->hinge());
+        mp_car->chassis().add_particle(suspension->get_hinge());
         mp_car->chassis().add_particle(suspension);
-        Tire_Friction friction(m_long_parameters, m_trans_parameters, m_align_parameters);
+        Tire_Friction friction(m_longi_parameters, m_trans_parameters, m_align_parameters);
         Tire tire(m_doubles[9], m_doubles[10], m_doubles[11], friction, m_doubles[23],
                   m_doubles[12]);
         auto bias{m_doubles[17]};
@@ -648,7 +646,7 @@ void Car_Reader::on_data(std::string data)
         is >> m_doubles[12];
     else if (path() == "/car/wheel/tire/friction/longitudinal")
     {
-        for (auto& param : m_long_parameters)
+        for (auto& param : m_longi_parameters)
         {
             char delim;
             is >> delim >> param;

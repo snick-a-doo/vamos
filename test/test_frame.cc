@@ -29,11 +29,11 @@ TEST_CASE("defaults")
     }
     SUBCASE("transform from world")
     {
-        CHECK(frame.transform_from_world(ones) == ones);
+        CHECK(frame.transform_in(ones) == ones);
     }
     SUBCASE("transform to world")
     {
-        CHECK(frame.transform_to_world(ones) == ones);
+        CHECK(frame.transform_out(ones) == ones);
     }
 }
 
@@ -65,11 +65,11 @@ TEST_CASE("position")
     }
     SUBCASE("transform")
     {
-        CHECK(frame.transform_from_world(ones) == Three_Vector(0.0, -1.0, 4.0));
+        CHECK(frame.transform_in(ones) == Three_Vector(0.0, -1.0, 4.0));
     }
     SUBCASE("transform to world position")
     {
-        CHECK(frame.transform_to_world(ones) == Three_Vector(2.0, 3.0, -2.0));
+        CHECK(frame.transform_out(ones) == Three_Vector(2.0, 3.0, -2.0));
     }
 }
 
@@ -86,7 +86,7 @@ TEST_CASE("orientation")
     }
     SUBCASE("transform to world")
     {
-        auto out = frame.transform_to_world(Three_Vector(1.0, 0.0, 0.0));
+        auto out = frame.transform_out(Three_Vector(1.0, 0.0, 0.0));
         CHECK(close(out.x, 0.0, 1e-4));
         CHECK(close(out.y, 1.0, 1e-4));
         CHECK(close(out.z, 0.0, 1e-4));
@@ -95,76 +95,42 @@ TEST_CASE("orientation")
 
 TEST_CASE("position and orientation")
 {
-    Frame frame(Three_Vector(1.0, 2.0, -3.0), rotated);
+    Frame frame({1.0, 2.0, -3.0}, rotated);
 
-    SUBCASE("initial_position_and_orientation")
+    SUBCASE("initial position and orientation")
     {
         CHECK(frame.position() == Three_Vector(1.0, 2.0, -3.0));
         CHECK(frame.velocity() == null_vector);
         CHECK(frame.orientation() == rotated);
         CHECK(frame.angular_velocity() == null_vector);
     }
-    SUBCASE("transform_into_position_and_orientation")
+    SUBCASE("transform into position and orientation")
     {
-        auto in = frame.transform_from_world(ones);
+        auto in{frame.transform_in(ones)};
         CHECK(close(in.x, -1.0, 1e-4));
         CHECK(close(in.y, 4.0, 1e-4));
         CHECK(close(in.z, 0.0, 1e-4));
     }
-    SUBCASE("transform_to_world_position_and_orientation")
+    SUBCASE("rotate out position and orientation")
     {
-        auto out = frame.transform_to_world(Three_Vector(1.0, 0.0, 0.0));
-        CHECK(close(out.x, 1.0, 1e-4));
-        CHECK(close(out.y, 3.0, 1e-4));
-        CHECK(close(out.z, -3.0, 1e-4));
-    }
-    SUBCASE("rotate_out_position_and_orientation")
-    {
-        auto out = frame.rotate_to_parent(Three_Vector(1.0, 0.0, 0.0));
+        auto out{frame.rotate_out({1.0, 0.0, 0.0})};
         CHECK(close(out.x, 0.0, 1e-4));
         CHECK(close(out.y, 1.0, 1e-4)); // x' is y
         CHECK(close(out.z, 0.0, 1e-4));
     }
-    SUBCASE("copy_rotate_out_position_and_orientation")
+    SUBCASE("copy rotate out position and orientation")
     {
         Frame g(frame);
-        Three_Vector out = g.rotate_to_parent(Three_Vector(1.0, 0.0, 0.0));
+        auto out{g.rotate_out({1.0, 0.0, 0.0})};
         CHECK(close(out.x, 0.0, 1e-4));
         CHECK(close(out.y, 1.0, 1e-4)); // x' is y
         CHECK(close(out.z, 0.0, 1e-4));
     }
-    SUBCASE("rotate_in_position_and_orientation")
+    SUBCASE("rotate in position and orientation")
     {
-        auto out = frame.rotate_from_parent(Three_Vector(1.0, 0.0, 0.0));
+        auto out{frame.rotate_in({1.0, 0.0, 0.0})};
         CHECK(close(out.x, 0.0, 1e-4));
         CHECK(close(out.y, 0.0, 1e-4));
         CHECK(close(out.z, 1.0, 1e-4)); // x is z'
-    }
-}
-
-TEST_CASE("nested frame")
-{
-    Frame parent(Three_Vector(1.0, 2.0, 3.0));
-    Frame frame(Three_Vector(2.0, 3.0, 4.0), &parent);
-
-    SUBCASE("transform_to_parent")
-    {
-        CHECK(frame.transform_to_parent(Three_Vector(3.0, 4.0, 5.0))
-              == Three_Vector(5.0, 7.0, 9.0));
-    }
-    SUBCASE("transform_to_world")
-    {
-        CHECK(frame.transform_to_world(Three_Vector(3.0, 4.0, 5.0))
-              == Three_Vector(6.0, 9.0, 12.0));
-    }
-    SUBCASE("transform_from_parent")
-    {
-        CHECK(frame.transform_from_parent(Three_Vector(3.0, 4.0, 5.0))
-              == Three_Vector(1.0, 1.0, 1.0));
-    }
-    SUBCASE("transform_from_world")
-    {
-        CHECK(frame.transform_from_world(Three_Vector(3.0, 4.0, 5.0))
-              == Three_Vector(0.0, -1.0, -2.0));
     }
 }

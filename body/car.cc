@@ -245,7 +245,7 @@ void Car::propagate(double time)
 
     m_chassis.end_timestep();
 
-    m_distance_traveled += m_chassis.rotate_from_parent(m_chassis.cm_velocity()).x * time;
+    m_distance_traveled += m_chassis.rotate_in(m_chassis.cm_velocity()).x * time;
 
     // Update the smoothed acceleration.
     const double weight = std::min(acceleration_average_weight * time, 1.0);
@@ -359,7 +359,7 @@ Three_Vector Car::view_position(bool world, bool bob) const
     if (bob)
         pos -= view_shift_factor * acceleration(true);
 
-    return world ? m_chassis.transform_to_world(pos) : pos;
+    return world ? m_chassis.transform_out(pos) : pos;
 }
 
 Three_Vector Car::draw_rear_view(double, int)
@@ -409,11 +409,11 @@ Contact_Info Car::collision(const Three_Vector& position, const Three_Vector& ve
                             bool ignore_z) const
 {
     const Three_Vector penetration(
-        m_crash_box.penetration(m_chassis.transform_from_world(position),
-                                m_chassis.transform_velocity_from_world(velocity), ignore_z));
+        m_crash_box.penetration(m_chassis.transform_in(position),
+                                m_chassis.transform_velocity_in(velocity), ignore_z));
 
     return Contact_Info(!penetration.is_null(), penetration.magnitude(),
-                        m_chassis.rotate_to_world(penetration), Material::METAL);
+                        m_chassis.rotate_out(penetration), Material::METAL);
 }
 
 void Car::wind(const Vamos_Geometry::Three_Vector& wind_vector, double density)
@@ -426,26 +426,26 @@ Three_Vector Car::chase_position() const
 {
     const Three_Vector v1 = m_chassis.cm_velocity().unit();
     const double w1 = std::min(m_chassis.cm_velocity().magnitude(), 1.0);
-    const Three_Vector v2 = m_chassis.rotate_to_world(Three_Vector::X);
+    const Three_Vector v2 = m_chassis.rotate_out(Three_Vector::X);
     const double w2 = 1.0 - w1;
 
-    return m_chassis.transform_to_world(center() - 0.1 * acceleration(true))
+    return m_chassis.transform_out(center() - 0.1 * acceleration(true))
            - (w1 * v1 + w2 * v2) * 3.0 * length() + Three_Vector(0.0, 0.0, length());
 }
 
 Three_Vector Car::front_position() const
 {
-    return m_chassis.transform_to_world(front());
+    return m_chassis.transform_out(front());
 }
 
 void Car::set_front_position(const Three_Vector& pos)
 {
-    m_chassis.set_position(pos - m_chassis.rotate_to_world(front()));
+    m_chassis.set_position(pos - m_chassis.rotate_out(front()));
 }
 
 Three_Vector Car::target_position() const
 {
-    return m_chassis.transform_to_world(center() + Three_Vector(target_distance(), 0.0, 0.0));
+    return m_chassis.transform_out(center() + Three_Vector(target_distance(), 0.0, 0.0));
 }
 
 double Car::target_distance() const

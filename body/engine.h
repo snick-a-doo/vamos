@@ -45,8 +45,7 @@ public:
            double idle_throttle,
            double start_rpm,
            double stall_rpm,
-           double fuel_consumption,
-           Frame const* parent = nullptr);
+           double fuel_consumption);
 
     /// Provide an optional set of (rpm, torque) points for interpolating engine
     /// torque. If a curve is not set, torque is calculated from a polynomial.

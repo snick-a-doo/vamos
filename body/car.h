@@ -18,6 +18,7 @@
 
 #include "drivetrain.h"
 #include "rigid-body.h"
+#include "tire.h"
 
 #include "../geometry/contact-info.h"
 #include "../geometry/three-vector.h"
@@ -292,7 +293,7 @@ public:
     // The center of the crash box in world coordinates.
     Vamos_Geometry::Three_Vector center_position() const
     {
-        return m_chassis.transform_to_world(center());
+        return m_chassis.transform_out(center());
     }
 
     double width() const { return m_crash_box.left - m_crash_box.right; }
@@ -420,9 +421,9 @@ private:
     std::vector<std::pair<int, double>> m_gears;
     std::vector<bool> m_bools;
 
-    std::vector<double> m_long_parameters;
-    std::vector<double> m_trans_parameters;
-    std::vector<double> m_align_parameters;
+    Longi_Params m_longi_parameters;
+    Trans_Params m_trans_parameters;
+    Align_Params m_align_parameters;
 
     std::string m_slow_model;
     std::string m_fast_model;

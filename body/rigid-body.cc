@@ -74,17 +74,17 @@ void Rigid_Body::add_particle(std::shared_ptr<Particle> particle)
 
 Three_Vector Rigid_Body::cm_position() const
 {
-    return transform_to_parent(m_body_cm);
+    return transform_out(m_body_cm);
 }
 
 Three_Vector Rigid_Body::contact_position(Particle const& p) const
 {
-    return transform_to_parent(p.contact_position());
+    return transform_out(p.contact_position());
 }
 
 Three_Vector Rigid_Body::position(Particle const& p) const
 {
-    return transform_to_parent(p.position());
+    return transform_out(p.position());
 }
 
 double Rigid_Body::lowest_contact_position() const
@@ -92,7 +92,7 @@ double Rigid_Body::lowest_contact_position() const
     auto lowest{std::numeric_limits<double>::max()};
     for (auto p : m_particles)
         if (p->can_contact())
-            lowest = std::min(lowest, transform_to_parent(p->contact_position()).z);
+            lowest = std::min(lowest, transform_out(p->contact_position()).z);
     return lowest;
 }
 
@@ -105,14 +105,14 @@ void Rigid_Body::update_center_of_mass()
     {
         m_mass += p->mass();
         // The particle reports its position in the body frame.
-        m_body_cm += p->mass_position() * p->mass();
+        m_body_cm += p->position() * p->mass();
     }
     m_body_cm /= m_mass;
 
     // Inertia tensor for rotations about the center of mass.
     m_inertia.zero();
     for (auto const& p : m_particles)
-        add_inertia(p->mass(), p->mass_position() - m_body_cm, m_inertia);
+        add_inertia(p->mass(), p->position() - m_body_cm, m_inertia);
 }
 
 void Rigid_Body::find_forces()
@@ -133,9 +133,9 @@ void Rigid_Body::propagate(double time)
         auto world_v{velocity(point->position())};
         auto world_omega{angular_velocity()};
         m_contact_parameters.particle->contact(
-            rotate_from_parent(m_contact_parameters.impulse), rotate_from_parent(world_v),
-            m_contact_parameters.m_distance, rotate_from_parent(m_contact_parameters.normal),
-            rotate_from_parent(world_omega), m_contact_parameters.material);
+            rotate_in(m_contact_parameters.impulse), rotate_in(world_v),
+            m_contact_parameters.m_distance, rotate_in(m_contact_parameters.normal),
+            rotate_in(world_omega), m_contact_parameters.material);
 
         translate(m_contact_parameters.m_distance * m_contact_parameters.normal);
         m_contact_parameters.m_distance = 0.0;
@@ -161,7 +161,7 @@ void Rigid_Body::propagate(double time)
 
         // Find the force and torque that the particle exerts on the Body.  Find the
         // vector from the cm to the particle in the world frame.
-        auto torque_dist{m_body_cm - p->torque_position()};
+        auto torque_dist{m_body_cm - p->position()};
         auto torque{p->torque()};
         auto I{(m_inertia * torque.unit()).magnitude()};
         torque *= I / (I + m_mass * torque_dist.dot(torque_dist));
@@ -171,7 +171,7 @@ void Rigid_Body::propagate(double time)
 
     // Transform the forces to the parent's coordinates so we can find out how the Body
     // moves w.r.t its parent.
-    total_force = rotate_to_parent(total_force) + m_gravity * m_mass;
+    total_force = rotate_out(total_force) + m_gravity * m_mass;
     auto delta_omega{time * total_torque * invert(m_inertia)};
     auto delta_theta{(angular_velocity() + delta_omega) * time};
     angular_accelerate(delta_omega);
@@ -209,12 +209,12 @@ Three_Vector Rigid_Body::velocity(Particle const& p) const
 
 Three_Vector Rigid_Body::velocity(const Three_Vector& r) const
 {
-    return m_cm_velocity + rotate_to_parent(angular_velocity().cross(moment(r)));
+    return m_cm_velocity + rotate_out(angular_velocity().cross(moment(r)));
 }
 
 Three_Vector Rigid_Body::acceleration() const
 {
-    return rotate_from_world(m_acceleration);
+    return rotate_in(m_acceleration);
 }
 
 Three_Vector Rigid_Body::moment(const Vamos_Geometry::Three_Vector& pos) const
@@ -224,7 +224,7 @@ Three_Vector Rigid_Body::moment(const Vamos_Geometry::Three_Vector& pos) const
 
 Three_Vector Rigid_Body::world_moment(const Vamos_Geometry::Three_Vector& world_pos) const
 {
-    return rotate_to_world(moment(transform_from_world(world_pos)));
+    return rotate_out(moment(transform_in(world_pos)));
 }
 
 Three_Matrix Rigid_Body::inertia() const
@@ -243,12 +243,8 @@ void Rigid_Body::contact(Particle& particle, const Three_Vector& impulse,
                 = Contact_Parameters(&particle, impulse, depth, normal, material);
         return;
     }
-    particle.contact(rotate_from_parent(impulse),
-                     rotate_from_parent(velocity),
-                     depth,
-                     rotate_from_parent(normal),
-                     rotate_from_parent(angular_velocity().project(normal)),
-                     material);
+    particle.contact(rotate_in(impulse), rotate_in(velocity), depth, rotate_in(normal),
+                     rotate_in(angular_velocity().project(normal)), material);
 }
 
 void Rigid_Body::temporary_contact(const Three_Vector& position, const Three_Vector& impulse,
@@ -256,22 +252,20 @@ void Rigid_Body::temporary_contact(const Three_Vector& position, const Three_Vec
                                    const Three_Vector& normal,
                                    const Vamos_Geometry::Material& material)
 {
-    m_temporary_contact_points.emplace_back(0.0, transform_from_parent(position),
-                                            material, this);
+    m_temporary_contact_points.emplace_back(0.0, transform_in(position), material);
 
     // The material, restitution and friction are not used for temporaries.  The impulse
     // is calculated externally and passed in.
     m_temporary_contact_points.back()
-        .contact(rotate_from_parent(impulse), rotate_from_parent(velocity), depth,
-                 rotate_from_parent(normal),
-                 rotate_from_parent(angular_velocity().project(normal)), material);
+        .contact(rotate_in(impulse), rotate_in(velocity), depth, rotate_in(normal),
+                 rotate_in(angular_velocity().project(normal)), material);
 
 }
 
 void Rigid_Body::wind(const Three_Vector& wind_vector, double density)
 {
     for (auto drag : m_drag_particles)
-        drag->wind(rotate_from_parent(wind_vector - velocity(*drag)), density);
+        drag->wind(rotate_in(wind_vector - velocity(*drag)), density);
 }
 
 double Rigid_Body::drag() const

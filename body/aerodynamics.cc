@@ -25,9 +25,8 @@ using namespace Vamos_Body;
 //-----------------------------------------------------------------------------
 Drag::Drag(Three_Vector const& position,
            double frontal_area,
-           double drag_coefficient,
-           const Frame* parent)
-    : Particle{0.0, position, parent},
+           double drag_coefficient)
+    : Particle{0.0, position},
       m_frontal_area{frontal_area},
       m_drag_coefficient{drag_coefficient}
 {
@@ -55,9 +54,8 @@ Wing::Wing(Three_Vector const& position,
            double frontal_area,
            double surface_area,
            double lift_coefficient,
-           double efficiency,
-           const Frame* parent)
-    : Drag {position, frontal_area, std::abs(lift_coefficient * (1.0 - efficiency)), parent},
+           double efficiency)
+    : Drag {position, frontal_area, std::abs(lift_coefficient * (1.0 - efficiency))},
       m_surface_area{surface_area},
       m_lift_coefficient{lift_coefficient * efficiency}
 {

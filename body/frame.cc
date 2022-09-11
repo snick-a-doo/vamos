@@ -23,97 +23,57 @@
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 
-Frame::Frame(Three_Vector const& position, Three_Matrix const& orientation, Frame const* parent)
-    : mp_parent(parent),
-      m_orientation(orientation),
+Frame::Frame(Three_Vector const& position, Three_Matrix const& orientation)
+    : m_orientation(orientation),
       m_position(position)
 {
 }
 
-Frame::Frame(Three_Vector const& position, Frame const* parent)
-    : mp_parent(parent),
-      m_position(position)
+Frame::Frame(Three_Vector const& position)
+    : m_position(position)
 {
 }
 
-Frame::Frame(Frame const* parent)
-    : mp_parent(parent)
+Frame::Frame()
 {
 }
 
-Three_Vector Frame::transform_from_parent(Three_Vector const& r) const
+Three_Vector Frame::transform_in(Three_Vector const& r) const
 {
-    return rotate_from_parent(r - m_position);
+    return rotate_in(r - m_position);
 }
 
-Three_Vector Frame::transform_velocity_from_parent(Three_Vector const& v) const
+Three_Vector Frame::transform_velocity_in(Three_Vector const& v) const
 {
-    return rotate_from_parent(v - m_velocity);
+    return rotate_in(v - m_velocity);
 }
 
-Three_Vector Frame::transform_from_world(Three_Vector const& r) const
+Three_Vector Frame::transform_out(Three_Vector const& r) const
 {
-    auto in{transform_from_parent(r)};
-    return mp_parent ? mp_parent->transform_from_world(in) : in;
+    return rotate_out(r) + m_position;
 }
 
-Three_Vector Frame::transform_velocity_from_world(Three_Vector const& v) const
+Three_Vector Frame::transform_velocity_out(Three_Vector const& v) const
 {
-    auto in{transform_velocity_from_parent(v)};
-    return mp_parent ? mp_parent->transform_velocity_from_world(in) : in;
+    return rotate_out(v) + m_velocity;
 }
 
-Three_Vector Frame::transform_to_parent(Three_Vector const& r) const
-{
-    return rotate_to_parent(r) + m_position;
-}
-
-Three_Vector Frame::transform_velocity_to_parent(Three_Vector const& v) const
-{
-    return rotate_to_parent(v) + m_velocity;
-}
-
-Three_Vector Frame::transform_to_world(Three_Vector const& r) const
-{
-    auto out{transform_to_parent(r)};
-    return mp_parent ? mp_parent->transform_to_world(out) : out;
-}
-
-Three_Vector Frame::transform_velocity_to_world(Three_Vector const& v) const
-{
-    auto out{transform_velocity_to_parent(v)};
-    return mp_parent ? mp_parent->transform_velocity_to_world(out) : out;
-}
-
-Three_Vector Frame::rotate_to_parent(Three_Vector const& vector) const
+Three_Vector Frame::rotate_out(Three_Vector const& vector) const
 {
     return m_orientation * vector;
 }
 
-Three_Vector Frame::rotate_to_world(Three_Vector const& vector) const
-{
-    auto out{rotate_to_parent(vector)};
-    return mp_parent ? mp_parent->rotate_to_world(out) : out;
-}
-
-Three_Vector Frame::rotate_from_parent(Three_Vector const& vector) const
+Three_Vector Frame::rotate_in(Three_Vector const& vector) const
 {
     return transpose(m_orientation) * vector;
 }
 
-Three_Vector Frame::rotate_from_world(Three_Vector const& vector) const
-{
-    auto in{rotate_from_parent(vector)};
-    return mp_parent ? mp_parent->rotate_from_world(in) : in;
-}
-
 Three_Vector Frame::axis_angle(double& angle) const
 {
-    // To convert the rotation matrix representation of the body's orientation
-    // to an axis-angle orientation, we transform first to a quaternion
-    // representation.  The matrix-to-quaternion and quaternion-to-axis-angle
-    // transformations are described in the Matrix and Quaternion FAQ
-    // (matrixfaq.htm) in the doc directory.
+    // To convert the rotation matrix representation of the body's orientation to an
+    // axis-angle orientation, we transform first to a quaternion representation. The
+    // matrix-to-quaternion and quaternion-to-axis-angle transformations are described in
+    // the Matrix and Quaternion FAQ (matrixfaq.htm) in the doc directory.
 
     // Make a local reference to the tranformation matrix for brevity.
     const auto& omat{m_orientation};

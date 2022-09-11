@@ -18,21 +18,20 @@
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 
-Particle::Particle(double mass, Three_Vector const& position,
-                   Material const& material, Frame const* parent)
-    : Frame{position, parent},
+Particle::Particle(double mass, Three_Vector const& position, Material const& material)
+    : Frame{position},
       m_mass{mass},
       m_material{material}
 {
 }
 
-Particle::Particle(double mass, Three_Vector const& position, Frame const* parent)
-    : Particle{mass, position, Material(), parent}
+Particle::Particle(double mass, Three_Vector const& position)
+    : Particle{mass, position, Material()}
 {
 }
 
-Particle::Particle(double mass, Frame const* parent)
-    : Particle{mass, Three_Vector::ZERO, Material(), parent}
+Particle::Particle(double mass)
+    : Particle{mass, Three_Vector::ZERO, Material()}
 {
 }
 
@@ -48,11 +47,9 @@ double Particle::contact(Three_Vector const& impulse,
                          Three_Vector const&, // ang_vel
                          Material const&)     // material
 {
-    if (can_contact())
-    {
-        set_impulse(rotate_from_parent(impulse));
-        m_contact = true;
-    }
+    m_contact = can_contact();
+    if (m_contact)
+        set_impulse(rotate_in(impulse));
     return 0.0;
 }
 

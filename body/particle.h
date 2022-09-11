@@ -32,42 +32,28 @@ public:
     /// Make a particle that takes part in collisions.
     /// @param position Position of the particle in the parent frame.
     /// @param material Material properties used in collisions.
-    /// @param frame The parent reference frame or nullptr for objects in the world frame.
     Particle(double mass,
              Vamos_Geometry::Three_Vector const& position,
-             Vamos_Geometry::Material const& moterial,
-             Frame const* parent = nullptr);
+             Vamos_Geometry::Material const& moterial);
     /// Make a particle that does not collide.
-    Particle(double mass,
-             Vamos_Geometry::Three_Vector const& position,
-             Frame const* parent = nullptr);
+    Particle(double mass, Vamos_Geometry::Three_Vector const& position);
     /// The particle's frame is coincident with the parent's.
-    Particle(double mass = 0.0, Frame const* parent = nullptr);
+    Particle(double mass = 0.0);
 
     virtual ~Particle() = default;
 
-    // Return the force exerted on the rigid body in the body's frame.
-    virtual Vamos_Geometry::Three_Vector force() const { return rotate_to_parent(m_force); }
-
-    // Return the impulse exerted on the rigid body in the body's
-    // frame.
-    virtual Vamos_Geometry::Three_Vector impulse() const { return rotate_to_parent(m_impulse); }
-
-    // Return the torque exerted on the rigid body in the body's frame.
-    virtual Vamos_Geometry::Three_Vector torque() const { return rotate_to_parent(m_torque); }
-
-    // Classes derived from Particle may lie about their positions
-    // for collisions...
+    /// @return the force exerted on the rigid body in the body's frame.
+    virtual Vamos_Geometry::Three_Vector force() const { return rotate_out(m_force); }
+    /// @return the impulse exerted on the rigid body in the body's frame.
+    virtual Vamos_Geometry::Three_Vector impulse() const { return rotate_out(m_impulse); }
+    /// @return the torque exerted on the rigid body in the body's frame.
+    virtual Vamos_Geometry::Three_Vector torque() const { return rotate_out(m_torque); }
+    // Derived classes may give a position for detecting collisions that's different from
+    // the physical position.
     virtual Vamos_Geometry::Three_Vector contact_position() const { return position(); }
-
-    // ...for exerting forces and impulses...
+    // Derived classes may give a position for exerting forces and torques that's
+    // different from the physical position.
     virtual Vamos_Geometry::Three_Vector force_position() const { return position(); }
-
-    // ...for exerting torques...
-    virtual Vamos_Geometry::Three_Vector torque_position() const { return position(); }
-
-    // ...or for constructing the inertia tensor of the rigid body.
-    virtual Vamos_Geometry::Three_Vector mass_position() const { return position(); }
 
     /// Override to respond to contact with another object.
     /// @param impulse The change in momentum to give to the body.
@@ -83,7 +69,7 @@ public:
                            Vamos_Geometry::Three_Vector const& ang_vel,
                            Vamos_Geometry::Material const& material);
 
-    bool can_contact() const;
+    // True for solid, rigid contact. Soft or deformable objects should return false.
     virtual bool single_contact() const { return true; }
     // Find and store the forces, impulses, and torques for the current configuration.
     virtual void find_forces();
@@ -94,10 +80,12 @@ public:
     // Set the force, impulse and torque to zero;
     virtual void reset();
 
-    // Return the particle's mass.
+    /// @return the particle's mass.
     double mass() const { return m_mass; }
-    // Return the material properties.
+    /// @return The material properties.
     Vamos_Geometry::Material const& material() const { return m_material; }
+    /// @return True if material properties have been set.
+    bool can_contact() const;
 
 protected:
     bool is_in_contact() const { return m_contact; }

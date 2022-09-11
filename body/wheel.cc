@@ -66,26 +66,26 @@ double Wheel::contact(const Three_Vector& impulse, const Three_Vector& velocity,
                       const Three_Vector& normal, const Three_Vector& angular_velocity,
                       const Material& surface_material)
 {
-    Particle::contact(impulse, rotate_from_parent(velocity), distance, rotate_from_parent(normal),
-                      rotate_from_parent(angular_velocity), surface_material);
+    Particle::contact(impulse, rotate_in(velocity), distance, rotate_in(normal),
+                      rotate_in(angular_velocity), surface_material);
 
     // The collision is soft unless the suspension has bottomed out.
-    if (!mp_suspension->bottomed_out())
+    if (!mp_suspension->is_bottomed_out())
         set_impulse(Three_Vector::ZERO);
 
-    m_normal = rotate_from_parent(normal);
-    auto v_perp{rotate_from_parent(velocity).project(m_normal)};
-    m_ground_velocity = rotate_from_parent(velocity) - v_perp;
+    m_normal = rotate_in(normal);
+    auto v_perp{rotate_in(velocity).project(m_normal)};
+    m_ground_velocity = rotate_in(velocity) - v_perp;
     m_angular_velocity = angular_velocity;
 
     mp_suspension->displace(((m_normal * distance).back_project(Three_Vector::Z)).magnitude());
-    set_position(m_original_position + mp_suspension->displacement() * Three_Vector::Z);
+    set_position(m_original_position + mp_suspension->get_displacement() * Three_Vector::Z);
     // The suspension displacement may be different from the argument to displace() if it
     // bottoms out.  Ask the suspension for the actual displacement.
-    mp_suspension->input(force(), m_normal);
-    mp_suspension->torque(m_braking_torque);
+    mp_suspension->input(m_normal);
+    mp_suspension->set_torque(m_braking_torque);
     m_surface_material = surface_material;
-    return -mp_suspension->displacement();
+    return -mp_suspension->get_displacement();
 }
 
 void Wheel::set_drive_torque(double torque_in)

@@ -27,8 +27,7 @@ class Drag : public Particle
 public:
     Drag(Vamos_Geometry::Three_Vector const& position,
          double frontal_area,
-         double drag_coefficient,
-         Frame const* parent = nullptr);
+         double drag_coefficient);
 
     /// Find and store the forces, impulses, and torques for the current configuration.
     virtual void find_forces();
@@ -65,8 +64,7 @@ public:
          double frontal_area,
          double surface_area,
          double lift_coefficient,
-         double efficiency,
-         const Frame* parent = nullptr);
+         double efficiency);
 
     virtual void find_forces() override;
     virtual double lift_factor() const override;

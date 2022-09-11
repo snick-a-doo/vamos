@@ -26,11 +26,12 @@ class Frame
 {
 public:
     /// Specify the position and orientation.
-    Frame(Vamos_Geometry::Three_Vector const& position, Vamos_Geometry::Three_Matrix const& orientation, Frame const* parent = nullptr);
+    Frame(Vamos_Geometry::Three_Vector const& position,
+          Vamos_Geometry::Three_Matrix const& orientation);
     /// Take the parent's orientation.
-    Frame(Vamos_Geometry::Three_Vector const& position, Frame const* parent = nullptr);
+    Frame(Vamos_Geometry::Three_Vector const& position);
     /// Make a frame that's coincident with the parent frame.
-    Frame(Frame const* parent = nullptr);
+    Frame();
 
     /// @return The orientation of the origin in the parent frame.
     Vamos_Geometry::Three_Matrix const& orientation() const { return m_orientation; }
@@ -44,37 +45,45 @@ public:
     // Give this frame an absolute orientation.
     void set_orientation(Vamos_Geometry::Three_Matrix const& o) { m_orientation = o; }
     // Rotate the frame about a vector by an angle equal to its magnitude.
-    void rotate(Vamos_Geometry::Three_Vector const& delta_theta) { m_orientation.rotate(delta_theta); }
+    void rotate(Vamos_Geometry::Three_Vector const& delta_theta)
+    { m_orientation.rotate(delta_theta); }
 
-    Vamos_Geometry::Three_Vector transform_from_parent(Vamos_Geometry::Three_Vector const& vec) const;
-    Vamos_Geometry::Three_Vector transform_from_world(Vamos_Geometry::Three_Vector const& vec) const;
+    /// @return The representation of an absolute position in this frame.
+    Vamos_Geometry::Three_Vector transform_in(Vamos_Geometry::Three_Vector const& vec) const;
+    /// @return The absolute position of a position in this frame.
+    Vamos_Geometry::Three_Vector transform_out(Vamos_Geometry::Three_Vector const& vec) const;
+    /// @return The representation of an absolute velocity in this frame.
+    Vamos_Geometry::Three_Vector transform_velocity_in(
+        Vamos_Geometry::Three_Vector const& v) const;
+    /// @return The absolute velocity of a velocity in this frame.
+    Vamos_Geometry::Three_Vector transform_velocity_out(
+        Vamos_Geometry::Three_Vector const& v) const;
+    /// @return A vector in this frame that's parallel to the given displacement vector.
+    Vamos_Geometry::Three_Vector rotate_in(Vamos_Geometry::Three_Vector const& vec) const;
+    /// @return An absolute vector that's parallel to a vector in this frame.
+    Vamos_Geometry::Three_Vector rotate_out(Vamos_Geometry::Three_Vector const& vec) const;
 
-    Vamos_Geometry::Three_Vector transform_to_parent(Vamos_Geometry::Three_Vector const& vec) const;
-    Vamos_Geometry::Three_Vector transform_to_world(Vamos_Geometry::Three_Vector const& vec) const;
-
-    Vamos_Geometry::Three_Vector transform_velocity_from_world(Vamos_Geometry::Three_Vector const& velocity) const;
-    Vamos_Geometry::Three_Vector transform_velocity_to_world(Vamos_Geometry::Three_Vector const& velocity) const;
-
-    Vamos_Geometry::Three_Vector transform_velocity_from_parent(Vamos_Geometry::Three_Vector const& velocity) const;
-    Vamos_Geometry::Three_Vector transform_velocity_to_parent(Vamos_Geometry::Three_Vector const& velocity) const;
-
-    Vamos_Geometry::Three_Vector rotate_from_parent(Vamos_Geometry::Three_Vector const& vec) const;
-    Vamos_Geometry::Three_Vector rotate_from_world(Vamos_Geometry::Three_Vector const& vec) const;
-
-    Vamos_Geometry::Three_Vector rotate_to_parent(Vamos_Geometry::Three_Vector const& vec) const;
-    Vamos_Geometry::Three_Vector rotate_to_world(Vamos_Geometry::Three_Vector const& vec) const;
-
+    /// Set the absolute position of this frame's origin.
     void set_position(Vamos_Geometry::Three_Vector const& r) { m_position = r; }
+    /// Move the origin by an absolute amount.
     void translate(Vamos_Geometry::Three_Vector const& delta_r) { m_position += delta_r; }
+    /// Set the absolute velocity of this frame's origin.
     void set_velocity(Vamos_Geometry::Three_Vector const& v) { m_velocity = v; }
+    /// Change the velocity by an absolute amount.
     void accelerate(Vamos_Geometry::Three_Vector const& delta_v) { m_velocity += delta_v; }
-    void set_angular_velocity(Vamos_Geometry::Three_Vector const& omega) { m_angular_velocity = omega; }
-    void angular_accelerate(Vamos_Geometry::Three_Vector const& delta_omega) { m_angular_velocity += delta_omega; }
+    /// Set the angular velocity about an axis through this frame's origin.
+    void set_angular_velocity(Vamos_Geometry::Three_Vector const& omega)
+    { m_angular_velocity = omega; }
+    /// Change the angular velocity about an axis through this frame's origin.
+    void angular_accelerate(Vamos_Geometry::Three_Vector const& delta_omega)
+    { m_angular_velocity += delta_omega; }
 
-    // Express the orientation of this frame as a vector in the parent frame and a
-    // rotation about that vector.  ANGLE holds the rotation angle when the function
-    // returns.  The returned vector has a magnitude of sin (ANGLE).  The values returned
-    // are suitable for use with the glRotate functions.
+    /// Express the orientation of this frame as a vector in the parent frame and a
+    /// rotation about that vector. The values returned are suitable for use with the
+    /// glRotate functions.
+    /// @param angle Filled in with the rotation angle.
+    /// @return The rotation axis. The magnitude sin(angle) because that's what the
+    /// calculation gives. It's left unmodified for efficiency.
     Vamos_Geometry::Three_Vector axis_angle(double& angle) const;
 
 private:
