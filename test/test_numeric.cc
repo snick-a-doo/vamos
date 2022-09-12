@@ -40,8 +40,6 @@ TEST_CASE("wrap")
     CHECK(wrap(5.0, 1.0, 3.0) == 1.0);
     CHECK(wrap(6.0, 1.0, 3.0) == 2.0);
     CHECK(wrap(7.0, 1.0, 3.0) == 1.0);
-
-    CHECK_THROWS_AS(wrap(1.0, 0.0), Vamos_Geometry::Bad_Argument<double>);
 }
 
 TEST_CASE("branch")
@@ -73,6 +71,21 @@ TEST_CASE("interpolate")
 
     CHECK(interpolate(2.0, 1.0, 2.0, 3.0, 5.0) == 3.5);
     CHECK(interpolate(2.0, 1.0, 2.0, 3.0, -5.0) == -1.5);
+}
+
+TEST_CASE("abs_max")
+{
+    CHECK(abs_max(0.0, 0.0) == 0.0);
+    CHECK(abs_max(1.1, 0.1) == 1.1);
+    CHECK(abs_max(0.2, 2.2) == 2.2);
+    CHECK(abs_max(3.3, 3.3) == 3.3);
+    CHECK(abs_max(-4.4, 0.4) == 4.4);
+    CHECK(abs_max(0.5, -5.5) == 5.5);
+    CHECK(abs_max(6.6, -6.6) == 6.6);
+    CHECK(abs_max(-7.7, -7.7) == 7.7);
+
+    CHECK(abs_max(-3, -2, -1, 0, 1, 2) == 3);
+    CHECK(abs_max(-2, -1, 0, 1, 2, 3) == 3);
 }
 
 TEST_CASE("random")

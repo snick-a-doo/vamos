@@ -14,85 +14,79 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 // @file Numerical utility functions.
-#ifndef _NUMERIC_H_
-#define _NUMERIC_H_
+#ifndef VAMOS_GEOMETRY_NUMERIC_H_INCLUDED
+#define VAMOS_GEOMETRY_NUMERIC_H_INCLUDED
 
-#include <algorithm>
-#include <cstdlib>
-#include <ctime>
-#include <limits>
+#include <array>
+#include <cmath>
 #include <numbers>
-#include <stdexcept>
+#include <numeric>
 
 namespace Vamos_Geometry
 {
-    /// Exception thrown if the computation can't be performed for the given arguments.
-    template<typename T> class Bad_Argument : public std::runtime_error
-    {
-    public:
-        Bad_Argument(T x, std::string const& message)
-        : std::runtime_error("Argument is " + std::to_string(x) + ". " + message)
-        {}
-    };
-
-    /// @return -1, 0, 1 for value < 0, == 0, > 0, respectively.
-    template<typename T> T sign(T value) noexcept
-    {
-        return value == 0 ? 0 : (value > 0 ? 1 : -1);
-    }
-
-    /// Clip value to the range low--high.
-    template<typename T> T clip(T value, T low, T high)
-    {
-        return std::max(std::min(value, high), low);
-    }
-
-  // True if VALUE is in the range LOW--HIGH.
-  template <typename T> bool is_in_range (T value, T low, T high)
-  { return (value >= low) && (value <= high); }
-
-  // Return number in the interval [0.0, maximum).
-  template <typename T> T wrap (T number, T maximum)
-  {
-      if (maximum < std::numeric_limits<T>::min())
-          throw(Bad_Argument(maximum, "Maximum must be positive"));
-      while (number >= maximum)
-          number -= maximum;
-      while (number < 0.0)
-          number += maximum;
-      return number;
-  }
-
-  // Return number in the interval [minimum, maximum).
-  template <typename T> T wrap (T number, T minimum, T maximum)
-  {
-    return minimum + wrap (number - minimum, maximum - minimum);
-  }
-
-  // Return angle in the interval [minimum, minimum + 2pi).
-  template <typename T> T branch (T angle, T minimum)
-  {
-      using namespace std::numbers;
-      return wrap (angle, minimum, minimum + 2*pi);
-  }
-
-  // Return f(X0) for a line with SLOPE through (X1, Y1).
-  template <typename T> T intercept (T x0, T x1, T y1, T slope)
-  { return y1 - slope * (x1 - x0); } 
-
-  template <typename T> T interpolate (T x, T x1, T y1, T x2, T y2)
-  { return y1 + (y2 - y1) * (x - x1) / (x2 - x1); }
-
-  // Return the argument with the larger absolute value.
-  template <typename T> T abs_max (T a, T b)
-  { return (std::abs (a) > std::abs (b)) ? a : b; }
-
-  // Return the argument with the largest absolute value.
-  template <typename T> T abs_max (T a, T b, T c, T d)
-  { return abs_max (abs_max (abs_max (a, b), c), d); }
-
-    /// @return a random number in the given range.
-    double random_in_range(double low, double high);
+/// @return -1, 0, 1 for value < 0, == 0, > 0, respectively.
+template <typename T> T sign(T value) noexcept
+{
+    return value == 0 ? 0 : (value > 0 ? 1 : -1);
 }
 
-#endif
+/// @return @p value if between @p low and @p high, else return @p min if <= @p min, @p
+/// max if >= @p max.
+template <typename T> T clip(T value, T low, T high)
+{
+    return std::max(std::min(value, high), low);
+}
+
+/// @return True if value is in [low, high]
+template <typename T> bool is_in_range(T value, T low, T high)
+{
+    return value >= low && value <= high;
+}
+
+/// @return @p along modulo @p length. Force a positive result so it represents the
+/// distance from the start of a closed path after traveling in either direction.
+template <typename T> T wrap(T along, T length)
+{
+    auto mod{std::fmod(along, length)};
+    return mod + (mod < 0.0 ? length : 0.0);
+}
+
+/// @return @p along in the cyclic interval [start, end).
+template <typename T> T wrap(T along, T start, T end)
+{
+    return start + wrap(along - start, end - start);
+}
+
+// Return angle in the interval [minimum, minimum + 2pi).
+template <typename T> T branch(T angle, T minimum)
+{
+    using namespace std::numbers;
+    return wrap(angle, minimum, minimum + 2 * pi);
+}
+
+/// @return f(x) for a line with a give slope through the point (x1, y1).
+template <typename T> T intercept(T x, T x1, T y1, T slope)
+{
+    return y1 + (x - x1) * slope;
+}
+
+/// @return f(x) for a line with a give slope through (x1, y1) and (x2, y2).
+template <typename T> T interpolate(T x, T x1, T y1, T x2, T y2)
+{
+    return intercept(x, x1, y1, (y2 - y1) / (x2 - x1));
+}
+
+/// @return The argument with the largest absolute value. At least two arguments are
+/// required. All arguments must convert to the same type.
+template <typename T, typename... U> double abs_max(T x1, U... xs)
+{
+    std::array values{xs...};
+    return std::reduce(values.begin(), values.end(), std::abs(x1),
+                       [](T max, T next) { return std::max(max, std::abs(next)); });
+}
+
+/// @return A random number in the given range.
+double random_in_range(double low, double high);
+} // namespace Vamos_Geometry
+
+#endif // VAMOS_GEOMETRY_NUMERIC_H_INCLUDED
