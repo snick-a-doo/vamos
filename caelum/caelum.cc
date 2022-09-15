@@ -128,20 +128,11 @@ main (int argc, char* argv [])
   std::string file = argv [optind];
   if ((width == 0) || (height == 0))
 	{
-	  // Load the image just to get the size.
-	  try
-		{
-		  Texture_Image image (file);
-          if (width == 0)
+        Texture_Image image (file);
+        if (width == 0)
             width = image.width_pixels () * 2;
-          if (height == 0)
+        if (height == 0)
             height = int (image.height_pixels () * 1.5);
-		}
-	  catch (Vamos_Media::Missing_Texture_File)
-		{
-		  std::cerr << "Couldn't find " << file << std::endl;
-		  std::exit (EXIT_FAILURE);
-		}
 	}
 
   if (SDL_SetVideoMode (width, height, 0, 
@@ -160,35 +151,26 @@ main (int argc, char* argv [])
   // Initial delay and interval in ms.
 
   // Construct the sky object.
-  try
-	{
-	  // Sphere_Sky caelum (divisions, file, width / 4, height / 3);
-      Cylinder_Sky caelum (divisions, file, width / 4, height / 3);
+  // Sphere_Sky caelum (divisions, file, width / 4, height / 3);
+  Cylinder_Sky caelum (divisions, file, width / 4, height / 3);
 
-      SDL_Event event;
-      while (true)
-        {
-          while (SDL_PollEvent (&event))
-            {
-              switch (event.type) 
-                {
-                case SDL_KEYDOWN:
-                  caelum.key_press (event.key.keysym.sym);
-                  break;
-                case SDL_QUIT:
-                  exit (1);
-                  break;
-                }
-            }
-          SDL_Delay (10);
-          caelum.display ();
-        }
-	}
-  catch (Vamos_Media::Missing_Texture_File)
-	{
-	  std::cerr << "Couldn't find " << file << std::endl;
-	  std::exit (EXIT_FAILURE);
-	}
-  
+  SDL_Event event;
+  while (true)
+  {
+      while (SDL_PollEvent (&event))
+      {
+          switch (event.type)
+          {
+          case SDL_KEYDOWN:
+              caelum.key_press (event.key.keysym.sym);
+              break;
+          case SDL_QUIT:
+              exit (1);
+              break;
+          }
+      }
+      SDL_Delay (10);
+      caelum.display ();
+  }
   return EXIT_SUCCESS;
 }

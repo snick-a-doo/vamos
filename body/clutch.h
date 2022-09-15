@@ -13,8 +13,8 @@
 //  You should have received a copy of the GNU General Public License along with Vamos.
 //  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _CLUTCH_H_
-#define _CLUTCH_H_
+#ifndef VAMOS_BODY_CLUTCH_H_INCLUDED
+#define VAMOS_BODY_CLUTCH_H_INCLUDED
 
 namespace Vamos_Body
 {

@@ -13,8 +13,9 @@
 //  You should have received a copy of the GNU General Public License along with Vamos.
 //  If not, see <http://www.gnu.org/licenses/>.
 
-#include "../geometry/numeric.h"
 #include "clutch.h"
+
+#include "../geometry/numeric.h"
 
 #include <cmath>
 

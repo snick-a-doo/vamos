@@ -99,12 +99,10 @@ double Key_Control::update(double time)
                 m_rate = 0.0;
             }
         }
-
         if (m_target_pending && new_value == m_target)
             target(m_next_target, m_next_time, m_next_delay);
     }
-
-    ;    m_value = new_value;
+    m_value = new_value;
     return m_value;
 }
 
@@ -126,7 +124,7 @@ Car::~Car()
     // Trivial destructor instead of = default because of shared_ptrs.
 }
 
-void Car::read(std::string data_dir, std::string car_file)
+void Car::read(std::string const& data_dir, std::string const& car_file)
 {
     // Remember the file name for re-reading.
     if (!data_dir.empty() && !car_file.empty())
@@ -233,8 +231,6 @@ void Car::propagate(double time)
     {
         mp_drivetrain->input(gas, m_clutch_key_control.value(), left_wheel_speed,
                              right_wheel_speed);
-
-        // Propagate the base class.
         mp_drivetrain->find_forces();
     }
 
@@ -248,7 +244,7 @@ void Car::propagate(double time)
     m_distance_traveled += m_chassis.rotate_in(m_chassis.cm_velocity()).x * time;
 
     // Update the smoothed acceleration.
-    const double weight = std::min(acceleration_average_weight * time, 1.0);
+    auto weight{std::min(acceleration_average_weight * time, 1.0)};
     m_smoothed_acceleration
         = (1.0 - weight) * m_smoothed_acceleration + weight * m_chassis.acceleration();
 }
@@ -257,59 +253,47 @@ void Car::steer(double angle, double time, bool direct)
 {
     if (!direct)
     {
-        double steer_sign = (angle < 0.0) ? -1.0 : 1.0;
-
         // Apply the non-linearity.
-        angle = steer_sign * std::pow(std::abs(angle), m_steer_exponent);
-
+        angle = sign(angle) * std::pow(std::abs(angle), m_steer_exponent);
         // Set the maximum angle and speed sensitivity.
-        double sens = 1.0
-                      / (1.0
-                         + 1.0e-4 * m_steer_speed_sensitivity
-                               * m_chassis.cm_velocity().dot(m_chassis.cm_velocity()));
+        auto v2{m_chassis.cm_velocity().dot(m_chassis.cm_velocity())};
+        auto sens{1.0 / (1.0 + 1.0e-4 * m_steer_speed_sensitivity * v2)};
         angle = m_max_steer_angle * clip(angle * sens, -1.0, 1.0);
     }
     m_steer_key_control.target(angle, time);
 }
 
-// Change the throttle to FACTOR with a time constant of TIME.
 void Car::gas(double factor, double time)
 {
     m_gas_key_control.target(factor, time);
 }
 
-// Change the brakes to FACTOR with a time constant of TIME.
 void Car::brake(double factor, double time)
 {
     m_brake_key_control.target(factor, time);
 }
 
-// Pan the view.
 void Car::pan(double factor, double time)
 {
     m_pan_key_control.target(factor * m_pan_angle, time / m_pan_angle);
 }
 
-// Shift to the next lower gear.  The chosen gear is returned.
 int Car::shift_down()
 {
     assert(mp_drivetrain);
     return shift(mp_drivetrain->transmission().gear() - 1);
 }
 
-// Shift to the next higher gear.  The chosen gear is returned.
 int Car::shift_up()
 {
     assert(mp_drivetrain);
     return shift(mp_drivetrain->transmission().gear() + 1);
 }
 
-// Shift to GEAR.  The chosen gear is returned.
 int Car::shift(int gear)
 {
     if (m_new_gear == gear)
         return gear;
-
     // Do the shift if GEAR is accessible.
     assert(mp_drivetrain);
     if ((gear <= mp_drivetrain->transmission().forward_gears())
@@ -320,7 +304,6 @@ int Car::shift(int gear)
         m_last_gear = mp_drivetrain->transmission().gear();
         m_new_gear = gear;
     }
-
     return m_new_gear;
 }
 
@@ -329,36 +312,29 @@ void Car::clutch(double factor, double time)
     m_clutch_key_control.target(factor, time, 0.0);
 }
 
-// Engage the clutch with a time constant of TIME.
 void Car::engage_clutch(double time)
 {
     // Wait for the shift timer.
-    double delay = m_shift_delay - m_shift_timer;
-    m_clutch_key_control.target(1.0, time, delay);
+    m_clutch_key_control.target(1.0, time, m_shift_delay - m_shift_timer);
 }
 
-// Disengage the clutch with a time constant of TIME.
 void Car::disengage_clutch(double time)
 {
     // Wait for the shift timer.
-    double delay = m_shift_delay - m_shift_timer;
-    m_clutch_key_control.target(0.0, time, delay);
+    m_clutch_key_control.target(0.0, time, m_shift_delay - m_shift_timer);
 }
 
-// Return the pointer to the WHEEL_INDEXth wheel.
 Wheel& Car::wheel(size_t wheel_index) const
 {
     assert(wheel_index < m_wheels.size());
     return *m_wheels[wheel_index];
 }
 
-// Return the position of the viewpont.
 Three_Vector Car::view_position(bool world, bool bob) const
 {
-    Three_Vector pos = m_driver_view;
+    auto pos{m_driver_view};
     if (bob)
         pos -= view_shift_factor * acceleration(true);
-
     return world ? m_chassis.transform_out(pos) : pos;
 }
 
@@ -374,22 +350,18 @@ void Car::start_engine()
     m_clutch_key_control.end();
 }
 
-// Restore the initial conditions.
 void Car::reset()
 {
     m_chassis.reset(0.0);
     private_reset();
 }
 
-// Restore the initial conditions and then set the position to
-// POSITION and the orientation to ORIENTATION.
 void Car::reset(const Three_Vector& position, const Three_Matrix& orientation)
 {
     m_chassis.reset(position, orientation);
     private_reset();
 }
 
-// Perform operations common to both reset() methods.
 void Car::private_reset()
 {
     if (mp_drivetrain)
@@ -405,15 +377,13 @@ void Car::set_drivetrain(std::unique_ptr<Drivetrain> drivetrain)
     mp_drivetrain = std::move(drivetrain);
 }
 
-Contact_Info Car::collision(const Three_Vector& position, const Three_Vector& velocity,
+Contact_Info Car::collision(Three_Vector const& position,
+                            Three_Vector const& velocity,
                             bool ignore_z) const
 {
-    const Three_Vector penetration(
-        m_crash_box.penetration(m_chassis.transform_in(position),
-                                m_chassis.transform_velocity_in(velocity), ignore_z));
-
-    return Contact_Info(!penetration.is_null(), penetration.magnitude(),
-                        m_chassis.rotate_out(penetration), Material::METAL);
+    auto in{m_crash_box.penetration(m_chassis.transform_in(position),
+                                    m_chassis.transform_velocity_in(velocity), ignore_z)};
+    return {!in.is_null(), in.magnitude(), m_chassis.rotate_out(in), Material::METAL};
 }
 
 void Car::wind(const Vamos_Geometry::Three_Vector& wind_vector, double density)
@@ -424,11 +394,10 @@ void Car::wind(const Vamos_Geometry::Three_Vector& wind_vector, double density)
 
 Three_Vector Car::chase_position() const
 {
-    const Three_Vector v1 = m_chassis.cm_velocity().unit();
-    const double w1 = std::min(m_chassis.cm_velocity().magnitude(), 1.0);
-    const Three_Vector v2 = m_chassis.rotate_out(Three_Vector::X);
-    const double w2 = 1.0 - w1;
-
+    auto v1{m_chassis.cm_velocity().unit()};
+    auto w1{std::min(m_chassis.cm_velocity().magnitude(), 1.0)};
+    auto v2{m_chassis.rotate_out(Three_Vector::X)};
+    auto w2{1.0 - w1};
     return m_chassis.transform_out(center() - 0.1 * acceleration(true))
            - (w1 * v1 + w2 * v2) * 3.0 * length() + Three_Vector(0.0, 0.0, length());
 }
@@ -467,7 +436,8 @@ Three_Vector Car::acceleration(bool smooth) const
     return smooth ? m_smoothed_acceleration : m_chassis.acceleration();
 }
 
-Three_Vector Car::Crash_Box::penetration(const Three_Vector& point, const Three_Vector& velocity,
+Three_Vector Car::Crash_Box::penetration(Three_Vector const& point,
+                                         Three_Vector const& velocity,
                                          bool ignore_z) const
 {
     if (!within(point, ignore_z))
@@ -475,56 +445,53 @@ Three_Vector Car::Crash_Box::penetration(const Three_Vector& point, const Three_
 
     if (velocity.x != 0.0 && is_in_range(point.x, back, front))
     {
-        const double x_limit = (point.x - back) < (front - point.x) ? back : front;
-        if (((point.x - back < front - point.x) && velocity.x > 0.0)
-            || ((point.x - back >= front - point.x) && velocity.x < 0.0))
+        auto x_limit{point.x - back < front - point.x ? back : front};
+        if ((point.x - back < front - point.x && velocity.x > 0.0)
+            || (point.x - back >= front - point.x && velocity.x < 0.0))
         {
-            const Three_Vector x_intercept(
-                x_limit, intercept(x_limit, point.x, point.y, velocity.y / velocity.x),
-                intercept(x_limit, point.x, point.z, velocity.z / velocity.x));
-            if (is_in_range(x_intercept.y, right, left)
-                && (ignore_z || is_in_range(x_intercept.z, bottom, top)))
-                return Three_Vector(x_limit - point.x, 0.0, 0.0);
+            Three_Vector x_int(x_limit,
+                               intercept(x_limit, point.x, point.y, velocity.y / velocity.x),
+                               intercept(x_limit, point.x, point.z, velocity.z / velocity.x));
+            if (is_in_range(x_int.y, right, left)
+                && (ignore_z || is_in_range(x_int.z, bottom, top)))
+                return {x_limit - point.x, 0.0, 0.0};
         }
     }
 
     if (velocity.y != 0.0 && is_in_range(point.y, right, left))
     {
-        const double y_limit = (point.y - right) < (left - point.y) ? right : left;
-        if (((point.y - right < left - point.y) && velocity.y > 0.0)
-            || ((point.y - right >= left - point.y) && velocity.y < 0.0))
+        auto y_limit{point.y - right < left - point.y ? right : left};
+        if ((point.y - right < left - point.y && velocity.y > 0.0)
+            || (point.y - right >= left - point.y && velocity.y < 0.0))
         {
-            const Three_Vector y_intercept(
-                intercept(y_limit, point.y, point.x, velocity.x / velocity.y), y_limit,
-                intercept(y_limit, point.y, point.z, velocity.z / velocity.y));
-            if (is_in_range(y_intercept.x, back, front)
-                && (ignore_z || is_in_range(y_intercept.z, bottom, top)))
-                return Three_Vector(0.0, y_limit - point.y, 0.0);
+            Three_Vector y_int(intercept(y_limit, point.y, point.x, velocity.x / velocity.y),
+                               y_limit,
+                               intercept(y_limit, point.y, point.z, velocity.z / velocity.y));
+            if (is_in_range(y_int.x, back, front)
+                && (ignore_z || is_in_range(y_int.z, bottom, top)))
+                return {0.0, y_limit - point.y, 0.0};
         }
     }
 
     if (!ignore_z && velocity.z != 0.0 && is_in_range(point.z, bottom, top))
     {
-        const double z_limit = (point.z - bottom) < (top - point.z) ? bottom : top;
-        if (((point.z - bottom < top - point.z) && velocity.z > 0.0)
-            || ((point.z - bottom >= top - point.z) && velocity.z < 0.0))
+        auto z_limit{point.z - bottom < top - point.z ? bottom : top};
+        if ((point.z - bottom < top - point.z && velocity.z > 0.0)
+            || (point.z - bottom >= top - point.z && velocity.z < 0.0))
         {
-            const Three_Vector z_intercept(
-                intercept(z_limit, point.z, point.x, velocity.x / velocity.z),
-                intercept(z_limit, point.z, point.y, velocity.y / velocity.z), z_limit);
-            if (is_in_range(z_intercept.x, back, front) && is_in_range(z_intercept.y, right, left))
-                return Three_Vector(0.0, 0.0, z_limit - point.z);
+            Three_Vector z_int(intercept(z_limit, point.z, point.x, velocity.x / velocity.z),
+                               intercept(z_limit, point.z, point.y, velocity.y / velocity.z),
+                               z_limit);
+            if (is_in_range(z_int.x, back, front) && is_in_range(z_int.y, right, left))
+                return {0.0, 0.0, z_limit - point.z};
         }
     }
-
-    return Three_Vector(0.0, 0.0, 0.0);
+    return {0.0, 0.0, 0.0};
 }
 
-// Return true if the position is within the crash box.  ignore_z ==
-// true will only consider the x and y coordinates -- useful for
-// collisions with the edge of the world.
-bool Car::Crash_Box::within(const Three_Vector& position, bool ignore_z) const
+bool Car::Crash_Box::within(const Three_Vector& pos, bool ignore_z) const
 {
-    return (position.x < front) && (position.x > back) && (position.y < left)
-           && (position.y > right) && (ignore_z || ((position.z < top) && (position.z > bottom)));
+    return is_in_range(pos.x, back, front)
+        && is_in_range(pos.y, right, left)
+        && (ignore_z || is_in_range(pos.z, bottom, top));
 }

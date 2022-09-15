@@ -50,14 +50,6 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& car_file,
     read(car_file);
 }
 
-Car_Reader::~Car_Reader()
-{
-    for (std::vector<Model_Info*>::iterator it = m_models.begin(); it != m_models.end(); it++)
-    {
-        delete *it;
-    }
-}
-
 void Car_Reader::on_start_tag(const Vamos_Media::XML_Tag& tag)
 {
     const auto& attribs{tag.get_attributes()};
@@ -110,12 +102,7 @@ void Car_Reader::on_start_tag(const Vamos_Media::XML_Tag& tag)
         m_vectors.clear();
         m_vectors.resize(1);
         m_points.clear();
-        for (std::vector<Vamos_Media::Facade*>::iterator it = ma_mirrors.begin();
-             it != ma_mirrors.end(); it++)
-        {
-            delete *it;
-        }
-        ma_mirrors.clear();
+        m_mirrors.clear();
     }
     else if (label() == "on-steering-wheel")
         m_bools[0] = true;
@@ -209,12 +196,12 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
 {
     if (path() == "/car/robot")
         mp_car->set_robot_parameters(m_doubles[0], m_doubles[1], m_doubles[2]);
-    else if ((path() == "/car/exterior-model") && (m_strings[0] != ""))
-        mp_car->exterior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0], m_vectors[0],
-                               m_vectors[1]);
-    else if ((path() == "/car/interior-model") && (m_strings[0] != ""))
-        mp_car->interior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0], m_vectors[0],
-                               m_vectors[1]);
+    else if (path() == "/car/exterior-model" && !m_strings[0].empty())
+        mp_car->set_exterior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0],
+                                   m_vectors[0], m_vectors[1]);
+    else if (path() == "/car/interior-model" && !m_strings[0].empty())
+        mp_car->set_interior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0],
+                                   m_vectors[0], m_vectors[1]);
     else if (label() == "initial-conditions")
         mp_car->chassis().set_initial_conditions(m_vectors[0], m_vectors[1], m_vectors[2],
                                                  m_vectors[3]);
@@ -231,95 +218,96 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
     }
     else if (label() == "mirror-frame")
     {
-        Facade* frame = new Facade(m_data_dir + "textures/" + m_strings[0]);
+        auto frame{std::make_unique<Facade>(m_data_dir + "textures/" + m_strings[0])};
         frame->set_width(m_doubles[3]);
         frame->set_height(m_doubles[4]);
-        frame->set_x_offset(m_doubles[0]);
-        frame->set_y_offset(m_doubles[1]);
-        frame->set_z_offset(m_doubles[2]);
-        ma_mirrors.push_back(frame);
+        frame->set_offset({m_doubles[0], m_doubles[1], m_doubles[2]});
+        m_mirrors.push_back(std::move(frame));
     }
     else if (label() == "tachometer")
     {
         if (m_tachometer_type == "LED")
         {
-            mp_tachometer = new LED_Gauge(m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3],
-                                          m_ints[0], m_doubles[4], m_doubles[5],
-                                          m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+            mp_tachometer = std::make_unique<LED_Gauge>(
+                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_ints[0],
+                m_doubles[4], m_doubles[5], m_data_dir + "textures/" + m_strings[0],
+                m_bools[0]);
             m_bools[0] = false;
         }
         else if (m_tachometer_type == "digital")
         {
-            mp_tachometer = new Digital_Gauge(m_doubles[0], m_doubles[1], m_doubles[2],
-                                              m_doubles[3], m_doubles[4], m_ints[0],
-                                              m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+            mp_tachometer = std::make_unique<Digital_Gauge>(
+                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+                m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
             m_bools[0] = false;
         }
         else
-            mp_tachometer = new Dial(m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3],
-                                     m_doubles[4], m_doubles[5], m_doubles[6], m_doubles[7],
-                                     m_data_dir + "textures/" + m_strings[0],
-                                     m_data_dir + "textures/" + m_strings[1]);
+            mp_tachometer = std::make_unique<Dial>(
+                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+                m_doubles[5], m_doubles[6], m_doubles[7],
+                m_data_dir + "textures/" + m_strings[0],
+                m_data_dir + "textures/" + m_strings[1]);
     }
     else if (label() == "speedometer")
     {
         if (m_speedometer_type == "digital")
         {
-            mp_speedometer = new Digital_Gauge(m_doubles[0], m_doubles[1], m_doubles[2],
-                                               m_doubles[3], m_doubles[4], m_ints[0],
-                                               m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+            mp_speedometer = std::make_unique<Digital_Gauge>(
+                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+                m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
             m_bools[0] = false;
         }
         else
-            mp_speedometer = new Dial(m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3],
-                                      m_doubles[4], m_doubles[5], m_doubles[6], m_doubles[7],
-                                      m_data_dir + "textures/" + m_strings[0],
-                                      m_data_dir + "textures/" + m_strings[1]);
+            mp_speedometer = std::make_unique<Dial>(
+                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+                m_doubles[5], m_doubles[6], m_doubles[7],
+                m_data_dir + "textures/" + m_strings[0],
+                m_data_dir + "textures/" + m_strings[1]);
     }
     else if (label() == "fuel-gauge")
     {
         if (m_fuel_gauge_type == "digital")
         {
-            mp_fuel_gauge = new Digital_Gauge(m_doubles[0], m_doubles[1], m_doubles[2],
-                                              m_doubles[3], m_doubles[4], m_ints[0],
-                                              m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+            mp_fuel_gauge = std::make_unique<Digital_Gauge>(
+                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+                m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
             m_bools[0] = false;
         }
         else
-            mp_fuel_gauge = new Dial(m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3],
-                                     m_doubles[4], m_doubles[5], m_doubles[6], m_doubles[7],
-                                     m_data_dir + "textures/" + m_strings[0],
-                                     m_data_dir + "textures/" + m_strings[1]);
+            mp_fuel_gauge = std::make_unique<Dial>(
+                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+                m_doubles[5], m_doubles[6], m_doubles[7],
+                m_data_dir + "textures/" + m_strings[0],
+                m_data_dir + "textures/" + m_strings[1]);
     }
     else if (label() == "gear-indicator")
     {
-        mp_gear_indicator = new Gear_Indicator(m_doubles[0], m_doubles[1], m_doubles[2],
-                                               m_doubles[3], m_doubles[4], m_ints[0],
-                                               m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+        mp_gear_indicator = std::make_unique<Gear_Indicator>(
+            m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+            m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
         m_bools[0] = false;
     }
     else if (label() == "gear-shift")
-        mp_gear_indicator
-            = new Gear_Shift(m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-                             m_vectors[0], m_points, m_data_dir + "textures/" + m_strings[0],
-                             m_data_dir + "textures/" + m_strings[1]);
+        mp_gear_indicator = std::make_unique<Gear_Shift>(
+            m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+            m_vectors[0], m_points, m_data_dir + "textures/" + m_strings[0],
+            m_data_dir + "textures/" + m_strings[1]);
     else if (label() == "steering-wheel")
-        mp_steering_wheel = new Steering_Wheel(
+        mp_steering_wheel = std::make_unique<Steering_Wheel>(
             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4], m_doubles[5],
             m_doubles[6], m_doubles[7], m_data_dir + "textures/" + m_strings[0]);
     else if (label() == "dashboard")
     {
-        Dashboard* dash = new Dashboard(m_doubles[8], m_doubles[9], m_doubles[10], m_doubles[11]);
-        for (std::vector<Facade*>::iterator it = ma_mirrors.begin(); it != ma_mirrors.end(); it++)
-        {
-            dash->add_facade(*it);
-        }
-        dash->add_tachometer(mp_tachometer);
-        dash->add_speedometer(mp_speedometer);
-        dash->add_fuel_gauge(mp_fuel_gauge);
-        dash->add_gear_indicator(mp_gear_indicator);
-        dash->add_steering_wheel(mp_steering_wheel);
-        mp_car->dashboard(dash);
+        auto dash{std::make_unique<Dashboard>(
+                m_doubles[8], m_doubles[9], m_doubles[10], m_doubles[11])};
+        for (auto& mirror : m_mirrors)
+            dash->add_facade(std::move(mirror));
+        dash->add_tachometer(std::move(mp_tachometer));
+        dash->add_speedometer(std::move(mp_speedometer));
+        dash->add_fuel_gauge(std::move(mp_fuel_gauge));
+        dash->add_gear_indicator(std::move(mp_gear_indicator));
+        dash->add_steering_wheel(std::move(mp_steering_wheel));
+        mp_car->set_dashboard(std::move(dash));
     }
     else if (path() == "/car/dashboard/extras")
         mp_car->show_dashboard_extras(true);
@@ -333,8 +321,8 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
             mp_engine->set_torque_curve(m_points);
             mp_engine->set_friction(m_doubles[9]);
         }
-        mp_car->engine_sound(m_data_dir + "sounds/" + m_strings[0], m_doubles[10], m_doubles[11],
-                             m_doubles[12], m_doubles[13]);
+        mp_car->set_engine_sound(m_data_dir + "sounds/" + m_strings[0], m_doubles[10],
+                                 m_doubles[11], m_doubles[12], m_doubles[13]);
     }
     else if (label() == "clutch")
     {
@@ -410,15 +398,10 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
     {
         if (m_first_model_for_this_wheel)
         {
-            for (std::vector<Model_Info*>::iterator it = m_models.begin(); it != m_models.end();
-                 it++)
-            {
-                delete *it;
-            }
             m_models.clear();
             m_first_model_for_this_wheel = false;
         }
-        m_models.push_back(new Model_Info(m_strings[2], m_doubles[21], m_vectors[3], m_vectors[4]));
+        m_models.emplace_back(m_strings[2], m_doubles[21], m_vectors[3], m_vectors[4]);
     }
     else if (label() == "wheel")
     {
@@ -429,20 +412,15 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
         suspension->camber(m_doubles[5]);
         suspension->caster(m_doubles[6]);
         suspension->toe(m_doubles[7]);
-        if (m_doubles[8] != 0.0)
+        if (m_doubles[8] != 0.0 && mp_last_suspension)
         {
-            //!!!! Need a better way to identify the paired suspension
-            auto other = std::static_pointer_cast<Suspension>(
-                *std::next(mp_car->chassis().particles().rbegin()));
-            assert(other);
-            suspension->anti_roll(other, m_doubles[8]);
+            suspension->anti_roll(mp_last_suspension, m_doubles[8]);
             m_doubles[8] = 0.0;
         }
-        for (std::vector<Model_Info*>::iterator it = m_models.begin(); it != m_models.end(); it++)
-        {
-            suspension->set_model(m_data_dir + "cars/" + (*it)->file, (*it)->scale,
-                                  (*it)->translate, (*it)->rotate);
-        }
+        mp_last_suspension = suspension;
+        for (auto const& model : m_models)
+            suspension->set_model(m_data_dir + "cars/" + model.file, model.scale,
+                                  model.translate, model.rotate);
         mp_car->chassis().add_particle(suspension->get_hinge());
         mp_car->chassis().add_particle(suspension);
         Tire_Friction friction(m_longi_parameters, m_trans_parameters, m_align_parameters);

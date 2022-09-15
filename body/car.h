@@ -86,54 +86,78 @@ class Car
     struct Robot_Parameters;
 
 public:
+    /// Make a car at a specific position an orientation.
     Car(Vamos_Geometry::Three_Vector const& position,
         Vamos_Geometry::Three_Matrix const& orientation);
     virtual ~Car();
 
-    Rigid_Body& chassis() { return m_chassis; }
-    const Rigid_Body& chassis() const { return m_chassis; }
-
     /// Read the car definition file.
-    virtual void read(std::string data_dir = "", std::string car_file = "");
-
+    virtual void read(std::string const& data_dir = "", std::string const& car_file = "");
     /// Define a sound for the engine.
-    virtual void engine_sound(std::string const&, // file
-                              double,             // volume,
-                              double,             // throttle_volume_factor,
-                              double,             // engine_speed_volume_factor,
-                              double)             // pitch
-        {};
+    virtual void set_engine_sound(std::string const&, // file
+                                  double,             // volume,
+                                  double,             // throttle_volume_factor,
+                                  double,             // engine_speed_volume_factor,
+                                  double)             // pitch
+    {};
+    /// Specify the exterior 3D models.
+    virtual void set_exterior_model(std::string const&,                  // file
+                                    double,                              // scale
+                                    Vamos_Geometry::Three_Vector const&, // translation
+                                    Vamos_Geometry::Three_Vector const&) // rotation
+    {}
+    /// Specify the interior 3D models.
+    virtual void set_interior_model(std::string const&,                  // file
+                                    double,                              // scale
+                                    Vamos_Geometry::Three_Vector const&, // translation
+                                    Vamos_Geometry::Three_Vector const&) // rotation
+    {}
+    virtual void set_perspective(double /* aspect */){};
+    virtual void set_view(Vamos_Geometry::Three_Vector const&, // position
+                          double,                              // field_of_view
+                          double,                              // near_plane
+                          double,                              // far_plane
+                          double)                              // pan_angle
+    {}
+    /// Add a rearview mirror.
+    virtual void add_rear_view(Vamos_Geometry::Three_Vector const&, // position
+                               double,                              // width
+                               double,                              // height
+                               double,                              // direction
+                               double,                              // field
+                               double,                              // near_plane
+                               double,                              // far_plane
+                               std::string const&)                  // mask_file
+    {}
+    /// Set the dashboard.
+    virtual void set_dashboard(std::unique_ptr<Dashboard> /* dash */) {}
+    // Render the car according to its current position and orientation.
+    virtual void draw() {};
+    virtual void draw_interior() {};
+    virtual Vamos_Geometry::Three_Vector draw_rear_view(double /* aspect */, int /* index */);
+    virtual void make_rear_view_mask(int /* window_width */, int /* window_height */) {}
+    virtual void update_rear_view_mask(int /* window_width */, int /* window_height */) {}
+    virtual int get_n_mirrors() const { return 0; }
+    // Perform the transformations for the driver's view.
+    virtual void view(double,                              // pan
+                      Vamos_Geometry::Three_Vector const&) // view_position
+    {}
+    virtual void view() {}
+    virtual void propagate(double time);
+    virtual void set_paused(bool){};
 
-    /// Set and get the parameters for computer control.
+    /// @return The contained rigid body.
+    Rigid_Body& chassis() { return m_chassis; }
+    /// @return The contained rigid body.
+    const Rigid_Body& chassis() const { return m_chassis; }
+    /// @return The performance parameters for computer control.
+    const Robot_Parameters& get_robot_parameters() const { return m_robot_parameters; }
+    /// Set the performance parameters for computer control.
     void set_robot_parameters(double slip_ratio, double deceleration, double lateral_acceleration);
-
     /// Change the performance parameters by the given fraction of the current
     /// value, i.e. param <- param + factor*param.
     void adjust_robot_parameters(double slip_ratio_factor, double deceleration_factor,
                                  double lateral_acceleration_factor);
-
-    const Robot_Parameters& get_robot_parameters() const { return m_robot_parameters; }
-
-    /// Set the 3D models.
-    virtual void exterior_model(std::string const&,                  // file
-                                double,                              // scale
-                                Vamos_Geometry::Three_Vector const&, // translation
-                                Vamos_Geometry::Three_Vector const&) // rotation
-    {
-    }
-    virtual void interior_model(std::string const&,                  // file
-                                double,                              // scale
-                                Vamos_Geometry::Three_Vector const&, // translation
-                                Vamos_Geometry::Three_Vector const&) // rotation
-    {
-    }
-
-    /// Set the dashboard.
-    virtual void dashboard(Dashboard* /* dash */) {}
-
-    virtual void propagate(double time);
-    virtual void set_paused(bool){};
-
     /// Pan the view.
     void pan(double factor, double time = 0.0);
     /// Change the steering angle.
@@ -192,10 +216,8 @@ public:
     /// occurred yet due to the shift delay specified in the call to
     /// `shift_up ()', `shift_down ()', or `shift ()'.
     int gear() const { return m_new_gear; }
-
-    // Retrun the previous gear selected.
+    /// Retrun the previous gear selected.
     int last_gear() const { return m_last_gear; }
-
     /// Restore the initial conditions.
     void reset();
     /// Restore the initial conditions and then set position and orientation.
@@ -205,55 +227,16 @@ public:
     double distance_traveled() const { return m_distance_traveled; }
     /// Take ownership of the pointer to the drivetrain.
     void set_drivetrain(std::unique_ptr<Drivetrain> drivetrain);
-
-    virtual void set_view(Vamos_Geometry::Three_Vector const&, // position
-                          double,                              // field_of_view
-                          double,                              // near_plane
-                          double,                              // far_plane
-                          double)                              // pan_angle
-    {
-    }
-
-    virtual void set_perspective(double /* aspect */){};
-    /// Add a rearview mirror.
-    virtual void add_rear_view(Vamos_Geometry::Three_Vector const&, // position
-                               double,                              // width
-                               double,                              // height
-                               double,                              // direction
-                               double,                              // field
-                               double,                              // near_plane
-                               double,                              // far_plane
-                               std::string const&)                  // mask_file
-    {
-    }
-    // Return the driver's field of view in degrees.
+    /// @return The driver's field of view in degrees.
     double field_of_view() const { return m_field_of_view; }
-
-    // Return the current pan angle.
+    /// @return The current pan angle.
     double pan() const { return m_pan_key_control.value(); }
-
-    // Return the position of the viewpont.
+    /// @return The position of the viewpont.
     Vamos_Geometry::Three_Vector view_position(bool world, bool bob) const;
-
-    // Render the car according to its current position and orientation.
-    virtual void draw(){};
-    virtual void draw_interior(){};
-    virtual Vamos_Geometry::Three_Vector draw_rear_view(double /* aspect */, int /* index */);
-    virtual void make_rear_view_mask(int /* window_width */, int /* window_height */) {}
-    virtual void update_rear_view_mask(int /* window_width */, int /* window_height */) {}
-    virtual int get_n_mirrors() const { return 0; }
-
-    // Perform the transformations for the driver's view.
-    virtual void view(double,                              // pan
-                      Vamos_Geometry::Three_Vector const&) // view_position
-    {}
-    virtual void view() {}
-
     /// @return true if there is no shift delay.
     bool fast_shift() const { return m_shift_delay <= 0.0; }
     /// @return true if extra info should be shown on screen.
     void show_dashboard_extras(bool show) { m_show_dashboard_extras = show; }
-
     // Return the contact information for the given position and velocity.  If 'ignore_z'
     // is true, only consider the x- and y-values of 'position'.
     Vamos_Geometry::Contact_Info collision(const Vamos_Geometry::Three_Vector& position,
@@ -269,25 +252,25 @@ public:
         double top;
         double bottom;
 
-        bool within(const Vamos_Geometry::Three_Vector& position, bool ignore_z) const;
-        Vamos_Geometry::Three_Vector penetration(const Vamos_Geometry::Three_Vector& point,
-                                                 const Vamos_Geometry::Three_Vector& velocity,
+        bool within(Vamos_Geometry::Three_Vector const& position, bool ignore_z) const;
+        Vamos_Geometry::Three_Vector penetration(Vamos_Geometry::Three_Vector const& point,
+                                                 Vamos_Geometry::Three_Vector const& velocity,
                                                  bool ignore_z) const;
     };
 
     // The vector from the car's origin to the center of the crash box.
     Vamos_Geometry::Three_Vector center() const
     {
-        return Vamos_Geometry::Three_Vector((m_crash_box.front + m_crash_box.back) / 2.0,
-                                            (m_crash_box.left + m_crash_box.right) / 2.0,
-                                            (m_crash_box.top + m_crash_box.bottom) / 2.0);
+        return {(m_crash_box.front + m_crash_box.back) / 2.0,
+                (m_crash_box.left + m_crash_box.right) / 2.0,
+                (m_crash_box.top + m_crash_box.bottom) / 2.0};
     }
 
     Vamos_Geometry::Three_Vector front() const
     {
-        return Vamos_Geometry::Three_Vector(m_crash_box.front,
-                                            (m_crash_box.left + m_crash_box.right) / 2.0,
-                                            (m_crash_box.top + m_crash_box.bottom) / 2.0);
+        return {m_crash_box.front,
+                (m_crash_box.left + m_crash_box.right) / 2.0,
+                (m_crash_box.top + m_crash_box.bottom) / 2.0};
     }
 
     // The center of the crash box in world coordinates.
@@ -295,90 +278,66 @@ public:
     {
         return m_chassis.transform_out(center());
     }
-
     double width() const { return m_crash_box.left - m_crash_box.right; }
     double length() const { return m_crash_box.front - m_crash_box.back; }
-
     void wind(const Vamos_Geometry::Three_Vector& wind_vector, double densty);
-
     /// The position of the chase-view camera.
     Vamos_Geometry::Three_Vector chase_position() const;
-
     /// The position of the font centerline in world coordinates.
     Vamos_Geometry::Three_Vector front_position() const;
-
     void set_front_position(const Vamos_Geometry::Three_Vector& pos);
-
     /// The position of a point ahead of the car.  Used for steering.
     Vamos_Geometry::Three_Vector target_position() const;
     /// How far the target is ahead of the center of the car.
     double target_distance() const;
-
+    /// @return The name of the car definition file.
     const std::string& car_file() const { return m_car_file; }
+    /// @return The car name
     const std::string& name() const { return m_name; }
-
+    /// @return Average tire grip.
     double grip() const;
-
+    /// @return The current acceleration vector.
     Vamos_Geometry::Three_Vector acceleration(bool smooth) const;
 
 protected:
-    Rigid_Body m_chassis;
-    std::unique_ptr<Drivetrain> mp_drivetrain;
-    // A pointer to the car's fuel tank.
-    std::shared_ptr<Fuel_Tank> mp_fuel_tank;
-    // The maximum angle for the steered wheels.
-    double m_max_steer_angle{15};
-    // Steering non-linearity
-    double m_steer_exponent{1.0};
-    // Set the amount of decrease in sensitivity with speed.
-    double m_steer_speed_sensitivity{0.0};
-    // The sum of the sliding speeds of the tires.
-    double m_slide{0.0};
-    // True if a shift has been requested but not yet made due to the
-    // delay `m_shift_delay'.
+    Rigid_Body m_chassis; ///< The contained rigid body.
+    std::unique_ptr<Drivetrain> mp_drivetrain; ///< The drivetrain.
+    std::shared_ptr<Fuel_Tank> mp_fuel_tank; ///< A pointer to the car's fuel tank.
+    double m_max_steer_angle{15}; ///< The maximum angle for the steered wheels.
+    double m_steer_exponent{1.0}; ///< Steering non-linearity
+    double m_steer_speed_sensitivity{0.0}; ///< Decrease in sensitivity with speed.
+    double m_slide{0.0}; ///< The sum of the sliding speeds of the tires.
+    /// True if a shift has been requested but not yet made due to the shift delay.
     bool m_shift_pending{false};
-    // The amount of time elapsed after the shift request.
-    double m_shift_timer{0.0};
-    // How long to wait between getting a shift request and actually
-    // shifting.
+    double m_shift_timer{0.0}; ///< The amount of time elapsed after the shift request.
+    /// How long to wait between getting a shift request and actually shifting.
     double m_shift_delay{0.2};
-    // The gear to shift to when `m_shift_timer' reaches
-    // `m_shift_delay'.
-    int m_new_gear{0};
-    // The gear we were in before the last shift was requested.
-    int m_last_gear{0};
-    // The control that gradually applies steering when the keyboard is used.
-    Key_Control m_steer_key_control{false};
-    // The control that gradually applies the throttle when the keyboard is used.
-    Key_Control m_gas_key_control{false};
-    // The control that gradually applies braking when the keyboard is used.
-    Key_Control m_brake_key_control{false};
-    // The control that gradually applies the clutch when the keyboard is used.
-    Key_Control m_clutch_key_control{true};
-    // The control that gradually pans the view.
-    Key_Control m_pan_key_control{false};
-    // The total distance traveled since the start of the simulation.
-    double m_distance_traveled{0.0};
+    /// The gear to shift to when `m_shift_timer' reaches `m_shift_delay'.
+    int m_new_gear{0}; ///< The last requested gear.
+    int m_last_gear{0}; ///< The gear before the last shift was requested.
+    Key_Control m_steer_key_control{false}; ///< Steering input controller.
+    Key_Control m_gas_key_control{false}; ///< Throttle input controller.
+    Key_Control m_brake_key_control{false}; ///< Brake input controller.
+    Key_Control m_clutch_key_control{true}; ///< Clutch input controller.
+    Key_Control m_pan_key_control{false}; ///< View direction input controller.
+    double m_distance_traveled{0.0}; ///< The total distance traveled since construction.
     std::vector<std::shared_ptr<Wheel>> m_wheels;
-    // The position of the driver's eyes.
-    Vamos_Geometry::Three_Vector m_driver_view;
-    // The driver's field of view.
-    double m_field_of_view{60.0};
-    // The maximum pan angle.
-    double m_pan_angle{90.0};
-    // Display additional information if true.
-    bool m_show_dashboard_extras{false};
-    double m_air_density{0.0};
+    Vamos_Geometry::Three_Vector m_driver_view; ///< The position of the driver's eyes.
+    double m_field_of_view{60.0}; ///< The driver's field of view.
+    double m_pan_angle{90.0}; ///< The maximum pan angle.
+    bool m_show_dashboard_extras{false}; ///< Display additional information if true.
+    double m_air_density{0.0}; ///< Current air density.
 
 private:
-    // Perform operations common to both reset() methods.
+    /// Perform operations common to both reset() methods.
     void private_reset();
 
     std::string m_data_dir;
     std::string m_car_file;
     std::string m_name;
-    Crash_Box m_crash_box;
+    Crash_Box m_crash_box; ///< Car bounds for collisions.
 
+    /// Computer controlled performance parameters.
     struct Robot_Parameters
     {
         double slip_ratio;
@@ -386,7 +345,6 @@ private:
         double lateral_acceleration;
     };
     Robot_Parameters m_robot_parameters;
-
     Vamos_Geometry::Three_Vector m_smoothed_acceleration;
 };
 
@@ -401,12 +359,14 @@ struct Model_Info
 class Gauge;
 class Gear_Indicator;
 class Steering_Wheel;
+class Suspension;
 
+//----------------------------------------------------------------------------------------
+/// Reader for car definition files.
 class Car_Reader : public Vamos_Media::XML_Parser
 {
 public:
     Car_Reader(std::string const& data_dir, std::string const& car_file, Car* car);
-    ~Car_Reader();
 
 private:
     void on_start_tag(const Vamos_Media::XML_Tag& tag);
@@ -433,8 +393,9 @@ private:
     double m_scale;
     Vamos_Geometry::Three_Vector m_translation;
     Vamos_Geometry::Three_Vector m_rotation;
-    std::vector<Model_Info*> m_models;
+    std::vector<Model_Info> m_models;
     bool m_first_model_for_this_wheel{true};
+    std::shared_ptr<Suspension> mp_last_suspension;
 
     std::string m_data_dir;
     Car* mp_car;
@@ -443,12 +404,12 @@ private:
     std::unique_ptr<Transmission> mp_transmission;
     std::unique_ptr<Differential> mp_differential;
 
-    std::vector<Vamos_Media::Facade*> ma_mirrors;
-    Gauge* mp_tachometer{nullptr};
-    Gauge* mp_speedometer{nullptr};
-    Gauge* mp_fuel_gauge{nullptr};
-    Gear_Indicator* mp_gear_indicator{nullptr};
-    Steering_Wheel* mp_steering_wheel{nullptr};
+    std::vector<std::unique_ptr<Vamos_Media::Facade>> m_mirrors;
+    std::unique_ptr<Gauge> mp_tachometer{nullptr};
+    std::unique_ptr<Gauge> mp_speedometer{nullptr};
+    std::unique_ptr<Gauge> mp_fuel_gauge{nullptr};
+    std::unique_ptr<Gear_Indicator> mp_gear_indicator{nullptr};
+    std::unique_ptr<Steering_Wheel> mp_steering_wheel{nullptr};
 
     std::string m_tachometer_type{"dial"};
     std::string m_speedometer_type{"dial"};

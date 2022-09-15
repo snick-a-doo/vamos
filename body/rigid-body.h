@@ -43,73 +43,56 @@ class Rigid_Body : public Frame
 {
 public:
     /// Specify the position and orientation of the body.
-    Rigid_Body(const Vamos_Geometry::Three_Vector& pos, const Vamos_Geometry::Three_Matrix& orient);
+    Rigid_Body(Vamos_Geometry::Three_Vector const& pos,
+               const Vamos_Geometry::Three_Matrix& orient);
     virtual ~Rigid_Body() = default;
 
-    // Set the state for starting and resetting.
-    void set_initial_conditions(const Vamos_Geometry::Three_Vector& position,
-                                const Vamos_Geometry::Three_Vector& orientation,
-                                const Vamos_Geometry::Three_Vector& velocity,
-                                const Vamos_Geometry::Three_Vector& angular_velocity);
-
+    /// Set the state for starting and resetting.
+    void set_initial_conditions(Vamos_Geometry::Three_Vector const& position,
+                                Vamos_Geometry::Three_Vector const& orientation,
+                                Vamos_Geometry::Three_Vector const& velocity,
+                                Vamos_Geometry::Three_Vector const& angular_velocity);
+    /// @return The center of mass in the body frame.
     Vamos_Geometry::Three_Vector center_of_mass() const { return m_body_cm; }
 
-    // Return the position of the center of mass of the body with
-    // respect to the world.
+    // Return the position of the center of mass of the body with respect to the world.
     Vamos_Geometry::Three_Vector cm_position() const;
-
-    // Provide access to the frame's position method.  Return the
-    // origin of the body.
+    // Provide access to the frame's position method.  Return the origin of the body.
     Vamos_Geometry::Three_Vector position() const { return Frame::position(); }
-
-    // Return the contact position of the particle with respect to the
-    // world.
+    // Return the contact position of the particle with respect to the world.
     Vamos_Geometry::Three_Vector contact_position(Particle const& p) const;
     Vamos_Geometry::Three_Vector position(Particle const& p) const;
-
     // Return the smallest contact position z-value of the particles.
     double lowest_contact_position() const;
-
     // Add a particle to the body.
     void add_particle(std::shared_ptr<Particle> particle);
-
-    // Calculate the center of mass, the ineritia tensor, and its
-    // inverse.
+    // Calculate the center of mass, the ineritia tensor, and its inverse.
     void update_center_of_mass();
-
     // Provide access to the particles.
     std::vector<std::shared_ptr<Particle>>& particles() { return m_particles; }
-
     void find_forces();
-
     /// @return The total aerodynamic drag.
     double drag() const;
     /// @return The total aerodynamic lift.
     double lift() const;
-
     // Advance the body in time by TIME.
     void propagate(double time);
-
     // Finish the timestep.
     void end_timestep();
-
     // Called by the world to tell the body what the acceleration due to gravity is.
     void set_gravity(Vamos_Geometry::Three_Vector const& grav) { m_gravity = grav; }
-
     // Return the velocity of the particle in the parent frame.
     Vamos_Geometry::Three_Vector velocity(Particle const& p) const;
     // Return the velocity of a point in the body's frame.
-    Vamos_Geometry::Three_Vector velocity(const Vamos_Geometry::Three_Vector& r) const;
+    Vamos_Geometry::Three_Vector velocity(Vamos_Geometry::Three_Vector const& r) const;
     /// Return the acceleration of the center of mass is the body's frame.
     Vamos_Geometry::Three_Vector acceleration() const;
-
     // Return the velocity of the center of mass.
     Vamos_Geometry::Three_Vector cm_velocity() const { return m_cm_velocity; }
-
     // Set the velocity of the center of mass.
-    void cm_velocity(const Vamos_Geometry::Three_Vector& vel) { m_cm_velocity = vel; }
+    void cm_velocity(Vamos_Geometry::Three_Vector const& vel) { m_cm_velocity = vel; }
 
-    void set_cm_force(const Vamos_Geometry::Three_Vector& force) { m_cm_force = force; }
+    void set_cm_force(Vamos_Geometry::Three_Vector const& force) { m_cm_force = force; }
 
     Vamos_Geometry::Three_Vector moment(Vamos_Geometry::Three_Vector const& pos) const;
     Vamos_Geometry::Three_Vector world_moment(Vamos_Geometry::Three_Vector const& world_pos) const;
@@ -118,20 +101,20 @@ public:
     Vamos_Geometry::Three_Matrix inertia() const;
 
     // Handle a collision.
-    void contact(Particle& particle, const Vamos_Geometry::Three_Vector& impulse,
-                 const Vamos_Geometry::Three_Vector& velocity, double distance,
-                 const Vamos_Geometry::Three_Vector& normal,
+    void contact(Particle& particle, Vamos_Geometry::Three_Vector const& impulse,
+                 Vamos_Geometry::Three_Vector const& velocity, double distance,
+                 Vamos_Geometry::Three_Vector const& normal,
                  const Vamos_Geometry::Material& material);
 
-    void temporary_contact(const Vamos_Geometry::Three_Vector& position,
-                           const Vamos_Geometry::Three_Vector& impulse,
-                           const Vamos_Geometry::Three_Vector& velocity, double distance,
-                           const Vamos_Geometry::Three_Vector& normal,
+    void temporary_contact(Vamos_Geometry::Three_Vector const& position,
+                           Vamos_Geometry::Three_Vector const& impulse,
+                           Vamos_Geometry::Three_Vector const& velocity, double distance,
+                           Vamos_Geometry::Three_Vector const& normal,
                            const Vamos_Geometry::Material& material);
 
     // Transform the wind into the body frame and send it to the
     // aerodynamic devices.
-    void wind(const Vamos_Geometry::Three_Vector& wind_vector, double density);
+    void wind(Vamos_Geometry::Three_Vector const& wind_vector, double density);
 
     // Return the total mass.
     double mass() const { return m_mass; }
@@ -145,7 +128,7 @@ public:
 
     // Return the body to its initial state at a particular position and
     // orientation.
-    virtual void reset(const Vamos_Geometry::Three_Vector& position,
+    virtual void reset(Vamos_Geometry::Three_Vector const& position,
                        const Vamos_Geometry::Three_Matrix& orientation);
 
 protected:
