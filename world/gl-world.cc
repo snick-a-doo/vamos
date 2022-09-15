@@ -45,6 +45,8 @@ using namespace Vamos_World;
 enum Mouse_Axis{X, Y};
 
 auto constexpr steps_per_frame{1};
+Color constexpr red_light_on{0.9, 0.0, 0.0};
+Color constexpr red_light_off{0.23, 0.2, 0.2};
 
 namespace Vamos_World
 {
@@ -771,10 +773,11 @@ void Gl_World::reshape(int width, int height)
 
 void Gl_World::draw_timing_info() const
 {
-    Two_D screen;
+
+Two_D screen;
     auto count{mp_timing->countdown()};
     if (count > 0)
-        screen.lights(50.0, 60.0, 1.0, 5, count, 0.9, 0.0, 0.0, 0.23, 0.2, 0.2);
+        screen.lights({50, 60}, 1.0, 5, count, red_light_on, red_light_off);
 
     if (mp_timing->running_order().size() > 1)
         draw_leaderboard(screen);
@@ -783,57 +786,56 @@ void Gl_World::draw_timing_info() const
 
     // Draw timing info for the focused car.
     auto car{mp_timing->timing_at_index(m_focused_car_index)};
-    auto x{55};
     auto dt{dtime_str(car.lap_time_difference())};
-    screen.text(x, 14, "Lap Time", time_str(car.lap_time()));
-    screen.text(x, 10, "    Last", time_str(car.previous_lap_time()), dt);
-    screen.text(x, 6, "    Best", time_str(car.best_lap_time()));
-    screen.text(x, 2, "frames/s", static_cast<int>(m_timer.get_frame_rate() + 0.5));
+    auto down = [](auto& p, auto n) { p.y -= n; return p; };
+    Two_Vector p{55, 18};
+    screen.text(down(p, 4), "Lap Time", time_str(car.lap_time()));
+    screen.text(down(p, 4), "    Last", time_str(car.previous_lap_time()), dt);
+    screen.text(down(p, 4), "    Best", time_str(car.best_lap_time()));
+    screen.text(down(p, 4), "frames/s", static_cast<int>(m_timer.get_frame_rate() + 0.5));
 
-    x = 75;
+    p = {75, 18};
     dt = dtime_str(car.previous_sector_time_difference());
-    screen.text(x, 14, "     Sector", time_str(car.sector_time()));
-    screen.text(x, 10, "       Best", time_str(car.best_sector_time()));
-    screen.text(x, 6, "Last Sector", time_str(car.previous_sector_time()), dt);
-    screen.text(x, 2, "Distance", static_cast<int>(car.lap_distance()), " m");
+    screen.text(down(p, 4), "     Sector", time_str(car.sector_time()));
+    screen.text(down(p, 4), "       Best", time_str(car.best_sector_time()));
+    screen.text(down(p, 4), "Last Sector", time_str(car.previous_sector_time()), dt);
+    screen.text(down(p, 4), "   Distance", static_cast<int>(car.lap_distance()), " m");
 }
 
 void Gl_World::draw_leaderboard(Vamos_Media::Two_D& screen) const
 {
-    auto x{2};
-    auto y{95};
-
+    Two_Vector p{2, 95};
     auto const& order{mp_timing->running_order()};
     if (m_track.get_road(0).is_closed())
     {
         auto total_laps{mp_timing->total_laps()};
         if (mp_timing->is_finished())
-            screen.text(x, y, "Finish");
+            screen.text(p, "Finish");
         else if (mp_timing->is_qualifying() && total_laps == 0)
-            screen.text(x, y, "", time_str(mp_timing->time_remaining(), 0));
+            screen.text(p, "", time_str(mp_timing->time_remaining(), 0));
         else
         {
             std::ostringstream os;
             os << order.front()->current_lap() << '/' << total_laps;
-            screen.text(x, y, "Lap", os.str());
+            screen.text(p, "Lap", os.str());
         }
     }
 
-    y -= 3;
+    p.y -= 3;
     // Show absolute lap time for the leader.
     auto time{time_str(mp_timing->is_qualifying() ? order.front()->best_lap_time()
                                                   : order.front()->previous_lap_time())};
-    screen.text(x, y, m_cars[order.front()->grid_position() - 1].car->name(), time);
-    y -= 3;
+    screen.text(p, m_cars[order.front()->grid_position() - 1].car->name(), time);
+    p.y -= 3;
     // Show relative times for the rest.
-    for (auto it{std::next(order.cbegin())}; it != order.cend(); ++it, y -= 3)
+    for (auto it{std::next(order.cbegin())}; it != order.cend(); ++it, p.y -= 3)
     {
         time = mp_timing->is_qualifying() ? time_str((*it)->best_lap_time())
                                           : dtime_str((*it)->interval());
-        screen.text(x, y, m_cars[(*it)->grid_position() - 1].car->name(), time);
+        screen.text(p, m_cars[(*it)->grid_position() - 1].car->name(), time);
     }
     if (!mp_timing->is_qualifying() && m_track.get_road(0).is_closed())
-        draw_fastest_lap(screen, x, y);
+        draw_fastest_lap(screen, p);
 }
 
 void Gl_World::draw_lap_times(Vamos_Media::Two_D& screen) const
@@ -841,29 +843,28 @@ void Gl_World::draw_lap_times(Vamos_Media::Two_D& screen) const
     auto const& order{mp_timing->running_order()};
     auto it{order.cbegin()};
 
-    std::vector<double> a_time;
+    std::vector<double> times;
     auto lap_time{(*it)->previous_lap_time()};
     auto lap{(*it)->current_lap()};
-    if (lap_time != Timing_Info::no_time && lap > 0 && lap - 1 > a_time.size())
-        a_time.push_back(lap_time);
+    if (lap_time != Timing_Info::no_time && lap > 0 && lap - 1 > times.size())
+        times.push_back(lap_time);
 
-    auto x{2};
-    auto y{95};
-    screen.text(x, y, "Lap", "Time");
-    for (auto i = 0; auto time : a_time)
-        screen.text(x, y -= 3, ++i, time_str(time));
+    Two_Vector p{2, 95};
+    screen.text(p, "Lap", "Time");
+    for (size_t i{1}; i <= times.size(); ++i, p.y -= 3)
+        screen.text(p, i, time_str(times[i]));
     // Draw the lap number with no time for the current lap.
-    screen.text(x, y, a_time.size() + 1, "");
-    draw_fastest_lap(screen, x, y - 3);
+    screen.text(p, times.size() + 1, "");
+    draw_fastest_lap(screen, {p.x, p.y - 3});
 }
 
-void Gl_World::draw_fastest_lap(Vamos_Media::Two_D& screen, int x, int y) const
+void Gl_World::draw_fastest_lap(Vamos_Media::Two_D& screen, Two_Vector const& p) const
 {
-    screen.text(x, y, "Fastest Lap");
-    auto const* p_fastest{mp_timing->fastest_lap_timing()};
-    if (p_fastest && (p_fastest->best_lap_time() != Timing_Info::no_time))
-        screen.text(x, y - 3, m_cars[p_fastest->grid_position() - 1].car->name(),
-                    time_str(p_fastest->best_lap_time()));
+    screen.text(p, "Fastest Lap");
+    auto const* fastest{mp_timing->fastest_lap_timing()};
+    if (fastest && (fastest->best_lap_time() != Timing_Info::no_time))
+        screen.text({p.x, p.y - 3}, m_cars[fastest->grid_position() - 1].car->name(),
+                    time_str(fastest->best_lap_time()));
 }
 
 void Gl_World::start(bool qualifying, size_t laps_or_minutes)

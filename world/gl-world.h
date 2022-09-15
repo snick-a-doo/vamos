@@ -212,7 +212,8 @@ private:
     void draw_timing_info() const;
     void draw_leaderboard(Vamos_Media::Two_D& screen) const;
     void draw_lap_times(Vamos_Media::Two_D& screen) const;
-    void draw_fastest_lap(Vamos_Media::Two_D& screen, int x, int y) const;
+    void draw_fastest_lap(Vamos_Media::Two_D& screen,
+                          Vamos_Geometry::Two_Vector const& p) const;
 
     /// Callback for window resizing.
     void reshape(int width, int height);

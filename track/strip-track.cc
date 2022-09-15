@@ -146,7 +146,7 @@ void Sky_Box::draw(Three_Vector const& view) const
 Map_Background::Map_Background(std::string const& image_file_name,
                                double dx, double dy,
                                double width, double height)
-    : mp_image(std::make_unique<Texture_Image>(image_file_name, true)),
+    : mp_image(std::make_unique<Texture_Image>(image_file_name, true, false)),
       m_dx(dx),
       m_dy(dy),
       m_width(width),

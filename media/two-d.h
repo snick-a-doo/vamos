@@ -1,76 +1,89 @@
-//  Two_D.h2 - Convenience functions for 2D OpenGl rendering. 
-//
-//  Copyright (C) 2013 Sam Varner
+//  Copyright (C) 2013-2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _TWO_D_H_
-#define _TWO_D_H_
-
-#include "../geometry/rectangle.h"
+#ifndef VAMOS_MEDIA_TWO_D_H_INCLUDED
+#define VAMOS_MEDIA_TWO_D_H_INCLUDED
 
 #include <iomanip>
 #include <sstream>
 #include <string>
 
+namespace Vamos_Geometry
+{
+class Rectangle;
+class Two_Vector;
+}
 namespace Vamos_Media
 {
-  class Two_D
-  {
-  public:
-    Two_D ();
-    Two_D (int width, int height);
-    ~Two_D ();
+/// RGB colors.
+struct Color
+{
+    double red{0.0};
+    double green{0.0};
+    double blue{0.0};
+};
 
-    void text (double x, double y, const std::string& label) { text (x, y, label, ""); }
+/// Some common pre-defined colors
+/// @{
+Color constexpr red{1.0, 0.0, 0.0};
+Color constexpr cyan{0.0, 1.0, 1.0};
+Color constexpr magenta{1.0, 0.0, 1.0};
+Color constexpr gray80{0.8, 0.8, 0.8};
+/// @}
 
-    template <typename T1, typename T2> void text (double x,
-                                                   double y,
-                                                   const T1& label, 
-                                                   const T2& value,
-                                                   const std::string& units = "",
-                                                   int precision = 0)
-    {
-      std::ostringstream os;
-      os.setf (std::ios::fixed);
-      os << std::setprecision (precision) << label << ' ' << value << ' ' << units;
-      draw_string (os.str (), x, y);
-    }
+/// Draw 2D text. Positions are expressed as percentage of the viewport width and height.
+class Two_D
+{
+    using V2 = Vamos_Geometry::Two_Vector;
 
-    void bar (const Vamos_Geometry::Rectangle& box, 
-              double red, double green, double blue,
-              double fraction);
+public:
+    /// Set up for 2D drawing.
+    Two_D();
+    /// Restore the graphics state.
+    ~Two_D();
 
-    void lights (double x, double y, double r, int n, int n_on,
-                 double red_on, double green_on, double blue_on,
-                 double red_off, double green_off, double blue_off);
+    /// Draw a string at screen position @p.
+    void text(V2 p, std::string const& label);
+    /// Draw a formatted value with label and units.
+    template <typename T, typename U>
+    void text(V2 const& p, const T& label, const U& value, const std::string& units = "",
+              int precision = 0);
+    /// Draw a vertical bar @p fraction of the way to the top of @p box.
+    void bar(Vamos_Geometry::Rectangle const& box, const Color& color, double fraction);
+    /// Draw @p n circles of radius @p r starting at at @p. The first @p n_an are
+    /// drawn in @p on_color, the rest in off_color.
+    void lights(V2 p, double r, int n, int n_on,
+                Color const& on_color, Color const& off_color);
+    /// Draw a dot displaced by @p v from the center of a ring of radius @p r.
+    void vector(V2 p, double r, Color const& ring_color, Color const& dot_corol, V2 const& v);
 
-    void vector (double x, double y, double r,
-                 double red, double green, double blue,
-                 double red_dot, double green_dot, double blue_dot,
-                 const Vamos_Geometry::Two_Vector& v);
+private:
+    double m_width; ///< The width of the viewport.
+    double m_height; ///< The width of the viewport.
+};
 
-  private:
-    double m_width;
-    double m_height;
-
-    void initialize ();
-
-    void draw_string (const std::string& str, double x, double y);
-  };
+template <typename T, typename U>
+void Two_D::text(V2 const& p, T const& label, U const& value, std::string const& units,
+                 int precision)
+{
+    std::ostringstream os;
+    os.setf(std::ios::fixed);
+    os << std::setprecision(precision) << label << ' ' << value << ' ' << units;
+    text(p, os.str());
 }
 
-#endif // not _TWO_D_H_
+} // namespace Vamos_Media
+
+#endif // VAMOS_MEDIA_TWO_D_H_INCLUDED

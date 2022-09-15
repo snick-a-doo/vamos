@@ -28,7 +28,7 @@ namespace Vamos_Media
 class Missing_Sound_File : public std::runtime_error
 {
 public:
-    Missing_Sound_File(std::string file)
+    Missing_Sound_File(std::string const& file)
         : std::runtime_error{"Can't find the sound file \"" + file + "\""}
     {}
 };
