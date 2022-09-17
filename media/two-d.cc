@@ -66,7 +66,8 @@ void Two_D::text(Two_Vector p, std::string const& str)
         glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
 }
 
-void Two_D::bar(Vamos_Geometry::Rectangle const& box, Color const& color, double fraction)
+void Two_D::bar(Vamos_Geometry::Rectangle<double> const& box,
+                Color const& color, double fraction)
 {
     auto x1{box.left() * m_width / 100};
     auto y1{box.top() * m_height / 100};

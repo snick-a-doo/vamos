@@ -22,7 +22,7 @@
 
 namespace Vamos_Geometry
 {
-class Rectangle;
+template <typename T> class Rectangle;
 class Two_Vector;
 }
 namespace Vamos_Media
@@ -61,7 +61,7 @@ public:
     void text(V2 const& p, const T& label, const U& value, const std::string& units = "",
               int precision = 0);
     /// Draw a vertical bar @p fraction of the way to the top of @p box.
-    void bar(Vamos_Geometry::Rectangle const& box, const Color& color, double fraction);
+    void bar(Vamos_Geometry::Rectangle<double> const& box, const Color& color, double fraction);
     /// Draw @p n circles of radius @p r starting at at @p. The first @p n_an are
     /// drawn in @p on_color, the rest in off_color.
     void lights(V2 p, double r, int n, int n_on,

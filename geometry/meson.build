@@ -4,7 +4,6 @@ geometry_sources = [
   'numeric.cc',
   'parameter.cc',
   'pid.cc',
-  'rectangle.cc',
   'spline.cc',
   'three-matrix.cc',
   'three-vector.cc',

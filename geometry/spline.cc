@@ -38,7 +38,7 @@ Spline::Spline(std::vector<Two_Vector> const& points,
 
 void Spline::set_periodic(double end)
 {
-    load({end, m_points.empty() ? 0.0 : m_points[0].y});
+    load({end, m_points.empty() ? 0.0 : m_points.front().y});
     m_periodic = true;
 }
 
@@ -106,7 +106,7 @@ Two_Vector Spline::normal(double x) const
 {
     interpolate(x);
     auto theta{std::atan(m_slope)};
-    return Two_Vector(-std::sin(theta), std::cos(theta));
+    return {-std::sin(theta), std::cos(theta)};
 }
 
 std::vector<double> solve_symmetric_tridiagonal(std::vector<double> const& a,

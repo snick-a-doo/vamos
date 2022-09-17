@@ -119,7 +119,7 @@ namespace Vamos_Track
 
 	std::vector <double> texture_offsets () const { return m_texture_offsets; }
 
-    virtual Vamos_Geometry::Rectangle bounds () const { return m_bounds; }
+    virtual Vamos_Geometry::Rectangle<double> bounds () const { return m_bounds; }
 
 	const Vamos_Geometry::Material& left_material (double height) const;
 	const Vamos_Geometry::Material& right_material (double height) const; 
@@ -156,7 +156,7 @@ namespace Vamos_Track
     std::vector <Vamos_Media::Texture_Image*> m_textures;
 
 	// bounding dimensions
-    Vamos_Geometry::Rectangle m_bounds;
+    Vamos_Geometry::Rectangle<double> m_bounds;
 
     void add_textures ();
 	void draw_strip (Strip strip, double texture_offset);

@@ -130,7 +130,7 @@ namespace Vamos_Track
   Segment_Iterator::Segment_Iterator (const Road_Segment& segment,
                                       double resolution)
     : m_segment (segment),
-      m_texture_coordinates (Two_Vector (0.0, 0.0)),
+      m_texture_coordinates{0.0, 0.0},
       m_resolution (resolution),
       m_position (BEGIN),
       m_connection (false),
@@ -143,7 +143,7 @@ namespace Vamos_Track
                                Gl_Road_Segment::Strip strip)
   {
     m_coordinates = start_coords;
-    m_normal = Three_Vector (0.0, 0.0, 1.0);
+    m_normal = {0.0, 0.0, 1.0};
     m_distance = 0.0;
     m_strip = strip;
 
@@ -718,8 +718,7 @@ Gl_Road_Segment::draw_strip (Strip strip, double texture_offset)
   glNormal3d (mp_iterator->normal ().x, 
 			  mp_iterator->normal ().y, 
 			  mp_iterator->normal ().z);
-  m_bounds.enclose (Rectangle (Two_Vector (vertex.x, vertex.y), 
-                               Two_Vector (vertex.x, vertex.y)));
+  m_bounds.enclose(Rectangle<double>({vertex.x, vertex.y}, {vertex.x, vertex.y}));
 
   double tex_width = m_textures [strip]->width (); 
   double tex_height = m_textures [strip]->height ();
@@ -735,8 +734,7 @@ Gl_Road_Segment::draw_strip (Strip strip, double texture_offset)
   glNormal3d (mp_iterator->normal ().x, 
 			  mp_iterator->normal ().y, 
 			  mp_iterator->normal ().z);
-  m_bounds.enclose (Rectangle (Two_Vector (vertex.x, vertex.y), 
-                               Two_Vector (vertex.x, vertex.y)));
+  m_bounds.enclose({{vertex.x, vertex.y}, {vertex.x, vertex.y}});
 
   tex_x = (tex_width > 0.0)
 	? mp_iterator->texture_coordinates ().x / tex_width : 1.0;
@@ -749,8 +747,7 @@ Gl_Road_Segment::draw_strip (Strip strip, double texture_offset)
 	  glNormal3d (mp_iterator->normal ().x, 
 				  mp_iterator->normal ().y, 
 				  mp_iterator->normal ().z);
-      m_bounds.enclose (Rectangle (Two_Vector (vertex.x, vertex.y), 
-                                   Two_Vector (vertex.x, vertex.y)));
+      m_bounds.enclose({{vertex.x, vertex.y}, {vertex.x, vertex.y}});
 
 	  tex_x = (tex_width > 0.0)
 		? mp_iterator->texture_coordinates ().x / tex_width : 0.0;
@@ -764,8 +761,7 @@ Gl_Road_Segment::draw_strip (Strip strip, double texture_offset)
 	  glNormal3d (mp_iterator->normal ().x, 
 				  mp_iterator->normal ().y, 
 				  mp_iterator->normal ().z);
-      m_bounds.enclose (Rectangle (Two_Vector (vertex.x, vertex.y), 
-                                   Two_Vector (vertex.x, vertex.y)));
+      m_bounds.enclose({{vertex.x, vertex.y}, {vertex.x, vertex.y}});
 
 	  tex_x = (tex_width > 0.0) ?
 		mp_iterator->texture_coordinates ().x / tex_width : 1.0;

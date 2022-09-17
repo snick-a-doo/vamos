@@ -139,8 +139,8 @@ Banking::set_start (double start_angle, double length)
 {
   m_start_angle = start_angle;
   m_bank_angle.clear ();
-  m_bank_angle.load (0.0, start_angle);
-  m_bank_angle.load (length, m_end_angle);
+  m_bank_angle.load({0.0, start_angle});
+  m_bank_angle.load({length, m_end_angle});
 }
 
 //=============================================================================
@@ -219,10 +219,10 @@ Road_Segment::Road_Segment (double length,
     m_last_segment (false),
     m_racing_line_curvature_factor (1.0)
 {
-  m_left_road_width.load (Two_Vector (0.0, left_road_width));
-  m_right_road_width.load (Two_Vector (0.0, right_road_width));
-  m_left_width.load (Two_Vector (0.0, left_width));
-  m_right_width.load (Two_Vector (0.0, right_width));
+    m_left_road_width.load({0.0, left_road_width});
+    m_right_road_width.load({0.0, right_road_width});
+    m_left_width.load({0.0, left_width});
+    m_right_width.load({0.0, right_width});
 }
 
 Road_Segment::~Road_Segment ()
@@ -466,25 +466,25 @@ double Road_Segment::right_width(double distance, bool narrow) const
 void 
 Road_Segment::set_left_width (double distance, double width)
 {
-  m_left_width.load (Two_Vector (distance, width));
+    m_left_width.load({distance, width});
 }
 
 void 
 Road_Segment::set_right_width (double distance, double width)
 {
-  m_right_width.load (Two_Vector (distance, width));
+    m_right_width.load({distance, width});
 }
 
 void 
 Road_Segment::set_left_road_width (double distance, double width)
 {
-  m_left_road_width.load (Two_Vector (distance, width));
+    m_left_road_width.load({distance, width});
 }
 
 void 
 Road_Segment::set_right_road_width (double distance, double width)
 {
-  m_right_road_width.load (Two_Vector (distance, width));
+    m_right_road_width.load({distance, width});
 }
 
 double

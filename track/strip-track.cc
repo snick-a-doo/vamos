@@ -443,7 +443,7 @@ void Road::clear()
 {
     m_elevation.replace({{0.0, 0.0}});
     m_length = 0.0;
-    m_bounds = Rectangle();
+    m_bounds = Rectangle<double>();
 
     for (auto* seg : m_segments)
         delete seg;
@@ -870,9 +870,9 @@ void Pit_Lane::build(bool join_to_track, int adjusted_segments, Gl_Road_Segment&
             auto along_pit{i * m_length / elevations};
             auto along_track{wrap(in_distance + i * delta / elevations, track_length)};
             auto z{track_elevation.interpolate(along_track)};
-            m_elevation.load(along_pit, z);
+            m_elevation.load({along_pit, z});
         }
-        m_elevation.load(m_length, track_elevation.interpolate(out_distance));
+        m_elevation.load({m_length, track_elevation.interpolate(out_distance)});
     }
 
     // Finalize the elevations and segments.
@@ -1231,7 +1231,7 @@ Three_Vector Strip_Track::camera_target(Camera const& camera) const
                        sin(deg_to_rad(camera.direction.y))};
 }
 
-const Rectangle& Strip_Track::bounds() const
+const Rectangle<double>& Strip_Track::bounds() const
 {
     return Rectangle(mp_track->bounds()).enclose(mp_pit_lane->bounds());
 }

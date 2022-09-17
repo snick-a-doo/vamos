@@ -20,6 +20,16 @@
 
 using namespace Vamos_Geometry;
 
+Two_Vector::Two_Vector(double x, double y)
+    : Point{x, y}
+{
+}
+
+Two_Vector::Two_Vector()
+    : Two_Vector(0.0, 0.0)
+{
+}
+
 double Two_Vector::magnitude() const
 {
     return std::sqrt(x * x + y * y);

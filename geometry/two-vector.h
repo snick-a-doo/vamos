@@ -20,17 +20,22 @@
 
 namespace Vamos_Geometry
 {
-struct Two_Vector
+template <typename T> struct Point
 {
+    T x{0};
+    T y{0};
+    /// Test for equality.
+    friend bool operator==(Point<T> const& p1, Point<T> const& p2) = default;
+};
+
+struct Two_Vector : public Point<double>
+{
+    Two_Vector(double x, double y);
+    Two_Vector();
     /// @return The magnitude of this vector.
     double magnitude() const;
     /// @return The unit vector that points along this vector.
     Two_Vector unit() const;
-    /// Test for equality.
-    friend bool operator==(Two_Vector const& v1, Two_Vector const& v2) = default;
-
-    double x{0.0};
-    double y{0.0};
 };
 
 /// Arithmetic operators

@@ -1007,7 +1007,7 @@ Braking_Operation::maximum_speed (double speed,
         }
 
       if (too_fast && (cornering_speed < minimum_speed_vs_distance.y))
-        minimum_speed_vs_distance = Two_Vector (d, cornering_speed);
+          minimum_speed_vs_distance = {d, cornering_speed};
     }
 
   // No need to start braking yet.
@@ -1024,7 +1024,7 @@ Braking_Operation::maximum_speed (double speed,
   for (double d = minimum_speed_vs_distance.x; d > -delta_x; d -= delta_x)
     {
       // Use un-wrapped distances so the interpolator's points are in order. 
-      points.push_back (Two_Vector (distance + d, speed));
+            points.emplace_back(distance + d, speed);
 
       double along = wrap (distance + d, m_road.length ());
       Three_Vector normal = get_normal (along);
@@ -1036,13 +1036,13 @@ Braking_Operation::maximum_speed (double speed,
                                        normal, drag, lift, mass, braking_fraction);
 
       if (too_fast && (cornering_speed < minimum_speed_vs_distance.y))
-        minimum_speed_vs_distance = Two_Vector (d, cornering_speed);
+          minimum_speed_vs_distance = {d, cornering_speed};
 
       if (speed >= cornering_speed)
         {
           if (!too_fast)
             {
-              minimum_speed_vs_distance = Two_Vector (d, cornering_speed);
+                minimum_speed_vs_distance = {d, cornering_speed};
               // Found an earlier curve that requires a lower speed.
               too_fast = true;
             }

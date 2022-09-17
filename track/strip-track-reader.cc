@@ -544,7 +544,7 @@ Strip_Track_Reader::on_data (std::string data)
 	  double dist;
 	  double elev;
 	  is >> delim >> dist >> delim >> elev;
-	  m_elev_points.push_back (Two_Vector (dist, elev));
+	  m_elev_points.emplace_back(dist, elev);
 	}
   else if (match ("*/road/bank"))
 	{
@@ -665,7 +665,7 @@ Strip_Track_Reader::on_data (std::string data)
         {
           double amp;
           is >> amp;
-          m_bump_amplitude = Two_Vector (amp, 0.0);
+          m_bump_amplitude = {amp, 0.0};
         }
 	}
   else if (path () == "/track/material/bump-wavelength")

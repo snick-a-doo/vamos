@@ -8,7 +8,7 @@ using namespace Vamos_Geometry;
 
 TEST_CASE("default")
 {
-    Rectangle r;
+    Rectangle<double> r;
     CHECK(r.left() == 0.0);
     CHECK(r.top() == 0.0);
     CHECK(r.right() == 0.0);
@@ -17,11 +17,11 @@ TEST_CASE("default")
 
 TEST_CASE("rectangle")
 {
-    Rectangle box(Two_Vector(1.0, 2.0), Two_Vector(3.0, -2.0));
+    Rectangle<double> box({1.0, 2.0}, {3.0, -2.0});
 
     SUBCASE("left")
     {
-        box.enclose(Rectangle(Two_Vector(0.0, 1.0), Two_Vector(1.0, 0.0)));
+        box.enclose({{0.0, 1.0}, {1.0, 0.0}});
         CHECK(box.left() == 0.0);
         CHECK(box.top() == 2.0);
         CHECK(box.right() == 3.0);
@@ -29,12 +29,12 @@ TEST_CASE("rectangle")
 
         CHECK(box.width() == 3.0);
         CHECK(box.height() == 4.0);
-        CHECK(box.center() == Two_Vector(1.5, 0.0));
+        CHECK(box.center() == Two_Vector{1.5, 0.0});
         CHECK(box.aspect() == 0.75);
     }
     SUBCASE("right")
     {
-        box.enclose(Rectangle(Two_Vector(2.0, 1.0), Two_Vector(4.0, 0.0)));
+        box.enclose({{2.0, 1.0}, {4.0, 0.0}});
         CHECK(box.left() == 1.0);
         CHECK(box.top() == 2.0);
         CHECK(box.right() == 4.0);
@@ -42,7 +42,7 @@ TEST_CASE("rectangle")
     }
     SUBCASE("top")
     {
-        box.enclose(Rectangle(Two_Vector(2.0, 3.0), Two_Vector(3.0, 1.0)));
+        box.enclose({{2.0, 3.0}, {3.0, 1.0}});
         CHECK(box.left() == 1.0);
         CHECK(box.top() == 3.0);
         CHECK(box.right() == 3.0);
@@ -50,7 +50,7 @@ TEST_CASE("rectangle")
     }
     SUBCASE("bottom")
     {
-        box.enclose(Rectangle(Two_Vector(2.0, 1.0), Two_Vector(3.0, -3.0)));
+        box.enclose({{2.0, 1.0}, {3.0, -3.0}});
         CHECK(box.left() == 1.0);
         CHECK(box.top() == 2.0);
         CHECK(box.right() == 3.0);
@@ -58,7 +58,7 @@ TEST_CASE("rectangle")
     }
     SUBCASE("around")
     {
-        box.enclose(Rectangle(Two_Vector(0.0, 3.0), Two_Vector(4.0, -2.0)));
+        box.enclose({{0.0, 3.0}, {4.0, -2.0}});
         CHECK(box.left() == 0.0);
         CHECK(box.top() == 3.0);
         CHECK(box.right() == 4.0);
@@ -67,7 +67,7 @@ TEST_CASE("rectangle")
     SUBCASE("scale down")
     {
         box.scale(0.5);
-        CHECK(box == Rectangle(Two_Vector(1.5, 1.0), Two_Vector(2.5, -1.0)));
+        CHECK(box == Rectangle<double>({1.5, 1.0}, {2.5, -1.0}));
         CHECK(box.left() == 1.5);
         CHECK(box.top() == 1.0);
         CHECK(box.right() == 2.5);
@@ -83,7 +83,7 @@ TEST_CASE("rectangle")
     }
     SUBCASE("clip all")
     {
-        box.clip(Rectangle(Two_Vector(1.5, 1.5), Two_Vector(2.5, -1.5)));
+        box.clip({{1.5, 1.5}, {2.5, -1.5}});
         CHECK(box.left() == 1.5);
         CHECK(box.top() == 1.5);
         CHECK(box.right() == 2.5);
@@ -91,12 +91,12 @@ TEST_CASE("rectangle")
     }
     SUBCASE("move")
     {
-        box.move(Two_Vector(1.0, 0.0));
+        box.move({1.0, 0.0});
         CHECK(box.left() == 2.0);
         CHECK(box.top() == 2.0);
         CHECK(box.right() == 4.0);
         CHECK(box.bottom() == -2.0);
-        box.move(Two_Vector(2.0, -3.0));
+        box.move({2.0, -3.0});
         CHECK(box.left() == 4.0);
         CHECK(box.top() == -1.0);
         CHECK(box.right() == 6.0);
@@ -107,7 +107,7 @@ TEST_CASE("rectangle")
 TEST_CASE("inverted")
 {
     // The bottom has a higher value than the top as with pixel coordinates.
-    Rectangle box(Two_Vector(10, 20), Two_Vector(30, 60));
+    Rectangle<int> box({10, 20}, {30, 60});
 
     CHECK(box.left() == 10);
     CHECK(box.top() == 20);
@@ -116,12 +116,12 @@ TEST_CASE("inverted")
 
     CHECK(box.width() == 20);
     CHECK(box.height() == 40);
-    CHECK(box.center() == Two_Vector(20, 40));
+    CHECK(box.center() == Point{20, 40});
     CHECK(box.aspect() == 0.5);
 
     SUBCASE("around")
     {
-        box.enclose(Rectangle(Two_Vector(0, 0), Two_Vector(40, 80)));
+        box.enclose(Rectangle<int>({0, 0}, {40, 80}));
         CHECK(box.left() == 0.0);
         CHECK(box.top() == 0);
         CHECK(box.right() == 40);
@@ -129,7 +129,7 @@ TEST_CASE("inverted")
     }
     SUBCASE("clip lower right")
     {
-        box.clip(Rectangle(Two_Vector(0, 20), Two_Vector(20, 30)));
+        box.clip(Rectangle<int>({0, 20}, {20, 30}));
         CHECK(box.left() == 10);
         CHECK(box.top() == 20);
         CHECK(box.right() == 20);
@@ -137,7 +137,7 @@ TEST_CASE("inverted")
     }
     SUBCASE("clip all")
     {
-        box.clip(Rectangle(Two_Vector(15, 25), Two_Vector(25, 55)));
+        box.clip(Rectangle<int>({15, 25}, {25, 55}));
         CHECK(box.left() == 15);
         CHECK(box.top() == 25);
         CHECK(box.right() == 25);

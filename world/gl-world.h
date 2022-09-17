@@ -109,8 +109,8 @@ private:
     Control m_keyboard;
     Control m_mouse;
 
-    Vamos_Geometry::Rectangle m_initial_bounds;
-    Vamos_Geometry::Rectangle m_bounds;
+    Vamos_Geometry::Rectangle<double> m_initial_bounds;
+    Vamos_Geometry::Rectangle<double> m_bounds;
 };
 
 //----------------------------------------------------------------------------------------

@@ -82,7 +82,7 @@ private:
     const double m_far_plane;
     std::unique_ptr<Vamos_Media::Texture_Image> mp_mask;
 
-    Vamos_Geometry::Rectangle m_viewport;
+    Vamos_Geometry::Rectangle<int> m_viewport;
 };
 } // namespace Vamos_Body
 
@@ -143,22 +143,18 @@ void Rear_View_Mirror::set_viewport(int window_width, int window_height,
                                     double driver_field, double pan)
 {
     auto to_pixels = [](double range, double factor, double coordinate) {
-        return std::floor(0.5 * range * (1.0 - factor * coordinate));
+        return static_cast<int>(0.5 * range * (1.0 - factor * coordinate));
     };
     auto pos{rotate(m_position - driver_position, -deg_to_rad(pan) * Three_Vector::Z)};
     auto y_factor{-1.0 / (pos.x * std::tan(0.5 * deg_to_rad(driver_field)))};
     auto aspect{static_cast<double>(window_width) / window_height};
     auto x_factor{-y_factor / aspect};
-    //!!! Need to keep pixels as integers.
-    Two_Vector p1{to_pixels(window_width, x_factor, pos.y) - 1,
+    Point<int> p1{to_pixels(window_width, x_factor, pos.y) - 1,
                   to_pixels(window_height, y_factor, pos.z) - 1};
-    Two_Vector p2{to_pixels(window_width, x_factor, pos.y - m_width),
+    Point<int> p2{to_pixels(window_width, x_factor, pos.y - m_width),
                   to_pixels(window_height, y_factor, pos.z + m_height)};
     m_viewport = Rectangle{p1, p2};
-    m_viewport.clip(Rectangle{0, 0,
-                              static_cast<double>(window_width - 1),
-                              static_cast<double>(window_height - 1),
-                              true});
+    m_viewport.clip(Rectangle{0, 0, window_width - 1, window_height - 1, true});
 }
 
 void Rear_View_Mirror::draw_mask_shape()
@@ -186,7 +182,7 @@ void Rear_View_Mirror::draw_mask_shape()
 /// Grab the current buffer as an array of pixels.
 auto make_stencil_buffer = [](auto const& rect) {
     glReadBuffer(GL_BACK);
-    auto size{rect.width() * rect.height()};
+    auto size{static_cast<size_t>(rect.width() * rect.height())};
     auto rgba_buffer{std::make_unique<unsigned char[]>(4 * size)};
     glReadPixels(rect.left(), rect.top(), rect.width(), rect.height(),
                  GL_RGBA, GL_UNSIGNED_BYTE, rgba_buffer.get());

@@ -203,7 +203,7 @@ public:
     void draw();
 
     /// @return A rectangle that bounds the road.
-    const Vamos_Geometry::Rectangle& bounds() const { return m_bounds; }
+    const Vamos_Geometry::Rectangle<double>& bounds() const { return m_bounds; }
     /// @return The vector of segments.
     const Segment_List& segments() const { return m_segments; }
     /// @return The elevation curve.
@@ -271,7 +271,7 @@ private:
     void connect(Segment_List::iterator it);
     void narrow_pit_segments();
 
-    Vamos_Geometry::Rectangle m_bounds;
+    Vamos_Geometry::Rectangle<double> m_bounds;
     double m_start_direction{0.0};
     Racing_Line m_racing_line;
     bool m_build_racing_line{false};
@@ -393,7 +393,7 @@ public:
     Vamos_Geometry::Three_Vector camera_target(const Camera& camera) const;
 
     // Return the bounds of the track.
-    const Vamos_Geometry::Rectangle& bounds() const;
+    const Vamos_Geometry::Rectangle<double>& bounds() const;
 
     // Scale the track to a particular length.
     void set_length(double length) { mp_track->set_length(length); }

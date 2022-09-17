@@ -283,16 +283,16 @@ bool Map::pan(double, double direction)
     switch (Direct(direction))
     {
     case Direct::left:
-        m_bounds.move(Two_Vector(-delta, 0));
+        m_bounds.move({-delta, 0});
         break;
     case Direct::right:
-        m_bounds.move(Two_Vector(delta, 0));
+        m_bounds.move({delta, 0});
         break;
     case Direct::up:
-        m_bounds.move(Two_Vector(0, delta));
+        m_bounds.move({0, delta});
         break;
     case Direct::down:
-        m_bounds.move(Two_Vector(0, -delta));
+        m_bounds.move({0, -delta});
         break;
     default:
         assert(false);
