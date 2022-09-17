@@ -32,9 +32,9 @@ using namespace Vamos_Track;
 double constexpr slipstream_time_constant{0.7};
 
 //-----------------------------------------------------------------------------
-Car_Info::Car_Info(Car* car_in, Driver* driver_in)
-    : car{car_in},
-      driver{driver_in}
+Car_Info::Car_Info(std::shared_ptr<Car> car, std::unique_ptr<Driver> driver)
+    : car{car},
+      driver{std::move(driver)}
 {
 }
 
@@ -118,7 +118,7 @@ void World::propagate_cars(double time_step)
                                                  info.segment_index),
                        m_track.track_coordinates(info.car->target_position(), info.road_index,
                                                  info.segment_index));
-        interact(info.car, info.road_index, info.segment_index);
+        interact(info.car.get(), info.road_index, info.segment_index);
 
         // Handle air resistance.
         auto slipstream{1.0};
@@ -251,7 +251,7 @@ void World::collide(Car_Info* car1_info, Car_Info* car2_info)
                                               info.depth, -info.normal, info.material);
             auto v_perp{velocity.project(info.normal)};
             auto v_par{velocity - v_perp};
-            m_interaction_info.emplace_back(car1, info.material.composition(),
+            m_interaction_info.emplace_back(car1.get(), info.material.composition(),
                                            info.material.composition(),
                                            v_par.magnitude(), v_perp.magnitude());
         }
@@ -264,10 +264,10 @@ void World::reset()
     if (!ccar)
         return;
 
-    auto* car{ccar->car};
+    auto car{ccar->car};
     car->reset();
-    place_car(car, m_track.reset_position(car->chassis().position(),
-                                          ccar->road_index, ccar->segment_index),
+    place_car(car.get(), m_track.reset_position(car->chassis().position(),
+                                                ccar->road_index, ccar->segment_index),
               m_track.get_road(ccar->road_index));
 }
 
@@ -317,14 +317,14 @@ void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
     car->chassis().translate({0.0, 0.0, track_pos.z - gap});
 }
 
-void World::add_car(Car& car, Driver& driver)
+void World::add_car(std::shared_ptr<Car> car, std::unique_ptr<Driver> driver)
 {
-    car.chassis().set_gravity(m_gravity);
-    m_cars.emplace_back(&car, &driver);
-    driver.set_cars(&m_cars);
-    place_car(&car, car.chassis().position(), m_track.get_road(0));
-    if (driver.is_interactive())
-        mo_controlled_car_index = m_cars.size() - 1;
+    driver->set_cars(&m_cars);
+    if (driver->is_interactive())
+        mo_controlled_car_index = m_cars.size();
+    car->chassis().set_gravity(m_gravity);
+    place_car(car.get(), car->chassis().position(), m_track.get_road(0));
+    m_cars.emplace_back(car, std::move(driver));
 }
 
 Car_Info* World::controlled_car()

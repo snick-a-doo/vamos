@@ -20,6 +20,7 @@
 
 #include "controls.h"
 
+#include <memory>
 #include <vector>
 
 namespace Vamos_Body
@@ -38,8 +39,8 @@ namespace Vamos_World
   class Driver
   {
   public:
-    Driver (Vamos_Body::Car& car_in) 
-      : mp_car (&car_in)
+      Driver (std::shared_ptr<Vamos_Body::Car> car)
+          : mp_car{car}
     {
     }
 
@@ -59,7 +60,7 @@ namespace Vamos_World
 
     virtual bool is_interactive () const { return true; }
 
-    Vamos_Body::Car* mp_car;
+      std::shared_ptr<Vamos_Body::Car> mp_car;
   };
 }
 

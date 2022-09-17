@@ -28,7 +28,7 @@ namespace Vamos_World
   class Interactive_Driver : public Driver, public Control_Handler
   {
   public:
-    Interactive_Driver (Vamos_Body::Car& car_in);
+      Interactive_Driver(std::shared_ptr<Vamos_Body::Car> car);
     virtual ~Interactive_Driver () {};
 
     virtual Control& joystick () { return m_joystick; }

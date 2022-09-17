@@ -171,7 +171,8 @@ public:
              bool full_screen);
     virtual ~Gl_World() = default;
 
-    virtual void add_car(Vamos_Body::Car& car, Driver& driver) override;
+    virtual void add_car(std::shared_ptr<Vamos_Body::Car> car,
+                         std::unique_ptr<Driver> driver) override;
     virtual void start(bool qualifying, size_t laps_or_minutes) override;
     // Read the world definition file.
     void read(std::string world_file = "", std::string controls_file = "");

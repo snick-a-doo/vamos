@@ -38,6 +38,7 @@
 #include <sstream>
 #include <string>
 
+using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 using namespace Vamos_World;
@@ -364,22 +365,17 @@ Gl_World::Gl_World(Vamos_Track::Strip_Track& track, Atmosphere const& atmosphere
     glClearColor(0.32, 0.65, 0.34, 0.0);
 }
 
-void Gl_World::add_car(Vamos_Body::Car& car, Driver& driver)
+void Gl_World::add_car(std::shared_ptr<Car> car, std::unique_ptr<Driver> driver)
 {
-    World::add_car(car, driver);
-
     // If there's a controlled car, show the view from inside it. Otherwise show
     // the view from the trackside cameras.
-    if (!driver.is_interactive())
-    {
-        m_view = View::world;
-        return;
-    }
-    m_view = View::body;
-    set_focused_car(m_cars.size() - 1);
+    auto interactive{driver->is_interactive()};
+    World::add_car(car, std::move(driver));
+    m_view = interactive ? View::body : View::world;
+    if (interactive)
+        set_focused_car(m_cars.size() - 1);
 }
 
-// Read the definition file.
 void Gl_World::read(std::string world_file, std::string controls_file)
 {
     // Remember the file names for re-reading.
@@ -495,7 +491,7 @@ bool Gl_World::replay(double, double)
     if (m_cars[0].m_record.empty())
         return true;
 
-    auto first{m_cars.front()};
+    auto const& first{m_cars.front()};
     auto real_time{first.m_record[0].m_time};
     auto last_ticks{SDL_GetTicks()};
     for (size_t i = 0; i < first.m_record.size(); ++i)
@@ -556,7 +552,7 @@ void Gl_World::play_sounds()
 
     for (auto const& touch : m_interaction_info)
     {
-        if (touch.car != focused_car()->car)
+        if (touch.car != focused_car()->car.get())
             continue;
 
         switch (touch.track_material)
@@ -901,7 +897,7 @@ void Gl_World::check_for_events()
         Interactive_Driver* driver{nullptr};
         if (controlled_car())
         {
-            driver = dynamic_cast<Interactive_Driver*>(controlled_car()->driver);
+            driver = dynamic_cast<Interactive_Driver*>(controlled_car()->driver.get());
             if (!driver)
                 continue;
         }
@@ -1110,7 +1106,7 @@ Controls_Reader::Controls_Reader(std::string const& file_name, Gl_World* world)
         mp_world);
 
     auto car{mp_world->controlled_car()};
-    auto driver{car ? dynamic_cast<Interactive_Driver*>(car->driver) : nullptr};
+    auto driver{car ? dynamic_cast<Interactive_Driver*>(car->driver.get()) : nullptr};
     using Driver_CBs
         = std::map<std::string, std::function<bool(Interactive_Driver*, double, double)>>;
     m_driver_function_map = bindings(
@@ -1206,7 +1202,7 @@ void Controls_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
             return;
         }
         auto car{mp_world->controlled_car()};
-        auto driver{car ? dynamic_cast<Interactive_Driver*>(car->driver) : nullptr};
+        auto driver{car ? dynamic_cast<Interactive_Driver*>(car->driver.get()) : nullptr};
         auto dit{m_driver_function_map.find(m_function)};
         if (dit == m_driver_function_map.end())
            throw Unknown_Function(m_function);

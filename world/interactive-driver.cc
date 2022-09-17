@@ -23,8 +23,8 @@
 
 using namespace Vamos_World;
 
-Interactive_Driver::Interactive_Driver (Vamos_Body::Car& car_in)
-  : Driver (car_in)
+Interactive_Driver::Interactive_Driver(std::shared_ptr<Vamos_Body::Car> car)
+    : Driver{car}
 {
 }
 

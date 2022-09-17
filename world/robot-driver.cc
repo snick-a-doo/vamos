@@ -54,8 +54,8 @@ namespace
 }
 
 //-----------------------------------------------------------------------------
-Robot_Driver::Robot_Driver(Car& car_in, Strip_Track& track_in)
-: Driver (car_in),
+Robot_Driver::Robot_Driver(std::shared_ptr<Car> car, Strip_Track& track_in)
+    : Driver{car},
   m_mode (RACE),
   m_state (PARKED),
   m_event (Event::PARK, 0.0),
@@ -66,7 +66,7 @@ Robot_Driver::Robot_Driver(Car& car_in, Strip_Track& track_in)
   m_brake_control (0.1, 0.0, 0.0),
   m_steer_control (0.5, 0.0, 0.0),
   m_front_gap_control (1.5, 0.0, 0.0),
-  m_target_slip (car_in.get_robot_parameters ().slip_ratio),
+      m_target_slip{car->get_robot_parameters().slip_ratio},
   m_speed (0.0),
   m_target_segment (0),
   mp_track (&track_in),
@@ -77,8 +77,8 @@ Robot_Driver::Robot_Driver(Car& car_in, Strip_Track& track_in)
   m_interact (true),
   m_show_steering_target (false),
   m_road (mp_track->get_road (0)),
-  m_racing_line{m_road, car_in.get_robot_parameters ().lateral_acceleration},
-  m_braking{m_road, car_in.get_robot_parameters ().deceleration, m_racing_line},
+  m_racing_line{m_road, car->get_robot_parameters().lateral_acceleration},
+  m_braking{m_road, car->get_robot_parameters().deceleration, m_racing_line},
   m_speed_factor (1.0),
   m_passing (false)
 {
@@ -96,7 +96,7 @@ void Robot_Driver::set_gravity(Three_Vector const& g)
 void Robot_Driver::set_cars (const std::vector <Car_Info>* cars)
 { 
   mp_cars = cars;
-  m_info_index = cars->size () - 1;
+  m_info_index = cars->size();
 }
 
 double 
@@ -571,7 +571,7 @@ Robot_Driver::avoid_collisions ()
        it++)
     {
       // Don't check for collisions with yourself.
-      if (it->car == mp_car)
+        if (it->car.get() == mp_car.get())
         continue;
 
       // Don't worry about cars that are far away.

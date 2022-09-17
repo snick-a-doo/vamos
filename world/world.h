@@ -53,7 +53,8 @@ struct Atmosphere
 /// Information about each car in the world.
 struct Car_Info
 {
-    Car_Info(Vamos_Body::Car* car_in, Driver* driver_in);
+    Car_Info(std::shared_ptr<Vamos_Body::Car> car,
+             std::unique_ptr<Driver> driver);
 
     void reset();
     void propagate(double time_step, double total_time,
@@ -63,8 +64,8 @@ struct Car_Info
 
     size_t road_index{0};
     size_t segment_index{0};
-    Vamos_Body::Car* car{nullptr};
-    Driver* driver{nullptr};
+    std::shared_ptr<Vamos_Body::Car> car;
+    std::unique_ptr<Driver> driver;
     Vamos_Geometry::Three_Vector m_pointer_position;
 
     /// Recent history for slipstream and replay.
@@ -97,7 +98,7 @@ public:
     virtual ~World() = default;
 
     /// Put a car and its driver in the world.
-    virtual void add_car(Vamos_Body::Car& car, Driver& driver);
+    virtual void add_car(std::shared_ptr<Vamos_Body::Car> car, std::unique_ptr<Driver> driver);
     /// Start the session.
     /// @param qualifying Qualifying if true, race if false.
     /// @param laps_or_minutes The time limit, if qualifying, else the number of laps.
