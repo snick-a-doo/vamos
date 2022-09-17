@@ -24,21 +24,6 @@
    - F1: 6 cars @ 60 Hz fullscreen
    - GT: 13 cars @ 60 Hz fullscreen
 
-** Fail if libraries are missing
-   Also add libXi, libXmu
-* Enif's Win32 issues
-** Update dependencies in web docs.
-   http://vamos.sourceforge.net/vamos-docs/Building-Vamos.html#Building-Vamos
-** Macro guards
-   In front of glu.h and glut.h includes:
-   #ifdef WIN32
-   # define WINDOWS_LEAN_AND_MEAN 1
-   # define NOMINMAX 1
-   # include <windows.h>
-   #endif
-** Direction enum conflicts
-** Rectangle name conflicts
-   Rectangle -> Vamos_Geometry::Rectangle.
 * Game Support
 ** Add UI
 ** Draw lines on the track.
@@ -48,8 +33,6 @@
 ** Review suspension
    - Is the current model adequate?
    - Should we handle bad settings better?
-   - Handle bottoming out
-
 * Maybe
 ** Draw shadows
 *** Projection shadows and stencil buffer
@@ -67,4 +50,3 @@
     GL_ARB_depth_texture.  Good enough?
 
     Can't find the article.
-

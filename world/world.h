@@ -17,9 +17,9 @@
 #define VAMES_WORLD_WORLD_H_INCLUDED
 
 #include "../geometry/circular-buffer.h"
-#include "../geometry/material.h"
 #include "../geometry/three-matrix.h"
 #include "../geometry/three-vector.h"
+#include "../media/material.h"
 
 #include "timing-info.h"
 

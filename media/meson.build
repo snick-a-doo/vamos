@@ -1,4 +1,5 @@
 media_sources = [
+  'material.cc',
   'model.cc',
   'sample.cc',
   'texture-image.cc',

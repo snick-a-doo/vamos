@@ -16,13 +16,12 @@
 #ifndef _STRIP_TRACK_H_
 #define _STRIP_TRACK_H_
 
-#include "../geometry/contact-info.h"
-#include "../geometry/material.h"
 #include "../geometry/rectangle.h"
 #include "../geometry/spline.h"
 #include "../geometry/three-matrix.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
+#include "../media/material.h"
 #include "../media/texture-image.h"
 #include "../media/xml-parser.h"
 #include "gl-road-segment.h"

@@ -20,9 +20,9 @@
 #include "rigid-body.h"
 #include "tire.h"
 
-#include "../geometry/contact-info.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
+#include "../media/material.h"
 #include "../media/xml-parser.h"
 
 #include <memory>

@@ -125,10 +125,7 @@ GLuint Wheel::make_model(std::string const& file, double scale,
                          Three_Vector const& translation,
                          Three_Vector const& rotation)
 {
-    Vamos_Media::Ac3d* model = new Vamos_Media::Ac3d(file, scale, translation, rotation);
-    GLuint display_list = model->build();
-    delete model;
-    return display_list;
+    return Vamos_Media::Ac3d(file, scale, translation, rotation).build();
 }
 
 void Wheel::set_models(std::string const& slow_file, std::string const& fast_file,

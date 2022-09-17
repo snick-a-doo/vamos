@@ -19,7 +19,8 @@
 #define _GL_ROAD_SEGMENT_H_
 
 #include "road-segment.h"
-#include "../geometry/material.h"
+
+#include "../media/material.h"
 
 #include <GL/glu.h>
 

@@ -15,8 +15,8 @@
 //  You should have received a copy of the GNU General Public License
 //  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "../geometry/material.h"
 #include "../geometry/numeric.h"
+#include "../media/material.h"
 #include "../media/texture-image.h"
 #include "road-segment.h"
 

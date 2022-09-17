@@ -19,9 +19,9 @@
 #include "particle.h"
 #include "frame.h"
 
-#include "../geometry/material.h"
 #include "../geometry/three-matrix.h"
 #include "../geometry/three-vector.h"
+#include "../media/material.h"
 
 #include <memory>
 #include <vector>

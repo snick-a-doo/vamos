@@ -21,9 +21,9 @@
 #include "suspension.h"
 #include "tire.h"
 
-#include "../geometry/material.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
+#include "../media/material.h"
 
 #include <GL/gl.h>
 

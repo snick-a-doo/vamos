@@ -76,6 +76,16 @@ private:
     double m_height{1.0};
     /// @}
 };
+
+/// Information about a collision between a point and a surface.
+struct Contact_Info
+{
+    bool contact{false}; ///< True if a collision occurred, false otherwise.
+    /// How far the point had penetrated the surface when the collision was detected.
+    double depth{0.0}; ///< The vector normal to the surface.
+    Three_Vector normal; ///< The material of the surface.
+    Material material;
+};
 } // namespace Vamos_Geometry
 
 #endif // VAMOS_GEOMETRY_MATERIAL_H_INCLUDED
