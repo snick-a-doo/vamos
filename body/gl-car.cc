@@ -395,24 +395,24 @@ void Gl_Car::draw_dashboard_extras()
     screen.vector({25, top - radius}, radius, gray80, red, Two_Vector(a.y, -a.x) / 2.0);
 
 #ifdef DEBUG
-    screen.text({26 + radius}, top - radius, "", a.y, "", 2);
-    screen.text({27, top - 2} * radius - 2, "", a.x, "", 2);
+    screen.text({26 + radius, top - radius}, "", a.y, "", 2);
+    screen.text({27, top - 2 * radius - 2}, "", a.x, "", 2);
 
     screen.text({28, 18}, "Tire Temperature, Wear, Grip");
     //! fixme Assume wheels are defined in the order: right front, left front,
     // right rear, left rear.
-    screen.text({28, 14}, "", m_wheels[1]->temperature(), "", 0);
-    screen.text({32, 14}, "", m_wheels[1]->wear(), "", 2);
-    screen.text({36, 14}, "", m_wheels[1]->grip(), "", 2);
-    screen.text({40, 14}, "", m_wheels[0]->temperature(), "", 0);
-    screen.text({44, 14}, "", m_wheels[0]->wear(), "", 2);
-    screen.text({48, 14}, "", m_wheels[0]->grip(), "", 2);
-    screen.text({28, 10}, "", m_wheels[3]->temperature(), "", 0);
-    screen.text({32, 10}, "", m_wheels[3]->wear(), "", 2);
-    screen.text({36, 10}, "", m_wheels[3]->grip(), "", 2);
-    screen.text({40, 10}, "", m_wheels[2]->temperature(), "", 0);
-    screen.text({44, 10}, "", m_wheels[2]->wear(), "", 2);
-    screen.text({48, 10}, "", m_wheels[2]->grip(), "", 2);
+    screen.text({28, 14}, "", m_wheels[1]->get_tire().temperature(), "", 0);
+    screen.text({32, 14}, "", m_wheels[1]->get_tire().wear(), "", 2);
+    screen.text({36, 14}, "", m_wheels[1]->get_tire().grip(), "", 2);
+    screen.text({40, 14}, "", m_wheels[0]->get_tire().temperature(), "", 0);
+    screen.text({44, 14}, "", m_wheels[0]->get_tire().wear(), "", 2);
+    screen.text({48, 14}, "", m_wheels[0]->get_tire().grip(), "", 2);
+    screen.text({28, 10}, "", m_wheels[3]->get_tire().temperature(), "", 0);
+    screen.text({32, 10}, "", m_wheels[3]->get_tire().wear(), "", 2);
+    screen.text({36, 10}, "", m_wheels[3]->get_tire().grip(), "", 2);
+    screen.text({40, 10}, "", m_wheels[2]->get_tire().temperature(), "", 0);
+    screen.text({44, 10}, "", m_wheels[2]->get_tire().wear(), "", 2);
+    screen.text({48, 10}, "", m_wheels[2]->get_tire().grip(), "", 2);
 
     screen.text({28, 6}, "Air Density", m_air_density, "kg/m^3", 3);
 #endif
