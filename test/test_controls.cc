@@ -9,18 +9,7 @@ using namespace Vamos_Geometry;
 
 auto constexpr RAW_MOTION_RANGE = 32767;
 
-struct Control_Fixture : public Control_Handler
-{
-    virtual Control& joystick () { return m_joystick; }
-    virtual Control& keyboard () { return m_keyboard; }
-    virtual Control& mouse () { return m_mouse; }
-
-    Control m_joystick;
-    Control m_keyboard;
-    Control m_mouse;
-};
-
-struct Keyboard_Fixture : public Control_Fixture
+struct Keyboard_Fixture : public Control_Handler
 {
     Keyboard_Fixture();
 
@@ -109,7 +98,7 @@ TEST_CASE("release_13")
     CHECK(f.up_arg == 4.0);
 }
 
-struct Motion_Fixture : public Control_Fixture
+struct Motion_Fixture : public Control_Handler
 {
     Motion_Fixture();
 
@@ -169,7 +158,7 @@ TEST_CASE("full range")
     CHECK(close(f.move_2_arg, 1.0, 1e-3));
 }
 
-struct Deadband_Fixture : public Control_Fixture
+struct Deadband_Fixture : public Control_Handler
 {
     Deadband_Fixture();
 

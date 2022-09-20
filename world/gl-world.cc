@@ -45,7 +45,7 @@ using namespace Vamos_World;
 
 enum Mouse_Axis{X, Y};
 
-auto constexpr steps_per_frame{1};
+auto constexpr steps_per_frame{3};
 Color constexpr red_light_on{0.9, 0.0, 0.0};
 Color constexpr red_light_off{0.23, 0.2, 0.2};
 
@@ -234,26 +234,26 @@ void Gl_Window::resize(int width, int height)
 //-----------------------------------------------------------------------------
 Map::Map()
 {
-    m_keyboard.bind_action(SDLK_RIGHT, Direct::down, std::bind_front(&Map::pan, this),
+    keyboard().bind_action(SDLK_RIGHT, Direct::down, std::bind_front(&Map::pan, this),
                            to_integral(Direct::right));
-    m_keyboard.bind_action(SDLK_LEFT, Direct::down, std::bind_front(&Map::pan, this),
+    keyboard().bind_action(SDLK_LEFT, Direct::down, std::bind_front(&Map::pan, this),
                            to_integral(Direct::left));
-    m_keyboard.bind_action(SDLK_UP, Direct::down, std::bind_front(&Map::pan, this),
+    keyboard().bind_action(SDLK_UP, Direct::down, std::bind_front(&Map::pan, this),
                            to_integral(Direct::up));
-    m_keyboard.bind_action(SDLK_DOWN, Direct::down, std::bind_front(&Map::pan, this),
+    keyboard().bind_action(SDLK_DOWN, Direct::down, std::bind_front(&Map::pan, this),
                            to_integral(Direct::down));
 
-    m_keyboard.bind_action('=', Direct::down, std::bind_front(&Map::zoom, this),
+    keyboard().bind_action('=', Direct::down, std::bind_front(&Map::zoom, this),
                            to_integral(Direct::in));
-    m_keyboard.bind_action('+', Direct::down, std::bind_front(&Map::zoom, this),
+    keyboard().bind_action('+', Direct::down, std::bind_front(&Map::zoom, this),
                            to_integral(Direct::in));
-    m_keyboard.bind_action('-', Direct::down, std::bind_front(&Map::zoom, this),
+    keyboard().bind_action('-', Direct::down, std::bind_front(&Map::zoom, this),
                            to_integral(Direct::out));
-    m_keyboard.bind_action('_', Direct::down, std::bind_front(&Map::zoom, this),
+    keyboard().bind_action('_', Direct::down, std::bind_front(&Map::zoom, this),
                            to_integral(Direct::out));
 
     for (char c = '1'; c <= '9'; c++)
-        m_keyboard.bind_action(c, Direct::down, std::bind_front(&Map::set_zoom, this),
+        keyboard().bind_action(c, Direct::down, std::bind_front(&Map::set_zoom, this),
                                c - '1' + 1);
 }
 
@@ -527,7 +527,7 @@ void Gl_World::animate()
 
 void Gl_World::update_car_timing()
 {
-    for (size_t i = 0; i < m_cars.size(); ++i)
+    for (size_t i{0}; i < m_cars.size(); ++i)
     {
         auto& car{m_cars[i]};
         if (!car.driver->is_driving())
@@ -535,8 +535,6 @@ void Gl_World::update_car_timing()
         auto distance{car.track_position().x};
         auto sector{m_track.sector(distance)};
         mp_timing->update(m_timer.get_current_time(), i, distance, sector);
-        if (mp_timing->timing_at_index(i).is_finished())
-            car.driver->finish();
     }
 }
 
@@ -760,8 +758,8 @@ static std::string dtime_str(double delta_time, int precision = 3)
 void Gl_World::reshape(int width, int height)
 {
     m_window.resize(width, height);
-    m_mouse.set_axis_range(X, 0, width);
-    m_mouse.set_axis_range(Y, 0, height);
+    mouse().set_axis_range(X, 0, width);
+    mouse().set_axis_range(Y, 0, height);
     if (focused_car())
         focused_car()->car->make_rear_view_mask(width, height);
     m_map.set_bounds(m_track, m_window);
@@ -906,35 +904,35 @@ void Gl_World::check_for_events()
         {
         case SDL_JOYAXISMOTION:
             if (driver)
-                driver->m_joystick.move(event.jaxis.axis, event.jaxis.value);
+                driver->joystick().move(event.jaxis.axis, event.jaxis.value);
             break;
         case SDL_JOYBUTTONDOWN:
             if (driver)
-                driver->m_joystick.press(event.jbutton.button + 1);
+                driver->joystick().press(event.jbutton.button + 1);
             break;
         case SDL_JOYBUTTONUP:
             if (driver)
-                driver->m_joystick.release(event.jbutton.button + 1);
+                driver->joystick().release(event.jbutton.button + 1);
             break;
         case SDL_KEYDOWN:
-            m_keyboard.press(event.key.keysym.sym);
+            keyboard().press(event.key.keysym.sym);
             if (driver)
-                driver->m_keyboard.press(event.key.keysym.sym);
+                driver->keyboard().press(event.key.keysym.sym);
             if (m_view == View::map)
                 m_map.keyboard().press(event.key.keysym.sym);
             break;
         case SDL_KEYUP:
-            m_keyboard.release(event.key.keysym.sym);
+            keyboard().release(event.key.keysym.sym);
             if (driver)
-                driver->m_keyboard.release(event.key.keysym.sym);
+                driver->keyboard().release(event.key.keysym.sym);
             if (m_view == View::map)
                 m_map.keyboard().release(event.key.keysym.sym);
             break;
         case SDL_MOUSEMOTION:
             if (driver)
             {
-                driver->m_mouse.move(X, event.motion.x);
-                driver->m_mouse.move(Y, event.motion.y);
+                driver->mouse().move(X, event.motion.x);
+                driver->mouse().move(Y, event.motion.y);
             }
             if (m_view == View::map)
             {
@@ -944,13 +942,13 @@ void Gl_World::check_for_events()
             break;
         case SDL_MOUSEBUTTONDOWN:
             if (driver)
-                driver->m_mouse.press(event.button.button);
+                driver->mouse().press(event.button.button);
             if (m_view == View::map)
                 m_map.mouse().press(event.key.keysym.sym);
             break;
         case SDL_MOUSEBUTTONUP:
-            if (driver != 0)
-                driver->m_mouse.release(event.button.button);
+            if (driver)
+                driver->mouse().release(event.button.button);
             if (m_view == View::map)
                 m_map.mouse().release(event.key.keysym.sym);
             break;

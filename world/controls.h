@@ -32,19 +32,6 @@ template <typename E> constexpr auto to_integral(E e) -> typename std::underlyin
 
 class Control;
 
-/// The base class for classes that can set control callbacks
-class Control_Handler
-{
-public:
-    virtual ~Control_Handler() = default;
-    virtual Control& joystick() = 0;
-    virtual Control& keyboard() = 0;
-    virtual Control& mouse() = 0;
-};
-
-/// A member function of a Control_Handler.
-using Callback_Fn = std::function<bool(double, double)>;
-
 struct Calibration
 {
     bool negative{true};  ///< True if output can be negative
@@ -55,6 +42,9 @@ struct Calibration
     /// Output is maximum when value is > this value. Similarly for minimum value.
     double upper_deadband{0.0};
 };
+
+/// A member function of a Control_Handler.
+using Callback_Fn = std::function<bool(double, double)>;
 
 /// A class for managing callbacks
 class Callback_List
@@ -103,6 +93,20 @@ private:
     Callback_List m_release_callbacks;
     Callback_List m_motion_callbacks;
     std::map<int, std::pair<int, int>> m_ranges;
+};
+
+/// The base class for classes that can set control callbacks
+class Control_Handler
+{
+public:
+    Control& joystick() { return m_joystick; }
+    Control& keyboard() { return m_keyboard; }
+    Control& mouse() { return m_mouse; }
+
+private:
+    Control m_joystick;
+    Control m_keyboard;
+    Control m_mouse;
 };
 } // namespace Vamos_World
 

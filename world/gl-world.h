@@ -93,10 +93,6 @@ public:
     void set_bounds(const Vamos_Track::Strip_Track& track, const Gl_Window& window);
     void set_view();
 
-    virtual Control& joystick() override { return m_joystick; }
-    virtual Control& keyboard() override { return m_keyboard; }
-    virtual Control& mouse() override { return m_mouse; }
-
     /// Incrementally shift the view.
     bool pan(double, double direction);
     /// Incrementally magnify or contract the view about the center.
@@ -105,10 +101,6 @@ public:
     bool set_zoom(double, double factor);
 
 private:
-    Control m_joystick;
-    Control m_keyboard;
-    Control m_mouse;
-
     Vamos_Geometry::Rectangle<double> m_initial_bounds;
     Vamos_Geometry::Rectangle<double> m_bounds;
 };
@@ -194,10 +186,6 @@ private:
     bool replay(double, double);               ///> Pause an show a replay.
     /// @}
 
-    virtual Control& joystick() { return m_joystick; }
-    virtual Control& keyboard() { return m_keyboard; }
-    virtual Control& mouse() { return m_mouse; }
-
     Car_Info* focused_car();
     void set_focused_car(size_t index);
     void focus_other_car(int delta);
@@ -242,10 +230,6 @@ private:
     bool m_update_graphics{true};
     bool m_done{false};
     View m_view{View::map};
-
-    Control m_keyboard;
-    Control m_joystick;
-    Control m_mouse;
 
     std::string m_world_file;
     std::string m_controls_file;

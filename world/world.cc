@@ -42,7 +42,6 @@ void Car_Info::reset()
 {
     road_index = 0;
     segment_index = 0;
-    driver->reset();
     car->reset();
 }
 
