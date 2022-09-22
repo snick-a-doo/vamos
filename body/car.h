@@ -239,9 +239,9 @@ public:
     void show_dashboard_extras(bool show) { m_show_dashboard_extras = show; }
     // Return the contact information for the given position and velocity.  If 'ignore_z'
     // is true, only consider the x- and y-values of 'position'.
-    Vamos_Geometry::Contact_Info collision(const Vamos_Geometry::Three_Vector& position,
-                                           const Vamos_Geometry::Three_Vector& velocity,
-                                           bool ignore_z = false) const;
+    Vamos_Media::Contact_Info collision(Vamos_Geometry::Three_Vector const& position,
+                                        Vamos_Geometry::Three_Vector const& velocity,
+                                        bool ignore_z = false) const;
 
     struct Crash_Box
     {

@@ -26,6 +26,7 @@
 
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
+using namespace Vamos_Media;
 
 auto constexpr epsilon{1.0e-12};
 auto constexpr ambient_temperature{300.0};
@@ -239,6 +240,7 @@ void Tire::find_forces()
 
 void Tire::propagate(double time)
 {
+    find_forces();
     m_rotational_speed
         = m_is_locked ? 0.0 : m_rotational_speed + m_applied_torque * time / m_inertia;
 

@@ -176,11 +176,11 @@ void World::interact(Car* car, size_t road_index, size_t segment_index)
         auto const& pos{car->chassis().contact_position(*p)};
         auto bump_parameter{car->distance_traveled() + p->position().x};
         auto info{m_track.test_for_contact(pos, bump_parameter, road_index, segment_index)};
-        auto const& velocity{car->chassis().velocity(*p)};
+        auto const& velocity{car->chassis().particle_velocity(*p)};
         if (info.contact)
         {
             auto j{impulse(
-                    car->chassis().world_moment(pos), velocity, car->chassis().mass(),
+                    car->chassis().moment(pos), velocity, car->chassis().mass(),
                     car->chassis().inertia(),
                     p->material().restitution_factor() * info.material.restitution_factor(),
                     p->material().friction_factor() * info.material.friction_factor(), info.normal)};
@@ -201,8 +201,8 @@ void World::interact(Car* car, size_t road_index, size_t segment_index)
             continue;
 
         auto velocity{
-            car->chassis().velocity(car->chassis().transform_in(object.position))};
-        auto j{impulse(car->chassis().world_moment(object.position), velocity,
+            car->chassis().point_velocity(car->chassis().transform_in(object.position))};
+        auto j{impulse(car->chassis().moment(object.position), velocity,
                        car->chassis().mass(), car->chassis().inertia(),
                        object.material.restitution_factor() * info.material.restitution_factor(),
                        object.material.friction_factor() * info.material.friction_factor(),
@@ -234,13 +234,14 @@ void World::collide(Car_Info* car1_info, Car_Info* car2_info)
     for (auto const& p : car1->chassis().particles())
     {
         auto const& pos{car1->chassis().contact_position(*p)};
-        auto info{car2->collision(pos, car1->chassis().velocity(*p))};
+        auto info{car2->collision(pos, car1->chassis().particle_velocity(*p))};
         if (info.contact)
         {
-            auto velocity{car1->chassis().velocity(*p) - car2->chassis().velocity(*p)};
+            auto velocity{car1->chassis().particle_velocity(*p)
+                          - car2->chassis().particle_velocity(*p)};
             auto j{impulse(
-                    car1->chassis().world_moment(pos), car1->chassis().mass(),
-                    car1->chassis().inertia(), car2->chassis().world_moment(pos),
+                    car1->chassis().moment(pos), car1->chassis().mass(),
+                    car1->chassis().inertia(), car2->chassis().moment(pos),
                     car2->chassis().mass(), car2->chassis().inertia(), delta_v,
                     p->material().restitution_factor() * p->material().restitution_factor(),
                     p->material().friction_factor() * p->material().friction_factor(),

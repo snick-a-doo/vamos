@@ -34,7 +34,7 @@ public:
     /// @param material Material properties used in collisions.
     Particle(double mass,
              Vamos_Geometry::Three_Vector const& position,
-             Vamos_Geometry::Material const& moterial);
+             Vamos_Media::Material const& moterial);
     /// Make a particle that does not collide.
     Particle(double mass, Vamos_Geometry::Three_Vector const& position);
     /// The particle's frame is coincident with the parent's.
@@ -67,23 +67,19 @@ public:
                            Vamos_Geometry::Three_Vector const& velocity, double distance,
                            Vamos_Geometry::Three_Vector const& normal,
                            Vamos_Geometry::Three_Vector const& ang_vel,
-                           Vamos_Geometry::Material const& material);
+                           Vamos_Media::Material const& material);
 
     // True for solid, rigid contact. Soft or deformable objects should return false.
     virtual bool single_contact() const { return true; }
-    // Find and store the forces, impulses, and torques for the current configuration.
-    virtual void find_forces();
     // Propagate the Particle forward in time by TIME.
-    virtual void propagate(double /* time */){};
-    // Do any necessary cleanup at the end of a time step.
-    virtual void end_timestep();
+    virtual void propagate(double time);
     // Set the force, impulse and torque to zero;
     virtual void reset();
 
     /// @return the particle's mass.
     double mass() const { return m_mass; }
     /// @return The material properties.
-    Vamos_Geometry::Material const& material() const { return m_material; }
+    Vamos_Media::Material const& material() const { return m_material; }
     /// @return True if material properties have been set.
     bool can_contact() const;
 
@@ -97,7 +93,7 @@ protected:
 private:
     double m_mass{0.0}; ///< The mass of the particle.
     bool m_contact{false}; ///< true if a collision has occurred.
-    Vamos_Geometry::Material m_material; ///< Material properties for the particle.
+    Vamos_Media::Material m_material; ///< Material properties for the particle.
     Vamos_Geometry::Three_Vector m_force; ///< The force exerted by the component.
     Vamos_Geometry::Three_Vector m_impulse; ///< The impulse exerted by the component.
     Vamos_Geometry::Three_Vector m_torque; ///< The torque exerted by the component.

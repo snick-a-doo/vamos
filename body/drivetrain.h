@@ -37,8 +37,6 @@ public:
 
     /// Process the input parameters.
     void input(double gas, double clutch, double left_wheel_speed, double right_wheel_speed);
-    /// Calculate forces and torques of the components.
-    void find_forces();
     /// Return to the starting state.
     void reset();
     /// Advance the drivetrain in time.

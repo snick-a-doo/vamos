@@ -91,15 +91,15 @@ namespace Vamos_Track
                      const std::vector <Vamos_Geometry::Two_Vector>& elevation_points,
                      double end_bank, 
                      double bank_pivot,
-                     const std::vector <Vamos_Geometry::Material>& materials,
+                     const std::vector <Vamos_Media::Material>& materials,
                      const std::vector <Braking_Marker*>& braking_markers);
 
     ~Gl_Road_Segment ();
 
-	const std::vector <Vamos_Geometry::Material>& materials () const 
+	const std::vector <Vamos_Media::Material>& materials () const
 	{ return m_materials; }
 
-    void set_materials (const std::vector <Vamos_Geometry::Material>& 
+    void set_materials (const std::vector <Vamos_Media::Material>&
                         materials,
                         double resolution);
 
@@ -121,9 +121,9 @@ namespace Vamos_Track
 
     virtual Vamos_Geometry::Rectangle<double> bounds () const { return m_bounds; }
 
-	const Vamos_Geometry::Material& left_material (double height) const;
-	const Vamos_Geometry::Material& right_material (double height) const; 
-    Vamos_Geometry::Material const& material_at(double along, double from_center) const;
+	const Vamos_Media::Material& left_material (double height) const;
+	const Vamos_Media::Material& right_material (double height) const;
+    Vamos_Media::Material const& material_at(double along, double from_center) const;
 
   private:
 	std::vector <Model_Info> m_models;
@@ -151,7 +151,7 @@ namespace Vamos_Track
 
 	std::vector <Braking_Marker*> m_braking_markers;
 
-	std::vector <Vamos_Geometry::Material> m_materials;
+	std::vector <Vamos_Media::Material> m_materials;
 
     std::vector <Vamos_Media::Texture_Image*> m_textures;
 

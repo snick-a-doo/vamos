@@ -21,7 +21,7 @@
 
 #include <string>
 
-namespace Vamos_Geometry
+namespace Vamos_Media
 {
 class Material
 {
@@ -32,13 +32,13 @@ public:
 
     Material(Composition composition, double friction, double restitution,
              double rolling,  double drag,
-             Two_Vector const& bump_amplitude, double bump_wavelength,
+             Vamos_Geometry::Two_Vector const& bump_amplitude, double bump_wavelength,
              std::string const& texture_file_name, bool smooth, bool mip_map,
              double width, double height);
     Material(Composition = UNKNOWN, double friction = 1.0, double restitution = 1.0);
 
     /// @return A small displacement due to unevenness in the material.
-    Three_Vector bump(double x, double y) const;
+    Vamos_Geometry::Three_Vector bump(double x, double y) const;
 
     /// Read-only access to material properties.
     /// @{
@@ -64,7 +64,7 @@ private:
     double m_rolling_resistance_factor{0.0};
     double m_drag_factor{0.0};
 
-    Two_Vector m_bump_amplitude;
+    Vamos_Geometry::Two_Vector m_bump_amplitude;
     double m_bump_wavelength{1.0};
 
     /// Texture image properties
@@ -81,11 +81,10 @@ private:
 struct Contact_Info
 {
     bool contact{false}; ///< True if a collision occurred, false otherwise.
-    /// How far the point had penetrated the surface when the collision was detected.
-    double depth{0.0}; ///< The vector normal to the surface.
-    Three_Vector normal; ///< The material of the surface.
-    Material material;
+    double depth{0.0}; ///< Penetration depth.
+    Vamos_Geometry::Three_Vector normal; ///< The vector normal to the surface.
+    Material material; ///< The material of the surface.
 };
-} // namespace Vamos_Geometry
+} // namespace Vamos_Media
 
 #endif // VAMOS_GEOMETRY_MATERIAL_H_INCLUDED

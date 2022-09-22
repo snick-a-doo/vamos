@@ -47,22 +47,6 @@ public:
     // Rotate the frame about a vector by an angle equal to its magnitude.
     void rotate(Vamos_Geometry::Three_Vector const& delta_theta)
     { m_orientation.rotate(delta_theta); }
-
-    /// @return The representation of an absolute position in this frame.
-    Vamos_Geometry::Three_Vector transform_in(Vamos_Geometry::Three_Vector const& vec) const;
-    /// @return The absolute position of a position in this frame.
-    Vamos_Geometry::Three_Vector transform_out(Vamos_Geometry::Three_Vector const& vec) const;
-    /// @return The representation of an absolute velocity in this frame.
-    Vamos_Geometry::Three_Vector transform_velocity_in(
-        Vamos_Geometry::Three_Vector const& v) const;
-    /// @return The absolute velocity of a velocity in this frame.
-    Vamos_Geometry::Three_Vector transform_velocity_out(
-        Vamos_Geometry::Three_Vector const& v) const;
-    /// @return A vector in this frame that's parallel to the given displacement vector.
-    Vamos_Geometry::Three_Vector rotate_in(Vamos_Geometry::Three_Vector const& vec) const;
-    /// @return An absolute vector that's parallel to a vector in this frame.
-    Vamos_Geometry::Three_Vector rotate_out(Vamos_Geometry::Three_Vector const& vec) const;
-
     /// Set the absolute position of this frame's origin.
     void set_position(Vamos_Geometry::Three_Vector const& r) { m_position = r; }
     /// Move the origin by an absolute amount.
@@ -85,6 +69,21 @@ public:
     /// @return The rotation axis. The magnitude sin(angle) because that's what the
     /// calculation gives. It's left unmodified for efficiency.
     Vamos_Geometry::Three_Vector axis_angle(double& angle) const;
+
+    /// @return The representation of an absolute position in this frame.
+    Vamos_Geometry::Three_Vector transform_in(Vamos_Geometry::Three_Vector const& vec) const;
+    /// @return The absolute position of a position in this frame.
+    Vamos_Geometry::Three_Vector transform_out(Vamos_Geometry::Three_Vector const& vec) const;
+    /// @return The representation of an absolute velocity in this frame.
+    Vamos_Geometry::Three_Vector transform_velocity_in(
+        Vamos_Geometry::Three_Vector const& v) const;
+    /// @return The absolute velocity of a velocity in this frame.
+    Vamos_Geometry::Three_Vector transform_velocity_out(
+        Vamos_Geometry::Three_Vector const& v) const;
+    /// @return A vector in this frame that's parallel to the given displacement vector.
+    Vamos_Geometry::Three_Vector rotate_in(Vamos_Geometry::Three_Vector const& vec) const;
+    /// @return An absolute vector that's parallel to a vector in this frame.
+    Vamos_Geometry::Three_Vector rotate_out(Vamos_Geometry::Three_Vector const& vec) const;
 
 private:
     Frame const* mp_parent{nullptr};

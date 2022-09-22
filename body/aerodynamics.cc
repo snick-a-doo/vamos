@@ -43,7 +43,7 @@ double Drag::drag_factor () const
     return 0.5 * m_density * m_drag_coefficient * m_frontal_area;
 }
 
-void Drag::find_forces()
+void Drag::propagate(double)
 {
     // Calculate drag and lift forces.
     set_force(drag_factor() * m_wind_vector * m_wind_vector.magnitude());
@@ -61,13 +61,13 @@ Wing::Wing(Three_Vector const& position,
 {
 }
 
-void Wing::find_forces()
+void Wing::propagate(double time)
 {
     const auto wind_speed = std::abs(wind_vector().dot(Three_Vector::X));
     const auto lift = lift_factor() * wind_speed * wind_speed;
 
     // Add lift to drag to get the total force.
-    Drag::find_forces ();
+    Drag::propagate(time);
     set_force(force() + lift * Three_Vector::Z);
 }
 

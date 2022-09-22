@@ -41,16 +41,15 @@ public:
 
     virtual void reset() override;
     virtual bool single_contact() const override { return false; }
-    virtual void find_forces() override;
     virtual void propagate(double time) override;
 
     // Handle collisions.  The return value is how much the wheel was displaced by the
     // collision.
-    virtual double contact(const Vamos_Geometry::Three_Vector& impulse,
-                           const Vamos_Geometry::Three_Vector& velocity, double distance,
-                           const Vamos_Geometry::Three_Vector& normal,
-                           const Vamos_Geometry::Three_Vector& angular_velocity,
-                           const Vamos_Geometry::Material& surface_material) override;
+    virtual double contact(Vamos_Geometry::Three_Vector const& impulse,
+                           Vamos_Geometry::Three_Vector const& velocity, double distance,
+                           Vamos_Geometry::Three_Vector const& normal,
+                           Vamos_Geometry::Three_Vector const& angular_velocity,
+                           Vamos_Media::Material const& surface_material) override;
 
     /// Apply torque if it's a driven wheel.
     void set_drive_torque(double torque);
@@ -105,7 +104,7 @@ private:
     // The angular velocity of the wheel.
     Vamos_Geometry::Three_Vector m_angular_velocity;
     // The surface we're currently on
-    Vamos_Geometry::Material m_surface_material;
+    Vamos_Media::Material m_surface_material;
     double m_drive_torque{0.0}; ///< The last applied drive torque.
     double m_braking_torque{0.0}; ///< The last applied braking torque.
     bool m_is_steered{false}; ///< True if the wheel responds to steering.

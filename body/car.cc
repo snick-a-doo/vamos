@@ -134,7 +134,6 @@ void Car::read(std::string const& data_dir, std::string const& car_file)
     }
 
     m_wheels.clear();
-    m_chassis.particles().clear();
     Car_Reader reader(m_data_dir, m_car_file, this);
 
     // Find the bounding box for the particles.
@@ -207,7 +206,8 @@ void Car::propagate(double time)
     }
 
     m_slide = 0.0;
-    auto [left_torque, right_torque] = mp_drivetrain->get_torque();
+    auto [left_torque, right_torque]
+        = mp_drivetrain ? mp_drivetrain->get_torque() : std::make_pair(0.0, 0.0);
     auto right_wheel_speed{0.0};
     auto left_wheel_speed{0.0};
     for (auto const& wheel : m_wheels)
@@ -231,15 +231,9 @@ void Car::propagate(double time)
     {
         mp_drivetrain->input(gas, m_clutch_key_control.value(), left_wheel_speed,
                              right_wheel_speed);
-        mp_drivetrain->find_forces();
-    }
-
-    m_chassis.find_forces();
-    if (mp_drivetrain)
         mp_drivetrain->propagate(time);
+    }
     m_chassis.propagate(time);
-
-    m_chassis.end_timestep();
 
     m_distance_traveled += m_chassis.rotate_in(m_chassis.cm_velocity()).x * time;
 

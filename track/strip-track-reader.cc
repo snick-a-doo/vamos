@@ -25,8 +25,9 @@
 #include <iostream>
 #include <sstream>
 
-using namespace Vamos_Track;
 using namespace Vamos_Geometry;
+using namespace Vamos_Media;
+using namespace Vamos_Track;
 
 //* Class Track_Reader
 

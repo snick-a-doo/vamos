@@ -47,6 +47,7 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& car_file,
       m_speedometer_type("dial"),
       m_fuel_gauge_type("dial")
 {
+    mp_car->m_chassis.m_particles.clear();
     read(car_file);
 }
 

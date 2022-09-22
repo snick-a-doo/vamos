@@ -430,7 +430,7 @@ void Gl_Car::view()
     alListenerfv(AL_ORIENTATION, at_up);
     if (mp_drivetrain)
     {
-        auto v{m_chassis.velocity(mp_drivetrain->engine().position())};
+        auto v{m_chassis.particle_velocity(mp_drivetrain->engine())};
         auto v_s{alGetDouble(AL_SPEED_OF_SOUND)};
         alListener3f(AL_VELOCITY, v.x / v_s, v.y / v_s, v.z / v_s);
     }
@@ -485,8 +485,8 @@ void Gl_Car::propagate(double time)
     auto const& engine{mp_drivetrain->engine()};
     mp_engine_sample->pitch(engine.rotational_speed());
     mp_engine_sample->volume(engine_volume(engine));
-    mp_engine_sample->position(chassis().position(engine));
-    mp_engine_sample->velocity(chassis().velocity(engine));
+    mp_engine_sample->position(chassis().particle_position(engine));
+    mp_engine_sample->velocity(chassis().particle_velocity(engine));
     mp_engine_sample->play();
 }
 

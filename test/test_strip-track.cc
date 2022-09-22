@@ -5,6 +5,7 @@
 #include <track/strip-track.h>
 
 using namespace Vamos_Geometry;
+using namespace Vamos_Media;
 using namespace Vamos_Track;
 
 struct Track_Fixture

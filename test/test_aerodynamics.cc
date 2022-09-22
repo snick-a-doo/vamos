@@ -14,20 +14,20 @@ TEST_CASE("drag")
     SUBCASE("stationary")
     {
         drag.wind(Three_Vector::ZERO, 0.1);
-        drag.find_forces();
+        drag.propagate(1.0);
         CHECK(drag.force() == Three_Vector::ZERO);
     }
     SUBCASE("forward")
     {
         drag.wind(2.0 * Three_Vector::X, 0.1);
-        drag.find_forces();
+        drag.propagate(1.0);
         CHECK(drag.drag_factor() == 0.1); // 0.5 * 0.1 * 4 * 0.5
         CHECK(close(drag.force(), 0.4*Three_Vector::X, 1e-9));
     }
     SUBCASE("low density")
     {
         drag.wind(2.0 * Three_Vector::X, 0.01);
-        drag.find_forces();
+        drag.propagate(1.0);
         CHECK(drag.drag_factor() == 0.01); // 0.5 * 0.01 * 4 * 0.5
         CHECK(close(drag.force(), 0.04*Three_Vector::X, 1e-9));
     }
@@ -35,7 +35,7 @@ TEST_CASE("drag")
     {
         Three_Vector wind(1.0, 2.0, -3.0);
         drag.wind(wind, 0.1);
-        drag.find_forces();
+        drag.propagate(1.0);
         CHECK(close(drag.force(), 0.1 * wind.magnitude() * wind, 1e-9));
     }
 }
@@ -55,8 +55,8 @@ TEST_CASE("wing")
     {
         up.wind(Three_Vector::ZERO, 0.2);
         down.wind(Three_Vector::ZERO, 0.4);
-        up.find_forces();
-        down.find_forces();
+        up.propagate(1.0);
+        down.propagate(1.0);
         CHECK(up.force() == Three_Vector::ZERO);
         CHECK(down.force() == Three_Vector::ZERO);
     }
@@ -64,8 +64,8 @@ TEST_CASE("wing")
     {
         up.wind(wind, 0.2);
         down.wind(wind, 0.4);
-        up.find_forces();
-        down.find_forces();
+        up.propagate(1.0);
+        down.propagate(1.0);
         // Cd = Cl*(1.0 - eff)  drag coeficcient
         CHECK(up.drag_factor() == 0.12); // kd = 0.5 * rho * Cd * Af
         CHECK(down.drag_factor() == 0.24);

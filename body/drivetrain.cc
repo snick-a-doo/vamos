@@ -47,7 +47,7 @@ void Drivetrain::input(double gas,
     mp_transmission->set_driveshaft_speed(shaft_speed);
 }
 
-void Drivetrain::find_forces()
+void Drivetrain::propagate(double time)
 {
     // Find the drag due to friction in the clutch if the clutch is not fully engaged, and
     // the torque on the driveshaft.
@@ -75,11 +75,6 @@ void Drivetrain::find_forces()
     }
     // Apply the torque to the differential.
     mp_differential->find_torques(torque);
-    mp_engine->find_forces();
-}
-
-void Drivetrain::propagate(double time)
-{
     mp_engine->propagate(time);
 }
 

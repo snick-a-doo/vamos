@@ -18,7 +18,7 @@ TEST_CASE("cube")
     body.add_particle(std::make_shared<Particle>(1.0, Three_Vector(1.0, 0.0, 1.0)));
     body.add_particle(std::make_shared<Particle>(1.0, Three_Vector(0.0, 1.0, 1.0)));
     body.add_particle(std::make_shared<Particle>(1.0, Three_Vector(1.0, 1.0, 1.0)));
-    body.update_center_of_mass();
+    body.propagate(1.0);
 
     CHECK(body.mass() == 8.0);
     CHECK(body.cm_position() == Three_Vector(0.5, 0.5, 0.5));

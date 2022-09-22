@@ -138,6 +138,7 @@ void Suspension::find_forces()
 
 void Suspension::propagate(double time)
 {
+    find_forces();
     m_time_step = time;
     set_orientation(m_static_orientation);
     rotate(m_steer_angle * steer_axis);

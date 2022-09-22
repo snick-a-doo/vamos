@@ -45,13 +45,6 @@ Engine::Engine(double mass,
 {
 }
 
-void Engine::find_forces()
-{
-    // Find the engine's torque with the current conditions.
-    m_drive_torque = torque_map(m_gas, m_rotational_speed) - m_drag;
-    set_torque(Three_Vector{-m_drive_torque, 0.0, 0.0});
-}
-
 void Engine::set_torque_curve(std::vector<Two_Vector> const& torque_points)
 {
     m_torque_curve.clear();
@@ -82,6 +75,10 @@ double Engine::power(double gas, double rotational_speed)
 
 void Engine::propagate(double time)
 {
+    // Find the engine's torque with the current conditions.
+    m_drive_torque = torque_map(m_gas, m_rotational_speed) - m_drag;
+    set_torque(Three_Vector{-m_drive_torque, 0.0, 0.0});
+
     // If the clutch is engaged, the engine speed is locked to the transmission speed.
     m_rotational_speed = m_engaged
         ? m_transmission_speed

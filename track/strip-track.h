@@ -92,7 +92,7 @@ struct Camera
 struct Track_Object
 {
     Vamos_Geometry::Three_Vector position;
-    Vamos_Geometry::Material material;
+    Vamos_Media::Material material;
 };
 
 //----------------------------------------------------------------------------------------
@@ -407,9 +407,9 @@ public:
                                                    size_t& road_index,
                                                    size_t& segment_index) const;
 
-    Vamos_Geometry::Contact_Info test_for_contact(Vamos_Geometry::Three_Vector const& pos,
-                                                  double bump_parameter, size_t& road_index,
-                                                  size_t& segment_index) const;
+    Vamos_Media::Contact_Info test_for_contact(Vamos_Geometry::Three_Vector const& pos,
+                                               double bump_parameter, size_t& road_index,
+                                               size_t& segment_index) const;
 
     const Road& get_road(size_t road_index) const;
 
@@ -450,7 +450,7 @@ private:
     std::string m_data_dir;
     std::string m_track_file;
 
-    Vamos_Geometry::Material m_material;
+    Vamos_Media::Material m_material;
 
     // Return the distance along the track where the camera picks up a car.
     double camera_range(const Camera& camera) const;
@@ -496,12 +496,12 @@ private:
     std::vector<Braking_Marker*> m_braking_markers;
 
     // Materials indexed by name.
-    std::map<std::string, Vamos_Geometry::Material> m_materials;
+    std::map<std::string, Vamos_Media::Material> m_materials;
 
-    std::vector<Vamos_Geometry::Material> m_segment_materials;
+    std::vector<Vamos_Media::Material> m_segment_materials;
 
     // Groups of materials used on the segments, indexed by name.
-    std::map<std::string, std::vector<Vamos_Geometry::Material>> m_segments;
+    std::map<std::string, std::vector<Vamos_Media::Material>> m_segments;
 
     std::string m_data_dir;
     Vamos_Track::Strip_Track* mp_road;
@@ -520,7 +520,7 @@ private:
     bool m_join_pit_lane;
     double m_length;
 
-    Vamos_Geometry::Material::Composition m_material_type;
+    Vamos_Media::Material::Composition m_material_type;
     Vamos_Geometry::Two_Vector m_bump_amplitude;
 
     std::vector<Gl_Road_Segment::Model_Info> m_model_info;

@@ -53,8 +53,6 @@ public:
     /// Override the default friction parameter.
     void set_friction(double friction);
 
-    virtual void find_forces() override;
-
     /// Handle input parameters.
     /// @param gas Throttle position.
     /// @param drag Torque due to friction when the clutch is not fully engaged.

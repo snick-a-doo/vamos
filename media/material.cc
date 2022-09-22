@@ -19,6 +19,7 @@
 #include <numbers>
 
 using namespace Vamos_Geometry;
+using namespace Vamos_Media;
 
 Material::Material(Composition composition, double friction, double restitution,
                    double rolling, double drag,

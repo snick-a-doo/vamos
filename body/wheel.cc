@@ -20,6 +20,7 @@
 
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
+using namespace Vamos_Media;
 
 Wheel::Wheel(double mass, Three_Vector const& position, double tire_offset, double roll_height,
              double restitution, std::shared_ptr<Suspension> suspension, Tire const& tire,
@@ -37,7 +38,7 @@ Wheel::Wheel(double mass, Three_Vector const& position, double tire_offset, doub
 {
 }
 
-void Wheel::find_forces()
+void Wheel::propagate(double time)
 {
     if (!is_in_contact())
     {
@@ -50,14 +51,9 @@ void Wheel::find_forces()
                  mp_suspension->current_camber(m_normal.unit().y),
                  m_drive_torque + m_braking_torque, m_brake.is_locked(), m_surface_material);
 
-    m_tire.find_forces();
+    m_tire.propagate(time);
     set_force(m_tire.force());
     set_torque(Three_Vector(m_tire.torque().x, -m_tire.torque().y, m_tire.torque().z));
-}
-
-void Wheel::propagate(double time)
-{
-    m_tire.propagate(time);
     set_orientation(mp_suspension->orientation());
     m_rotation += speed() * time / m_tire.radius();
 }

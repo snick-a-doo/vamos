@@ -30,7 +30,7 @@ public:
          double drag_coefficient);
 
     /// Find and store the forces, impulses, and torques for the current configuration.
-    virtual void find_forces();
+    virtual void propagate(double time) override;
     /// Calculate the drag and lift due to @p wind_vector. @p wind_vector is supplied by
     /// the Body in the Body's frame.  @p density is the density of the atmosphere.
     void wind(Vamos_Geometry::Three_Vector const& wind_vector, double density);
@@ -66,7 +66,7 @@ public:
          double lift_coefficient,
          double efficiency);
 
-    virtual void find_forces() override;
+    virtual void propagate(double time) override;
     virtual double lift_factor() const override;
 
 private:

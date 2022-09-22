@@ -17,6 +17,7 @@
 
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
+using namespace Vamos_Media;
 
 Particle::Particle(double mass, Three_Vector const& position, Material const& material)
     : Frame{position},
@@ -53,14 +54,10 @@ double Particle::contact(Three_Vector const& impulse,
     return 0.0;
 }
 
-void Particle::find_forces()
+void Particle::propagate(double)
 {
     if (!m_contact)
         reset();
-}
-
-void Particle::end_timestep()
-{
     m_contact = false;
 }
 

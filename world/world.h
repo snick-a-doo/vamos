@@ -82,7 +82,7 @@ struct Car_Info
 // Information about a collision.
 struct Interaction_Info
 {
-    using Mat_Type = Vamos_Geometry::Material::Composition;
+    using Mat_Type = Vamos_Media::Material::Composition;
     Vamos_Body::Car* car;
     Mat_Type car_material;
     Mat_Type track_material;

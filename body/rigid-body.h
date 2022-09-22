@@ -30,21 +30,14 @@ namespace Vamos_Body
 {
 class Drag;
 
-struct Contact_Parameters
-{
-    Particle* particle{nullptr};
-    Vamos_Geometry::Three_Vector impulse;
-    double m_distance{0.0};
-    Vamos_Geometry::Three_Vector normal;
-    Vamos_Geometry::Material material;
-};
-
 class Rigid_Body : public Frame
 {
+    friend class Car_Reader;
+
 public:
     /// Specify the position and orientation of the body.
     Rigid_Body(Vamos_Geometry::Three_Vector const& pos,
-               const Vamos_Geometry::Three_Matrix& orient);
+               Vamos_Geometry::Three_Matrix const& orient);
     virtual ~Rigid_Body() = default;
 
     /// Set the state for starting and resetting.
@@ -52,128 +45,85 @@ public:
                                 Vamos_Geometry::Three_Vector const& orientation,
                                 Vamos_Geometry::Three_Vector const& velocity,
                                 Vamos_Geometry::Three_Vector const& angular_velocity);
-    /// @return The center of mass in the body frame.
-    Vamos_Geometry::Three_Vector center_of_mass() const { return m_body_cm; }
-
-    // Return the position of the center of mass of the body with respect to the world.
-    Vamos_Geometry::Three_Vector cm_position() const;
-    // Provide access to the frame's position method.  Return the origin of the body.
-    Vamos_Geometry::Three_Vector position() const { return Frame::position(); }
-    // Return the contact position of the particle with respect to the world.
-    Vamos_Geometry::Three_Vector contact_position(Particle const& p) const;
-    Vamos_Geometry::Three_Vector position(Particle const& p) const;
-    // Return the smallest contact position z-value of the particles.
-    double lowest_contact_position() const;
-    // Add a particle to the body.
+    /// Add a particle to the body.
     void add_particle(std::shared_ptr<Particle> particle);
-    // Calculate the center of mass, the ineritia tensor, and its inverse.
-    void update_center_of_mass();
-    // Provide access to the particles.
-    std::vector<std::shared_ptr<Particle>>& particles() { return m_particles; }
-    void find_forces();
+
+    /// @return the total mass.
+    double mass() const { return m_mass; }
+    /// @return The body's inertia tensor.
+    Vamos_Geometry::Three_Matrix inertia() const { return m_inertia; }
+    /// @return The world-frame center of mass.
+    Vamos_Geometry::Three_Vector cm_position() const;
+    /// @return The world-frame contact position of a particle.
+    Vamos_Geometry::Three_Vector contact_position(Particle const& p) const;
+    /// @return The world-frame position of a particle.
+    Vamos_Geometry::Three_Vector particle_position(Particle const& p) const;
+    /// @return The displacement from a point to the center of mass in the world frame.
+    Vamos_Geometry::Three_Vector moment(Vamos_Geometry::Three_Vector const& pos) const;
+    // Return the velocity of the particle in the parent frame.
+    Vamos_Geometry::Three_Vector particle_velocity(Particle const& p) const;
+    // Return the velocity of a point in the body's frame.
+    Vamos_Geometry::Three_Vector point_velocity(Vamos_Geometry::Three_Vector const& r) const;
+    /// @return The body-frame acceleration of the center of mass.
+    Vamos_Geometry::Three_Vector acceleration() const;
+    // Return the velocity of the center of mass.
+    Vamos_Geometry::Three_Vector cm_velocity() const { return m_cm_velocity; }
     /// @return The total aerodynamic drag.
     double drag() const;
     /// @return The total aerodynamic lift.
     double lift() const;
-    // Advance the body in time by TIME.
-    void propagate(double time);
-    // Finish the timestep.
-    void end_timestep();
-    // Called by the world to tell the body what the acceleration due to gravity is.
+    /// @return The particles.
+    std::vector<std::shared_ptr<Particle>> const& particles() const { return m_particles; }
+
+    /// Called by the world to tell the body what the acceleration due to gravity is.
     void set_gravity(Vamos_Geometry::Three_Vector const& grav) { m_gravity = grav; }
-    // Return the velocity of the particle in the parent frame.
-    Vamos_Geometry::Three_Vector velocity(Particle const& p) const;
-    // Return the velocity of a point in the body's frame.
-    Vamos_Geometry::Three_Vector velocity(Vamos_Geometry::Three_Vector const& r) const;
-    /// Return the acceleration of the center of mass is the body's frame.
-    Vamos_Geometry::Three_Vector acceleration() const;
-    // Return the velocity of the center of mass.
-    Vamos_Geometry::Three_Vector cm_velocity() const { return m_cm_velocity; }
-    // Set the velocity of the center of mass.
-    void cm_velocity(Vamos_Geometry::Three_Vector const& vel) { m_cm_velocity = vel; }
-
-    void set_cm_force(Vamos_Geometry::Three_Vector const& force) { m_cm_force = force; }
-
-    Vamos_Geometry::Three_Vector moment(Vamos_Geometry::Three_Vector const& pos) const;
-    Vamos_Geometry::Three_Vector world_moment(Vamos_Geometry::Three_Vector const& world_pos) const;
-
-    /// @return The body's inertia tensor.
-    Vamos_Geometry::Three_Matrix inertia() const;
-
-    // Handle a collision.
+    /// Called when a body particle contacts another object.
     void contact(Particle& particle, Vamos_Geometry::Three_Vector const& impulse,
                  Vamos_Geometry::Three_Vector const& velocity, double distance,
                  Vamos_Geometry::Three_Vector const& normal,
-                 const Vamos_Geometry::Material& material);
-
+                 Vamos_Media::Material const& material);
+    /// Called when another object makes contact.
     void temporary_contact(Vamos_Geometry::Three_Vector const& position,
                            Vamos_Geometry::Three_Vector const& impulse,
                            Vamos_Geometry::Three_Vector const& velocity, double distance,
                            Vamos_Geometry::Three_Vector const& normal,
-                           const Vamos_Geometry::Material& material);
-
-    // Transform the wind into the body frame and send it to the
-    // aerodynamic devices.
+                           Vamos_Media::Material const& material);
+    /// Transform the wind into the body frame and send it to the aero particles.
     void wind(Vamos_Geometry::Three_Vector const& wind_vector, double density);
 
-    // Return the total mass.
-    double mass() const { return m_mass; }
-
-    // This function is defined by subclasses that work with a
-    // graphics system.
-    virtual void draw(){};
-
-    // Return the body to its initial state at its initial position.
-    virtual void reset(double direction);
-
-    // Return the body to its initial state at a particular position and
-    // orientation.
-    virtual void reset(Vamos_Geometry::Three_Vector const& position,
-                       const Vamos_Geometry::Three_Matrix& orientation);
-
-protected:
-    /// The inertia tensor for the body.
-    Vamos_Geometry::Three_Matrix m_inertia{0.0};
-
-    // A vector of pointers to the force and torque producers that
-    // make up the body
-    std::vector<std::shared_ptr<Particle>> m_particles;
-
-    // The position of the center of mass of the body relative to the
-    // origin of the body.
-    Vamos_Geometry::Three_Vector m_body_cm;
+    /// Advance the body in time.
+    void propagate(double time);
+    /// Set the body to its initial state.
+    void reset(double direction);
+    /// Set the body to its initial state at a particular position and orientation.
+    void reset(Vamos_Geometry::Three_Vector const& position,
+               Vamos_Geometry::Three_Matrix const& orientation);
 
 private:
-    // The body's initial state, used by reset ().
-    Vamos_Geometry::Three_Vector m_initial_position;
-    Vamos_Geometry::Three_Vector m_initial_velocity;
-    Vamos_Geometry::Three_Matrix m_initial_orientation{1.0};
-    Vamos_Geometry::Three_Vector m_initial_angular_velocity;
+    /// Calculate the center of mass, the ineritia tensor, and its inverse.
+    void update_center_of_mass();
 
-    Vamos_Geometry::Three_Vector m_acceleration;
+    Vamos_Geometry::Three_Vector m_gravity; ///< The acceleration due to gravity vector.
+    double m_mass{0.0}; ///< The total mass of the body.
+    Vamos_Geometry::Three_Matrix m_inertia{0.0}; ///< The inertia tensor for the body.
+    std::vector<std::shared_ptr<Particle>> m_particles; ///< The masses that make up the body.
+    /// Massless particles that exert aerodynamic forces.
+    std::vector<std::shared_ptr<Drag>> m_aero_particles;
+    Vamos_Geometry::Three_Vector m_body_cm; ///< The body-frame position of the center of mass.
+    Vamos_Geometry::Three_Vector m_cm_velocity; ///< The velocity of the center of mass.
+    Vamos_Geometry::Three_Vector m_acceleration; ///< Acceleration of the center of mass.
+    Frame m_initial_frame; ///< The body's initial state.
 
-    // The velocity of the center of mass.
-    Vamos_Geometry::Three_Vector m_cm_velocity;
-
-    // The acceleration due to gravity, distance/time^2.  The units
-    // determine the distance and time units used in the rest of the
-    // simulation.
-    Vamos_Geometry::Three_Vector m_gravity;
-
-    // The elapsed time since the last time step.
-    double m_delta_time{0.0};
-
-    // The total mass of the body.
-    double m_mass{0.0};
-
-    // Common code for the two reset () methods.
-    void private_reset();
-
-    Contact_Parameters m_contact_parameters;
-    std::vector<Particle> m_temporary_contact_points;
-    void remove_temporary_contact_points();
-    std::vector<std::shared_ptr<Drag>> m_drag_particles;
-    Vamos_Geometry::Three_Vector m_cm_force;
+    /// Information about collision of a particle with something else.
+    struct Contact
+    {
+        Particle* particle{nullptr};
+        Vamos_Geometry::Three_Vector impulse;
+        Vamos_Media::Contact_Info info;
+    };
+    Contact m_contact_params; ///< The current deepest contact.
+    ///< Particles added to exert collision forces from other objects.
+    std::vector<Particle> m_temporary_contact;
 };
 } // namespace Vamos_Body
 

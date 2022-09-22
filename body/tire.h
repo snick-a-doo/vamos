@@ -85,12 +85,9 @@ public:
     // Called by the wheel to update the tire.
     void input(Vamos_Geometry::Three_Vector const& velocity, double normal_angular_velocity,
                Vamos_Geometry::Three_Vector const& normal_force, double camber, double torque,
-               bool is_locked, Vamos_Geometry::Material const& surface_material);
+               bool is_locked, Vamos_Media::Material const& surface_material);
 
-    void find_forces();
-
-    // Advance the tire in time by TIME.
-    void propagate(double time);
+    virtual void propagate(double time) override;
 
     void rewind();
 
@@ -130,6 +127,8 @@ public:
     void reset();
 
 private:
+    void find_forces();
+
     /// The radius of the tire.
     double m_radius;
     /// Linear and quadratic rolling resistance on a hard surface.
@@ -164,7 +163,7 @@ private:
     /// True if the brake for this wheel is locked.
     bool m_is_locked{false};
     /// The surface that the tire is currently on.
-    Vamos_Geometry::Material m_surface_material;
+    Vamos_Media::Material m_surface_material;
     /// @}
 };
 } // namespace Vamos_Body

@@ -72,25 +72,20 @@ private:
 
 /// @return The transpose of a matrix.
 Three_Matrix transpose(Three_Matrix const& mat);
-
 /// @return the inverse of a matrix.
 Three_Matrix invert(Three_Matrix const& mat);
-
 /// Multiplication by a scalar.
 /// @{
 Three_Matrix operator * (double, Three_Matrix const&);
 Three_Matrix operator * (Three_Matrix const&, double);
 /// @}
-
 /// Multiplication with a vector.
 /// @{
 Three_Vector operator * (Three_Vector const& vec, Three_Matrix const& mat);
 Three_Vector operator * (Three_Matrix const& mat, Three_Vector const& vec);
 /// @}
-
 /// Multiplication with a matrix.
 Three_Matrix operator * (Three_Matrix const&, Three_Matrix const&);
-
 /// Stream operator.
 std::ostream& operator << (std::ostream& os, Three_Matrix const& mat);
 }

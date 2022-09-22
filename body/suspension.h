@@ -64,7 +64,6 @@ public:
 
     void set_torque(double wheel_torque);
 
-    virtual void find_forces() override;
     virtual void propagate(double time) override;
     virtual void reset() override;
 
@@ -88,6 +87,7 @@ public:
     void draw();
 
 private:
+    void find_forces();
     // Return the suspension position for the current displacement.
     Vamos_Geometry::Three_Vector get_position() const;
 
