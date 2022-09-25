@@ -116,7 +116,7 @@ void Robot_Driver::propagate(double timestep)
     if (!is_driving())
         return;
 
-    mp_segment = m_road.segments()[info().segment_index];
+    mp_segment = m_road.segments()[info().segment_index].get();
     steer();
     choose_gear();
     accelerate();

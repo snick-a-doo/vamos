@@ -32,7 +32,7 @@ using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 using namespace Vamos_Track;
 
-Camera s_default_camera(0, {100.0, -20.0, 10.0}, 0.0);
+Camera const default_camera{0, {100.0, -20.0, 10.0}, 0.0, 10.0, false, {0.0, 0.0}};
 
 auto make_sky_tex(std::string const& image, bool smooth)
 {
@@ -146,7 +146,7 @@ void Sky_Box::draw(Three_Vector const& view) const
 Map_Background::Map_Background(std::string const& image_file_name,
                                double dx, double dy,
                                double width, double height)
-    : mp_image(std::make_unique<Texture_Image>(image_file_name, true, false)),
+    : m_image{image_file_name, true, false},
       m_dx(dx),
       m_dy(dy),
       m_width(width),
@@ -158,7 +158,7 @@ void Map_Background::draw() const
 {
     glColor3f(1.0, 1.0, 1.0);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    mp_image->activate();
+    m_image.activate();
 
     glLoadIdentity();
     glTranslatef(m_dx, m_dy, 0.0);
@@ -179,20 +179,11 @@ void Map_Background::draw() const
 }
 
 //----------------------------------------------------------------------------------------
-Camera::Camera(size_t segment_index, Three_Vector const& position, double range)
-    : segment_index{segment_index},
-      position{position},
-      range{range}
-{
-}
-
-Camera::Camera()
-{
-}
-
-//----------------------------------------------------------------------------------------
 Racing_Line::Racing_Line()
-    : m_iterations{500}, m_stiffness{0.5}, m_damping{0.01}, m_margin{1.6}
+    : m_iterations{500},
+      m_stiffness{0.5},
+      m_damping{0.01},
+      m_margin{1.6}
 {
 }
 
@@ -223,9 +214,9 @@ Three_Vector Racing_Line::tangent(double along) const
     return m_tangent.interpolate(wrap(along, m_length));
 }
 
-Three_Vector Racing_Line::normal_curvature(Three_Vector const& p1,
-                                           Three_Vector const& p2,
-                                           Three_Vector const& p3) const
+static Three_Vector normal_curvature(Three_Vector const& p1,
+                                     Three_Vector const& p2,
+                                     Three_Vector const& p3)
 {
     auto r21{p1 - p2};
     auto r23{p3 - p2};
@@ -234,23 +225,23 @@ Three_Vector Racing_Line::normal_curvature(Three_Vector const& p1,
     return up / (r21.dot(r21) * r23.magnitude());
 }
 
-Three_Vector Racing_Line::planar_curvature(Three_Vector const& p1,
-                                           Three_Vector const& p2,
-                                           Three_Vector const& p3) const
+static Three_Vector planar_curvature(Three_Vector const& p1,
+                                     Three_Vector const& p2,
+                                     Three_Vector const& p3)
 {
     return normal_curvature(p1, p2, p3).magnitude() * (p2 - (p1 + p3) / 2.0).unit();
 }
 
-void Racing_Line::force(Three_Vector const & p1,
-                        Three_Vector const & p2,
-                        Three_Vector const & p3,
-                        Three_Vector& f1, Three_Vector& f2, Three_Vector& f3)
+/// Calculate the force on adjacent nodes.
+static void force(Three_Vector const& p1, Three_Vector const& p2,
+                  Three_Vector const& p3, double stiffness,
+                  Three_Vector& f1, Three_Vector& f2, Three_Vector& f3)
 {
     auto r21{p1 - p2};
     auto r23{p3 - p2};
     auto curvature{normal_curvature(p1, p2, p3)};
-    auto df1{m_stiffness * curvature.cross(r21)};
-    auto df3{-m_stiffness * curvature.cross(r23)};
+    auto df1{stiffness * curvature.cross(r21)};
+    auto df3{-stiffness * curvature.cross(r23)};
 
     f1 += df1;
     f2 -= (df1 + df3);
@@ -275,12 +266,12 @@ void Racing_Line::propagate(Road const& road,
     auto const points{positions.size()};
     std::vector<Three_Vector> forces(points);
 
-    force(positions.back(), positions[0], positions[1],
+    force(positions.back(), positions[0], positions[1], m_stiffness,
           forces.back(), forces[0], forces[1]);
     for (size_t i{1}; i < points - 1; ++i)
-        force(positions[i - 1], positions[i], positions[i + 1],
+        force(positions[i - 1], positions[i], positions[i + 1], m_stiffness,
               forces[i - 1], forces[i], forces[i + 1]);
-    force(positions[points - 2], positions.back(), positions[0],
+    force(positions[points - 2], positions.back(), positions[0], m_stiffness,
           forces[points - 2], forces.back(), forces[0]);
 
     size_t index{0};
@@ -351,6 +342,50 @@ void Racing_Line::build(Road const& road, bool close)
     build_list(road);
 }
 
+void Racing_Line::build_list(Road const& road)
+{
+    if (m_list_id != 0)
+        glDeleteLists(m_list_id, 1);
+
+    m_list_id = glGenLists(1);
+    glNewList(m_list_id, GL_COMPILE);
+
+    glDisable(GL_TEXTURE_2D);
+    glLineWidth(2.0);
+
+    glBegin(GL_LINE_STRIP);
+    auto last_world{position(0.0)};
+    for (auto along{0.0}; along < m_length; along += 0.1)
+    {
+        auto world{position(along)};
+        auto forward{(world - last_world).unit()};
+        auto curve{curvature(along, 0.0)};
+        auto color{100.0 * curve.magnitude()};
+        if (curve.cross(forward).z < 0.0)
+            color *= -1.0;
+        glColor4f(1.0 - color, 1.0 + color, 1.0, 0.5);
+        // Draw the line a little above the road.
+        glVertex3d(world.x, world.y, road.segment_at(along)->world_elevation(world) + 0.05);
+        last_world = world;
+    }
+    glEnd();
+
+    glPointSize(4.0);
+    glColor4f(0.8, 0.0, 0.0, 0.5);
+    glBegin(GL_POINTS);
+    // Vector spline does not have an iterator.
+    for (size_t i{0}; i < m_line.size(); ++i)
+    {
+        auto const& world{m_line[i]};
+        // Draw a dot a little above the line.
+        glVertex3d(world.x, world.y, world.z + 0.06);
+    }
+    glEnd();
+
+    glEnable(GL_TEXTURE_2D);
+    glEndList();
+}
+
 void Racing_Line::load_curvature(double along, Three_Vector const& p1,
                                  Three_Vector const& p2, Three_Vector const& p3,
                                  Road const& road)
@@ -384,50 +419,6 @@ void Racing_Line::load_curvature(double along, Three_Vector const& p1,
     }
 }
 
-void Racing_Line::build_list(Road const& road)
-{
-    if (m_list_id != 0)
-        glDeleteLists(m_list_id, 1);
-
-    m_list_id = glGenLists(1);
-    glNewList(m_list_id, GL_COMPILE);
-
-    glDisable(GL_TEXTURE_2D);
-    glLineWidth(2.0);
-
-    glBegin(GL_LINE_STRIP);
-    auto last_world{position(0.0)};
-    for (auto along{0.0}; along < m_length; along += 0.1)
-    {
-        auto world{position(along)};
-        auto forward{(world - last_world).unit()};
-        auto curve{curvature(along, 0.0)};
-        auto color{100.0 * curve.magnitude()};
-        if (curve.cross(forward).z < 0.0)
-            color *= -1.0;
-        glColor4f(1.0 - color, 1.0 + color, 1.0, 0.5);
-        // Draw the line a little above the road.
-        glVertex3d(world.x, world.y, road.segment_at(along)->world_elevation(world) + 0.05);
-        last_world = world;
-    }
-    glEnd();
-
-    glPointSize(4.0);
-    glColor4f(0.8, 0.0, 0.0, 0.5);
-    glBegin(GL_POINTS);
-
-    for (size_t i{0}; i < m_line.size(); ++i)
-    {
-        auto const& world{m_line[i]};
-        // Draw a dot a little above the line.
-        glVertex3d(world.x, world.y, world.z + 0.06);
-    }
-    glEnd();
-
-    glEnable(GL_TEXTURE_2D);
-    glEndList();
-}
-
 void Racing_Line::draw() const
 {
     glCallList(m_list_id);
@@ -444,13 +435,10 @@ void Road::clear()
     m_elevation.replace({{0.0, 0.0}});
     m_length = 0.0;
     m_bounds = Rectangle<double>();
-
-    for (auto* seg : m_segments)
-        delete seg;
     m_segments.clear();
 }
 
-size_t Road::add_segment(Gl_Road_Segment* segment)
+size_t Road::add_segment(std::unique_ptr<Gl_Road_Segment> segment)
 {
     if (!m_segments.empty())
     {
@@ -459,7 +447,7 @@ size_t Road::add_segment(Gl_Road_Segment* segment)
                            last.texture_offsets());
     }
     m_length += segment->length();
-    m_segments.push_back(segment);
+    m_segments.push_back(std::move(segment));
     return m_segments.size();
 }
 
@@ -467,7 +455,7 @@ void Road::set_length(double length)
 {
     assert(!m_segments.empty());
     assert(m_length > 0.0);
-    for (auto seg : m_segments)
+    for (auto& seg : m_segments)
         seg->scale(length / m_length);
 }
 
@@ -483,7 +471,7 @@ void Road::set_start_direction(double degrees)
 double Road::build_elevation(bool periodic)
 {
     auto length{0.0};
-    for (auto* seg : m_segments)
+    for (auto& seg : m_segments)
     {
         seg->build_elevation(&m_elevation, length);
         length += seg->length();
@@ -499,7 +487,7 @@ void Road::build_segments(Three_Vector start_coords, double start_angle, double 
     std::vector<double> texture_offsets(first.materials().size());
 
     m_length = 0.0;
-    for (auto* seg : m_segments)
+    for (auto& seg : m_segments)
     {
         seg->set_start(start_coords, m_length, start_angle, start_bank, texture_offsets);
         seg->build();
@@ -597,16 +585,17 @@ double Road::left_racing_line_width(double along) const
     return segment_at(along)->left_racing_line_width(along);
 }
 
+//!! return reference?
 Gl_Road_Segment const* Road::segment_at(double along) const
 {
     auto distance{0.0};
-    for (auto const* seg : m_segments)
+    for (auto const& seg : m_segments)
     {
         distance += seg->length();
         if (distance >= along)
-            return seg;
+            return seg.get();
     }
-    return m_segments.back();
+    return m_segments.back().get();
 }
 
 void Road::set_racing_line(bool build, bool show)
@@ -629,21 +618,21 @@ void Road::narrow_pit_segments()
         if (pit.end() == Pit_Lane_Transition::End::out)
         {
             for (Segment_List::reverse_iterator rit(it);
-                 (rit != m_segments.rend() && *rit != last_from_in && !(*rit)->pit().active());
+                 (rit != m_segments.rend() && rit->get() != last_from_in && !(*rit)->pit().active());
                  ++rit)
             {
                 (*rit)->narrow(pit.side(), (*it)->pit_width());
-                last_from_out = *rit;
+                last_from_out = rit->get();
             }
         }
         else
         {
             for (auto it2(it + 1);
-                 (it2 != m_segments.end() && *it2 != last_from_out && !(*it2)->pit().active());
+                 (it2 != m_segments.end() && it2->get() != last_from_out && !(*it2)->pit().active());
                  ++it2)
             {
                 (*it2)->narrow(pit.side(), (*it)->pit_width());
-                last_from_in = *it2;
+                last_from_in = it2->get();
             }
         }
     }
@@ -662,7 +651,7 @@ void Road::build(bool close, int adjusted_segments, double length)
         join(first.start_coords(), first.start_angle(),
              first.start_coords(),first.start_angle(), adjusted_segments);
         // Force the segment to end at 0, 0.
-        last.last_segment(true);
+        last.set_last_segment(true);
     }
     if (length != 0.0)
         set_length(length);
@@ -706,10 +695,10 @@ void Road::join(Three_Vector const&, // start_coords,
         // Call it closed without adjusting anything.
         return;
 
-    auto* last_segment{m_segments.back()};
-    auto* last_curve{adjusted_segments > 1 ? *(m_segments.end() - 2)
+    auto* last_segment{m_segments.back().get()};
+    auto* last_curve{adjusted_segments > 1 ? (m_segments.end() - 2)->get()
                      : last_segment->is_straight() ? nullptr : last_segment};
-    auto* other_straight{adjusted_segments == 3 ? *(m_segments.end() - 3) : 0};
+    auto* other_straight{adjusted_segments == 3 ? (m_segments.end() - 3)->get() : nullptr};
 
     if (adjusted_segments > 1 && (last_curve->is_straight() || !last_segment->is_straight()))
         throw Can_Not_Close("Track must end with a curve followed by "
@@ -778,18 +767,18 @@ void Road::connect(Segment_List::iterator it)
     if (it == m_segments.begin())
         ++it;
 
-    const auto* last{*(it - 1)};
+    const auto* last{(it - 1)->get()};
     for (; it != m_segments.end(); ++it)
     {
         (*it)->set_start_angle(last->end_angle());
         (*it)->set_start_coords(last->end_coords());
-        last = *it;
+        last = it->get();
     }
 }
 
 void Road::draw()
 {
-    for (auto seg : m_segments)
+    for (auto const& seg : m_segments)
         seg->draw();
     if (m_show_racing_line)
         m_racing_line.draw();
@@ -910,12 +899,12 @@ void Strip_Track::read(std::string const& data_dir, std::string const& track_fil
     Strip_Track_Reader reader{m_data_dir, m_track_file, this};
 }
 
-size_t Strip_Track::add_segment(Gl_Road_Segment* segment)
+size_t Strip_Track::add_segment(std::unique_ptr<Gl_Road_Segment> segment)
 {
-    return mp_track->add_segment(segment);
+    return mp_track->add_segment(std::move(segment));
 }
 
-size_t Strip_Track::add_pit_segment(Gl_Road_Segment* segment)
+size_t Strip_Track::add_pit_segment(std::unique_ptr<Gl_Road_Segment> segment)
 {
     auto start{mp_pit_lane->segments().size() == 0};
     auto index{start ? m_pit_in_index : m_pit_out_index};
@@ -924,7 +913,7 @@ size_t Strip_Track::add_pit_segment(Gl_Road_Segment* segment)
     auto left_shoulder{segment->left_width(distance) - segment->left_road_width(distance)};
     auto right_shoulder{segment->right_width(distance) - segment->right_road_width(distance)};
     mp_track->segments()[index]->set_pit_width(width, left_shoulder, right_shoulder);
-    return mp_pit_lane->add_segment(segment);
+    return mp_pit_lane->add_segment(std::move(segment));
 }
 
 void Strip_Track::set_pit_in(size_t index, double angle)
@@ -1016,7 +1005,7 @@ Three_Matrix Strip_Track::reset_orientation(Three_Vector const& pos,
 
     // Align the car's up direction with the normal.
     const auto& track_pos{track_coordinates(pos, road_index, segment_index)};
-    const auto* segment{get_road(road_index).segments()[segment_index]};
+    const auto& segment{get_road(road_index).segments()[segment_index]};
     auto along{track_pos.x - segment->start_distance()};
     auto across{track_pos.y};
     auto normal{segment->normal(along, across)};
@@ -1039,7 +1028,7 @@ Three_Vector Strip_Track::track_coordinates(Three_Vector const& world_pos,
         std::cerr << segment_index << ' ' << segments->size() << ' ' << road_index << std::endl;
         assert(false);
     }
-    auto* segment{(*segments)[segment_index]};
+    auto* segment{(*segments)[segment_index].get()};
     auto direction{0};
     for (size_t i{0}; ; ++i)
     {
@@ -1104,7 +1093,7 @@ Three_Vector Strip_Track::track_coordinates(Three_Vector const& world_pos,
             }
         }
         segments = &get_road(road_index).segments();
-        segment = (*segments)[segment_index];
+        segment = (*segments)[segment_index].get();
         if (i == segments->size())
             throw Segment_Not_Found(world_pos, segment_index);
     }
@@ -1124,7 +1113,7 @@ Contact_Info Strip_Track::test_for_contact(Three_Vector const& pos,
                                            size_t& road_index, size_t& segment_index) const
 {
     auto const track_pos{track_coordinates(pos, road_index, segment_index)};
-    auto const* segment{get_road(road_index).segments()[segment_index]};
+    auto const& segment{get_road(road_index).segments()[segment_index]};
     auto const segment_distance{track_pos.x - segment->start_distance()};
     auto material{segment->material_at(track_pos.x, track_pos.y)};
     auto contact{false};
@@ -1137,7 +1126,7 @@ Contact_Info Strip_Track::test_for_contact(Three_Vector const& pos,
     if (diff >= 0.0)
     {
         contact = true;
-        auto bump{m_material.bump(track_pos.x, track_pos.y)};
+        auto bump{material.bump(track_pos.x, track_pos.y)};
         normal = segment->normal(segment_distance, track_pos.y, bump);
     }
     // Test for contact with the left wall.
@@ -1209,7 +1198,7 @@ Three_Vector Strip_Track::camera_position(Camera const& camera) const
 const Camera& Strip_Track::get_camera(double distance) const
 {
     if (m_cameras.empty())
-        return s_default_camera;
+        return default_camera;
 
     // See if we're near the end of the track and should be picked up by the first camera.
     auto first{m_cameras.begin()->position.x - m_cameras.begin()->range};
