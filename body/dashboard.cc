@@ -138,7 +138,7 @@ LED_Gauge::LED_Gauge(double x, double y, double above, double width, int element
 
 void LED_Gauge::set(double value)
 {
-    m_leds_on = int((value - m_min) * (m_elements - 1) / m_range + 1.0);
+    m_leds_on = static_cast<int>((value - m_min) * (m_elements - 1) / m_range + 1.0);
     m_leds_on = std::max(m_leds_on, 0);
     m_leds_on = std::min(m_leds_on, m_elements);
 }
@@ -156,11 +156,9 @@ void LED_Gauge::draw() const
     if (m_on_steering_wheel)
         wheel_transform(m_above);
 
-    // Draw the LEDs all off...
+    // Draw the LEDs all off then draw the ones that are on over top.
     glCallList(m_list_index);
-
-    // ...then draw the ones that are on over top.
-    double frac = double(m_leds_on) / m_elements;
+    auto frac{static_cast<double>(m_leds_on) / m_elements};
 
     mp_leds->activate();
 
@@ -197,14 +195,14 @@ Digital_Gauge::Digital_Gauge(double x, double y, double above, double width, dou
 
 void Digital_Gauge::set(double value)
 {
-    int n = int(value);
-    int denom = 1;
-    int sub = 0;
-    for (size_t index = 0; index < m_places; index++)
+    auto n{static_cast<int>(value)};
+    auto denom{1};
+    auto sub{0};
+    for (size_t i{0}; i < m_places; ++i)
     {
-        int m = denom * 10;
-        int place = (n % m) / denom;
-        m_digits[m_places - 1 - index] = place;
+        auto m{denom * 10};
+        auto place{(n % m) / denom};
+        m_digits[m_places - 1 - i] = place;
         denom = m;
         sub += place;
     }
@@ -218,21 +216,18 @@ void Digital_Gauge::draw() const
 
     mp_digits->activate();
 
-    bool nonzero = false;
-    for (size_t i = 0; i < m_places; i++)
+    auto nonzero{false};
+    for (size_t i{0}; i < m_places; ++i)
     {
-        int n = m_digits[i];
-        if ((!nonzero) && (n == 0) && (i != (m_places - 1)))
-        {
+        auto n{m_digits[i]};
+        if (!nonzero && n == 0 && i != (m_places - 1))
             continue;
-        }
         nonzero = true;
 
-        double tex_x1 = n * 0.1;
-        double tex_x2 = tex_x1 + 0.1;
-
-        double x1 = i * m_width / m_places;
-        double x2 = x1 + m_width / m_places;
+        auto tex_x1{n * 0.1};
+        auto tex_x2{tex_x1 + 0.1};
+        auto x1{i * m_width / m_places};
+        auto x2{x1 + m_width / m_places};
 
         glColor3d(1.0, 1.0, 1.0);
         glBegin(GL_QUADS);
@@ -251,13 +246,10 @@ void Digital_Gauge::draw() const
 }
 
 //----------------------------------------------------------------------------------------
-Gear_Indicator::Gear_Indicator(double x, double y, double above, double width, double height,
-                               int numbers, std::string const& image, bool on_wheel)
-    : m_x(x),
-      m_y(y),
-      m_above{above},
-      m_width{width},
-      m_height{height},
+Gear_Indicator::Gear_Indicator(Rectangle<double> const& size, double z, int numbers,
+                               std::string const& image, bool on_wheel)
+    : m_size{size},
+      m_above{z},
       m_number_width{1.0 / numbers}
 {
     m_on_steering_wheel = on_wheel;
@@ -279,24 +271,24 @@ void Gear_Indicator::draw() const
     glBegin(GL_QUADS);
     glNormal3f(-1.0, 0.0, 0.0);
     glTexCoord2d(x2, 1.0);
-    glVertex3d(-m_above, -m_x, m_y);
+    glVertex3d(-m_above, -m_size.left(), m_size.bottom());
     glTexCoord2d(x1, 1.0);
-    glVertex3d(-m_above, -m_x + m_width, m_y);
+    glVertex3d(-m_above, -m_size.left() + m_size.width(), m_size.bottom());
     glTexCoord2d(x1, 0.0);
-    glVertex3d(-m_above, -m_x + m_width, m_y + m_height);
+    glVertex3d(-m_above, -m_size.left() + m_size.width(), m_size.top());
     glTexCoord2d(x2, 0.0);
-    glVertex3d(-m_above, -m_x, m_y + m_height);
+    glVertex3d(-m_above, -m_size.left(), m_size.top());
     glEnd();
 
     glPopMatrix();
 }
 
 //----------------------------------------------------------------------------------------
-Gear_Shift::Gear_Shift(double x, double y, double z, double width, double height,
-                       Vamos_Geometry::Three_Vector const& rotation,
-                       std::vector<Vamos_Geometry::Two_Vector> const& positions,
+Gear_Shift::Gear_Shift(Rectangle<double> const& size, double z,
+                       Three_Vector const& rotation,
+                       std::vector<Two_Vector> const& positions,
                        std::string const& plate_image, std::string const& stick_image)
-    : Gear_Indicator(x, y, z, width, height, 0, "", false),
+    : Gear_Indicator(size, z, 0, "", false),
       m_rotation(rotation),
       m_positions(positions),
       m_top_gear(m_positions.size() - 2),
@@ -304,8 +296,8 @@ Gear_Shift::Gear_Shift(double x, double y, double z, double width, double height
       mp_stick{std::make_unique<Texture_Image>(stick_image, true, true)},
       m_list_index(glGenLists(2))
 {
-    m_stick_width = m_width * mp_stick->width_pixels() / mp_gate->width_pixels();
-    m_stick_height = m_height * mp_stick->height_pixels() / mp_gate->height_pixels();
+    m_stick_width = m_size.width() * mp_stick->width_pixels() / mp_gate->width_pixels();
+    m_stick_height = m_size.height() * mp_stick->height_pixels() / mp_gate->height_pixels();
 
     glNewList(m_list_index, GL_COMPILE);
 
@@ -314,7 +306,7 @@ Gear_Shift::Gear_Shift(double x, double y, double z, double width, double height
     glRotated(rotation.x, 0.0, -1.0, 0.0);
     glRotated(rotation.y, 0.0, 0.0, 1.0);
     glRotated(rotation.z, 1.0, 0.0, 0.0);
-    glTranslated(-m_above, -m_x, m_y);
+    glTranslated(-m_above, -m_size.left(), m_size.bottom());
 
     glColor3d(1.0, 1.0, 1.0);
     glBegin(GL_QUADS);
@@ -322,14 +314,14 @@ Gear_Shift::Gear_Shift(double x, double y, double z, double width, double height
     glNormal3f(-1.0, 0.0, 0.0);
     glVertex3d(0.0, 0.0, 0.0);
     glTexCoord2d(1.0, 0.0);
-    glVertex3d(0.0, -m_width, 0.0);
+    glVertex3d(0.0, -m_size.width(), 0.0);
     glTexCoord2d(1.0, 1.0);
-    glVertex3d(0.0, -m_width, m_height);
+    glVertex3d(0.0, -m_size.width(), m_size.height());
     glTexCoord2d(0.0, 1.0);
-    glVertex3d(0.0, 0.0, m_height);
+    glVertex3d(0.0, 0.0, m_size.height());
     glEnd();
 
-    glTranslated(0.0, (-m_width + m_stick_width) / 2.0, m_height / 2.0);
+    glTranslated(0.0, (-m_size.width() + m_stick_width) / 2.0, m_size.height() / 2.0);
     glEndList();
 
     glNewList(m_list_index + 1, GL_COMPILE);
@@ -372,10 +364,10 @@ void Gear_Shift::draw() const
 
 //----------------------------------------------------------------------------------------
 Dashboard::Dashboard(double x, double y, double z, double tilt)
-    : m_x(x),
-      m_y(y),
-      m_z(z),
-      m_tilt(tilt)
+    : m_x{x},
+      m_y{y},
+      m_z{z},
+      m_tilt{tilt}
 {
 }
 

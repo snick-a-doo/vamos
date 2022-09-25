@@ -29,6 +29,7 @@
 
 #include "../geometry/conversions.h"
 #include "../geometry/numeric.h"
+#include "../geometry/rectangle.h"
 #include "../media/texture-image.h"
 
 #include <cassert>
@@ -284,13 +285,13 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
     else if (label() == "gear-indicator")
     {
         mp_gear_indicator = std::make_unique<Gear_Indicator>(
-            m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+            Rectangle{m_doubles[0], m_doubles[1], m_doubles[3], m_doubles[4]}, m_doubles[2],
             m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
         m_bools[0] = false;
     }
     else if (label() == "gear-shift")
         mp_gear_indicator = std::make_unique<Gear_Shift>(
-            m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+            Rectangle{m_doubles[0], m_doubles[1], m_doubles[3], m_doubles[4]}, m_doubles[2],
             m_vectors[0], m_points, m_data_dir + "textures/" + m_strings[0],
             m_data_dir + "textures/" + m_strings[1]);
     else if (label() == "steering-wheel")

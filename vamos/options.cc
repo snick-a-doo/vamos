@@ -47,7 +47,6 @@ static void show_usage()
 
 Options::Options(int argc, char* argv[])
 {
-    auto option_index{0};
     option long_options[] = {{"car", required_argument, 0, 'c'},
                              {"track", required_argument, 0, 't'},
                              {"world", required_argument, 0, 'w'},
@@ -67,6 +66,7 @@ Options::Options(int argc, char* argv[])
 
     while (true)
     {
+        auto option_index{0};
         auto c{getopt_long(argc, argv, "c:t:w:a:o:p:z:s:l::mdqfnv", long_options, &option_index)};
         if (c == -1)
             break;

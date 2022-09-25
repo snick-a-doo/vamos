@@ -35,7 +35,7 @@ public:
     {}
 };
 
-/// Texture data stored in a PNG file.
+/// Texture data read from a PNG file.
 class Texture_Image
 {
     using Data_Ptr = std::unique_ptr<unsigned char[]>;

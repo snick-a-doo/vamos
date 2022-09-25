@@ -55,8 +55,10 @@ Texture_Image::Texture_Image(std::string const& file_name, bool smooth, bool mip
         return;
     }
     auto data{read_png_file(m_file_name)};
-    assert(m_channels == 3 || m_channels == 4);
-    auto format{m_channels == 3 ? GL_RGB : GL_RGBA};
+    assert(m_channels == 1 || m_channels == 3 || m_channels == 4);
+    auto format{m_channels == 1 ? GL_LUMINANCE
+                : m_channels == 3 ? GL_RGB
+                : GL_RGBA};
 
     glGenTextures(1, &m_texture_id);
     glBindTexture(GL_TEXTURE_2D, m_texture_id);

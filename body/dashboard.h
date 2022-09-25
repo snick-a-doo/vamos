@@ -16,6 +16,7 @@
 #ifndef VAMOS_BODY_DASHBOARD_H_INCLUDED
 #define VAMOS_BODY_DASHBOARD_H_INCLUDED
 
+#include "../geometry/rectangle.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
 #include "../media/texture-image.h"
@@ -139,7 +140,7 @@ private:
 class Gear_Indicator
 {
 public:
-    Gear_Indicator(double x, double y, double above, double width, double height, int numbers,
+    Gear_Indicator(Vamos_Geometry::Rectangle<double> const& size, double z, int numbers,
                    std::string const& image, bool on_wheel);
     virtual ~Gear_Indicator() = default;
 
@@ -148,11 +149,8 @@ public:
     bool on_steering_wheel() const { return m_on_steering_wheel; }
 
 protected:
-    double m_x;
-    double m_y;
+    Vamos_Geometry::Rectangle<double> m_size;
     double m_above;
-    double m_width;
-    double m_height;
     int m_gear;
 
 private:
@@ -166,7 +164,7 @@ private:
 class Gear_Shift : public Gear_Indicator
 {
 public:
-    Gear_Shift(double x, double y, double z, double width, double height,
+    Gear_Shift(Vamos_Geometry::Rectangle<double> const& size, double z,
                Vamos_Geometry::Three_Vector const& rotation,
                std::vector<Vamos_Geometry::Two_Vector> const& positions,
                std::string const& gate_image, std::string const& stick_image);
