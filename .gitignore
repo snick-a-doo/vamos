@@ -6,10 +6,12 @@ GTAGS
 magic-eq
 out
 *-results
-doc/robot-cars/computer-controlled-cars.aux
-doc/robot-cars/computer-controlled-cars.log
+*.aux
+*.log
+*-converted-to.pdf
 __pycache__
 vamos_track.pyc
 .Rhistory
 doc/html/
 doc/latex/
+NN
