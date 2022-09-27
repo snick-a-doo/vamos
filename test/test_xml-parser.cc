@@ -15,37 +15,37 @@ TEST_CASE("parse")
     SUBCASE("empty")
     {
         CHECK(path.empty());
-        CHECK(path.path() == "");
+        CHECK(path.match(""));
     }
     SUBCASE("push")
     {
         path.push("element");
-        CHECK(path.path() == "/element");
+        CHECK(path.match("/element"));
     }
     SUBCASE("push two")
     {
         path.push("one");
         path.push("two");
-        CHECK(path.path() == "/one/two");
+        CHECK(path.match("/one/two"));
     }
     SUBCASE("push drop")
     {
         path.push("element");
         path.drop();
-        CHECK(path.path() == "");
+        CHECK(path.match(""));
     }
     SUBCASE("push two drop")
     {
         path.push("one");
         path.push("two");
         path.drop();
-        CHECK(path.path() == "/one");
+        CHECK(path.match("/one"));
     }
     SUBCASE("test top")
     {
         path.push("one");
         path.push("two");
-        CHECK(path.top() == "two");
+        CHECK(path.match("two"));
     }
     SUBCASE("test match")
     {
@@ -56,18 +56,9 @@ TEST_CASE("parse")
         CHECK(path.match("/one/two/three/four"));
         CHECK(!path.match("/one/two/five"));
         CHECK(!path.match("/one/two/"));
-        CHECK(!path.match("three/four"));
-        CHECK(path.match("/one/two/*"));
-        CHECK(!path.match("/one/three/*"));
-        CHECK(path.match("*/three/four"));
-        CHECK(!path.match("*/one/three"));
-        CHECK(path.match("/one/t*ree/four"));
-        CHECK(!path.match("/one/t*six"));
-        CHECK(!path.match("/one/two/*two/three/four"));
-        CHECK(path.match("/one/*/thr*our"));
-        CHECK(path.match("/one/two/th**ree/four"));
-        CHECK(path.match("/one/t*three/four"));
-        CHECK(!path.match("*/three/fourteen"));
-        CHECK(!path.match("*/three/fo"));
+        CHECK(path.match("three/four"));
+        CHECK(!path.match("one/three"));
+        CHECK(!path.match("three/fourteen"));
+        CHECK(!path.match("three/fo"));
     }
 }

@@ -369,9 +369,9 @@ public:
     Car_Reader(std::string const& data_dir, std::string const& car_file, Car* car);
 
 private:
-    void on_start_tag(const Vamos_Media::XML_Tag& tag);
-    void on_end_tag(const Vamos_Media::XML_Tag& tag);
-    void on_data(std::string data_string);
+    virtual void on_start_tag(Vamos_Media::XML_Tag const& tag) override;
+    virtual void on_end_tag(Vamos_Media::XML_Tag const& tag) override;
+    virtual void on_data(std::string const& data) override;
 
     std::vector<int> m_ints;
     std::vector<double> m_doubles;

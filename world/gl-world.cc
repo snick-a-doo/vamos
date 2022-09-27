@@ -63,7 +63,7 @@ private:
     /// @{
     virtual void on_start_tag(Vamos_Media::XML_Tag const& tag) override;
     virtual void on_end_tag(Vamos_Media::XML_Tag const& tag) override;
-    virtual void on_data(std::string data_string) override;
+    virtual void on_data(std::string const& data_string) override;
     /// @}
 
     using Call_Map = std::map<std::string, Callback_Fn>;
@@ -104,7 +104,7 @@ public:
 
     virtual void on_start_tag(Vamos_Media::XML_Tag const&) override {}
     virtual void on_end_tag(Vamos_Media::XML_Tag const&) override {}
-    virtual void on_data(std::string data_string) override;
+    virtual void on_data(std::string const& data_string) override;
 
 private:
     std::string m_path;
@@ -992,37 +992,37 @@ World_Reader::World_Reader(std::string const& file_name, Gl_World* world)
     read(file_name);
 }
 
-void World_Reader::on_data(std::string data)
+void World_Reader::on_data(std::string const& data)
 {
     if (data.empty())
         return;
 
     std::istringstream is(data.c_str());
 
-    if (path() == "/world/gravity")
+    if (match("/world/gravity"))
     {
         double grav;
         is >> grav;
         mp_world->set_gravity(grav);
     }
-    else if (path() == "/world/atmosphere/density")
+    else if (match("/world/atmosphere/density"))
         is >> mp_world->m_atmosphere.density;
-    else if (path() == "/world/atmosphere/velocity")
+    else if (match("/world/atmosphere/velocity"))
         is >> mp_world->m_atmosphere.velocity;
-    else if (path() == "/world/atmosphere/speed-of-sound")
+    else if (match("/world/atmosphere/speed-of-sound"))
     {
         float v_s;
         is >> v_s;
         alSpeedOfSound(v_s);
     }
-    else if (path() == "/world/lighting/source-position")
+    else if (match("/world/lighting/source-position"))
     {
         Three_Vector pos;
         is >> pos;
         GLfloat position[] = {float(pos.x), float(pos.y), float(pos.z), 0.0f};
         glLightfv(GL_LIGHT0, GL_POSITION, position);
     }
-    else if (path() == "/world/lighting/ambient")
+    else if (match("/world/lighting/ambient"))
     {
         Three_Vector amb;
         is >> amb;
@@ -1139,14 +1139,14 @@ Controls_Reader::Controls_Reader(std::string const& file_name, Gl_World* world)
 
 void Controls_Reader::on_start_tag(Vamos_Media::XML_Tag const&)
 {
-    if (label() != "bind")
-        return;
-
-    m_function = "";
-    m_control = 0;
-    m_direction = Direct::none;
-    m_calib = {};
-    m_time = 0.0;
+    if (match("bind"))
+    {
+        m_function = "";
+        m_control = 0;
+        m_direction = Direct::none;
+        m_calib = {};
+        m_time = 0.0;
+    }
 }
 
 void Controls_Reader::register_callback(Call_Map::iterator it, Control_Handler* handler)
@@ -1176,19 +1176,19 @@ void Controls_Reader::register_callback(Call_Map::iterator it, Control_Handler* 
 
 void Controls_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
 {
-    if (label() == "up")
+    if (match("up"))
         m_direction = Direct::up;
-    else if (label() == "down")
+    else if (match("down"))
         m_direction = Direct::down;
-    else if (label() == "left")
+    else if (match("left"))
         m_direction = Direct::left;
-    else if (label() == "right")
+    else if (match("right"))
         m_direction = Direct::right;
-    else if (label() == "forward")
+    else if (match("forward"))
         m_direction = Direct::forward;
-    else if (label() == "backward")
+    else if (match("backward"))
         m_direction = Direct::backward;
-    else if (label() == "bind")
+    else if (match("bind"))
     {
         // Use a one-sided calibration if only one direction was specified.
         m_calib.negative = m_direction != Direct::forward && m_direction != Direct::left;
@@ -1209,54 +1209,54 @@ void Controls_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
     }
 }
 
-void Controls_Reader::on_data(std::string data)
+void Controls_Reader::on_data(std::string const& data)
 {
     if (data.empty())
         return;
 
     std::istringstream is{data.c_str()};
 
-    if (label() == "key")
+    if (match("key"))
     {
         m_type = Control::key;
         std::string key;
         is >> key;
         m_control = translate_key(key);
     }
-    else if (label() == "button")
+    else if (match("button"))
     {
         m_type = Control::joystick_button;
         is >> m_control;
     }
-    else if (label() == "mouse-button")
+    else if (match("mouse-button"))
     {
         m_type = Control::mouse_button;
         std::string button;
         is >> button;
         m_control = translate_key(button);
     }
-    else if (label() == "axis")
+    else if (match("axis"))
     {
         m_type = Control::joystick_axis;
         std::string axis;
         is >> m_control;
     }
-    else if (label() == "mouse-direction")
+    else if (match("mouse-direction"))
     {
         m_type = Control::mouse_motion;
         std::string axis;
         is >> m_control;
     }
-    else if (label() == "function")
+    else if (match("function"))
         m_function = data;
-    else if (label() == "factor")
+    else if (match("factor"))
         is >> m_calib.factor;
-    else if (label() == "offset")
+    else if (match("offset"))
         is >> m_calib.offset;
-    else if (label() == "deadband")
+    else if (match("deadband"))
         is >> m_calib.deadband;
-    else if (label() == "upper-deadband")
+    else if (match("upper-deadband"))
         is >> m_calib.upper_deadband;
-    else if (label() == "time")
+    else if (match("time"))
         is >> m_time;
 }

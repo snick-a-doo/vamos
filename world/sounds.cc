@@ -36,7 +36,7 @@ public:
 private:
     void on_start_tag(XML_Tag const&) override {};
     void on_end_tag(XML_Tag const& tag) override;
-    void on_data(std::string data_string) override;
+    void on_data(std::string const& data_string) override;
 
     std::string m_file; ///< The name of the WAV file with the sample.
     Sounds& m_sounds; ///< The sound object to be modified.
@@ -158,21 +158,21 @@ Sounds_Reader::Sounds_Reader(std::string const& file_name, Sounds& sounds)
 void Sounds_Reader::on_end_tag(XML_Tag const&)
 {
     Sound type;
-    if (label() == "tire-squeal")
+    if (match("tire-squeal"))
         type = Sound::tire_squeal;
-    else if (label() == "kerb-sound")
+    else if (match("kerb-sound"))
         type = Sound::kerb;
-    else if (label() == "grass-sound")
+    else if (match("grass-sound"))
         type = Sound::grass;
-    else if (label() == "gravel-sound")
+    else if (match("gravel-sound"))
         type = Sound::gravel;
-    else if (label() == "scrape-sound")
+    else if (match("scrape-sound"))
         type = Sound::scrape;
-    else if (label() == "wind-sound")
+    else if (match("wind-sound"))
         type = Sound::wind;
-    else if (label() == "soft-crash-sound")
+    else if (match("soft-crash-sound"))
         type = Sound::soft_crash;
-    else if (label() == "hard-crash-sound")
+    else if (match("hard-crash-sound"))
         type = Sound::hard_crash;
     else
         return;
@@ -186,20 +186,20 @@ void Sounds_Reader::on_end_tag(XML_Tag const&)
     m_volume = 1.0;
 }
 
-void Sounds_Reader::on_data(std::string data)
+void Sounds_Reader::on_data(std::string const& data)
 {
     if (data.empty())
         return;
 
     std::istringstream is{data};
-    if (label() == "file")
+    if (match("file"))
         m_file = data;
-    else if (label() == "pitch")
+    else if (match("pitch"))
         is >> m_pitch;
-    else if (label() == "volume")
+    else if (match("volume"))
         is >> m_volume;
-    else if (label() == "sample-rate")
+    else if (match("sample-rate"))
         is >> m_rate;
-    else if (label() == "buffer-duration")
+    else if (match("buffer-duration"))
         is >> m_buffer_duration;
 }

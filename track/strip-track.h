@@ -435,9 +435,9 @@ public:
                        Vamos_Track::Strip_Track* road);
 
 private:
-    void on_start_tag(Vamos_Media::XML_Tag const& tag);
-    void on_end_tag(Vamos_Media::XML_Tag const& tag);
-    void on_data(std::string data_string);
+    virtual void on_start_tag(Vamos_Media::XML_Tag const& tag);
+    virtual void on_end_tag(Vamos_Media::XML_Tag const& tag);
+    virtual void on_data(std::string const& data);
 
     std::string m_name;
 

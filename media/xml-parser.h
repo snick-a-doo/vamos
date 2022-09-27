@@ -1,234 +1,122 @@
-//  XML_Parser.h - an XML file reader
-//
-//  Copyright (C) 2004 Sam Varner
+//  Copyright (C) 2004-2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
-//  Vamos is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//  
-//  Vamos is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//  
-//  You should have received a copy of the GNU General Public License
-//  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
+//  Vamos is free software: you can redistribute it and/or modify it under the terms of
+//  the GNU General Public License as published by the Free Software Foundation, either
+//  version 3 of the License, or (at your option) any later version.
+//
+//  Vamos is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+//  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License along with Vamos.
+//  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _XML_PARSER_H_
-#define _XML_PARSER_H_
+#ifndef VAMOS_MEDIA_XML_PARSER_H_INCLUDED
+#define VAMOS_MEDIA_XML_PARSER_H_INCLUDED
 
-#include <string>
 #include <fstream>
-#include <vector>
+#include <map>
+#include <memory>
+#include <string>
 
 namespace Vamos_Media
 {
-  //** Exception Classes
-  class XML_Exception
-  {
-  protected:
-	std::string m_file;
-	int m_line;
-	std::string m_message;
-  public:
-	XML_Exception (std::string file, int line = 0, std::string message = "") :
-	  m_file (file),
-	  m_line (line),
-	  m_message (message)
-	{};
-	virtual ~XML_Exception () {};
+class XML_Tag
+{
+public:
+    /// The types of < > tags expected.
+    enum class Tag{none, processing, start, end, empty, comment};
+    /// The name/value pairs in the tag.
+    using Attributes = std::map<std::string, std::string>;
 
-	virtual std::string message () const;
-  };
+public:
+    /// Read the next tag from the stream and store any data that precedes it.
+    XML_Tag(std::ifstream& stream);
 
-  class No_XML_File : public XML_Exception
-  {
-  public:
-	No_XML_File (std::string file) : XML_Exception (file) {};
-	std::string message () const 
-	{ return "Can't find the file \"" + m_file + '"'; }
-  };
+    /// @return The tag type.
+    Tag get_type() const { return m_type; }
+    /// @return The number of lines read so far.
+    int get_lines() const { return m_lines; }
+    /// @return A map of values to names in the tag.
+    Attributes const& get_attributes() const { return m_attributes; }
+    /// @return The text that preceded the tag.
+    std::string get_data() const { return m_data; }
+    /// @return The name in the tag.
+    std::string get_label() const { return m_label; }
 
-  class No_Declaration : public XML_Exception
-  {
-  public:
-	No_Declaration (std::string file, int line, std::string message) :
-	  XML_Exception (file, line, message) {};
-  };
+private:
+    using Str_Iter = std::string::iterator;
 
-  class Bad_Tag_Type : public XML_Exception
-  {
-  public:
-	Bad_Tag_Type (std::string file, int line, std::string message) :
-	  XML_Exception (file, line, message) {};
-  };
+    /// Read everything up to the next '<' storing in m_data.
+    /// @return The text in the tag from < to >.
+    std::string read_tag(std::ifstream& stream);
+    /// Read attributes.into m_attributes.
+    void find_attributes(Str_Iter attr_begin, Str_Iter attr_end);
 
-  class Tag_Mismatch : public XML_Exception
-  {
-  public:
-	Tag_Mismatch (std::string file, int line, std::string message) :
-	  XML_Exception (file, line, message) {}
-  };
+    Tag m_type{Tag::none}; ///< The kind of tag being read.
+    int m_lines{0}; ///< The number of newline character read.
+    Attributes m_attributes; ///< Name/value pairs in the tag.
+    std::string m_data; ///< For end tags, the text between start and end tags.
+    std::string m_text; ///< All the text in the tag, including < and >.
+    std::string m_label; ///< The first string after < in a start tag.
+};
 
-  struct XML_Unterminated
-  {
-	int lines;
-	std::string text;
-	bool eof;
-	char delimiter;
+//----------------------------------------------------------------------------------------
+/// A string of slash-separated nested tag names with a stack interface.
+class XML_Path
+{
+public:
+    void push(std::string element) { m_path += '/' + element; }
+    void drop() { m_path = m_path.substr(0, m_path.find_last_of("/")); }
+    bool empty() const { return m_path.empty(); }
+    /// True if pattern starts with a / and matches the whole path, or pattern matches a
+    /// tail of the path following a /.
+    bool match(std::string pattern) const;
+    std::string const& path() const { return m_path; }
+    /// The current innermost tag.
+    std::string top() const;
 
-	XML_Unterminated (int lines_in, 
-					  std::string text_in, 
-					  bool eof_in,
-					  char delimiter_in) : 
-	  lines (lines_in),
-	  text (text_in),
-	  eof (eof_in),
-	  delimiter (delimiter_in)
-	{};
-  };
-
-  struct Unterminated_Tag : public XML_Unterminated
-  {
-	Unterminated_Tag (int lines_in, std::string text_in, bool eof_in)
-	  : XML_Unterminated (lines_in, text_in, eof_in, '>') {};
-  };
-
-  struct Unterminated_Attribute : public XML_Unterminated
-  {
-	Unterminated_Attribute (int lines_in, std::string text_in, bool eof_in)
-	  : XML_Unterminated (lines_in, text_in, eof_in, '"') {};
-  };
-
-
-
-  //** Class XML_Tag
-  class XML_Tag
-  {
-  public:
-	enum Tag_Type
-	  {
-		NONE,
-		START,
-		END,
-		EMPTY,
-		PROCESSING_INSTRUCTION,
-		COMMENT
-	  };
-
-	struct Attribute
-	{
-	  Attribute (std::string name_in, std::string value_in) 
-		: name (name_in), value (value_in) {}
-	  std::string name;
-	  std::string value;
-	};
-
-	typedef std::vector <Attribute> Attribute_List;
-
-  private:
-	typedef std::string::iterator String_Iterator;
-
-	Tag_Type m_type;	
-	int m_lines;
-	std::vector <Attribute> m_attributes;
-	std::string m_data;
-	std::string m_text;
-	std::string m_label;
-
-	// Read everything up to the next '<'.  Return true if '<' was found.
-	bool read_to_tag_start (std::ifstream& stream);
-
-	// Read everything up to the next `>'.  Return true if '>' was found.
-	bool read_to_tag_end (std::ifstream& stream);
-
-	// Determine the type of the tag.
-	Tag_Type find_tag_type (std::ifstream& stream);
-
-	// Determine the tag's label.
-	std::string find_label (String_Iterator text_start,
-							String_Iterator text_end);
-
-	// Get the next character from the stream.
-	std::ifstream& get_next_char (std::ifstream& stream, char& ch);
-
-	// Parse attributes.
-	void find_attributes (String_Iterator attr_begin,
-						  String_Iterator attr_end);
-	
-	// Throw out characters inside a comment.
-	void eat_comment (std::ifstream& stream);
-	
-	bool find_comment_end (std::ifstream& stream);
-	
-	void skip_spaces (String_Iterator& text_start);
-
-	Attribute get_attribute (String_Iterator text_start,
-							 String_Iterator text_end);
-	void get_text_boundries (String_Iterator& text_start,
-							 String_Iterator& text_end);
-	
-  public:
-	XML_Tag (std::ifstream& stream);
-
-	Tag_Type get_type () const { return m_type; }
-	int get_lines () const { return m_lines; }
-	const Attribute_List& get_attributes () const { return m_attributes; }
-	std::string get_data () const { return m_data; }
-	std::string get_text () const { return m_text; }
-	std::string get_label () const { return m_label; }
-  };
-
-  //** XML Tag Path Class
-  class XML_Path
-  {
+private:
     std::string m_path;
+};
 
-  public:
-    void push (std::string element) { m_path += '/' + element; }
-    void drop () { m_path = m_path.substr (0, m_path.find_last_of ("/")); }
-    bool empty () const { return m_path.empty (); }
-    bool match (std::string pattern) const;
-    std::string path () const { return m_path; }
-    std::string subpath (size_t n) const;
-    std::string top () const { return subpath (1); }
-  };
+//----------------------------------------------------------------------------------------
+class XML_Parser
+{
+public:
+    virtual ~XML_Parser() = default;
+    /// Read the XML file and call the event handlers according to the content.
+    void read(std::string file);
 
-  //** Parser Class
-  class XML_Parser
-  {
-  public:
-	XML_Parser ();
-	virtual ~XML_Parser ();
+protected:
+    /// Convenience method to raise an error from a derived parser.
+    void error(std::string message);
+    /// Look for a string match in a tag path. If pattern starts with / compare to the
+    /// whole path, else compare to any tail starting after a /.
+    bool match(std::string pattern) const { return m_path.match(pattern); }
 
-	void read (std::string file);
-	void error (std::string message);
+    /// Event handlers overridden by derived classes.
+    /// @{
+    /// Called when a start tag is found.
+    virtual void on_start_tag(XML_Tag const& tag) = 0;
+    /// Called when an end tag is found.
+    virtual void on_end_tag(XML_Tag const& tag) = 0;
+    /// Called with the data between the tags.
+    virtual void on_data(std::string const& data) = 0;
+    /// @}
 
-    bool match (std::string pattern) const { return m_path.match (pattern); }
-    std::string path () const { return m_path.path (); }
-    std::string label () const { return m_path.top (); }
+private:
+    void read_document();
+    /// Call the event handlers when a tag is found.
+    bool run_callbacks(XML_Tag const& tag);
 
-	// Event handlers overridden by derived classes.
-	virtual void on_start_tag (const XML_Tag& tag) = 0;
-	virtual void on_end_tag (const XML_Tag& tag) = 0;
-	virtual void on_data (std::string data_string) = 0;
+    std::string m_file; ///< The XML file name.
+    std::unique_ptr<std::ifstream> mp_stream; ///< The stream for reading the file.
+    int m_line; ///< The current line number.
+    XML_Path m_path; ///< The current sequence of tag labels.
+};
+} // namespace Vamos_Media
 
-  private:
-    std::string m_file;
-    std::ifstream* mp_stream;
-    int m_line;
-    XML_Path m_path;
-
-	void check_declaration ();
-	void read_document ();
-	bool run_callbacks (const XML_Tag& tag);
-	void add_tag (const XML_Tag& tag);
-	void remove_tag (const XML_Tag& tag);
-	void handle_unterminated (XML_Unterminated& unterminated);
-  };
-}
-
-#endif // not _XML_PARSER_H_
+#endif // VAMOS_MEDIA_XML_PARSER_H_INCLUDED
