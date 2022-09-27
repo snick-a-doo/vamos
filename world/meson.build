@@ -2,6 +2,7 @@ world_sources = [
   'controls.cc',
   'gl-world.cc',
   'interactive-driver.cc',
+  'pid.cc',
   'robot-driver.cc',
   'sounds.cc',
   'timing-info.cc',

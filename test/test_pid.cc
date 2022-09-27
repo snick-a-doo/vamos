@@ -2,9 +2,9 @@
 
 #include "test.h"
 
-#include <geometry/pid.h>
+#include <world/pid.h>
 
-using namespace Vamos_Geometry;
+using namespace Vamos_World;
 
 TEST_CASE("proportional")
 {

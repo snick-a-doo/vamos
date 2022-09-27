@@ -3,7 +3,6 @@ geometry_sources = [
   'linear-interpolator.cc',
   'numeric.cc',
   'parameter.cc',
-  'pid.cc',
   'spline.cc',
   'three-matrix.cc',
   'three-vector.cc',

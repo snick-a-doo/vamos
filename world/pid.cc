@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace Vamos_Geometry;
+using namespace Vamos_World;
 
 PID::PID(double p, double i, double d, double integral_decay)
     : m_kp{p}, m_ki{i}, m_kd{d},
@@ -56,7 +56,7 @@ double PID::operator()() const
     return m_proportional + m_integral + m_derivative;
 }
 
-namespace Vamos_Geometry
+namespace Vamos_World
 {
 std::ostream& operator << (std::ostream& os, PID const& pid)
 {

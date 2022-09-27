@@ -13,8 +13,8 @@
 //  You should have received a copy of the GNU General Public License along with Vamos.
 //  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef VAMOS_GEOMETRY_PID_H_INCLUDED
-#define VAMOS_GEOMETRY_PID_H_INCLUDED
+#ifndef VAMOS_WORLD_PID_H_INCLUDED
+#define VAMOS_WORLD_PID_H_INCLUDED
 
 #include <iosfwd>
 
@@ -29,7 +29,7 @@
 /// slip ratio and the setpoint is 10%.  The output of the controller is the
 /// throttle setting.  The P, I, and D parameters must be chosen so that the
 /// throttle is set appropriately when the slip ratio is not at the setpoint.
-namespace Vamos_Geometry
+namespace Vamos_World
 {
 class PID
 {
@@ -72,6 +72,6 @@ private:
 };
 
 std::ostream& operator << (std::ostream& os, PID const& pid);
-} // namespace Vamos_Geometry
+} // namespace Vamos_World
 
-#endif // VAMOS_GEOMETRY_PID_H_INCLUDED
+#endif // VAMOS_WORLD_PID_H_INCLUDED

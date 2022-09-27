@@ -18,10 +18,10 @@
 
 #include "controls.h"
 #include "driver.h"
+#include "pid.h"
 
 #include "../geometry/linear-interpolator.h"
 #include "../geometry/numeric.h"
-#include "../geometry/pid.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
 
@@ -250,11 +250,11 @@ private:
 
     /// PID controllers
     /// @{
-    Vamos_Geometry::PID m_speed_control;
-    Vamos_Geometry::PID m_traction_control;
-    Vamos_Geometry::PID m_brake_control;
-    Vamos_Geometry::PID m_steer_control;
-    Vamos_Geometry::PID m_front_gap_control;
+    PID m_speed_control;
+    PID m_traction_control;
+    PID m_brake_control;
+    PID m_steer_control;
+    PID m_front_gap_control;
     /// @}
 
     double m_target_slip; ///< Acceleration and braking parameter defined by the car.
