@@ -87,14 +87,14 @@ Three_Vector Rigid_Body::acceleration() const
 
 double Rigid_Body::drag() const
 {
-    return std::accumulate(m_aero_particles.begin(), m_aero_particles.end(), 0,
-                           [](double lift, auto p) { return lift + p->drag_factor(); } );
+    return std::accumulate(m_aero_particles.begin(), m_aero_particles.end(), 0.0,
+                           [](double lift, auto const& p) { return lift + p->drag_factor(); } );
 }
 
 double Rigid_Body::lift() const
 {
-    return std::accumulate(m_aero_particles.begin(), m_aero_particles.end(), 0,
-                           [](double lift, auto p) { return lift + p->lift_factor(); } );
+    return std::accumulate(m_aero_particles.begin(), m_aero_particles.end(), 0.0,
+                           [](double lift, auto const& p) { return lift + p->lift_factor(); } );
 }
 
 void Rigid_Body::contact(Particle& particle, Three_Vector const& impulse,
