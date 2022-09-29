@@ -187,8 +187,8 @@
 
   <!-- Define the timing sectors. -->
   <timing-line>10.0</timing-line>
-  <timing-line>700.0</timing-line>
-  <timing-line>1800.0</timing-line>
+  <timing-line>400.0</timing-line>
+  <timing-line>800.0</timing-line>
 
   <!-- Adjust the total length if necessary. -->
   <track-length>1133.0</track-length>

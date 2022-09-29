@@ -685,9 +685,9 @@ double Braking_Operation::maximum_speed(double speed, double distance, double st
     }
 
     auto get_normal = [&](double along) {
-        auto* segment{m_road.segment_at(along)};
-        auto along_segment{along - segment->start_distance()};
-        return segment->normal(along_segment, 0.0);
+        auto const& segment{m_road.segment_at(along)};
+        auto along_segment{along - segment.start_distance()};
+        return segment.normal(along_segment, 0.0);
     };
 
     // Calculate the car's speed as a function of distance if braking started now. If the

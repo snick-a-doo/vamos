@@ -164,10 +164,10 @@ Segment_Iterator& Segment_Iterator::operator++()
 
     increment_distance();
 
-    bool left_start_transition = false;
-    bool left_end_transition = false;
-    bool right_start_transition = false;
-    bool right_end_transition = false;
+    auto left_start_transition{false};
+    auto left_end_transition{false};
+    auto right_start_transition{false};
+    auto right_end_transition{false};
 
     if (m_strip == Gl_Road_Segment::LEFT_KERB)
     {
@@ -192,8 +192,8 @@ Segment_Iterator& Segment_Iterator::operator++()
             || (m_segment.pit().end() == Pit_Lane_Transition::End::out && !m_after_connection))};
 
     // Calculate the geometry of the strip.
-    double across = 0.0;
-    double up = 0.0;
+    auto across{0.0};
+    auto up{0.0};
     switch (m_strip)
     {
     case Gl_Road_Segment::LEFT_BARRIER:
@@ -417,13 +417,13 @@ void Segment_Iterator::increment_kerb_distance(const Kerb& kerb)
 
 //----------------------------------------------------------------------------------------
 Gl_Road_Segment::Gl_Road_Segment(double resolution, double length, double radius, double skew,
-                                 const TPoints& left_width, const TPoints& right_width,
-                                 const TPoints& left_road_width, const TPoints& right_road_width,
+                                 TPoints const& left_width, TPoints const& right_width,
+                                 TPoints const& left_road_width, TPoints const& right_road_width,
                                  std::unique_ptr<Kerb> left_kerb, std::unique_ptr<Kerb> right_kerb,
                                  double left_wall_height, double right_wall_height,
-                                 const TPoints& elevation_points, double end_bank,
-                                 double bank_pivot, const std::vector<Material>& materials,
-                                 const std::vector<Braking_Marker>& braking_markers)
+                                 TPoints const& elevation_points, double end_bank,
+                                 double bank_pivot, std::vector<Material> const& materials,
+                                 std::vector<Braking_Marker> const& braking_markers)
     : Road_Segment(length, radius, 10.0, 10.0, 20.0, 20.0),
       m_texture_offsets{N_STRIPS},
       mp_iterator{std::make_unique<Segment_Iterator>(*this, resolution)},
@@ -452,14 +452,11 @@ Gl_Road_Segment::~Gl_Road_Segment()
 void Gl_Road_Segment::add_textures()
 {
     for (auto const& material : m_materials)
-    {
-        if (material.texture_file_name().empty())
-            m_textures.push_back(nullptr);
-        else
-            m_textures.push_back(std::make_unique<Texture_Image>(
-                                     material.texture_file_name(), material.smooth(),
-                                     material.mip_map(), material.width(), material.height()));
-    }
+        m_textures.push_back(material.texture_file_name().empty()
+                             ? nullptr
+                             : std::make_unique<Texture_Image>(
+                                 material.texture_file_name(), material.smooth(),
+                                 material.mip_map(), material.width(), material.height()));
 }
 
 const Material& Gl_Road_Segment::left_material(double height) const
@@ -509,7 +506,6 @@ void Gl_Road_Segment::build()
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
     GLfloat shininess[] = {128.0};
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
     assert(m_texture_offsets.size() == N_STRIPS);
@@ -542,29 +538,19 @@ void Gl_Road_Segment::build()
     draw_strip(RIGHT_BARRIER, m_texture_offsets[RIGHT_BARRIER]);
     glFlush();
 
+    // Draw braking markers.
     for (auto const& marker : m_braking_markers)
     {
         auto along{length() - marker.distance()};
-        auto from_center{marker.from_edge()};
-        if (marker.side() == Side::right)
-            from_center = -(from_center + right_road_width(along));
-        else
-            from_center += left_road_width(along) + marker.width();
-
+        auto from_center{marker.side() == Side::right
+                         ? -marker.from_edge() - right_road_width(along)
+                         : marker.from_edge() + left_road_width(along) + marker.width()};
         using std::sin, std::cos;
         auto angle{start_angle() + arc() * along / length()};
         auto x{center_of_curve().x - from_center * sin(angle)};
         auto y{center_of_curve().y + from_center * cos(angle)};
-        if (is_straight())
-        {
-            x += along * cos(angle);
-            y += along * sin(angle);
-        }
-        else
-        {
-            x += radius() * sin(angle);
-            y -= radius() * cos(angle);
-        }
+        x += (is_straight() ? along : radius()) * cos(angle);
+        y += (is_straight() ? along : radius()) * sin(angle);
         auto z{elevation(along, from_center) + marker.off_ground()};
 
         glPushMatrix();
@@ -575,6 +561,7 @@ void Gl_Road_Segment::build()
         glPopMatrix();
     }
 
+    // Draw scenery
     glPushMatrix();
     glTranslatef(start_coords().x, start_coords().y, start_coords().z);
     glRotatef(rad_to_deg(start_angle()), 0.0, 0.0, 1.0);
@@ -589,9 +576,7 @@ void Gl_Road_Segment::draw_strip(Strip strip, double texture_offset)
         return;
 
     m_textures[strip]->activate();
-
     mp_iterator->start(start_coords(), strip);
-
     auto vertex{(++(*mp_iterator)).coordinates()};
     glNormal3d(mp_iterator->normal().x, mp_iterator->normal().y, mp_iterator->normal().z);
     m_bounds.enclose(Rectangle<double>({vertex.x, vertex.y}, {vertex.x, vertex.y}));
@@ -646,7 +631,7 @@ void Gl_Road_Segment::add_model_info(const Model_Info& info)
     m_models.push_back(info);
 }
 
-void Gl_Road_Segment::set_start(const Three_Vector& start_coords, double start_distance,
+void Gl_Road_Segment::set_start(Three_Vector const& start_coords, double start_distance,
                                 double start_angle, double start_bank,
                                 const std::vector<double>& texture_offsets)
 {

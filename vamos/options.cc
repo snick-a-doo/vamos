@@ -128,7 +128,10 @@ Options::Options(int argc, char* argv[])
             break;
         }
     }
-
+    // Default to 5 laps for races, 5 minutes for qualifying. Leave laps at 0 for
+    // single-car practice.
+    if ((number_of_cars > 1 || qualifying) && laps == 0)
+        laps = 5;
     // Assume the rest of the arguments are values of adjustable parameters.
     if (optind < argc)
         input_file = argv[optind++];

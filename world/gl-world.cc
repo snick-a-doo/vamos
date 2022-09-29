@@ -783,7 +783,7 @@ Two_D screen;
     auto dt{dtime_str(car.lap_time_difference())};
     auto down = [](auto& p, auto n) { p.y -= n; return p; };
     Two_Vector p{55, 18};
-    screen.text(down(p, 4), "Lap Time", time_str(car.lap_time()));
+    screen.text(down(p, 4), "Lap Time", time_str(car.current_lap_time()));
     screen.text(down(p, 4), "    Last", time_str(car.previous_lap_time()), dt);
     screen.text(down(p, 4), "    Best", time_str(car.best_lap_time()));
     screen.text(down(p, 4), "frames/s", static_cast<int>(m_timer.get_frame_rate() + 0.5));
@@ -802,15 +802,14 @@ void Gl_World::draw_leaderboard(Vamos_Media::Two_D& screen) const
     auto const& order{mp_timing->running_order()};
     if (m_track.get_road(0).is_closed())
     {
-        auto total_laps{mp_timing->total_laps()};
         if (mp_timing->is_finished())
             screen.text(p, "Finish");
-        else if (mp_timing->is_qualifying() && total_laps == 0)
+        else if (mp_timing->is_qualifying() && mp_timing->total_laps() == 0)
             screen.text(p, "", time_str(mp_timing->time_remaining(), 0));
         else
         {
             std::ostringstream os;
-            os << order.front()->current_lap() << '/' << total_laps;
+            os << order.front()->current_lap() << '/' << mp_timing->total_laps();
             screen.text(p, "Lap", os.str());
         }
     }
@@ -834,21 +833,18 @@ void Gl_World::draw_leaderboard(Vamos_Media::Two_D& screen) const
 
 void Gl_World::draw_lap_times(Vamos_Media::Two_D& screen) const
 {
-    auto const& order{mp_timing->running_order()};
-    auto it{order.cbegin()};
-
-    std::vector<double> times;
-    auto lap_time{(*it)->previous_lap_time()};
-    auto lap{(*it)->current_lap()};
-    if (lap_time != Timing_Info::no_time && lap > 0 && lap - 1 > times.size())
-        times.push_back(lap_time);
-
+    auto info{mp_timing->running_order().front()};
     Two_Vector p{2, 95};
     screen.text(p, "Lap", "Time");
-    for (size_t i{1}; i <= times.size(); ++i, p.y -= 3)
-        screen.text(p, i, time_str(times[i]));
+    p.y -= 3;
+    auto last_time{0.0};
+    for (size_t i{1}; i < info->current_lap(); ++i, p.y -= 3)
+    {
+        screen.text(p, i, time_str(info->lap_time(i) - last_time));
+        last_time = info->lap_time(i);
+    }
     // Draw the lap number with no time for the current lap.
-    screen.text(p, times.size() + 1, "");
+    screen.text(p, info->current_lap(), "");
     draw_fastest_lap(screen, {p.x, p.y - 3});
 }
 

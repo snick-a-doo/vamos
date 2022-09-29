@@ -144,7 +144,10 @@ public:
     /// @return The distance traveled on the current lap.
     double lap_distance() const { return m_distance; }
     /// @return Time spent on the current lap so far.
-    double lap_time() const;
+    double current_lap_time() const;
+    /// @return Elapsed time at the completion of a lap.
+    /// @param lap A lap number from 1 to # of completed laps.
+    double lap_time(size_t lap) const;
     /// Time taken to complete the previous lap.
     double previous_lap_time() const;
     /// The shortest previous lap time so far. Updated each lap.

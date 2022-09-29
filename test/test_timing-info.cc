@@ -42,9 +42,9 @@ TEST_CASE("initial state")
     CHECK(f.car(1).current_lap() == 0);
     CHECK(f.car(2).current_lap() == 0);
     CHECK(f.car(3).current_lap() == 0);
-    CHECK(f.car(1).lap_time() == 0);
-    CHECK(f.car(2).lap_time() == 0);
-    CHECK(f.car(3).lap_time() == 0);
+    CHECK(f.car(1).current_lap_time() == 0);
+    CHECK(f.car(2).current_lap_time() == 0);
+    CHECK(f.car(3).current_lap_time() == 0);
     CHECK(f.car(1).previous_lap_time() == Timing_Info::no_time);
     CHECK(f.car(2).previous_lap_time() == Timing_Info::no_time);
     CHECK(f.car(3).previous_lap_time() == Timing_Info::no_time);
@@ -97,9 +97,9 @@ TEST_CASE("second sector")
     CHECK(f.car(1).current_lap() == 1);
     CHECK(f.car(2).current_lap() == 1);
     CHECK(f.car(3).current_lap() == 1);
-    CHECK(f.car(1).lap_time() == 70);
-    CHECK(f.car(2).lap_time() == 81);
-    CHECK(f.car(3).lap_time() == 92);
+    CHECK(f.car(1).current_lap_time() == 70);
+    CHECK(f.car(2).current_lap_time() == 81);
+    CHECK(f.car(3).current_lap_time() == 92);
     CHECK(f.car(1).previous_lap_time() == Timing_Info::no_time);
     CHECK(f.car(2).previous_lap_time() == Timing_Info::no_time);
     CHECK(f.car(3).previous_lap_time() == Timing_Info::no_time);
@@ -143,7 +143,7 @@ TEST_CASE("third lap")
     CHECK(f.car(1).interval() == Timing_Info::no_time);
     CHECK(f.car(1).lap_distance() == 100);
     CHECK(f.car(1).current_lap() == 3);
-    CHECK(f.car(1).lap_time() == 6);
+    CHECK(f.car(1).lap_time(2) == 51.0);
     CHECK(f.car(1).previous_lap_time() == 26);
     CHECK(f.car(1).best_lap_time() == 25);
     CHECK(f.car(1).lap_time_difference() == 1);
@@ -181,7 +181,7 @@ TEST_CASE("end of race")
     f.timing.update(170, 1, 116, 1);
     f.timing.update(180, 0, 117, 1);
 
-    Timing_Info::Running_Order::const_iterator it = f.timing.running_order().begin();
+    auto it{f.timing.running_order().cbegin()};
 
     // Total time keeps running. If race time is needed it could be provided by
     // the winner's Car_Timing.
@@ -191,7 +191,8 @@ TEST_CASE("end of race")
     CHECK((*it)->current_lap() == 3);
     CHECK((*it)->interval() == Timing_Info::no_time);
     CHECK((*it)->lap_distance() == 116);
-    CHECK((*it)->lap_time() == Timing_Info::no_time);
+    CHECK((*it)->current_lap_time() == Timing_Info::no_time);
+    CHECK((*it)->lap_time(1) == 60.0);
     CHECK((*it)->previous_lap_time() == 40); // last race lap
     CHECK(f.timing.fastest_lap_timing() == it->get());
     CHECK((*it)->best_lap_time() == 40);
@@ -205,7 +206,8 @@ TEST_CASE("end of race")
     CHECK((*it)->current_lap() == 3);
     CHECK((*it)->interval() == 20);
     CHECK((*it)->lap_distance() == 117);
-    CHECK((*it)->lap_time() == Timing_Info::no_time);
+    CHECK((*it)->current_lap_time() == Timing_Info::no_time);
+    CHECK((*it)->lap_time(1) == 70.0);
     CHECK((*it)->previous_lap_time() == 50); // last race lap
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
@@ -217,7 +219,8 @@ TEST_CASE("end of race")
     CHECK((*it)->current_lap() == 2);
     CHECK((*it)->interval() == 41);
     CHECK((*it)->lap_distance() == 115);
-    CHECK((*it)->lap_time() == Timing_Info::no_time);
+    CHECK((*it)->current_lap_time() == Timing_Info::no_time);
+    CHECK((*it)->lap_time(1) == 111);
     CHECK((*it)->previous_lap_time() == 111); // last race lap
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
@@ -268,7 +271,8 @@ TEST_CASE("end of timed race")
     CHECK((*it)->current_lap() == 3);
     CHECK((*it)->interval() == Timing_Info::no_time);
     CHECK((*it)->lap_distance() == 116);
-    CHECK((*it)->lap_time() == Timing_Info::no_time);
+    CHECK((*it)->current_lap_time() == Timing_Info::no_time);
+    CHECK((*it)->lap_time(1) == 60);
     CHECK((*it)->previous_lap_time() == 40); // last race lap
     CHECK(f.timing.fastest_lap_timing() == it->get());
     CHECK((*it)->best_lap_time() == 40);
@@ -282,7 +286,8 @@ TEST_CASE("end of timed race")
     CHECK((*it)->current_lap() == 3);
     CHECK((*it)->interval() == 20);
     CHECK((*it)->lap_distance() == 117);
-    CHECK((*it)->lap_time() == Timing_Info::no_time);
+    CHECK((*it)->current_lap_time() == Timing_Info::no_time);
+    CHECK((*it)->lap_time(1) == 70);
     CHECK((*it)->previous_lap_time() == 50); // last race lap
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);
@@ -294,7 +299,8 @@ TEST_CASE("end of timed race")
     CHECK((*it)->current_lap() == 2);
     CHECK((*it)->interval() == 41);
     CHECK((*it)->lap_distance() == 115);
-    CHECK((*it)->lap_time() == Timing_Info::no_time);
+    CHECK((*it)->current_lap_time() == Timing_Info::no_time);
+    CHECK((*it)->lap_time(1) == 111);
     CHECK((*it)->previous_lap_time() == 111); // last race lap
     CHECK((*it)->current_sector() == 1);
     CHECK((*it)->previous_sector() == 2);

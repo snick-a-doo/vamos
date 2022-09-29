@@ -292,7 +292,7 @@ void World::set_gravity(double g)
 
 void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
 {
-    const auto& segment{*road.segment_at(track_pos.x)};
+    const auto& segment{road.segment_at(track_pos.x)};
     car->chassis().reset(0.0);
     // Orient the car to be level with the track.
     {

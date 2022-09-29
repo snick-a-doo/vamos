@@ -214,9 +214,9 @@ public:
     Vamos_Geometry::Three_Vector track_coordinates(Vamos_Geometry::Three_Vector const& world_pos,
                                                    size_t& segment_index,
                                                    bool forward_only = false) const;
-    const Gl_Road_Segment* segment_at(double along) const;
+    Gl_Road_Segment const& segment_at(double along) const;
 
-    const Racing_Line& racing_line() const { return m_racing_line; }
+    Racing_Line const& racing_line() const { return m_racing_line; }
 
     /// Set the presence and visibility of the racing line.
     /// @param build Calculate the racing line if true.

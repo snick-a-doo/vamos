@@ -249,10 +249,16 @@ void Car_Timing::update_sector_data(double current_time, size_t sector)
         best = previous_sector_time();
 }
 
-double Car_Timing::lap_time() const
+double Car_Timing::current_lap_time() const
 {
     return m_finished ? Timing_Info::no_time
-        : m_current_time - (m_lap_times.empty() ? 0.0 : m_lap_times.back());
+         : m_current_time - (m_lap_times.empty() ? 0.0 : m_lap_times.back());
+}
+
+double Car_Timing::lap_time(size_t lap) const
+{
+    assert(0 < lap && lap <= m_lap_times.size());
+    return m_lap_times[lap - 1];
 }
 
 double Car_Timing::previous_lap_time() const

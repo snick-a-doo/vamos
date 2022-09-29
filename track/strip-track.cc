@@ -365,7 +365,7 @@ void Racing_Line::build_list(Road const& road)
             color *= -1.0;
         glColor4f(1.0 - color, 1.0 + color, 1.0, 0.5);
         // Draw the line a little above the road.
-        glVertex3d(world.x, world.y, road.segment_at(along)->world_elevation(world) + 0.05);
+        glVertex3d(world.x, world.y, road.segment_at(along).world_elevation(world) + 0.05);
         last_world = world;
     }
     glEnd();
@@ -390,7 +390,7 @@ void Racing_Line::load_curvature(double along, Three_Vector const& p1,
                                  Three_Vector const& p2, Three_Vector const& p3,
                                  Road const& road)
 {
-    auto const& segment{*road.segment_at(along)};
+    auto const& segment{road.segment_at(along)};
     m_line.load(along, p2);
 
     m_tangent.load(along, (p3 - p1).unit());
@@ -510,7 +510,7 @@ Three_Vector Road::position(double along, double from_center,
 Three_Vector Road::position(double along, double from_center) const
 {
     along = wrap(along, m_length);
-    return position(along, from_center, *segment_at(along));
+    return position(along, from_center, segment_at(along));
 }
 
 Three_Vector Road::track_coordinates(Three_Vector const& world_pos,
@@ -567,35 +567,34 @@ double Road::distance(double along1, double along2) const
 
 double Road::left_road_width(double along) const
 {
-    return segment_at(along)->left_road_width(along);
+    return segment_at(along).left_road_width(along);
 }
 
 double Road::right_road_width(double along) const
 {
-    return segment_at(along)->right_road_width(along);
+    return segment_at(along).right_road_width(along);
 }
 
 double Road::right_racing_line_width(double along) const
 {
-    return segment_at(along)->right_racing_line_width(along);
+    return segment_at(along).right_racing_line_width(along);
 }
 
 double Road::left_racing_line_width(double along) const
 {
-    return segment_at(along)->left_racing_line_width(along);
+    return segment_at(along).left_racing_line_width(along);
 }
 
-//!! return reference?
-Gl_Road_Segment const* Road::segment_at(double along) const
+Gl_Road_Segment const& Road::segment_at(double along) const
 {
     auto distance{0.0};
     for (auto const& seg : m_segments)
     {
         distance += seg->length();
         if (distance >= along)
-            return seg.get();
+            return *seg;
     }
-    return m_segments.back().get();
+    return *m_segments.back();
 }
 
 void Road::set_racing_line(bool build, bool show)
@@ -607,8 +606,8 @@ void Road::set_racing_line(bool build, bool show)
 
 void Road::narrow_pit_segments()
 {
-    Gl_Road_Segment* last_from_out = nullptr;
-    Gl_Road_Segment* last_from_in = nullptr;
+    Gl_Road_Segment* last_from_out{nullptr};
+    Gl_Road_Segment* last_from_in{nullptr};
 
     for (auto it = m_segments.begin(); it != m_segments.end(); ++it)
     {
@@ -617,8 +616,10 @@ void Road::narrow_pit_segments()
             continue;
         if (pit.end() == Pit_Lane_Transition::End::out)
         {
-            for (Segment_List::reverse_iterator rit(it);
-                 (rit != m_segments.rend() && rit->get() != last_from_in && !(*rit)->pit().active());
+            for (Segment_List::reverse_iterator rit{it};
+                 rit != m_segments.rend()
+                     && rit->get() != last_from_in
+                     && !(*rit)->pit().active();
                  ++rit)
             {
                 (*rit)->narrow(pit.side(), (*it)->pit_width());
@@ -628,7 +629,9 @@ void Road::narrow_pit_segments()
         else
         {
             for (auto it2(it + 1);
-                 (it2 != m_segments.end() && it2->get() != last_from_out && !(*it2)->pit().active());
+                 it2 != m_segments.end()
+                     && it2->get() != last_from_out
+                     && !(*it2)->pit().active();
                  ++it2)
             {
                 (*it2)->narrow(pit.side(), (*it)->pit_width());

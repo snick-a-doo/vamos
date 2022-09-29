@@ -34,7 +34,7 @@ public:
     std::string world_file{"earth"};
     std::string controls_file{"stick"};
     size_t number_of_cars{1};
-    size_t laps{5};
+    size_t laps{0};
     double performance{0.0};
     double volume{1.0};
     bool map_mode{false};
