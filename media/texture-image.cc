@@ -36,11 +36,11 @@ struct Cached_Image
 /// The already-read textures.
 static std::map<std::string, Cached_Image> image_cache;
 
-Texture_Image::Texture_Image(std::string const& file_name, bool smooth, bool mip_map, double width,
-                             double height, int texture_wrap)
-    : m_file_name(file_name),
-      m_width(width),
-      m_height(height)
+Texture_Image::Texture_Image(std::string const& file_name, bool smooth, bool mip_map,
+                             double width, double height, int texture_wrap)
+    : m_file_name{file_name},
+      m_width{width},
+      m_height{height}
 {
     if (m_file_name.empty())
         return;

@@ -47,32 +47,47 @@ using namespace Vamos_Media;
 //----------------------------------------------------------------------------------------
 namespace Vamos_Body
 {
-/// Information about rearview mirrors.
+/// A mirror shows a view in a portion of the window in a viewport. The viewport is masked
+/// by an image to provide non-rectangular borders.
 class Rear_View_Mirror
 {
 public:
+    /// @param position Coordinates of the lower-left corner of the mask.
+    /// @param width Mask width.
+    /// @param height Mask height.
+    /// @param direction The view direction as an angle about the z axis.
+    /// @param field The vertical field of view in degrees.
+    /// @param near_plane Points nearer than this are clipped.
+    /// @param far_plane Points farther than this are clipped.
+    /// @param mask_file The name of the mask image file.
     Rear_View_Mirror(Vamos_Geometry::Three_Vector const& position,
                      double width, double height, double direction,
                      double field, double near_plane, double far_plane,
                      std::string const& mask_file);
-
+    /// @param window_width The width of the full window in pixels.
+    /// @param window_height The height of the full window in pixels.
+    /// @param driver_position The driver-view camera position.
+    /// @param driver_position The field of view of the driver-view camera.
+    /// @param pan The driver-view pan angle.
     void make_mask(int window_width, int window_height,
                    Vamos_Geometry::Three_Vector const& driver_position,
                    double driver_field, double pan);
+    /// Activate the mirror's viewport and set the camera to render the rear view.
     void set_view();
-
+    /// @return The view direction as an angle about the z axis.
     double get_direction() const { return m_direction; }
+    /// @return The position of the center of the mirror.
     Vamos_Geometry::Three_Vector get_center() const;
 
 private:
+    /// 3 steps of making the mirror mask.
+    /// @{
     void set_viewport(int window_width, int window_height,
                       const Vamos_Geometry::Three_Vector& driver_position,
                       double driver_field_of_view, double pan);
-    void activate_viewport();
-    void transform_view() const;
     void draw_mask_shape();
     void set_stencil(int window_width, int window_height);
-
+    /// @}
     const Vamos_Geometry::Three_Vector m_position;
     const double m_width;
     const double m_height;
@@ -81,7 +96,6 @@ private:
     const double m_near_plane;
     const double m_far_plane;
     std::unique_ptr<Vamos_Media::Texture_Image> mp_mask;
-
     Vamos_Geometry::Rectangle<int> m_viewport;
 };
 } // namespace Vamos_Body
@@ -89,21 +103,15 @@ private:
 Rear_View_Mirror::Rear_View_Mirror(Three_Vector const& position, double width, double height,
                                    double direction, double field, double near_plane,
                                    double far_plane, std::string const& mask_file)
-    : m_position(position),
-      m_width(width),
-      m_height(height),
-      m_direction(direction),
+    : m_position{position},
+      m_width{width},
+      m_height{height},
+      m_direction{direction},
       m_field(field),
-      m_near_plane(near_plane),
-      m_far_plane(far_plane),
+      m_near_plane{near_plane},
+      m_far_plane{far_plane},
       mp_mask{std::make_unique<Texture_Image>(mask_file, false, false)}
 {
-}
-
-void Rear_View_Mirror::activate_viewport()
-{
-    glViewport(m_viewport.left(), m_viewport.top(), m_viewport.width(), m_viewport.height());
-    glScissor(m_viewport.left(), m_viewport.top(), m_viewport.width(), m_viewport.height());
 }
 
 Three_Vector Rear_View_Mirror::get_center() const
@@ -111,20 +119,17 @@ Three_Vector Rear_View_Mirror::get_center() const
     return {m_position.x, m_position.y - m_width / 2.0, m_position.z + m_height / 2.0};
 }
 
-void Rear_View_Mirror::transform_view() const
+void Rear_View_Mirror::set_view()
 {
+    // Activate the viewport.
+    glViewport(m_viewport.left(), m_viewport.top(), m_viewport.width(), m_viewport.height());
+    glScissor(m_viewport.left(), m_viewport.top(), m_viewport.width(), m_viewport.height());
+    glClear(GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     // Reflect the x-axis.
     glScaled(-1.0, 1.0, 1.0);
     gluPerspective(m_field, m_viewport.aspect(), m_near_plane, m_far_plane);
-}
-
-void Rear_View_Mirror::set_view()
-{
-    activate_viewport();
-    glClear(GL_DEPTH_BUFFER_BIT);
-    transform_view();
 }
 
 void Rear_View_Mirror::make_mask(int window_width, int window_height,
@@ -142,19 +147,19 @@ void Rear_View_Mirror::set_viewport(int window_width, int window_height,
                                     Three_Vector const& driver_position,
                                     double driver_field, double pan)
 {
-    auto to_pixels = [](double range, double factor, double coordinate) {
-        return static_cast<int>(0.5 * range * (1.0 - factor * coordinate));
+    auto to_pixels = [](int range, double max_coord, double coordinate) {
+        return clip(static_cast<int>(0.5 * range * (1.0 - coordinate / max_coord)),
+                    0, range - 1);
     };
     auto pos{rotate(m_position - driver_position, -deg_to_rad(pan) * Three_Vector::Z)};
-    auto y_factor{-1.0 / (pos.x * std::tan(0.5 * deg_to_rad(driver_field)))};
-    auto aspect{static_cast<double>(window_width) / window_height};
-    auto x_factor{-y_factor / aspect};
-    Point<int> p1{to_pixels(window_width, x_factor, pos.y) - 1,
-                  to_pixels(window_height, y_factor, pos.z) - 1};
-    Point<int> p2{to_pixels(window_width, x_factor, pos.y - m_width),
-                  to_pixels(window_height, y_factor, pos.z + m_height)};
+    // Find the x coordinates at the edge of the field of view at the mirror distance.
+    auto y_max{pos.x * std::tan(0.5 * deg_to_rad(driver_field))};
+    auto x_max{y_max * window_width / window_height};
+    Point<int> p1{to_pixels(window_width, x_max, pos.y),
+                  to_pixels(window_height, -y_max, pos.z)};
+    Point<int> p2{to_pixels(window_width, x_max, pos.y - m_width),
+                  to_pixels(window_height, -y_max, pos.z + m_height)};
     m_viewport = Rectangle{p1, p2};
-    m_viewport.clip(Rectangle{0, 0, window_width - 1, window_height - 1, true});
 }
 
 void Rear_View_Mirror::draw_mask_shape()
@@ -187,20 +192,20 @@ auto make_stencil_buffer = [](auto const& rect) {
     glReadPixels(rect.left(), rect.top(), rect.width(), rect.height(),
                  GL_RGBA, GL_UNSIGNED_BYTE, rgba_buffer.get());
 
-    auto buffer{std::make_unique<unsigned char[]>(size)};
+    auto mask_buffer{std::make_shared<unsigned char[]>(size)};
     for (size_t i{0}; i < size; ++i)
-        buffer[i] = rgba_buffer[4 * i];
-    return buffer;
+        mask_buffer[i] = rgba_buffer[4 * i];
+    return mask_buffer;
 };
 
 void Rear_View_Mirror::set_stencil(int window_width, int window_height)
 {
-    auto buffer{make_stencil_buffer(m_viewport)};
+    auto mask_buffer{make_stencil_buffer(m_viewport)};
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    gluOrtho2D(0.0, double(window_width), 0.0, double(window_height));
+    gluOrtho2D(0.0, static_cast<double>(window_width), 0.0, static_cast<double>(window_height));
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
@@ -209,7 +214,7 @@ void Rear_View_Mirror::set_stencil(int window_width, int window_height)
     glRasterPos2i(m_viewport.left(), m_viewport.top());
     glDrawPixels(m_viewport.width(), m_viewport.height(),
                  GL_STENCIL_INDEX, GL_UNSIGNED_BYTE,
-                 buffer.get());
+                 mask_buffer.get());
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -282,11 +287,6 @@ void Gl_Car::add_rear_view(Vamos_Geometry::Three_Vector const& position,
     m_mirrors.push_back(
         std::make_unique<Rear_View_Mirror>(position, width, height, direction,
                                            field, near_plane, far_plane, mask_file));
-}
-
-void Gl_Car::update_rear_view_mask(int window_width, int window_height)
-{
-    make_rear_view_mask(window_width, window_height);
 }
 
 void transform_body(Rigid_Body const& body)

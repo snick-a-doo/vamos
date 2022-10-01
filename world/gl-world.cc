@@ -673,7 +673,7 @@ void Gl_World::draw_cars(bool draw_interior, bool draw_focused_car)
 void Gl_World::display()
 {
     if (m_view == View::body)
-        focused_car()->car->update_rear_view_mask(m_window.width(), m_window.height());
+        focused_car()->car->make_rear_view_mask(m_window.width(), m_window.height());
     show_full_window(m_window.width(), m_window.height());
 
     switch (m_view)

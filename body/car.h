@@ -136,7 +136,6 @@ public:
     virtual void draw_interior() {};
     virtual Vamos_Geometry::Three_Vector draw_rear_view(double /* aspect */, int /* index */);
     virtual void make_rear_view_mask(int /* window_width */, int /* window_height */) {}
-    virtual void update_rear_view_mask(int /* window_width */, int /* window_height */) {}
     virtual int get_n_mirrors() const { return 0; }
     // Perform the transformations for the driver's view.
     virtual void view(double,                              // pan
