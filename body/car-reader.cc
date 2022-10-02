@@ -219,7 +219,7 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
     }
     else if (match("mirror-frame"))
     {
-        auto frame{std::make_unique<Facade>(m_data_dir + "textures/" + m_strings[0])};
+        auto frame{std::make_unique<Facade>(m_data_dir + "textures/" + m_strings[0], true)};
         frame->set_width(m_doubles[3]);
         frame->set_height(m_doubles[4]);
         frame->set_offset({m_doubles[0], m_doubles[1], m_doubles[2]});

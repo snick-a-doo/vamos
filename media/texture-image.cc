@@ -28,7 +28,7 @@ using namespace Vamos_Media;
 /// Reference to an already-read texture file.
 struct Cached_Image
 {
-    GLuint texure_id{0};
+    GLuint texture_id{0};
     int width_pixels{0};
     int height_pixels{0};
     int reference_count{1};
@@ -47,7 +47,7 @@ Texture_Image::Texture_Image(std::string const& file_name, bool smooth, bool mip
     else if (image_cache.count(m_file_name))
     {
         auto& image(image_cache[m_file_name]);
-        m_texture_id = image.texure_id;
+        m_texture_id = image.texture_id;
         m_width_pixels = image.width_pixels;
         m_height_pixels = image.height_pixels;
         ++image.reference_count;
@@ -81,7 +81,10 @@ Texture_Image::Texture_Image(std::string const& file_name, bool smooth, bool mip
 Texture_Image::~Texture_Image()
 {
     if (image_cache.count(m_file_name) && --image_cache[m_file_name].reference_count == 0)
+    {
         glDeleteTextures(1, &m_texture_id);
+        image_cache.erase(m_file_name);
+    }
 }
 
 Texture_Image::Data_Ptr Texture_Image::read_png_file(std::string const& file_name)

@@ -44,7 +44,7 @@ static void gauge_transform(Two_Vector const& center, double in_front, double ro
 Steering_Wheel::Steering_Wheel(double center_x, double center_y, double above, double radius,
                                double min_in, double min_out, double max_in, double max_out,
                                std::string const& image)
-    : Facade(image),
+    : Facade(image, false),
       m_center{center_x, center_y},
       m_above(above),
       m_angle_fn{make_scaler(min_in, min_out, max_in, max_out)}
@@ -74,12 +74,12 @@ Dial::Dial(double center_x, double center_y,
 {
     if (!face_image.empty())
     {
-        mp_face = std::make_unique<Facade>(face_image);
+        mp_face = std::make_unique<Facade>(face_image, false);
         mp_face->set_radius(radius);
     }
     if (!needle_image.empty())
     {
-        mp_needle = std::make_unique<Facade>(needle_image);
+        mp_needle = std::make_unique<Facade>(needle_image, false);
         mp_needle->set_radius(radius);
     }
 }
