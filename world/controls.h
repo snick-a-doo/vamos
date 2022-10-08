@@ -71,10 +71,12 @@ private:
 class Control
 {
 public:
-    /// Bind a discrete control to callback.
+    /// Bind a discrete control to a callback.
     void bind_action(int index, Direct direction, Callback_Fn function, double time);
     /// Bind a continuous control to a callback.
     void bind_motion(int axis, Callback_Fn func, Calibration const& calib);
+    /// Bind an incremental control (e.g. mouse wheel) to a callback.
+    void bind_incremental(int index, Callback_Fn func);
     /// Change the raw range of a continuous control.
     void set_axis_range(int axis, int low_raw_value, int high_raw_value);
 
@@ -84,6 +86,8 @@ public:
     void press(int index);
     /// Call callbacks registered for key or button release.
     void release(int index);
+    /// Call callbacks registered for incremental events.
+    void increment(int index, int delta);
 
 private:
     /// Convert a raw value to a normalized value according to @p m_ranges.
@@ -92,6 +96,7 @@ private:
     Callback_List m_press_callbacks;
     Callback_List m_release_callbacks;
     Callback_List m_motion_callbacks;
+    Callback_List m_incremental_callbacks;
     std::map<int, std::pair<int, int>> m_ranges;
 };
 

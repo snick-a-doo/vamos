@@ -25,6 +25,8 @@
 
 #include <stdexcept>
 
+class SDL_Window;
+
 namespace Vamos_Geometry
 {
 class Three_Vector;
@@ -69,6 +71,7 @@ class Gl_Window
 public:
     /// Open the window and initialize GL and SDL.
     Gl_Window(int width, int height, char const* name, bool full_screen);
+    ~Gl_Window();
 
     int width() const { return m_width; }
     int height() const { return m_height; }
@@ -76,11 +79,15 @@ public:
     double aspect() const;
 
     void resize(int width, int height);
+    /// Flush the rendering pipeline and swap buffers.
+    void refresh() const;
 
 private:
+    using SDL_GLContext = void; // Match the type def in the SDL header.
+    SDL_Window* mp_window{nullptr};
+    SDL_GLContext* mp_context{nullptr};
     int m_width{1}; ///< Window width in pixels.
     int m_height{1}; ///< Window height in pixels.
-    int m_video_flags; ///< Display options
 };
 
 //----------------------------------------------------------------------------------------
@@ -96,13 +103,29 @@ public:
     /// Incrementally shift the view.
     bool pan(double, double direction);
     /// Incrementally magnify or contract the view about the center.
-    bool zoom(double, double direction);
+    bool zoom_center(double, double direction);
+    /// Incrementally magnify or contract the view about the pointer.
+    bool zoom_point(double step, double);
     /// Set a specific magnification factor.
     bool set_zoom(double, double factor);
+    /// Callback for mouse motion events.
+    /// @param value The pointer x-position as a fraction from the left edge.
+    bool point_x(double value, double);
+    /// Callback for mouse motion events.
+    /// @param value The pointer y-position as a fraction from the top edge.
+    bool point_y(double value, double);
+    /// Callback for mouse button events.
+    /// @param is_pressed 1 if this a press event, 0 if release.
+    bool mouse_button(double is_pressed, double);
 
 private:
+    void zoom(int step, Vamos_Geometry::Point<double> const& center);
     Vamos_Geometry::Rectangle<double> m_initial_bounds;
-    Vamos_Geometry::Rectangle<double> m_bounds;
+    Vamos_Geometry::Rectangle<double> m_bounds; ///< The world coordinate bounds of the display.
+    /// The normalized mouse pointer position. The origin is the upper left corner. The
+    /// opposite corner is (1, 1).
+    Vamos_Geometry::Point<double> m_pointer;
+    bool m_drag{false}; ///< True when dragging.
 };
 
 //----------------------------------------------------------------------------------------

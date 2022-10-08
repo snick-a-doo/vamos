@@ -16,7 +16,7 @@
 #include "sky.h"
 
 #include <GL/glut.h>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include <cassert>
 #include <cmath>
@@ -25,8 +25,10 @@
 
 using namespace std::numbers;
 
-Sky::Sky(const std::string& file, int width, int height, int divisions, Shape projetion)
-    : m_image{file, true, true},
+Sky::Sky(SDL_Window* window, const std::string& file,
+         int width, int height, int divisions, Shape projetion)
+    : mp_window{window},
+      m_image{file, true, true},
       m_width{width},
       m_height{height},
       m_divisions{divisions},
@@ -138,7 +140,7 @@ void Sky::display() const
     draw();
 
     glFlush();
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(mp_window);
 }
 
 void draw_cylinder(int divisions, double z_pos, double z_rot, double z_mag)

@@ -73,6 +73,11 @@ void Control::bind_motion(int axis, Callback_Fn function, Calibration const& cal
         set_axis_range(axis, -RAW_MOTION_RANGE, RAW_MOTION_RANGE);
 }
 
+void Control::bind_incremental(int index, Callback_Fn function)
+{
+    m_incremental_callbacks.add(index, function, {}, 0.0);
+}
+
 void Control::press(int index)
 {
     m_press_callbacks.call(index, 1.0);
@@ -86,6 +91,11 @@ void Control::release(int index)
 void Control::move(int axis, int position)
 {
     m_motion_callbacks.call(axis, normalize(axis, position));
+}
+
+void Control::increment(int index, int delta)
+{
+    m_incremental_callbacks.call(index, delta);
 }
 
 void Control::set_axis_range(int axis, int low_raw_value, int high_raw_value)

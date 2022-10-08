@@ -9,7 +9,7 @@ gl_dep = dependency('opengl', required: true)
 glu_dep = dependency('glu', required: true)
 glut_dep = dependency('glut', required: true)
 png_dep = dependency('libpng', required: true)
-sdl_dep = dependency('sdl', required: true)
+sdl_dep = dependency('sdl2', required: true)
 
 # A subdir may include headers from another with <subdir/header.hpp>.  So .. should be
 # an include directory.

@@ -16,7 +16,7 @@
 #ifndef VAMOS_GEOMETRY_TWO_VECTOR_H_INCLUDED
 #define VAMOS_GEOMETRY_TWO_VECTOR_H_INCLUDED
 
-#include <iosfwd>
+#include <iostream>
 
 namespace Vamos_Geometry
 {
@@ -31,6 +31,7 @@ template <typename T> struct Point
 struct Two_Vector : public Point<double>
 {
     Two_Vector(double x, double y);
+    Two_Vector(Point<double> const& p);
     Two_Vector();
     /// @return The magnitude of this vector.
     double magnitude() const;
@@ -40,15 +41,44 @@ struct Two_Vector : public Point<double>
 
 /// Arithmetic operators
 /// @{
-Two_Vector operator+(Two_Vector const& v1, Two_Vector const& v2);
-Two_Vector operator-(Two_Vector const& v1, Two_Vector const& v2);
-Two_Vector operator*(Two_Vector const& v, double scalar);
-Two_Vector operator*(double scalar, Two_Vector const& v);
-Two_Vector operator/(Two_Vector const& v, double scalar);
+template <typename T> Point<T> operator+(Point<T> const& p1, Point<T> const& p2)
+{
+    return {p1.x + p2.x, p1.y + p2.y};
+}
+template <typename T> Point<T> operator-(Point<T> const& p1, Point<T> const& p2)
+{
+    return {p1.x - p2.x, p1.y - p2.y};
+}
+template <typename T> Point<T> operator-(Point<T> const& p)
+{
+    return {-p.x, -p.y};
+}
+template <typename T> Point<T> operator*(Point<T> const& p, double scalar)
+{
+    return {p.x * scalar, p.y * scalar};
+}
+template <typename T> Point<T> operator*(double scalar, Point<T> const& p)
+{
+    return p * scalar;
+}
+template <typename T> Point<T> operator/(Point<T> const& p, double scalar)
+{
+    return {p.x / scalar, p.y / scalar};
+}
 /// @}
 
-std::istream& operator>>(std::istream& is, Vamos_Geometry::Two_Vector& vec);
-std::ostream& operator<<(std::ostream& os, Vamos_Geometry::Two_Vector const& vec);
+
+template <typename T>
+std::istream& operator>>(std::istream& is, Vamos_Geometry::Point<T>& point)
+{
+    char delim;
+    return is >> delim >> point.x >> delim >> point.y >> delim;
+}
+template <typename T>
+std::ostream& operator<<(std::ostream& os, Vamos_Geometry::Point<T> const& point)
+{
+    return os << "[" << point.x << ", " << point.y << "]";
+}
 } // namespace Vamos_Geometry
 
 #endif // VAMOS_GEOMETRY_TWO_VECTOR_H_INCLUDED

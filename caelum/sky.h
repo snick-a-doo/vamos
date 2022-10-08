@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+class SDL_Window;
+
 namespace Vamos_Media
 {
 class Texture_Image;
@@ -35,7 +37,8 @@ public:
     /// @param image The name of the image file.
     /// @param width The width of each viewport.
     /// @param height The height of each viewport.
-    Sky(const std::string& image_name, int width, int height, int divisions, Shape projetion);
+    Sky(SDL_Window* window, const std::string& image_name,
+        int width, int height, int divisions, Shape projetion);
 
     /// Render the scene.
     void display() const;
@@ -46,6 +49,7 @@ private:
     /// Render a view.
     void draw() const;
 
+    SDL_Window* mp_window;
     Vamos_Media::Texture_Image const m_image;
     int const m_width; ///< Viewport width.
     int const m_height; ///< Viewport height

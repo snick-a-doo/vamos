@@ -67,18 +67,18 @@ TEST_CASE("rectangle")
     SUBCASE("scale down")
     {
         box.scale(0.5);
-        CHECK(box == Rectangle<double>({1.5, 1.0}, {2.5, -1.0}));
-        CHECK(box.left() == 1.5);
+        CHECK(box == Rectangle<double>({0.5, 1.0}, {1.5, -1.0}));
+        CHECK(box.left() == 0.5);
         CHECK(box.top() == 1.0);
-        CHECK(box.right() == 2.5);
+        CHECK(box.right() == 1.5);
         CHECK(box.bottom() == -1.0);
     }
     SUBCASE("scale xy")
     {
         box.scale(2.0, 3.0);
-        CHECK(box.left() == 0.0);
+        CHECK(box.left() == 2.0);
         CHECK(box.top() == 6.0);
-        CHECK(box.right() == 4.0);
+        CHECK(box.right() == 6.0);
         CHECK(box.bottom() == -6.0);
     }
     SUBCASE("clip all")

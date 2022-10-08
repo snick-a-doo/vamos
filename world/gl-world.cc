@@ -27,7 +27,7 @@
 #include "../track/strip-track.h"
 
 #include <GL/glut.h>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include <algorithm>
 #include <cassert>
@@ -194,27 +194,38 @@ double Timer::get_frame_rate() const
 
 //-----------------------------------------------------------------------------
 Gl_Window::Gl_Window(int width, int height, char const* name, bool full_screen)
-    : m_video_flags{SDL_OPENGL | SDL_RESIZABLE | SDL_DOUBLEBUF}
 {
     auto argc{0};
     glutInit(&argc, nullptr);
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK) != 0)
-        throw Can_Not_Intialize_SDL(SDL_GetError());
 
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
+    SDL_ShowCursor(false);
+    auto video_flags{SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE};
     if (full_screen)
     {
-        m_video_flags |= SDL_FULLSCREEN;
-        auto modes{SDL_ListModes(0, m_video_flags)};
-        if (modes && modes[0])
-        {
-            width = modes[0]->w;
-            height = modes[0]->h;
-        }
+        video_flags |= SDL_WINDOW_FULLSCREEN;
+        SDL_DisplayMode mode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
+        if (SDL_GetNumVideoDisplays() < 1)
+            throw Can_Not_Intialize_SDL(SDL_GetError());
+        if (SDL_GetDisplayMode(0, 0, &mode) != 0)
+            throw Can_Not_Intialize_SDL(SDL_GetError());
+        width = mode.w;
+        height = mode.h;
     }
-    SDL_ShowCursor(false);
-    SDL_WM_SetCaption(name, name);
+    mp_window = SDL_CreateWindow(name, 0, 0, width, height, video_flags);
+    if (!mp_window)
+        throw Can_Not_Intialize_SDL(SDL_GetError());
+    mp_context = SDL_GL_CreateContext(mp_window);
+    if (!mp_context)
+        throw Can_Not_Intialize_SDL(SDL_GetError());
+
     resize(width, height);
+}
+
+Gl_Window::~Gl_Window()
+{
+    SDL_GL_DeleteContext(mp_context);
 }
 
 double Gl_Window::aspect() const
@@ -227,8 +238,12 @@ void Gl_Window::resize(int width, int height)
     m_width = width;
     m_height = height;
     glViewport(0, 0, m_width, m_height);
-    if (!SDL_SetVideoMode(width, height, 0, m_video_flags))
-        throw No_SDL_Screen("Can't set video mode");
+}
+
+void Gl_Window::refresh() const
+{
+    glFlush();
+    SDL_GL_SwapWindow(mp_window);
 }
 
 //-----------------------------------------------------------------------------
@@ -243,25 +258,33 @@ Map::Map()
     keyboard().bind_action(SDLK_DOWN, Direct::down, std::bind_front(&Map::pan, this),
                            to_integral(Direct::down));
 
-    keyboard().bind_action('=', Direct::down, std::bind_front(&Map::zoom, this),
-                           to_integral(Direct::in));
-    keyboard().bind_action('+', Direct::down, std::bind_front(&Map::zoom, this),
-                           to_integral(Direct::in));
-    keyboard().bind_action('-', Direct::down, std::bind_front(&Map::zoom, this),
-                           to_integral(Direct::out));
-    keyboard().bind_action('_', Direct::down, std::bind_front(&Map::zoom, this),
-                           to_integral(Direct::out));
+    keyboard().bind_action('=', Direct::down, std::bind_front(&Map::zoom_center, this), 1);
+    keyboard().bind_action('+', Direct::down, std::bind_front(&Map::zoom_center, this), 1);
+    keyboard().bind_action('-', Direct::down, std::bind_front(&Map::zoom_center, this), -1);
+    keyboard().bind_action('_', Direct::down, std::bind_front(&Map::zoom_center, this), -1);
 
     for (char c = '1'; c <= '9'; c++)
         keyboard().bind_action(c, Direct::down, std::bind_front(&Map::set_zoom, this),
                                c - '1' + 1);
+
+    mouse().bind_action(SDL_BUTTON_LEFT, Direct::down,
+                        std::bind_front(&Map::mouse_button, this), 0.0);
+    mouse().bind_action(SDL_BUTTON_LEFT, Direct::up,
+                        std::bind_front(&Map::mouse_button, this), 0.0);
+    mouse().bind_motion(X, std::bind_front(&Map::point_x, this), {});
+    mouse().bind_motion(Y, std::bind_front(&Map::point_y, this), {});
+    mouse().bind_incremental(0, std::bind_front(&Map::zoom_point, this));
 }
 
 void Map::set_bounds(Vamos_Track::Strip_Track const& track, Gl_Window const& window)
 {
+    auto bounds{m_bounds};
+    auto scale{m_initial_bounds.empty() ? 1.0 : m_bounds.width() / m_initial_bounds.width()};
     // Adjust the mins and maxes to keep the correct aspect ratio of the track regardless
     // of the window's size.
     m_bounds = track.bounds();
+    if (m_bounds.empty())
+        return;
     auto ratio{m_bounds.aspect() / window.aspect()};
     // If the window is wider than the track, stretch x, otherwise stretch y.
     if (ratio < 1.0)
@@ -269,6 +292,12 @@ void Map::set_bounds(Vamos_Track::Strip_Track const& track, Gl_Window const& win
     else
         m_bounds.scale(1.0, ratio);
     m_initial_bounds = m_bounds;
+
+    mouse().set_axis_range(X, window.width(), -window.width());
+    mouse().set_axis_range(Y, window.height(), -window.height());
+    m_bounds.scale(scale);
+    if (!bounds.empty())
+        m_bounds.move(bounds.center() - m_bounds.center());
 }
 
 void Map::set_view()
@@ -301,28 +330,55 @@ bool Map::pan(double, double direction)
     return true;
 }
 
-bool Map::zoom(double, double direction)
+bool Map::zoom_center(double, double direction)
 {
-    static auto constexpr factor{1.1};
-    switch (Direct(direction))
-    {
-    case Direct::in:
-        m_bounds.scale(1.0 / factor);
-        break;
-    case Direct::out:
-        m_bounds.scale(factor);
-        break;
-    default:
-        assert(false);
-        break;
-    }
+    zoom(direction == 1.0 ? 1 : -1, {0.5, 0.5});
     return true;
+}
+
+bool Map::zoom_point(double step, double)
+{
+    zoom(static_cast<int>(step), m_pointer);
+    return true;
+}
+
+void Map::zoom(int step, Point<double> const& center)
+{
+    // Find the map coordinate for the normalized pointer position.
+    Point<double> coord{std::lerp(m_bounds.left(), m_bounds.right(), center.x),
+                        std::lerp(m_bounds.bottom(), m_bounds.top(), center.y)};
+    m_bounds.move(-coord);
+    m_bounds.scale(pow(1.1, -static_cast<int>(step)));
+    m_bounds.move(coord);
 }
 
 bool Map::set_zoom(double, double factor)
 {
     m_bounds = m_initial_bounds;
     m_bounds.scale(1.0 / factor);
+    return true;
+}
+
+bool Map::point_x(double value, double)
+{
+    if (m_drag)
+        m_bounds.move({m_bounds.width() * (m_pointer.x - value), 0.0});
+    m_pointer.x = value;
+    return true;
+}
+
+bool Map::point_y(double value, double)
+{
+    auto new_y{1.0 - value};
+    if (m_drag)
+        m_bounds.move({0.0, m_bounds.height() * (m_pointer.y - new_y)});
+    m_pointer.y = new_y;
+    return true;
+}
+
+bool Map::mouse_button(double is_presed, double)
+{
+    m_drag = static_cast<bool>(is_presed);
     return true;
 }
 
@@ -676,6 +732,7 @@ void Gl_World::display()
         focused_car()->car->make_rear_view_mask(m_window.width(), m_window.height());
     show_full_window(m_window.width(), m_window.height());
 
+    SDL_ShowCursor(m_view == View::map);
     switch (m_view)
     {
     case View::body:
@@ -723,8 +780,7 @@ void Gl_World::display()
     break;
     }
 
-    glFlush();
-    SDL_GL_SwapBuffers();
+    m_window.refresh();
 }
 
 static std::string time_str(double time, int precision = 3)
@@ -767,8 +823,7 @@ void Gl_World::reshape(int width, int height)
 
 void Gl_World::draw_timing_info() const
 {
-
-Two_D screen;
+    Two_D screen;
     auto count{mp_timing->countdown()};
     if (count > 0)
         screen.lights({50, 60}, 1.0, 5, count, red_light_on, red_light_off);
@@ -940,16 +995,21 @@ void Gl_World::check_for_events()
             if (driver)
                 driver->mouse().press(event.button.button);
             if (m_view == View::map)
-                m_map.mouse().press(event.key.keysym.sym);
+                m_map.mouse().press(event.button.button);
             break;
         case SDL_MOUSEBUTTONUP:
             if (driver)
                 driver->mouse().release(event.button.button);
             if (m_view == View::map)
-                m_map.mouse().release(event.key.keysym.sym);
+                m_map.mouse().release(event.button.button);
             break;
-        case SDL_VIDEORESIZE:
-            reshape(event.resize.w, event.resize.h);
+        case SDL_MOUSEWHEEL:
+            if (m_view == View::map)
+                m_map.mouse().increment(0, event.wheel.y);
+            break;
+        case SDL_WINDOWEVENT:
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED)
+                reshape(event.window.data1, event.window.data2);
             break;
         case SDL_QUIT:
             quit();
@@ -1054,7 +1114,7 @@ std::map<std::string, int> key_map{
     {"f12", SDLK_F12},
     {"left", SDL_BUTTON_LEFT},
     {"middle", SDL_BUTTON_MIDDLE},
-    {"middle", SDL_BUTTON_RIGHT},
+    {"right", SDL_BUTTON_RIGHT},
 };
 
 static int translate_key(std::string key_name)

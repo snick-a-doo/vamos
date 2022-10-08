@@ -17,7 +17,7 @@
 
 #include "../media/texture-image.h"
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include <cstdlib>
 #include <getopt.h>
@@ -106,9 +106,6 @@ int main(int argc, char* argv[])
         return EXIT_SUCCESS;
     }
 
-    // Initialize GL.
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-        exit(1);
     atexit(SDL_Quit);
 
     std::string file{argv[optind]};
@@ -121,17 +118,16 @@ int main(int argc, char* argv[])
             height = image.height_pixels() * 3 / 2;
     }
 
-    if (SDL_SetVideoMode(width, height, 0, SDL_OPENGL | SDL_RESIZABLE | SDL_DOUBLEBUF) == 0)
+    auto window{SDL_CreateWindow(("Caelum: " + file).c_str(), 0, 0, width, height,
+                                 SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)};
+    if (!window)
         exit(1);
+    auto context{SDL_GL_CreateContext(window)};
 
-    // Make a window.
-    std::string title{"Caelum: " + file};
-    SDL_WM_SetCaption(title.c_str(), title.c_str());
     glEnable(GL_TEXTURE_2D);
     glClearColor(0.1, 0.1, 0.1, 0.0);
-    SDL_EnableKeyRepeat(500, 30); // Initial delay and interval in ms.
 
-    Sky sky{file, width/4, height/3, divisions, projection};
+    Sky sky{window, file, width/4, height/3, divisions, projection};
     sky.display();
 
     SDL_Event event;
@@ -151,5 +147,6 @@ int main(int argc, char* argv[])
         }
         SDL_Delay(10);
     }
+    SDL_GL_DeleteContext(context);
     return EXIT_SUCCESS;
 }

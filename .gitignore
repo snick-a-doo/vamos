@@ -3,6 +3,7 @@ build/
 GPATH
 GRTAGS
 GTAGS
+README.html
 magic-eq
 out
 *-results

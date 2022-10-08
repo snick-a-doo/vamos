@@ -41,13 +41,12 @@ public:
     T bottom() const { return m_bottom; }
     T width() const { return std::abs(m_right - m_left); }
     T height() const { return std::abs(m_top - m_bottom); }
+    /// True if no area is enclosed.
+    bool empty() const;
     /// @return The position of the midpoint of the rectangle.
-    Vamos_Geometry::Point<T> center() const
-    {
-        return {std::midpoint(m_left, m_right), std::midpoint(m_top, m_bottom)};
-    };
+    Vamos_Geometry::Point<T> center() const;
     /// @return The aspect ratio.
-    double aspect() const { return static_cast<double>(width()) / height(); }
+    double aspect() const;
 
     friend bool operator==(Rectangle const& r1, Rectangle const& r2) = default;
 
@@ -88,6 +87,23 @@ Rectangle<T>::Rectangle(const Point<T>& upper_left, const Point<T>& lower_right)
 {
 }
 
+template <typename T> bool Rectangle<T>::empty() const
+{
+    // Use the smallest float as the threshold.
+    static auto constexpr epsilon{std::numeric_limits<float>::min()};
+    return std::abs(width()) < epsilon || std::abs(height()) < epsilon;
+}
+
+template <typename T> double Rectangle<T>::aspect() const
+{
+    return empty() ? 0.0 : static_cast<double>(width()) / height();
+}
+
+template <typename T> Vamos_Geometry::Point<T> Rectangle<T>::center() const
+{
+    return {std::midpoint(m_left, m_right), std::midpoint(m_top, m_bottom)};
+};
+
 template <typename T> Rectangle<T>& Rectangle<T>::enclose(const Rectangle<T>& other)
 {
     auto inverted{m_bottom > m_top};
@@ -114,11 +130,10 @@ template <typename T> Rectangle<T>& Rectangle<T>::clip(const Rectangle<T>& other
 
 template <typename T> Rectangle<T>& Rectangle<T>::scale(double x_factor, double y_factor)
 {
-    auto mid{center()};
-    m_left = (m_left - mid.x) * x_factor + mid.x;
-    m_top = (m_top - mid.y) * y_factor + mid.y;
-    m_right = (m_right - mid.x) * x_factor + mid.x;
-    m_bottom = (m_bottom - mid.y) * y_factor + mid.y;
+    m_left *= x_factor;
+    m_top *= y_factor;
+    m_right *= x_factor;
+    m_bottom *= y_factor;
     return *this;
 }
 

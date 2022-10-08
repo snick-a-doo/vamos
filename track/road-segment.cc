@@ -268,7 +268,8 @@ double Road_Segment::world_elevation(Three_Vector const& world_position) const
 Three_Vector Road_Segment::barrier_normal(double along, double from_center,
                                           Three_Vector const& bump) const
 {
-    auto normal{from_center > 0.0 ? -m_left_width.normal(along) : m_right_width.normal(along)};
+    Three_Vector normal{
+        from_center > 0.0 ? -m_left_width.normal(along) : m_right_width.normal(along)};
 
     // The -y direction is up, -z is to the left, x is forward.
     normal.x = bump.x;
