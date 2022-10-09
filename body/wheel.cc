@@ -25,7 +25,7 @@ using namespace Vamos_Media;
 Wheel::Wheel(double mass, Three_Vector const& position, double tire_offset, double roll_height,
              double restitution, std::shared_ptr<Suspension> suspension, Tire const& tire,
              Brake const& brake, bool steered, bool driven, Side side)
-    : Particle{mass, position, {Material::RUBBER, 0.0, restitution}},
+    : Particle{mass, position, {Material::rubber, 0.0, restitution}},
       m_original_position{position},
       m_tire_offset{side == Side::right ? -tire_offset : tire_offset},
       m_roll_height{roll_height},

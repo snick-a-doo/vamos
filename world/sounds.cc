@@ -14,9 +14,11 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 #include "sounds.h"
+
 #include "../geometry/numeric.h"
 
 #include <AL/alut.h>
+#include <pugixml.hpp>
 
 #include <cassert>
 #include <sstream>
@@ -24,30 +26,6 @@
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 using namespace Vamos_World;
-
-namespace Vamos_World
-{
-class Sounds_Reader : public XML_Parser
-{
-public:
-    /// Modify the Sounds object according to the definition file.
-    Sounds_Reader(std::string const& file_name, Sounds& sounds);
-
-private:
-    void on_start_tag(XML_Tag const&) override {};
-    void on_end_tag(XML_Tag const& tag) override;
-    void on_data(std::string const& data_string) override;
-
-    std::string m_file; ///< The name of the WAV file with the sample.
-    Sounds& m_sounds; ///< The sound object to be modified.
-    double m_pitch{1.0};
-    double m_volume{1.0};
-    int m_rate{8000}; ///< The sample rate in Hz.
-    /// The number of seconds of sound buffered for playing. Delay in responding to a
-    /// change in a sound may be as long as this.
-    double m_buffer_duration{0.2};
-};
-}
 
 //----------------------------------------------------------------------------------------
 /// OpenAL exit handler to ensure resources are freed when the sound object is destroyed.
@@ -77,7 +55,7 @@ void Sounds::read(std::string const& data_dir, std::string const& sounds_file)
     if (!sounds_file.empty())
         m_sounds_file = sounds_file;
 
-    Sounds_Reader(m_data_dir + m_sounds_file, *this);
+    read_sounds_file(m_data_dir + m_sounds_file);
 }
 
 void Sounds::play(Sound playing, std::initializer_list<Sound> const& paused,
@@ -147,58 +125,30 @@ void Sounds::pause()
         s.second->pause();
 }
 
-//----------------------------------------------------------------------------------------
-Sounds_Reader::Sounds_Reader(std::string const& file_name, Sounds& sounds)
-    : m_sounds{sounds}
+void Sounds::read_sounds_file(std::string const& file_name)
 {
-    read(file_name);
-}
+    pugi::xml_document doc;
+    auto result{doc.load_file(file_name.c_str())};
+    auto top{doc.child("sounds")};
 
-void Sounds_Reader::on_end_tag(XML_Tag const&)
-{
-    Sound type;
-    if (match("tire-squeal"))
-        type = Sound::tire_squeal;
-    else if (match("kerb-sound"))
-        type = Sound::kerb;
-    else if (match("grass-sound"))
-        type = Sound::grass;
-    else if (match("gravel-sound"))
-        type = Sound::gravel;
-    else if (match("scrape-sound"))
-        type = Sound::scrape;
-    else if (match("wind-sound"))
-        type = Sound::wind;
-    else if (match("soft-crash-sound"))
-        type = Sound::soft_crash;
-    else if (match("hard-crash-sound"))
-        type = Sound::hard_crash;
-    else
-        return;
+    auto get_value = [](auto const& node, auto tag, double fallback) {
+        auto child{node.child(tag)};
+        return child.text().empty() ? fallback : child.text().as_double();
+    };
+    auto set_sound = [&](auto tag, auto type, bool loop) {
+        auto node{top.child(tag)};
+        auto file{m_data_dir + node.child_value("file")};
+        auto volume{get_value(node, "volume", 1.0)};
+        auto pitch{get_value(node, "pitch", 1.0)};
+        m_samples[type] = std::make_unique<Sample>(file, volume, pitch, loop);
+    };
 
-    auto loop{type != Sound::soft_crash && type != Sound::hard_crash};
-    m_sounds.m_samples[type] = std::make_unique<Sample>(
-        m_sounds.m_data_dir + m_file, m_volume, m_pitch, loop);
-
-    // Don't carry over pitch and volume to the next sound.
-    m_pitch = 1.0;
-    m_volume = 1.0;
-}
-
-void Sounds_Reader::on_data(std::string const& data)
-{
-    if (data.empty())
-        return;
-
-    std::istringstream is{data};
-    if (match("file"))
-        m_file = data;
-    else if (match("pitch"))
-        is >> m_pitch;
-    else if (match("volume"))
-        is >> m_volume;
-    else if (match("sample-rate"))
-        is >> m_rate;
-    else if (match("buffer-duration"))
-        is >> m_buffer_duration;
+    set_sound("tire-squeal", Sound::tire_squeal, true);
+    set_sound("kerb-sound", Sound::kerb, true);
+    set_sound("grass-sound", Sound::grass, true);
+    set_sound("gravel-sound", Sound::gravel, true);
+    set_sound("scrape-sound", Sound::scrape, true);
+    set_sound("wind-sound", Sound::wind, true);
+    set_sound("soft-crash-sound", Sound::hard_crash, false);
+    set_sound("hard-crash-sound", Sound::soft_crash, false);
 }

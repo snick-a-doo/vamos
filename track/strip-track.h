@@ -13,11 +13,12 @@
 //  You should have received a copy of the GNU General Public License
 //  along with Vamos.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _STRIP_TRACK_H_
-#define _STRIP_TRACK_H_
+#ifndef VAMOS_TRACK_STRIP_TRACK_H_INCLUDED
+#define VAMOS_TRACK_STRIP_TRACK_H_INCLUDED
 
 #include "../geometry/rectangle.h"
 #include "../geometry/spline.h"
+#include "../geometry/conversions.h"
 #include "../geometry/three-matrix.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
@@ -38,6 +39,7 @@ namespace Vamos_Track
 class Road_Segment;
 class Braking_Marker;
 class Road;
+class Strip_Track;
 
 /// An exception thrown when the track can not be adjusted to make a circuit.
 class Can_Not_Close : public std::runtime_error
@@ -94,8 +96,8 @@ struct Track_Object
 /// A calculated fast path around the track.
 class Racing_Line
 {
-    friend class Strip_Track_Reader;
-
+    friend void read_track_file(std::string const& data_dir, std::string const& file_name,
+                                Strip_Track* track);
 public:
     Racing_Line();
     ~Racing_Line();
@@ -158,8 +160,8 @@ using Segment_List = std::vector<std::unique_ptr<Gl_Road_Segment>>;
 /// A set of segments. May be open, closed, or connected to another road.
 class Road
 {
-    friend class Strip_Track_Reader;
-
+    friend void read_track_file(std::string const& data_dir, std::string const& file_name,
+                                Strip_Track* track);
 public:
     Road();
 
@@ -279,16 +281,12 @@ class Map_Background
 {
 public:
     Map_Background(std::string const& image_file_name,
-                   double dx, double dy,
-                   double width, double height);
+                   Vamos_Geometry::Rectangle<int> const& size);
     void draw() const;
 
 private:
     Vamos_Media::Texture_Image m_image;
-    double m_dx;
-    double m_dy;
-    double m_width;
-    double m_height;
+    Vamos_Geometry::Rectangle<int> m_size;
 };
 
 //----------------------------------------------------------------------------------------
@@ -308,11 +306,16 @@ private:
     double m_end_direction;
 };
 
+
+class Strip_Track;
+void read_track_file(std::string const& data_dir, std::string const& file_name,
+                     Strip_Track* track);
+
 //----------------------------------------------------------------------------------------
 class Strip_Track
 {
-    friend class Strip_Track_Reader;
-
+    friend void read_track_file(std::string const& data_dir, std::string const& file_name,
+                                Strip_Track* track);
 public:
     Strip_Track();
 
@@ -350,8 +353,8 @@ public:
                      bool smooth);
 
     // Specify the background image for map view.
-    void set_map_background(std::string background_image, double x_offset, double y_offset,
-                            double x_size, double y_size);
+    void set_map_background(std::string const& background_image,
+                            Vamos_Geometry::Rectangle<int> const& size);
 
     // Add a sector timing line.
     void timing_line(double dist) { m_timing_lines.push_back(dist); }
@@ -426,77 +429,6 @@ private:
 
     std::vector<Track_Object> m_objects;
 };
-
-//----------------------------------------------------------------------------------------
-class Strip_Track_Reader : public Vamos_Media::XML_Parser
-{
-public:
-    Strip_Track_Reader(std::string const& data_dir, std::string const& track_file,
-                       Vamos_Track::Strip_Track* road);
-
-private:
-    virtual void on_start_tag(Vamos_Media::XML_Tag const& tag);
-    virtual void on_end_tag(Vamos_Media::XML_Tag const& tag);
-    virtual void on_data(std::string const& data);
-
-    std::string m_name;
-
-    bool m_first_road{true};
-
-    std::vector<double> m_doubles;
-    std::vector<bool> m_bools;
-    std::vector<std::string> m_strings;
-    std::vector<Vamos_Geometry::Two_Vector> m_points;
-    std::vector<Vamos_Geometry::Two_Vector> m_elev_points;
-    std::vector<Vamos_Geometry::Two_Vector> m_point_vectors[4];
-    std::vector<Vamos_Geometry::Two_Vector> m_left_profile;
-    std::vector<Vamos_Geometry::Two_Vector> m_right_profile;
-    Vamos_Geometry::Two_Vector m_line_adjust;
-    std::vector<Braking_Marker> m_braking_markers;
-
-    // Materials indexed by name.
-    std::map<std::string, Vamos_Media::Material> m_materials;
-
-    std::vector<Vamos_Media::Material> m_segment_materials;
-
-    // Groups of materials used on the segments, indexed by name.
-    std::map<std::string, std::vector<Vamos_Media::Material>> m_segments;
-
-    std::string m_data_dir;
-    Vamos_Track::Strip_Track* mp_road;
-
-    enum Classes
-    {
-        NONE,
-        MATERIAL,
-        ROAD,
-        SEGMENT
-    };
-
-    Classes m_class;
-    bool m_close{false};
-    int m_adjusted_road_segments{0};
-    bool m_join_pit_lane{false};
-    double m_length{0.0};
-
-    Vamos_Media::Material::Composition m_material_type;
-    Vamos_Geometry::Two_Vector m_bump_amplitude;
-
-    std::vector<Gl_Road_Segment::Model_Info> m_model_info;
-    Gl_Road_Segment::Model_Info m_current_model_info;
-
-    Camera m_camera;
-
-    double m_split_or_join{0.0};
-    double m_merge{0.0};
-    double m_angle{0.0};
-    Side m_pit_side;
-    bool m_pit_in_active{false};
-    bool m_pit_out_active{false};
-    int m_adjusted_pit_segments{0};
-
-public:
-};
 } // namespace Vamos_Track
 
-#endif
+#endif // VAMOS_TRACK_STRIP_TRACK_H_INCLUDED

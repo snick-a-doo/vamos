@@ -18,6 +18,7 @@
 
 #include "road-segment.h"
 
+#include "../geometry/rectangle.h"
 #include "../media/material.h"
 
 #include <GL/glu.h>
@@ -81,26 +82,26 @@ public:
     };
 
     Gl_Road_Segment(double resolution, double length, double radius, double skew,
-                    const std::vector<Vamos_Geometry::Two_Vector>& left_width,
-                    const std::vector<Vamos_Geometry::Two_Vector>& right_width,
-                    const std::vector<Vamos_Geometry::Two_Vector>& left_road_width,
-                    const std::vector<Vamos_Geometry::Two_Vector>& right_road_width,
+                    std::vector<Vamos_Geometry::Two_Vector> const& left_width,
+                    std::vector<Vamos_Geometry::Two_Vector> const& right_width,
+                    std::vector<Vamos_Geometry::Two_Vector> const& left_road_width,
+                    std::vector<Vamos_Geometry::Two_Vector> const& right_road_width,
                     std::unique_ptr<Kerb> left_kerb, std::unique_ptr<Kerb> right_kerb,
                     double left_wall_height, double right_wall_height,
-                    const std::vector<Vamos_Geometry::Two_Vector>& elevation_points,
+                    std::vector<Vamos_Geometry::Two_Vector> const& elevation_points,
                     double end_bank, double bank_pivot,
-                    const std::vector<Vamos_Media::Material>& materials,
-                    const std::vector<Braking_Marker>& braking_markers);
+                    std::vector<Vamos_Media::Material> const& materials,
+                    std::vector<Braking_Marker> const& braking_markers);
 
     ~Gl_Road_Segment();
 
-    const std::vector<Vamos_Media::Material>& materials() const { return m_materials; }
+    std::vector<Vamos_Media::Material> const& materials() const { return m_materials; }
 
-    void set_materials(const std::vector<Vamos_Media::Material>& materials, double resolution);
+    void set_materials(std::vector<Vamos_Media::Material> const& materials, double resolution);
 
-    void set_start(const Vamos_Geometry::Three_Vector& start_corrds, double start_distance,
+    void set_start(Vamos_Geometry::Three_Vector const& start_corrds, double start_distance,
                    double start_angle, double start_bank,
-                   const std::vector<double>& texture_offsets);
+                   std::vector<double> const& texture_offsets);
 
     void build();
     void draw() const;
@@ -142,12 +143,9 @@ private:
 
     std::vector<Vamos_Media::Material> m_materials;
 
-    std::vector<std::unique_ptr<Vamos_Media::Texture_Image>> m_textures;
-
     // bounding dimensions
     Vamos_Geometry::Rectangle<double> m_bounds;
 
-    void add_textures();
     void draw_strip(Strip strip, double texture_offset);
 };
 } // namespace Vamos_Track

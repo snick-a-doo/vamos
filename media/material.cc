@@ -14,6 +14,7 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 #include "material.h"
+#include "texture-image.h"
 
 #include <cmath>
 #include <numbers>
@@ -24,8 +25,7 @@ using namespace Vamos_Media;
 Material::Material(Composition composition, double friction, double restitution,
                    double rolling, double drag,
                    Two_Vector const& bump_amplitude, double bump_wavelength,
-                   std::string const& texture_file_name, bool smooth, bool mip_map,
-                   double width, double height)
+                   std::shared_ptr<Texture_Image> texture)
     : m_composition{composition},
       m_friction_factor{friction},
       m_restitution_factor{restitution},
@@ -33,11 +33,7 @@ Material::Material(Composition composition, double friction, double restitution,
       m_drag_factor{drag},
       m_bump_amplitude{bump_amplitude},
       m_bump_wavelength{bump_wavelength},
-      m_texture_file_name{texture_file_name},
-      m_smooth{smooth},
-      m_mip_map{mip_map},
-      m_width{width},
-      m_height{height}
+      mp_texture{std::move(texture)}
 {
 }
 

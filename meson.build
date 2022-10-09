@@ -10,6 +10,7 @@ glu_dep = dependency('glu', required: true)
 glut_dep = dependency('glut', required: true)
 png_dep = dependency('libpng', required: true)
 sdl_dep = dependency('sdl2', required: true)
+xml_dep = dependency('pugixml', required: true)
 
 # A subdir may include headers from another with <subdir/header.hpp>.  So .. should be
 # an include directory.

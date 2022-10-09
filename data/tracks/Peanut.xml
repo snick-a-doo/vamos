@@ -155,7 +155,7 @@
 	  <rotate>[ 0.0, 0.0, 180.0 ]</rotate>
     </model>
 
-    <resolution>20.0</resolution>
+    <resolution>2.0</resolution>
 	<length>200.0</length>
 	<left-width>[ 0.0, 25.0 ]</left-width>
 	<right-width>[ 0.0, 25.0 ]</right-width>
@@ -312,7 +312,7 @@
 	<radius>200.0</radius>
 	<right-kerb>
 	  <start>
-	    <distance>250.0</distance>
+	    <distance>180.0</distance>
 		<transition/>
 	  </start>
 	  <profile>[ 1.0, 0.05 ][ 1.5, 0.05 ][ 1.6, 0.0 ]</profile>

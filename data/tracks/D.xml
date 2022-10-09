@@ -146,7 +146,6 @@
 
   <!-- front straight -->
   <start-direction>0.0</start-direction>
-  <start-slope>0.0</start-slope>
 
   <road segment="straight">
     <resolution>2.0</resolution>

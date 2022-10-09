@@ -19,43 +19,41 @@
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
 
+#include <memory>
 #include <string>
 
 namespace Vamos_Media
 {
+class Texture_Image;
+
 class Material
 {
 public:
     enum Composition{
-        RUBBER, METAL, ASPHALT, CONCRETE, KERB, GRASS, GRAVEL, DIRT, AIR, UNKNOWN
+        rubber, metal, asphalt, concrete, kerb, grass, gravel, dirt, air, unknown
     };
 
     Material(Composition composition, double friction, double restitution,
              double rolling,  double drag,
              Vamos_Geometry::Two_Vector const& bump_amplitude, double bump_wavelength,
-             std::string const& texture_file_name, bool smooth, bool mip_map,
-             double width, double height);
-    Material(Composition = UNKNOWN, double friction = 1.0, double restitution = 1.0);
+             std::shared_ptr<Texture_Image> texture);
+    Material(Composition = unknown, double friction = 1.0, double restitution = 1.0);
 
     /// @return A small displacement due to unevenness in the material.
     Vamos_Geometry::Three_Vector bump(double x, double y) const;
 
     /// Read-only access to material properties.
     /// @{
-    std::string const& texture_file_name() const { return m_texture_file_name; }
     double friction_factor() const { return m_friction_factor; }
     double rolling_resistance_factor() const { return m_rolling_resistance_factor; }
     double drag_factor() const { return m_drag_factor; }
     double restitution_factor() const { return m_restitution_factor; }
     Composition composition() const { return m_composition; }
-    bool smooth() const { return m_smooth; }
-    bool mip_map() const { return m_mip_map; }
-    double width() const { return m_width; }
-    double height() const { return m_height; }
+    Texture_Image const* texture() const { return mp_texture.get(); }
     /// @}
 
 private:
-    Composition m_composition{UNKNOWN};
+    Composition m_composition{unknown};
 
     // Corresponding object properties are muliplied by these factors. They should all be
     // 1.0 for pavement.
@@ -63,18 +61,9 @@ private:
     double m_restitution_factor{1.0};
     double m_rolling_resistance_factor{0.0};
     double m_drag_factor{0.0};
-
     Vamos_Geometry::Two_Vector m_bump_amplitude;
     double m_bump_wavelength{1.0};
-
-    /// Texture image properties
-    /// @{
-    std::string m_texture_file_name;
-    bool m_smooth{false};
-    bool m_mip_map{false};
-    double m_width{1.0};
-    double m_height{1.0};
-    /// @}
+    std::shared_ptr<Texture_Image> mp_texture;
 };
 
 /// Information about a collision between a point and a surface.

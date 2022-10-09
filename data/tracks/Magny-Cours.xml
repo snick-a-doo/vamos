@@ -3,7 +3,6 @@
 <track name="Magny-Cours">
 
   <racing-line>
-    <distance-factor>1.0</distance-factor>
     <stiffness>1.0</stiffness>
   </racing-line>
 

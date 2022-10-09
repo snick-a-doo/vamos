@@ -17,7 +17,6 @@
 #define VAMOS_WORLD_SOUNDS_H_INCLUDED
 
 #include "../media/sample.h"
-#include "../media/xml-parser.h"
 
 #include <map>
 #include <memory>
@@ -56,11 +55,10 @@ private:
     /// @param volume If <= 0.0, @p playing is paused and @p paused are not affected.
     void play(Sound playing, std::initializer_list<Sound> const& paused,
               double volume, double pitch, Vamos_Geometry::Three_Vector const& pos);
+    void read_sounds_file(std::string const& file_name);
     /// Sound names and their associated samples.
     using Sample_Ptr = std::unique_ptr<Vamos_Media::Sample>;
     std::map<Sound, Sample_Ptr> m_samples;
-
-    friend class Sounds_Reader;
     std::string m_data_dir; ///< Saved for possible re-reading.
     std::string m_sounds_file; ///< Saved for possible re-reading.
 };

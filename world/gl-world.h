@@ -206,8 +206,11 @@ private:
     bool toggle_graphics(double, double);      ///> Turn rendering on or off.
     bool focus_previous_car(double, double);   ///> Put the camera on the car ahead on the grid.
     bool focus_next_car(double, double);       ///> Put the camera on the car behind on the grid.
-    bool replay(double, double);               ///> Pause an show a replay.
+    bool replay(double, double);               ///> Pause and show a replay.
     /// @}
+
+    void read_world_file(std::string const& file_name);
+    void read_controls_file(std::string const& file_name);
 
     Car_Info* focused_car();
     void set_focused_car(size_t index);
@@ -237,9 +240,6 @@ private:
     void draw_track(bool draw_sky, Vamos_Geometry::Three_Vector const& view_position);
     void draw_cars(bool draw_interior, bool draw_focused_car = true);
     void draw_mirror_views();
-
-    friend class World_Reader;
-    friend class Controls_Reader;
 
     enum class View{body, map, world, chase};
 

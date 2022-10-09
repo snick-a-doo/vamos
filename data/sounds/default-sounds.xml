@@ -1,14 +1,11 @@
 <?xml version="1.0"?>
 
 <sounds name="Default Sounds">
-  <sample-rate>44000</sample-rate>
-  <buffer-duration>0.2</buffer-duration>
-
   <!-- Tires on a pavement or concrete -->
   <tire-squeal>
     <file>tire_squeal.wav</file>
 	<pitch>1.0</pitch>
-	<volume>0.5</volume>
+	<volume>1.0</volume>
   </tire-squeal>
 
   <!-- Tires on kerbs -->

@@ -15,6 +15,7 @@
 
 #include "gl-road-segment.h"
 
+#include "../geometry/conversions.h"
 #include "../geometry/three-vector.h"
 #include "../media/model.h"
 #include "../media/texture-image.h"
@@ -33,7 +34,7 @@ auto constexpr s_strip_type{GL_QUAD_STRIP};
 // GL_LINE_STRIP
 // GL_LINES
 
-static const Material s_no_material(Material::AIR, 0.0, 0.0);
+static const Material s_no_material(Material::air, 0.0, 0.0);
 
 Braking_Marker::Braking_Marker(std::string const& image_file, double distance, Side side,
                                double from_edge, double off_ground, double width,
@@ -127,9 +128,9 @@ void Segment_Iterator::start(Three_Vector const& start_coords, Gl_Road_Segment::
 size_t Segment_Iterator::substrips() const
 {
     if (m_strip == Gl_Road_Segment::LEFT_KERB)
-        return m_segment.mp_left_kerb->substrips();
+        return m_segment.mp_left_kerb ? m_segment.mp_left_kerb->substrips() : 0;
     if (m_strip == Gl_Road_Segment::RIGHT_KERB)
-        return m_segment.mp_right_kerb->substrips();
+        return m_segment.mp_right_kerb ? m_segment.mp_right_kerb->substrips() : 0;
     return 1;
 }
 
@@ -142,10 +143,10 @@ Segment_Iterator& Segment_Iterator::operator++()
     double last_tex_dist = m_texture_coordinates.y;
 
     // Bail out if there's no kerb.
-    if (((m_strip == Gl_Road_Segment::LEFT_KERB)
-         && (m_segment.mp_left_kerb->transition_end() == 0.0))
-        || ((m_strip == Gl_Road_Segment::RIGHT_KERB)
-            && (m_segment.mp_right_kerb->transition_end() == 0.0)))
+    if ((m_strip == Gl_Road_Segment::LEFT_KERB
+         && (!m_segment.mp_left_kerb || m_segment.mp_left_kerb->transition_end() == 0.0))
+        || (m_strip == Gl_Road_Segment::RIGHT_KERB
+            && (!m_segment.mp_right_kerb || m_segment.mp_right_kerb->transition_end() == 0.0)))
     {
         m_position = Position::end;
         return *this;
@@ -427,7 +428,8 @@ Gl_Road_Segment::Gl_Road_Segment(double resolution, double length, double radius
     : Road_Segment(length, radius, 10.0, 10.0, 20.0, 20.0),
       m_texture_offsets{N_STRIPS},
       mp_iterator{std::make_unique<Segment_Iterator>(*this, resolution)},
-      m_braking_markers{std::move(braking_markers)}
+      m_braking_markers{std::move(braking_markers)},
+      m_materials{materials}
 {
     set_widths(right_width, right_road_width, left_road_width, left_width);
     set_start_skew(skew);
@@ -437,9 +439,7 @@ Gl_Road_Segment::Gl_Road_Segment(double resolution, double length, double radius
     set_wall_heights(left_wall_height, right_wall_height);
     set_elevation_points(elevation_points);
     assert(materials.size() == N_STRIPS);
-    m_materials = materials;
     set_banking(end_bank, bank_pivot);
-    add_textures();
 }
 
 Gl_Road_Segment::~Gl_Road_Segment()
@@ -447,16 +447,6 @@ Gl_Road_Segment::~Gl_Road_Segment()
     glDeleteLists(m_gl_list_id, 1);
     for (auto id : m_scenery_lists)
         glDeleteLists(id, 1);
-}
-
-void Gl_Road_Segment::add_textures()
-{
-    for (auto const& material : m_materials)
-        m_textures.push_back(material.texture_file_name().empty()
-                             ? nullptr
-                             : std::make_unique<Texture_Image>(
-                                 material.texture_file_name(), material.smooth(),
-                                 material.mip_map(), material.width(), material.height()));
 }
 
 const Material& Gl_Road_Segment::left_material(double height) const
@@ -572,17 +562,18 @@ void Gl_Road_Segment::build()
 
 void Gl_Road_Segment::draw_strip(Strip strip, double texture_offset)
 {
-    if (!m_textures[strip])
+    auto texture{m_materials[strip].texture()};
+    if (!texture)
         return;
 
-    m_textures[strip]->activate();
+    texture->activate();
     mp_iterator->start(start_coords(), strip);
     auto vertex{(++(*mp_iterator)).coordinates()};
     glNormal3d(mp_iterator->normal().x, mp_iterator->normal().y, mp_iterator->normal().z);
     m_bounds.enclose(Rectangle<double>({vertex.x, vertex.y}, {vertex.x, vertex.y}));
 
-    auto tex_width{m_textures[strip]->width()};
-    auto tex_height{m_textures[strip]->height()};
+    auto tex_width{texture->width()};
+    auto tex_height{texture->height()};
     auto tex_x{tex_width > 0.0 ? mp_iterator->texture_coordinates().x / tex_width : 0.0};
     auto tex_y{tex_height > 0.0 ? mp_iterator->texture_coordinates().y / tex_height : 0.0};
     tex_y += texture_offset;

@@ -605,7 +605,7 @@ void Ac3d_Object::set_texture_repeat(Two_Vector const& p)
 
 void Ac3d_Object::set_texture_image(std::string file)
 {
-    mp_texture = std::make_unique<Texture_Image>(file);
+    mp_texture = std::make_unique<Texture_Image>(file, false, false);
 }
 
 void Ac3d_Object::set_rotation(Three_Matrix const& rot)

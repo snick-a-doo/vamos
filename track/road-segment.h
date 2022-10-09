@@ -14,9 +14,7 @@
 #ifndef VAMOS_TRACK_ROAD_SEGMENT_H_INCLUDED
 #define VAMOS_TRACK_ROAD_SEGMENT_H_INCLUDED
 
-#include "../geometry/conversions.h"
 #include "../geometry/linear-interpolator.h"
-#include "../geometry/rectangle.h"
 #include "../geometry/spline.h"
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
@@ -27,7 +25,7 @@
 
 namespace Vamos_Track
 {
-typedef std::vector<Vamos_Geometry::Two_Vector> TPoints;
+using TPoints = std::vector<Vamos_Geometry::Two_Vector>;
 
 enum class Side{left, right };
 
@@ -173,10 +171,8 @@ public:
     /// centerline.
     Road_Segment(double length, double radius, double left_width, double right_width,
                  double left_road_width, double right_road_width);
-    Road_Segment(const Road_Segment& segment) = delete;
-    Road_Segment(const Road_Segment&& segment) = delete;
-    Road_Segment& operator=(const Road_Segment& segment) = delete;
-    Road_Segment& operator=(const Road_Segment&& segment) = delete;
+    Road_Segment(Road_Segment const& segment) = delete;
+    Road_Segment& operator=(Road_Segment const& segment) = delete;
     virtual ~Road_Segment() = default;
 
     /// @return the length of the segment at the centerline.
@@ -238,13 +234,13 @@ public:
     // A convenience function for getting the elevation at a point in
     // world coordinates.  Use 'coordinates()' if you need the x and y
     // track coodinates as well.
-    double world_elevation(const Vamos_Geometry::Three_Vector& world_position) const;
+    double world_elevation(Vamos_Geometry::Three_Vector const& world_position) const;
 
-    const Banking& banking() const { return m_banking; }
+    Banking const& banking() const { return m_banking; }
 
     // Return the normal vector at the given location.
     Vamos_Geometry::Three_Vector normal(double along, double from_center,
-                                        const Vamos_Geometry::Three_Vector& bump,
+                                        Vamos_Geometry::Three_Vector const& bump,
                                         bool include_kerb = true) const;
 
     // Return the normal vector ignoring bumpiness.
@@ -252,13 +248,13 @@ public:
                                         bool include_kerb = true) const;
 
     Vamos_Geometry::Three_Vector barrier_normal(double along, double from_center,
-                                                const Vamos_Geometry::Three_Vector& bump) const;
+                                                Vamos_Geometry::Three_Vector const& bump) const;
 
     Vamos_Geometry::Three_Vector barrier_normal(double along, double from_center) const;
 
     Vamos_Geometry::Three_Vector end_coords() const;
     Vamos_Geometry::Three_Vector start_coords() const { return m_start_coords; }
-    void set_start_coords(const Vamos_Geometry::Three_Vector& x) { m_start_coords = x; }
+    void set_start_coords(Vamos_Geometry::Three_Vector const& x) { m_start_coords = x; }
 
     double angle(double along) const { return m_start_angle + arc() * along / m_length; }
 
@@ -272,9 +268,9 @@ public:
     double pit_width() const;
     bool on_pit_merge(double distance, double from_center) const;
 
-    virtual void set_start(const Vamos_Geometry::Three_Vector& start_coords, double start_distance,
+    virtual void set_start(Vamos_Geometry::Three_Vector const& start_coords, double start_distance,
                            double start_angle, double start_bank,
-                           const std::vector<double>& texture_offsets);
+                           std::vector<double> const& texture_offsets);
 
     /// @return the direction at the start of the segment in radians.
     double start_angle() const { return m_start_angle; }
@@ -290,13 +286,13 @@ public:
     void set_last_segment(bool last) { m_last_segment = last; }
 
     // Do the world-to-track coordinate transformation.
-    double coordinates(const Vamos_Geometry::Three_Vector& world_pos,
+    double coordinates(Vamos_Geometry::Three_Vector const& world_pos,
                        Vamos_Geometry::Three_Vector& track_pos) const;
 
     // Do the track-to-world coordinate transformation.
     Vamos_Geometry::Three_Vector position(double along, double from_center) const;
 
-    const Pit_Lane_Transition& pit() const;
+    Pit_Lane_Transition const& pit() const;
 
     void narrow(Side side, double delta_width);
     // Subtract delta_width from this segment's width.
@@ -312,9 +308,9 @@ protected:
     double kerb_width(Side side, double along) const;
     void set_banking(double end_angle, double pivot) { m_banking.set(end_angle, pivot); }
 
-    void set_elevation_points(const TPoints& elevation) { m_elevation_points = elevation; }
-    void set_widths(const TPoints& right, const TPoints& right_road, const TPoints& left_road,
-                    const TPoints& left);
+    void set_elevation_points(TPoints const& elevation) { m_elevation_points = elevation; }
+    void set_widths(TPoints const& right, TPoints const& right_road, TPoints const& left_road,
+                    TPoints const& left);
     double pit_road_connection() const;
 
     bool is_last_segment() const { return m_last_segment; }
@@ -322,10 +318,10 @@ protected:
 private:
     void scale_widths(double factor);
     // Find the angle from the beginning of a curve.
-    double get_curve_angle(const Vamos_Geometry::Three_Vector& position, double across) const;
+    double get_curve_angle(Vamos_Geometry::Three_Vector const& position, double across) const;
     // How far is the position off the end (+ve) or beginning (-ve) of
     // the segment?  Return 0 if the position is on the segment.
-    double off_track_distance(const Vamos_Geometry::Three_Vector& track_position) const;
+    double off_track_distance(Vamos_Geometry::Three_Vector const& track_position) const;
     double extra_road_width(Side side, double distance, bool narrow) const;
 
     double m_start_distance{0.0}; ///< The distance along the track where this segment starts.

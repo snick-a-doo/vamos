@@ -378,9 +378,9 @@ void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
     }
     else if (match("contact-point"))
     {
-        auto material{m_strings[0] == "rubber" ? Material::RUBBER
-                      : m_strings[0] == "metal" ? Material::METAL
-                      : Material::UNKNOWN};
+        auto material{m_strings[0] == "rubber" ? Material::rubber
+                      : m_strings[0] == "metal" ? Material::metal
+                      : Material::unknown};
         mp_car->chassis().add_particle(std::make_shared<Particle>(
             m_doubles[0], m_vectors[0], Material{material, m_doubles[1], m_doubles[2]}));
     }

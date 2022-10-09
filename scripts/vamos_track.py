@@ -111,7 +111,7 @@ header = '''<?xml version="1.0"?>
 	</texture>
   </material>
 
-  <material name="kerb" type="concrete">
+  <material name="kerb" type="kerb">
 	<friction>1.0</friction>
 	<restitution>0.1</restitution>
 	<rolling>1.0</rolling>

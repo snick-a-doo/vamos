@@ -144,13 +144,9 @@ void Sky_Box::draw(Three_Vector const& view) const
 
 //----------------------------------------------------------------------------------------
 Map_Background::Map_Background(std::string const& image_file_name,
-                               double dx, double dy,
-                               double width, double height)
+                               Vamos_Geometry::Rectangle<int> const& size)
     : m_image{image_file_name, true, false},
-      m_dx(dx),
-      m_dy(dy),
-      m_width(width),
-      m_height(height)
+      m_size{size}
 {
 }
 
@@ -161,17 +157,17 @@ void Map_Background::draw() const
     m_image.activate();
 
     glLoadIdentity();
-    glTranslatef(m_dx, m_dy, 0.0);
+    glTranslatef(m_size.left(), m_size.bottom(), 0.0);
 
     glBegin(GL_QUADS);
     glTexCoord2d(0.0, 1.0);
-    glVertex3d(m_dx, m_dy, 0.0);
+    glVertex3d(m_size.left(), m_size.bottom(), 0.0);
     glTexCoord2d(0.0, 0.0);
-    glVertex3d(m_dx, m_dy + m_height, 0.0);
+    glVertex3d(m_size.left(), m_size.top(), 0.0);
     glTexCoord2d(1.0, 0.0);
-    glVertex3d(m_dx + m_width, m_dy + m_height, 0.0);
+    glVertex3d(m_size.right(), m_size.top(), 0.0);
     glTexCoord2d(1.0, 1.0);
-    glVertex3d(m_dx + m_width, m_dy, 0.0);
+    glVertex3d(m_size.right(), m_size.bottom(), 0.0);
     glEnd();
 
     // Clear the depth buffer to keep the background behind the track.
@@ -751,6 +747,7 @@ void Road::join(Three_Vector const&, // start_coords,
 
 void Road::set_skews()
 {
+    assert(!m_segments.empty());
     for (auto it = m_segments.begin() + 1; it != m_segments.end(); ++it)
     {
         auto skew{(*it)->start_skew()};
@@ -899,7 +896,7 @@ void Strip_Track::read(std::string const& data_dir, std::string const& track_fil
     mp_track->clear();
     mp_pit_lane->clear();
     m_timing_lines.clear();
-    Strip_Track_Reader reader{m_data_dir, m_track_file, this};
+    read_track_file(m_data_dir, m_track_file, this);
 }
 
 size_t Strip_Track::add_segment(std::unique_ptr<Gl_Road_Segment> segment)
@@ -969,11 +966,10 @@ void Strip_Track::set_sky_box(std::string sides_image, std::string top_image,
         = std::make_unique<Sky_Box>(100.0, sides_image, top_image, bottom_image, smooth);
 }
 
-void Strip_Track::set_map_background(std::string background_image, double dx, double dy,
-                                     double width, double height)
+void Strip_Track::set_map_background(std::string const& background_image,
+                                     Rectangle<int> const& size)
 {
-    mp_map_background
-        = std::make_unique<Map_Background>(background_image, dx, dy, width, height);
+    mp_map_background = std::make_unique<Map_Background>(background_image, size);
 }
 
 void Strip_Track::draw_sky(const Three_Vector& view) const

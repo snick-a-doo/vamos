@@ -15,14 +15,12 @@
 
 #include "road-segment.h"
 
+#include "../geometry/conversions.h"
 #include "../geometry/numeric.h"
-#include "../media/material.h"
-#include "../media/texture-image.h"
 
 #include <cassert>
 #include <cmath>
 #include <complex>
-#include <iostream>
 
 using namespace Vamos_Geometry;
 using namespace Vamos_Track;

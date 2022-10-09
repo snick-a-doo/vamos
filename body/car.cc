@@ -377,7 +377,7 @@ Contact_Info Car::collision(Three_Vector const& position,
 {
     auto in{m_crash_box.penetration(m_chassis.transform_in(position),
                                     m_chassis.transform_velocity_in(velocity), ignore_z)};
-    return {!in.is_null(), in.magnitude(), m_chassis.rotate_out(in), Material::METAL};
+    return {!in.is_null(), in.magnitude(), m_chassis.rotate_out(in), Material::metal};
 }
 
 void Car::wind(const Vamos_Geometry::Three_Vector& wind_vector, double density)

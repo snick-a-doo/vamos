@@ -38,7 +38,7 @@ Particle::Particle(double mass)
 
 bool Particle::can_contact() const
 {
-    return m_material.composition() != Material::UNKNOWN;
+    return m_material.composition() != Material::unknown;
 }
 
 double Particle::contact(Three_Vector const& impulse,
