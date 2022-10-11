@@ -37,10 +37,9 @@ double Vamos_Body::Brake::torque(double factor, double rotational_speed)
 {
     auto pressure{factor * m_bias * m_max_pressure};
     auto normal{pressure * m_area};
-    auto torque = m_friction * normal * m_radius;
-    auto velocity = m_radius * rotational_speed * sign(torque);
+    auto torque = m_friction * normal * m_radius * sign(rotational_speed);
+    auto velocity = m_radius * rotational_speed;
 
     m_is_locked = std::abs(velocity) < m_threshold * normal;
     return m_is_locked ? 0.0 : torque;
-        torque = 0.0;
 }

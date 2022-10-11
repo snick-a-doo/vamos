@@ -1,4 +1,4 @@
-//  Copyright (C) 2001--2022 Sam Varner
+//  Copyright (C) 2001-2022 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //

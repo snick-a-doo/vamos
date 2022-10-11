@@ -131,7 +131,6 @@ void Sounds::play_wind(double speed, Three_Vector const& position)
     play(Sound::wind, {}, clip(0.005 * speed, 0.0, 1.0), 1.0, position);
 }
 
-#include <iostream>
 void Sounds::play_hard_crash(double speed, Three_Vector const& position)
 {
     play(Sound::hard_crash, {}, clip(0.1 * (speed - 1.0), 0.0, 1.0), 1.0, position);
