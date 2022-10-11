@@ -400,8 +400,8 @@ void Racing_Line::load_curvature(double along, Three_Vector const& p1,
 
     if (segment.radius() == 0.0)
     {
-        m_left_curvature.load(along, Three_Vector::ZERO);
-        m_right_curvature.load(along, Three_Vector::ZERO);
+        m_left_curvature.load(along, null_v);
+        m_right_curvature.load(along, null_v);
     }
     else
     {
@@ -554,7 +554,7 @@ Three_Vector Road::track_coordinates(Three_Vector const& world_pos,
 
     // Throw an exception if a segment could not be found.
     segment_index = std::distance(m_segments.begin(), seg_it);
-    return track_pos + (*seg_it)->start_distance() * Three_Vector::X;
+    return track_pos + (*seg_it)->start_distance() * x_hat;
 }
 
 double Road::distance(double along1, double along2) const
@@ -803,7 +803,7 @@ Three_Vector pit_offset(Gl_Road_Segment const& road_seg,
 
     if (road_seg.radius() == 0.0)
         return rotate(Three_Vector{along, offset, 0.0},
-                      road_seg.angle(along) * Three_Vector::Z);
+                      road_seg.angle(along) * z_hat);
     else
         return road_seg.center_of_curve() - road_seg.start_coords()
                + Three_Vector(road_seg.radius() - offset, pit_seg.angle(along) - pi / 2);
@@ -1102,7 +1102,7 @@ Three_Vector Strip_Track::track_coordinates(Three_Vector const& world_pos,
     }
 
     assert(segment_index < segments->size());
-    return track_pos + segment->start_distance() * Three_Vector::X;
+    return track_pos + segment->start_distance() * x_hat;
 }
 
 Road const& Strip_Track::get_road(size_t road_index) const

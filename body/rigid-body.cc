@@ -242,7 +242,7 @@ void Rigid_Body::propagate(double time)
 void Rigid_Body::reset(double direction)
 {
     auto orient{m_initial_frame.orientation()};
-    reset(m_initial_frame.position(), orient.rotate(direction * Three_Vector::Z));
+    reset(m_initial_frame.position(), orient.rotate(direction * z_hat));
 }
 
 void Rigid_Body::reset(Three_Vector const& position, Three_Matrix const& orientation)

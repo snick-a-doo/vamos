@@ -41,10 +41,10 @@ TEST_CASE("vectors")
     }
     SUBCASE("unit")
     {
-        CHECK(null.unit() == Three_Vector::Z);
-        CHECK(x.unit() == Three_Vector::X);
-        CHECK(y.unit() == Three_Vector::Y);
-        CHECK(z.unit() == Three_Vector::Z);
+        CHECK(null.unit() == z_hat);
+        CHECK(x.unit() == x_hat);
+        CHECK(y.unit() == y_hat);
+        CHECK(z.unit() == z_hat);
         CHECK(v123.unit().magnitude() == 1.0);
         CHECK(vn321.unit().magnitude() == 1.0);
         CHECK(close(vxy.unit(), Three_Vector{sqrt2 / 2.0, -sqrt2 / 2.0, 0.0}, 1e-9));
@@ -67,31 +67,31 @@ TEST_CASE("vectors")
     }
     SUBCASE("cross product")
     {
-        CHECK(null.cross(vn321) == Three_Vector::ZERO);
-        CHECK(y.cross(y) == Three_Vector::ZERO);
-        CHECK(x.cross(y) == Three_Vector::Z);
-        CHECK(y.cross(x) == -Three_Vector::Z);
+        CHECK(null.cross(vn321) == null_v);
+        CHECK(y.cross(y) == null_v);
+        CHECK(x.cross(y) == z_hat);
+        CHECK(y.cross(x) == -z_hat);
         CHECK(v123.cross(vn321) == Three_Vector{4.0, -8.0, 4.0});
         CHECK(v123.cross(z) == Three_Vector{2.0, -1.0, 0.0});
         CHECK(close(vxy.cross(z), Three_Vector{-sqrt2, -sqrt2, 0.0}, 1e-9));
     }
     SUBCASE("project")
     {
-        CHECK(null.project(v123) == Three_Vector::ZERO);
-        CHECK(v123.project(null) == Three_Vector::ZERO);
+        CHECK(null.project(v123) == null_v);
+        CHECK(v123.project(null) == null_v);
         CHECK(z.project(z) == z);
-        CHECK(x.project(y) == Three_Vector::ZERO);
-        CHECK(v123.project(z) == 3.0 * Three_Vector::Z);
+        CHECK(x.project(y) == null_v);
+        CHECK(v123.project(z) == 3.0 * z_hat);
         CHECK(close(y.project(vxy), Three_Vector(-0.5, 0.5, 0.0), 1e-9));
     }
     SUBCASE("back project")
     {
-        CHECK(null.back_project(v123) == Three_Vector::ZERO);
-        CHECK(v123.back_project(null) == Three_Vector::ZERO);
+        CHECK(null.back_project(v123) == null_v);
+        CHECK(v123.back_project(null) == null_v);
         CHECK(z.back_project(z) == z);
-        CHECK(x.back_project(y) == Three_Vector::ZERO);
+        CHECK(x.back_project(y) == null_v);
         CHECK(z.back_project(v123) == v123 / 3.0);
-        CHECK(close(vxy.back_project(y), -2.0 * sqrt2 * Three_Vector::Y, 1e-9));
+        CHECK(close(vxy.back_project(y), -2.0 * sqrt2 * y_hat, 1e-9));
     }
     SUBCASE("arithmetic")
     {
@@ -99,16 +99,16 @@ TEST_CASE("vectors")
         CHECK(vn321 - null == vn321);
         CHECK(v123 + vn321 == Three_Vector{-2.0, 0.0, 2.0});
         CHECK(v123 - vn321 == Three_Vector{4.0, 4.0, 4.0});
-        CHECK(-v123 + v123 == Three_Vector::ZERO);
-        CHECK(0.0 * v123 == Three_Vector::ZERO);
-        CHECK(v123 * 0.0 == Three_Vector::ZERO);
+        CHECK(-v123 + v123 == null_v);
+        CHECK(0.0 * v123 == null_v);
+        CHECK(v123 * 0.0 == null_v);
         CHECK(2.0 * x + y * 3.0 + -5.0 * z == Three_Vector{2.0, 3.0, -5.0});
         CHECK(null / 3.0 == null);
         CHECK(vn321 / -2.0 == Three_Vector(1.5, 1.0, 0.5));
         CHECK_THROWS_AS(vxy / 0.0, std::overflow_error);
 
         null += v123;
-        vn321 -= Three_Vector::ZERO;
+        vn321 -= null_v;
         v123 += v12;
         v12 *= 10.0;
         vxy /= -sqrt2;

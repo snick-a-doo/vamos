@@ -701,7 +701,7 @@ void Gl_World::display()
     }
     case View::map:
         m_map.set_view();
-        draw_track(false, Three_Vector::ZERO);
+        draw_track(false, null_v);
         if (focused_car())
         {
             draw_cars(false);

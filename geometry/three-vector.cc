@@ -23,10 +23,8 @@
 
 using namespace Vamos_Geometry;
 
-Three_Vector const Three_Vector::ZERO{0.0, 0.0, 0.0};
-Three_Vector const Three_Vector::X{1.0, 0.0, 0.0};
-Three_Vector const Three_Vector::Y{0.0, 1.0, 0.0};
-Three_Vector const Three_Vector::Z{0.0, 0.0, 1.0};
+Three_Vector const x_hat{1.0, 0.0, 0.0};
+Three_Vector const y_hat{0.0, 1.0, 0.0};
 
 Three_Vector::Three_Vector()
 {
@@ -55,14 +53,12 @@ double Three_Vector::magnitude() const
 Three_Vector Three_Vector::unit() const
 {
     auto vec_abs{magnitude()};
-    return vec_abs == 0.0
-        ? Three_Vector::Z
-        : *this / vec_abs;
+    return vec_abs == 0.0 ? z_hat : *this / vec_abs;
 }
 
 Three_Vector& Three_Vector::zero()
 {
-    return *this = Three_Vector::ZERO;
+    return *this = null_v;
 }
 
 bool Three_Vector::is_null() const
@@ -85,18 +81,14 @@ Three_Vector Three_Vector::cross(Three_Vector const& vec) const
 Three_Vector Three_Vector::project(Three_Vector const& vec) const
 {
     auto vec_abs{vec.magnitude()};
-    return vec_abs == 0.0
-        ? Three_Vector::ZERO
-        : vec * (dot(vec) / vec_abs / vec_abs);
+    return vec_abs == 0.0 ? null_v : vec * (dot(vec) / vec_abs / vec_abs);
 }
 
 Three_Vector Three_Vector::back_project(Three_Vector const& vec) const
 {
     auto dot_prod{dot(vec)};
     auto this_abs{magnitude()};
-    return dot_prod == 0.0
-        ? Three_Vector::ZERO
-        : this_abs * this_abs * vec / dot_prod;
+    return dot_prod == 0.0 ? null_v : this_abs * this_abs * vec / dot_prod;
 }
 
 Three_Vector& Three_Vector::operator*=(double factor)
@@ -133,6 +125,11 @@ Three_Vector& Three_Vector::operator-=(Three_Vector const& vec)
 
 namespace Vamos_Geometry
 {
+extern Three_Vector const null_v{0.0, 0.0, 0.0};
+extern Three_Vector const x_hat{1.0, 0.0, 0.0};
+extern Three_Vector const y_hat{0.0, 1.0, 0.0};
+extern Three_Vector const z_hat{0.0, 0.0, 1.0};
+
 Three_Vector rotate(Three_Vector const& vec1, Three_Vector const& vec2)
 {
     return Three_Matrix{1.0}.rotate(vec2) * vec1;

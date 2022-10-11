@@ -32,7 +32,7 @@ Particle::Particle(double mass, Three_Vector const& position)
 }
 
 Particle::Particle(double mass)
-    : Particle{mass, Three_Vector::ZERO, Material()}
+    : Particle{mass, null_v, Material()}
 {
 }
 

@@ -27,7 +27,7 @@ TEST_CASE("matrix")
     auto mr = Three_Matrix{1.0}.rotate(v123);
     Three_Vector ones{1.0, 1.0, 1.0};
     Three_Matrix m_side{m1};
-    m_side.rotate(Three_Vector::Z * pi / 2.0);
+    m_side.rotate(z_hat * pi / 2.0);
     Three_Matrix m_corner{m1};
     m_corner.rotate(-ones.unit() * 2.0 * pi / 3.0);
 
@@ -61,7 +61,7 @@ TEST_CASE("matrix")
     }
     SUBCASE("no rotation")
     {
-        auto m = Three_Matrix{1.0}.rotate(Three_Vector::ZERO);
+        auto m = Three_Matrix{1.0}.rotate(null_v);
         CHECK(close(m1, m, 1e-6));
         CHECK(m * ones == ones);
         CHECK(ones * m == ones);
@@ -81,23 +81,23 @@ TEST_CASE("matrix")
         CHECK(close(m_corner[1], std::array{0.0, 0.0, 1.0}, 1e-9));
         CHECK(close(m_corner[2], std::array{1.0, 0.0, 0.0}, 1e-9));
         // Rotates about the cube corners by -1/3 of a rotation.
-        CHECK(close(m_corner * Three_Vector::X, Three_Vector::Z, 1e-9));
-        CHECK(close(m_corner * Three_Vector::Y, Three_Vector::X, 1e-9));
-        CHECK(close(m_corner * Three_Vector::Z, Three_Vector::Y, 1e-9));
-        CHECK(close(Three_Vector::X * m_corner, Three_Vector::Y, 1e-9));
-        CHECK(close(Three_Vector::Y * m_corner, Three_Vector::Z, 1e-9));
-        CHECK(close(Three_Vector::Z * m_corner, Three_Vector::X, 1e-9));
+        CHECK(close(m_corner * x_hat, z_hat, 1e-9));
+        CHECK(close(m_corner * y_hat, x_hat, 1e-9));
+        CHECK(close(m_corner * z_hat, y_hat, 1e-9));
+        CHECK(close(x_hat * m_corner, y_hat, 1e-9));
+        CHECK(close(y_hat * m_corner, z_hat, 1e-9));
+        CHECK(close(z_hat * m_corner, x_hat, 1e-9));
     }
     SUBCASE("side and corner")
     {
         auto rot{m_side * m_corner};
         CHECK(close(rot * v123, m_side * (m_corner * v123), 1e-9));
-        CHECK(close(rot * Three_Vector::X, Three_Vector::Z, 1e-9));
-        CHECK(close(rot * Three_Vector::Y, Three_Vector::Y, 1e-9));
-        CHECK(close(rot * Three_Vector::Z, -Three_Vector::X, 1e-9));
-        CHECK(close(Three_Vector::X * rot, -Three_Vector::Z, 1e-9));
-        CHECK(close(Three_Vector::Y * rot, Three_Vector::Y, 1e-9));
-        CHECK(close(Three_Vector::Z * rot, Three_Vector::X, 1e-9));
+        CHECK(close(rot * x_hat, z_hat, 1e-9));
+        CHECK(close(rot * y_hat, y_hat, 1e-9));
+        CHECK(close(rot * z_hat, -x_hat, 1e-9));
+        CHECK(close(x_hat * rot, -z_hat, 1e-9));
+        CHECK(close(y_hat * rot, y_hat, 1e-9));
+        CHECK(close(z_hat * rot, x_hat, 1e-9));
 
         m_side *= m_corner;
         CHECK(m_side == rot);

@@ -10,26 +10,26 @@ using namespace Vamos_Geometry;
 
 TEST_CASE("drag")
 {
-    Drag drag(Three_Vector::ZERO, 4.0, 0.5);
+    Drag drag(null_v, 4.0, 0.5);
     SUBCASE("stationary")
     {
-        drag.wind(Three_Vector::ZERO, 0.1);
+        drag.wind(null_v, 0.1);
         drag.propagate(1.0);
-        CHECK(drag.force() == Three_Vector::ZERO);
+        CHECK(drag.force() == null_v);
     }
     SUBCASE("forward")
     {
-        drag.wind(2.0 * Three_Vector::X, 0.1);
+        drag.wind(2.0 * x_hat, 0.1);
         drag.propagate(1.0);
         CHECK(drag.drag_factor() == 0.1); // 0.5 * 0.1 * 4 * 0.5
-        CHECK(close(drag.force(), 0.4*Three_Vector::X, 1e-9));
+        CHECK(close(drag.force(), 0.4*x_hat, 1e-9));
     }
     SUBCASE("low density")
     {
-        drag.wind(2.0 * Three_Vector::X, 0.01);
+        drag.wind(2.0 * x_hat, 0.01);
         drag.propagate(1.0);
         CHECK(drag.drag_factor() == 0.01); // 0.5 * 0.01 * 4 * 0.5
-        CHECK(close(drag.force(), 0.04*Three_Vector::X, 1e-9));
+        CHECK(close(drag.force(), 0.04*x_hat, 1e-9));
     }
     SUBCASE("vector")
     {
@@ -42,7 +42,7 @@ TEST_CASE("drag")
 
 TEST_CASE("wing")
 {
-    Three_Vector r = Three_Vector::Y;
+    Three_Vector r = y_hat;
     double Af = 4.0;   // frontal area
     double As = 3.0;   // surface area
     double Cl = 0.5;   // lift coefficient
@@ -53,12 +53,12 @@ TEST_CASE("wing")
     const double speed = wind.magnitude();
     SUBCASE("stationary")
     {
-        up.wind(Three_Vector::ZERO, 0.2);
-        down.wind(Three_Vector::ZERO, 0.4);
+        up.wind(null_v, 0.2);
+        down.wind(null_v, 0.4);
         up.propagate(1.0);
         down.propagate(1.0);
-        CHECK(up.force() == Three_Vector::ZERO);
-        CHECK(down.force() == Three_Vector::ZERO);
+        CHECK(up.force() == null_v);
+        CHECK(down.force() == null_v);
     }
     SUBCASE("moving")
     {
@@ -74,7 +74,7 @@ TEST_CASE("wing")
         // lift = wind.x^2 * kl * z-hat = 0.24 z-hat, -0.48 z-hat
         // drag = kd * wind * speed
         // force = lift + drag
-        CHECK(close(up.force(), 0.12 * wind * speed + 0.24*Three_Vector::Z, 1e-6));
-        CHECK(close(down.force(), 0.24 * wind * speed - 0.48*Three_Vector::Z, 1e-4));
+        CHECK(close(up.force(), 0.12 * wind * speed + 0.24*z_hat, 1e-6));
+        CHECK(close(down.force(), 0.24 * wind * speed - 0.48*z_hat, 1e-4));
     }
 }

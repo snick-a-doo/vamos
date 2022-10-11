@@ -26,7 +26,7 @@ using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 
 // The axis of rotation for steering and toe adjustments.
-auto const steer_axis{Three_Vector::Z};
+auto const steer_axis{z_hat};
 
 // Note that all angles are stored as right-hand rotations.  As a result, m_caster for a
 // wheel on the right side of the car follows the common convention that positive camber
@@ -66,7 +66,7 @@ Suspension::Suspension(Three_Vector const& pos, Three_Vector const& center_of_tr
       m_max_compression_velocity(max_compression_velocity),
       m_side(side_of_car),
       m_normal(Three_Vector(0.0, 0.0, 1.0)),
-      m_hinge_axis(m_radius.cross(Three_Vector::Z).unit())
+      m_hinge_axis(m_radius.cross(z_hat).unit())
 {
 }
 

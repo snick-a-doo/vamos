@@ -59,7 +59,7 @@ void Car_Info::propagate(double time_step, double total_time,
 const Three_Vector& Car_Info::track_position() const
 {
     if (m_record.empty())
-        return Three_Vector::ZERO;
+        return null_v;
     return m_record.back().m_track_position;
 }
 
@@ -196,7 +196,7 @@ void World::interact(Car* car, size_t road_index, size_t segment_index)
     // Check for contact with track objects.
     for (auto const& object : m_track.objects())
     {
-        auto info{car->collision(object.position, Three_Vector::ZERO, true)};
+        auto info{car->collision(object.position, null_v, true)};
         if (!info.contact)
             continue;
 

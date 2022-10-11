@@ -63,12 +63,12 @@ Wing::Wing(Three_Vector const& position,
 
 void Wing::propagate(double time)
 {
-    const auto wind_speed = std::abs(wind_vector().dot(Three_Vector::X));
+    const auto wind_speed = std::abs(wind_vector().dot(x_hat));
     const auto lift = lift_factor() * wind_speed * wind_speed;
 
     // Add lift to drag to get the total force.
     Drag::propagate(time);
-    set_force(force() + lift * Three_Vector::Z);
+    set_force(force() + lift * z_hat);
 }
 
 double Wing::lift_factor() const

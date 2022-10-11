@@ -77,6 +77,12 @@ struct Three_Vector
     static Three_Vector const Z; ///< z unit vector
 };
 
+extern Three_Vector const null_v; ///< The null vector
+extern Three_Vector const x_hat; ///< x unit vector
+extern Three_Vector const y_hat; ///< y unit vector
+extern Three_Vector const z_hat; ///< z unit vector
+
+
 /// @return @p vec1 rotated about @ vec2 by the magnitude of @p vec2.
 Three_Vector rotate(const Three_Vector& vec1, const Three_Vector& vec2);
 

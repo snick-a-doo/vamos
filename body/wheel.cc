@@ -67,15 +67,15 @@ double Wheel::contact(const Three_Vector& impulse, const Three_Vector& velocity,
 
     // The collision is soft unless the suspension has bottomed out.
     if (!mp_suspension->is_bottomed_out())
-        set_impulse(Three_Vector::ZERO);
+        set_impulse(null_v);
 
     m_normal = rotate_in(normal);
     auto v_perp{rotate_in(velocity).project(m_normal)};
     m_ground_velocity = rotate_in(velocity) - v_perp;
     m_angular_velocity = angular_velocity;
 
-    mp_suspension->displace(((m_normal * distance).back_project(Three_Vector::Z)).magnitude());
-    set_position(m_original_position + mp_suspension->get_displacement() * Three_Vector::Z);
+    mp_suspension->displace(((m_normal * distance).back_project(z_hat)).magnitude());
+    set_position(m_original_position + mp_suspension->get_displacement() * z_hat);
     // The suspension displacement may be different from the argument to displace() if it
     // bottoms out.  Ask the suspension for the actual displacement.
     mp_suspension->input(m_normal);

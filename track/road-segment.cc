@@ -273,12 +273,12 @@ Three_Vector Road_Segment::barrier_normal(double along, double from_center,
     // The -y direction is up, -z is to the left, x is forward.
     normal.x = bump.x;
     normal.z = -bump.y;
-    return rotate(normal, angle(along) * Three_Vector::Z);
+    return rotate(normal, angle(along) * z_hat);
 }
 
 Three_Vector Road_Segment::barrier_normal(double along, double from_center) const
 {
-    return barrier_normal(along, from_center, Three_Vector::Z);
+    return barrier_normal(along, from_center, z_hat);
 }
 
 Three_Vector Road_Segment::normal(double along, double from_center, const Three_Vector& bump,
@@ -297,12 +297,12 @@ Three_Vector Road_Segment::normal(double along, double from_center, const Three_
         bank -= mp_left_kerb->angle(along, from_center - left_road_width(along));
     if (include_kerb && mp_right_kerb)
         bank += mp_right_kerb->angle(along, -from_center - right_road_width(along));
-    return rotate(rotate(norm, -bank * Three_Vector::X), angle(along) * Three_Vector::Z);
+    return rotate(rotate(norm, -bank * x_hat), angle(along) * z_hat);
 }
 
 Three_Vector Road_Segment::normal(double along, double from_center, bool include_kerb) const
 {
-    return normal(along, from_center, Three_Vector::Z, include_kerb);
+    return normal(along, from_center, z_hat, include_kerb);
 }
 
 void Road_Segment::set_start(Three_Vector const& start_coords, double start_distance,
@@ -481,7 +481,7 @@ double Road_Segment::coordinates(Three_Vector const& world_position,
         auto const half_angle{arc() / 2.0};
         auto const centered_position{
             rotate(world_position - center_of_curve(),
-                   (pi / 2.0 - half_angle - m_start_angle) * Three_Vector::Z)};
+                   (pi / 2.0 - half_angle - m_start_angle) * z_hat)};
 
         const std::complex<double> across = solve_quadratic(
             1.0 + 2.0 * m_start_skew / tan(half_angle) - m_start_skew * m_start_skew,
@@ -511,7 +511,7 @@ double Road_Segment::coordinates(Three_Vector const& world_position,
     else
     {
         track_position
-            = rotate(world_position - center_of_curve(), -m_start_angle * Three_Vector::Z);
+            = rotate(world_position - center_of_curve(), -m_start_angle * z_hat);
         track_position.x = (track_position.x - track_position.y * m_start_skew)
                            / (1 + track_position.y / m_length * (m_end_skew - m_start_skew));
     }
@@ -552,13 +552,13 @@ bool Road_Segment::on_pit_merge(double distance, double from_center) const
 
 Three_Vector Road_Segment::position(double along, double from_center) const
 {
-    auto pos{elevation(along, from_center) * Three_Vector::Z};
+    auto pos{elevation(along, from_center) * z_hat};
     if (is_straight())
     {
         auto extra{
             from_center * (m_start_skew + ((m_end_skew - m_start_skew) * along / m_length))};
         return pos + start_coords()
-               + rotate({along + extra, from_center, 0.0}, m_start_angle * Three_Vector::Z);
+               + rotate({along + extra, from_center, 0.0}, m_start_angle * z_hat);
     }
 
     auto beta{arc() / 2.0};
@@ -567,7 +567,7 @@ Three_Vector Road_Segment::position(double along, double from_center) const
         center_of_curve()
         + Three_Vector(from_center * m_start_skew / sin(beta), m_start_angle + beta - pi / 2.0)};
     auto angle{m_start_angle + along / m_radius};
-    return pos + center - rotate(radius * Three_Vector::Y, angle * Three_Vector::Z);
+    return pos + center - rotate(radius * y_hat, angle * z_hat);
 }
 
 void Road_Segment::narrow(Side side, double delta_width)

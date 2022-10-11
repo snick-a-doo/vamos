@@ -334,7 +334,7 @@ Three_Vector Car::view_position(bool world, bool bob) const
 
 Three_Vector Car::draw_rear_view(double, int)
 {
-    return Vamos_Geometry::Three_Vector::ZERO;
+    return Vamos_Geometry::null_v;
 }
 
 void Car::start_engine()
@@ -390,7 +390,7 @@ Three_Vector Car::chase_position() const
 {
     auto v1{m_chassis.cm_velocity().unit()};
     auto w1{std::min(m_chassis.cm_velocity().magnitude(), 1.0)};
-    auto v2{m_chassis.rotate_out(Three_Vector::X)};
+    auto v2{m_chassis.rotate_out(x_hat)};
     auto w2{1.0 - w1};
     return m_chassis.transform_out(center() - 0.1 * acceleration(true))
            - (w1 * v1 + w2 * v2) * 3.0 * length() + Three_Vector(0.0, 0.0, length());

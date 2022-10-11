@@ -151,7 +151,7 @@ void Rear_View_Mirror::set_viewport(int window_width, int window_height,
         return clip(static_cast<int>(0.5 * range * (1.0 - coordinate / max_coord)),
                     0, range - 1);
     };
-    auto pos{rotate(m_position - driver_position, -deg_to_rad(pan) * Three_Vector::Z)};
+    auto pos{rotate(m_position - driver_position, -deg_to_rad(pan) * z_hat)};
     // Find the x coordinates at the edge of the field of view at the mirror distance.
     auto y_max{pos.x * std::tan(0.5 * deg_to_rad(driver_field))};
     auto x_max{y_max * window_width / window_height};
@@ -423,8 +423,8 @@ void Gl_Car::view()
     view(m_pan_key_control.value(), pos);
     auto pan{deg_to_rad(m_pan_key_control.value())};
 
-    auto z{m_chassis.rotate_out(Three_Vector::Z)};
-    auto x{m_chassis.rotate_out(rotate(Three_Vector::X, pan * Three_Vector::Z))};
+    auto z{m_chassis.rotate_out(z_hat)};
+    auto x{m_chassis.rotate_out(rotate(x_hat, pan * z_hat))};
     float at_up[6] = {float(x.x), float(x.y), float(x.z), float(z.x), float(z.y), float(z.z)};
     alListener3f(AL_POSITION, pos.x, pos.y, pos.z);
     alListenerfv(AL_ORIENTATION, at_up);

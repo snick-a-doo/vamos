@@ -255,7 +255,7 @@ void Tire::propagate(double time)
     {
         // Forces applied through the tire flex, stretch, and compress the rubber
         // heating it up. Slipping results in heating due to sliding friction.
-        auto F{(force() + m_normal_force * Three_Vector::Z).magnitude()};
+        auto F{(force() + m_normal_force * z_hat).magnitude()};
         auto friction{m_slide * m_surface_material.friction_factor()};
         auto heat{time * (stress_heating * F / m_hardness + abrasion_heating * friction)};
         m_temperature += heat;

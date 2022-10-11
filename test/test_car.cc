@@ -28,26 +28,26 @@ TEST_CASE("crash box")
     SUBCASE("outside")
     {
         Three_Vector x(2.0, 2.0, 2.0);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
         x = Three_Vector(-2.0, -2.0, -2.0);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
         x = Three_Vector(-2.0, 2.0, 2.0);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
         x = Three_Vector(2.0, -2.0, -2.0);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
 
         x = Three_Vector(2.0, 0.5, 0.5);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
         x = Three_Vector(-2.0, 0.5, 0.5);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
         x = Three_Vector(0.5, 2.0, 0.5);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
         x = Three_Vector(0.5, -2.0, 0.5);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
         x = Three_Vector(0.5, 0.5, 2.0);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
         x = Three_Vector(0.5, 0.5, -2.0);
-        CHECK(crash_box.penetration(x, v, false) == Three_Vector::ZERO);
+        CHECK(crash_box.penetration(x, v, false) == null_v);
     }
     SUBCASE("inside")
     {
