@@ -15,7 +15,7 @@
   <bind><function>start engine</function><key>s</key></bind>
   <bind><function>start engine</function><button>4</button></bind>
   <bind><function>fill tank</function><key>f</key></bind>
-  <bind><function>cycle view</function><key>F9</key></bind>
+  <bind><function>cycle view</function><key>Tab</key></bind>
   <bind><function>pause</function><key>p</key></bind>
   <bind><function>quit</function><key>q</key></bind>
   <bind><function>quit</function><key>Escape</key></bind>

@@ -32,6 +32,7 @@
 class slSample;
 namespace Vamos_Media
 {
+class Ac3d;
 class Facade;
 class Sample;
 } // namespace Vamos_Media
@@ -100,18 +101,10 @@ public:
                                   double,             // engine_speed_volume_factor,
                                   double)             // pitch
     {};
-    /// Specify the exterior 3D models.
-    virtual void set_exterior_model(std::string const&,                  // file
-                                    double,                              // scale
-                                    Vamos_Geometry::Three_Vector const&, // translation
-                                    Vamos_Geometry::Three_Vector const&) // rotation
-    {}
-    /// Specify the interior 3D models.
-    virtual void set_interior_model(std::string const&,                  // file
-                                    double,                              // scale
-                                    Vamos_Geometry::Three_Vector const&, // translation
-                                    Vamos_Geometry::Three_Vector const&) // rotation
-    {}
+    /// Specify the exterior 3D model.
+    virtual void set_exterior_model(Vamos_Media::Ac3d&&) {};
+    /// Specify the interior 3D model.
+    virtual void set_interior_model(Vamos_Media::Ac3d&&) {};
     virtual void set_perspective(double /* aspect */){};
     virtual void set_view(Vamos_Geometry::Three_Vector const&, // position
                           double,                              // field_of_view
@@ -121,8 +114,7 @@ public:
     {}
     /// Add a rearview mirror.
     virtual void add_rear_view(Vamos_Geometry::Three_Vector const&, // position
-                               double,                              // width
-                               double,                              // height
+                               Vamos_Geometry::Point<double> const&,// size
                                double,                              // direction
                                double,                              // field
                                double,                              // near_plane
@@ -355,7 +347,7 @@ struct Model_Info
     Vamos_Geometry::Three_Vector rotate;
 };
 
-class Gauge;
+template <typename T> class Gauge;
 class Gear_Indicator;
 class Steering_Wheel;
 class Suspension;
@@ -404,11 +396,11 @@ private:
     std::unique_ptr<Differential> mp_differential;
 
     std::vector<std::unique_ptr<Vamos_Media::Facade>> m_mirrors;
-    std::unique_ptr<Gauge> mp_tachometer{nullptr};
-    std::unique_ptr<Gauge> mp_speedometer{nullptr};
-    std::unique_ptr<Gauge> mp_fuel_gauge{nullptr};
+    std::unique_ptr<Gauge<double>> mp_tachometer{nullptr};
+    std::unique_ptr<Gauge<double>> mp_speedometer{nullptr};
+    std::unique_ptr<Gauge<double>> mp_fuel_gauge{nullptr};
     std::unique_ptr<Gear_Indicator> mp_gear_indicator{nullptr};
-    std::unique_ptr<Steering_Wheel> mp_steering_wheel{nullptr};
+    // std::unique_ptr<Steering_Wheel> mp_steering_wheel{nullptr};
 
     std::string m_tachometer_type{"dial"};
     std::string m_speedometer_type{"dial"};

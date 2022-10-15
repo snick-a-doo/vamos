@@ -23,6 +23,7 @@
 #include <cstdio> // libpng uses FILE.
 #include <map>
 
+using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 
 /// Reference to an already-read texture file.
@@ -37,10 +38,9 @@ struct Cached_Image
 static std::map<std::string, Cached_Image> image_cache;
 
 Texture_Image::Texture_Image(std::string const& file_name, bool smooth, bool mip_map,
-                             double width, double height, int texture_wrap)
+                             Point<double> size, int texture_wrap)
     : m_file_name{file_name},
-      m_width{width},
-      m_height{height}
+      m_size{size}
 {
     if (m_file_name.empty())
         return;
@@ -85,6 +85,16 @@ Texture_Image::~Texture_Image()
         glDeleteTextures(1, &m_texture_id);
         image_cache.erase(m_file_name);
     }
+}
+
+double Texture_Image::image_aspect_ratio() const
+{
+    return static_cast<double>(m_width_pixels) / m_height_pixels;
+}
+
+void Texture_Image::set_size(double width, double height)
+{
+    m_size = {width, height};
 }
 
 Texture_Image::Data_Ptr Texture_Image::read_png_file(std::string const& file_name)
@@ -141,17 +151,28 @@ void Texture_Image::activate() const
 }
 
 //----------------------------------------------------------------------------------------
-Facade::Facade(std::string const& image_name, bool draw_back)
-    : Texture_Image(image_name, true, true, 1.0, 1.0, GL_CLAMP_TO_EDGE),
+Facade::Facade(std::string const& image_name,
+               Vamos_Geometry::Three_Vector const& position,
+               Point<double> size, bool draw_back)
+    : Texture_Image(image_name, true, true, size, GL_CLAMP_TO_EDGE),
+      m_position(position),
       m_draw_back(draw_back)
 {
 }
 
-void Facade::set_radius(double radius)
+Facade::Facade(std::string const& image_name,
+               Vamos_Geometry::Three_Vector const& center,
+               double radius, bool draw_back)
+    : Texture_Image(image_name, true, true, {1.0, 1.0}, GL_CLAMP_TO_EDGE),
+      m_draw_back(draw_back)
 {
-    set_width(2.0 * radius * aspect_ratio());
-    set_height(2.0 * radius);
-    m_offset = {-width() / 2.0, -height() / 2.0, m_offset.z};
+    set_size(2.0 * radius * image_aspect_ratio(), 2.0 * radius);
+    m_position = center + Three_Vector{-width() / 2.0, -height() / 2.0, 0.0};
+}
+
+Three_Vector Facade::get_center() const
+{
+    return m_position - Three_Vector{-width() / 2.0, -height() / 2.0, 0.0};
 }
 
 void Facade::draw() const
@@ -162,20 +183,20 @@ void Facade::draw() const
     glBegin(GL_QUADS);
     glNormal3f(0.0, 0.0, 1.0);
     glTexCoord2d(0.0, 1.0);
-    glVertex3d(m_offset.x, m_offset.y, m_offset.z);
+    glVertex3d(m_position.x, m_position.y, m_position.z);
     glTexCoord2d(1.0, 1.0);
-    glVertex3d(m_offset.x + width(), m_offset.y, m_offset.z);
+    glVertex3d(m_position.x + width(), m_position.y, m_position.z);
     glTexCoord2d(1.0, 0.0);
-    glVertex3d(m_offset.x + width(), m_offset.y + height(), m_offset.z);
+    glVertex3d(m_position.x + width(), m_position.y + height(), m_position.z);
     glTexCoord2d(0.0, 0.0);
-    glVertex3d(m_offset.x, m_offset.y + height(), m_offset.z);
+    glVertex3d(m_position.x, m_position.y + height(), m_position.z);
     if (m_draw_back)
     {
         glNormal3f(0.0, 0.0, -1.0);
-        glVertex3d(m_offset.x, m_offset.y, m_offset.z);
-        glVertex3d(m_offset.x, m_offset.y + height(), m_offset.z);
-        glVertex3d(m_offset.x + width(), m_offset.y + height(), m_offset.z);
-        glVertex3d(m_offset.x + width(), m_offset.y, m_offset.z);
+        glVertex3d(m_position.x, m_position.y, m_position.z);
+        glVertex3d(m_position.x, m_position.y + height(), m_position.z);
+        glVertex3d(m_position.x + width(), m_position.y + height(), m_position.z);
+        glVertex3d(m_position.x + width(), m_position.y, m_position.z);
     }
     glEnd();
     glDisable(GL_CULL_FACE);

@@ -30,7 +30,10 @@
 #include "../geometry/conversions.h"
 #include "../geometry/numeric.h"
 #include "../geometry/rectangle.h"
+#include "../geometry/three-vector.h"
 #include "../media/texture-image.h"
+
+#include <pugixml.hpp>
 
 #include <cassert>
 #include <iostream>
@@ -41,7 +44,31 @@ using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 
-Car_Reader::Car_Reader(std::string const& data_dir, std::string const& car_file, Car* car)
+/// Factory for gauges of various types.
+std::unique_ptr<Gauge<double>> get_gauge(auto tag, std::string const& dir)
+{
+    auto type{std::string(tag.attribute("type").value())};
+    auto pos{get_value(tag, "position", Three_Vector{})};
+    auto on_wheel{static_cast<bool>(tag.child("on-steering-wheel"))};
+    if (type == "digital")
+        return std::make_unique<Digital_Gauge>(
+            pos, get_value(tag, "size", Point<double>{1.0, 1.0}),
+            get_value(tag, "places", 1),
+            dir + get_value(tag, "image", std::string()), on_wheel);
+    if (type == "LED")
+        return std::make_unique<LED_Gauge>(
+            pos, get_value(tag, "width", 1.0), get_value(tag, "elements", 1),
+            get_value(tag, "range", Point<double>{0.0, 1.0}),
+            dir + get_value(tag, "image", std::string()), on_wheel);
+    return std::make_unique<Dial>(
+        pos, get_value(tag, "radius", 1.0),
+        get_value(tag, "min", Point<double>{0.0, 0.0}),
+        get_value(tag, "max", Point<double>{1.0, 360.0}),
+        dir + get_value(tag, "face", std::string()),
+        dir + get_value(tag, "needle", std::string()));
+}
+
+Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name, Car* car)
     : m_data_dir(data_dir),
       mp_car(car),
       m_tachometer_type("dial"),
@@ -49,7 +76,89 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& car_file,
       m_fuel_gauge_type("dial")
 {
     mp_car->m_chassis.m_particles.clear();
-    read(car_file);
+
+    pugi::xml_document doc;
+    auto result{doc.load_file(file_name.c_str())};
+    auto top{doc.child("car")};
+    if (auto robot = top.child("robot"))
+        car->set_robot_parameters(get_value(robot, "slip-ratio", 0.0),
+                                  get_value(robot, "deceleration", 0.0),
+                                  get_value(robot, "lateral-acceleration", 0.0));
+    if (auto model = top.child("exterior-model"))
+        car->set_exterior_model(get_model(model, data_dir + "cars/"));
+    if (auto model = top.child("interior-model"))
+        car->set_interior_model(get_model(model, data_dir + "cars/"));
+    if (auto init = top.child("initial-conditions"))
+        car->chassis().set_initial_conditions(get_value(init, "position", Three_Vector()),
+                                              get_value(init, "orientation", Three_Vector()),
+                                              get_value(init, "velocity", Three_Vector()),
+                                              get_value(init, "angular-velocity", Three_Vector()));
+    {
+        Point<double> size{1.0, 1.0};
+        auto field_width{60.0};
+        auto near_plane{0.5};
+        auto far_plane{700.0};
+        auto direction{180.0};
+        std::string mask;
+        if (auto view = top.child("view"))
+            car->set_view(get_value(view, "position", Three_Vector{}),
+                          field_width = get_value(view, "field-width", field_width),
+                          near_plane = get_value(view, "near-plane", near_plane),
+                          far_plane = get_value(view, "far-plane", far_plane),
+                          get_value(view, "pan-angle", 90.0));
+        for (auto mirror : top.children("mirror"))
+            car->add_rear_view(get_value(mirror, "position", Three_Vector{}),
+                               size = get_value(mirror, "size", size),
+                               direction = get_value(mirror, "direction", direction),
+                               field_width = get_value(mirror, "field-width", field_width),
+                               near_plane = get_value(mirror, "near-plane", near_plane),
+                               far_plane = get_value(mirror, "far-plane", far_plane),
+                               data_dir + "textures/" + (mask = get_value(mirror, "mask", mask)));
+    }
+    if (auto dash = top.child("dashboard"))
+    {
+        auto dir{m_data_dir + "textures/"};
+        auto dashboard{std::make_unique<Dashboard>(
+                get_value(dash, "position", Three_Vector()),
+                get_value(dash, "tilt", 0.0))};
+        for (auto frame : dash.children("mirror-frame"))
+            dashboard->add_facade(std::make_unique<Facade>(
+                    dir + get_value(frame, "image", std::string()),
+                    get_value(frame, "position", Three_Vector()),
+                    get_value(frame, "size", Point{1.0, 1.0}), false));
+        if (auto tach = dash.child("tachometer"))
+            dashboard->add_tachometer(get_gauge(tach, dir));
+        if (auto speedo = dash.child("speedometer"))
+            dashboard->add_speedometer(get_gauge(speedo, dir));
+        if (auto fuel = dash.child("fuel-gauge"))
+            dashboard->add_fuel_gauge(get_gauge(fuel, dir));
+        if (auto gear = dash.child("gear-indicator"))
+            dashboard->add_gear_indicator(
+                std::make_unique<Gear_Indicator>(
+                    get_value(gear, "position", Three_Vector()),
+                    get_value(gear, "size", Point<double>{1.0, 1.0}),
+                    get_value(gear, "numbers", 7),
+                    dir + get_value(gear, "image", std::string()),
+                    static_cast<bool>(gear.child("on-steering-wheel"))));
+        //!! Need to handle gear shift lever
+        if (auto steer = dash.child("steering-wheel"))
+            dashboard->add_steering_wheel(
+                std::make_unique<Dial>(get_value(steer, "position", Three_Vector()),
+                                       get_value(steer, "radius", 1.0),
+                                       get_value(steer, "min", Point<double>{0.0, 0.0}),
+                                       get_value(steer, "max", Point<double>{1.0, 360.0}),
+                                       "", dir + get_value(steer, "image", std::string())));
+        car->set_dashboard(std::move(dashboard));
+        car->show_dashboard_extras(static_cast<bool>(dash.child("extras")));
+    }
+    if (auto steer = top.child("steering"))
+    {
+        car->max_steer_angle(get_value(steer, "max-angle", 20.0));
+        car->steer_exponent(get_value(steer, "exponent", 2.0));
+        car->steer_speed_sensitivity(get_value(steer, "speed-sensitivity", 0.0));
+    }
+
+    read(file_name);
 }
 
 void Car_Reader::on_start_tag(const Vamos_Media::XML_Tag& tag)
@@ -195,124 +304,124 @@ void Car_Reader::on_start_tag(const Vamos_Media::XML_Tag& tag)
 
 void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
 {
-    if (match("/car/robot"))
-        mp_car->set_robot_parameters(m_doubles[0], m_doubles[1], m_doubles[2]);
-    else if (match("/car/exterior-model") && !m_strings[0].empty())
-        mp_car->set_exterior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0],
-                                   m_vectors[0], m_vectors[1]);
-    else if (match("/car/interior-model") && !m_strings[0].empty())
-        mp_car->set_interior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0],
-                                   m_vectors[0], m_vectors[1]);
-    else if (match("initial-conditions"))
-        mp_car->chassis().set_initial_conditions(m_vectors[0], m_vectors[1], m_vectors[2],
-                                                 m_vectors[3]);
-    else if (match( "view"))
-        mp_car->set_view(m_vectors[0], m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3]);
-    else if (match("mirror"))
-        mp_car->add_rear_view(m_vectors[0], m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3],
-                              m_doubles[4], m_doubles[5], m_data_dir + "textures/" + m_strings[0]);
-    else if (match("steering"))
-    {
-        mp_car->max_steer_angle(m_doubles[0]);
-        mp_car->steer_exponent(m_doubles[1]);
-        mp_car->steer_speed_sensitivity(m_doubles[2]);
-    }
-    else if (match("mirror-frame"))
-    {
-        auto frame{std::make_unique<Facade>(m_data_dir + "textures/" + m_strings[0], true)};
-        frame->set_width(m_doubles[3]);
-        frame->set_height(m_doubles[4]);
-        frame->set_offset({m_doubles[0], m_doubles[1], m_doubles[2]});
-        m_mirrors.push_back(std::move(frame));
-    }
-    else if (match("tachometer"))
-    {
-        if (m_tachometer_type == "LED")
-        {
-            mp_tachometer = std::make_unique<LED_Gauge>(
-                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_ints[0],
-                m_doubles[4], m_doubles[5], m_data_dir + "textures/" + m_strings[0],
-                m_bools[0]);
-            m_bools[0] = false;
-        }
-        else if (m_tachometer_type == "digital")
-        {
-            mp_tachometer = std::make_unique<Digital_Gauge>(
-                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-                m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
-            m_bools[0] = false;
-        }
-        else
-            mp_tachometer = std::make_unique<Dial>(
-                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-                m_doubles[5], m_doubles[6], m_doubles[7],
-                m_data_dir + "textures/" + m_strings[0],
-                m_data_dir + "textures/" + m_strings[1]);
-    }
-    else if (match("speedometer"))
-    {
-        if (m_speedometer_type == "digital")
-        {
-            mp_speedometer = std::make_unique<Digital_Gauge>(
-                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-                m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
-            m_bools[0] = false;
-        }
-        else
-            mp_speedometer = std::make_unique<Dial>(
-                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-                m_doubles[5], m_doubles[6], m_doubles[7],
-                m_data_dir + "textures/" + m_strings[0],
-                m_data_dir + "textures/" + m_strings[1]);
-    }
-    else if (match("fuel-gauge"))
-    {
-        if (m_fuel_gauge_type == "digital")
-        {
-            mp_fuel_gauge = std::make_unique<Digital_Gauge>(
-                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-                m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
-            m_bools[0] = false;
-        }
-        else
-            mp_fuel_gauge = std::make_unique<Dial>(
-                m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-                m_doubles[5], m_doubles[6], m_doubles[7],
-                m_data_dir + "textures/" + m_strings[0],
-                m_data_dir + "textures/" + m_strings[1]);
-    }
-    else if (match("gear-indicator"))
-    {
-        mp_gear_indicator = std::make_unique<Gear_Indicator>(
-            Rectangle{m_doubles[0], m_doubles[1], m_doubles[3], m_doubles[4]}, m_doubles[2],
-            m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
-        m_bools[0] = false;
-    }
-    else if (match("gear-shift"))
-        mp_gear_indicator = std::make_unique<Gear_Shift>(
-            Rectangle{m_doubles[0], m_doubles[1], m_doubles[3], m_doubles[4]}, m_doubles[2],
-            m_vectors[0], m_points, m_data_dir + "textures/" + m_strings[0],
-            m_data_dir + "textures/" + m_strings[1]);
-    else if (match("steering-wheel"))
-        mp_steering_wheel = std::make_unique<Steering_Wheel>(
-            m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4], m_doubles[5],
-            m_doubles[6], m_doubles[7], m_data_dir + "textures/" + m_strings[0]);
-    else if (match("dashboard"))
-    {
-        auto dash{std::make_unique<Dashboard>(
-                m_doubles[8], m_doubles[9], m_doubles[10], m_doubles[11])};
-        for (auto& mirror : m_mirrors)
-            dash->add_facade(std::move(mirror));
-        dash->add_tachometer(std::move(mp_tachometer));
-        dash->add_speedometer(std::move(mp_speedometer));
-        dash->add_fuel_gauge(std::move(mp_fuel_gauge));
-        dash->add_gear_indicator(std::move(mp_gear_indicator));
-        dash->add_steering_wheel(std::move(mp_steering_wheel));
-        mp_car->set_dashboard(std::move(dash));
-    }
-    else if (match("/car/dashboard/extras"))
-        mp_car->show_dashboard_extras(true);
-    else if (match("engine"))
+    // if (match("/car/robot"))
+    //     mp_car->set_robot_parameters(m_doubles[0], m_doubles[1], m_doubles[2]);
+    // else if (match("/car/exterior-model") && !m_strings[0].empty())
+    //     mp_car->set_exterior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0],
+    //                                m_vectors[0], m_vectors[1]);
+    // else if (match("/car/interior-model") && !m_strings[0].empty())
+    //     mp_car->set_interior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0],
+    //                                m_vectors[0], m_vectors[1]);
+    // if (match("initial-conditions"))
+    //     mp_car->chassis().set_initial_conditions(m_vectors[0], m_vectors[1], m_vectors[2],
+    //                                              m_vectors[3]);
+    // else if (match( "view"))
+    //     mp_car->set_view(m_vectors[0], m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3]);
+    // else if (match("mirror"))
+    //     mp_car->add_rear_view(m_vectors[0], m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3],
+    //                           m_doubles[4], m_doubles[5], m_data_dir + "textures/" + m_strings[0]);
+    // if (match("steering"))
+    // {
+    //     mp_car->max_steer_angle(m_doubles[0]);
+    //     mp_car->steer_exponent(m_doubles[1]);
+    //     mp_car->steer_speed_sensitivity(m_doubles[2]);
+    // }
+    // else if (match("mirror-frame"))
+    // {
+    //     auto frame{std::make_unique<Facade>(m_data_dir + "textures/" + m_strings[0], true)};
+    //     frame->set_width(m_doubles[3]);
+    //     frame->set_height(m_doubles[4]);
+    //     frame->set_offset({m_doubles[0], m_doubles[1], m_doubles[2]});
+    //     m_mirrors.push_back(std::move(frame));
+    // }
+    // else if (match("tachometer"))
+    // {
+    //     if (m_tachometer_type == "LED")
+    //     {
+    //         mp_tachometer = std::make_unique<LED_Gauge>(
+    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_ints[0],
+    //             m_doubles[4], m_doubles[5], m_data_dir + "textures/" + m_strings[0],
+    //             m_bools[0]);
+    //         m_bools[0] = false;
+    //     }
+    //     else if (m_tachometer_type == "digital")
+    //     {
+    //         mp_tachometer = std::make_unique<Digital_Gauge>(
+    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+    //             m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+    //         m_bools[0] = false;
+    //     }
+    //     else
+    //         mp_tachometer = std::make_unique<Dial>(
+    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+    //             m_doubles[5], m_doubles[6], m_doubles[7],
+    //             m_data_dir + "textures/" + m_strings[0],
+    //             m_data_dir + "textures/" + m_strings[1]);
+    // }
+    // else if (match("speedometer"))
+    // {
+    //     if (m_speedometer_type == "digital")
+    //     {
+    //         mp_speedometer = std::make_unique<Digital_Gauge>(
+    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+    //             m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+    //         m_bools[0] = false;
+    //     }
+    //     else
+    //         mp_speedometer = std::make_unique<Dial>(
+    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+    //             m_doubles[5], m_doubles[6], m_doubles[7],
+    //             m_data_dir + "textures/" + m_strings[0],
+    //             m_data_dir + "textures/" + m_strings[1]);
+    // }
+    // else if (match("fuel-gauge"))
+    // {
+    //     if (m_fuel_gauge_type == "digital")
+    //     {
+    //         mp_fuel_gauge = std::make_unique<Digital_Gauge>(
+    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+    //             m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+    //         m_bools[0] = false;
+    //     }
+    //     else
+    //         mp_fuel_gauge = std::make_unique<Dial>(
+    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
+    //             m_doubles[5], m_doubles[6], m_doubles[7],
+    //             m_data_dir + "textures/" + m_strings[0],
+    //             m_data_dir + "textures/" + m_strings[1]);
+    // }
+    // else if (match("gear-indicator"))
+    // {
+    //     mp_gear_indicator = std::make_unique<Gear_Indicator>(
+    //         Rectangle{m_doubles[0], m_doubles[1], m_doubles[3], m_doubles[4]}, m_doubles[2],
+    //         m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
+    //     m_bools[0] = false;
+    // }
+    // else if (match("gear-shift"))
+    //     mp_gear_indicator = std::make_unique<Gear_Shift>(
+    //         Rectangle{m_doubles[0], m_doubles[1], m_doubles[3], m_doubles[4]}, m_doubles[2],
+    //         m_vectors[0], m_points, m_data_dir + "textures/" + m_strings[0],
+    //         m_data_dir + "textures/" + m_strings[1]);
+    // else if (match("steering-wheel"))
+    //     mp_steering_wheel = std::make_unique<Steering_Wheel>(
+    //         m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4], m_doubles[5],
+    //         m_doubles[6], m_doubles[7], m_data_dir + "textures/" + m_strings[0]);
+    // else if (match("dashboard"))
+    // {
+    //     auto dash{std::make_unique<Dashboard>(
+    //             m_doubles[8], m_doubles[9], m_doubles[10], m_doubles[11])};
+    //     for (auto& mirror : m_mirrors)
+    //         dash->add_facade(std::move(mirror));
+    //     dash->add_tachometer(std::move(mp_tachometer));
+    //     dash->add_speedometer(std::move(mp_speedometer));
+    //     dash->add_fuel_gauge(std::move(mp_fuel_gauge));
+    //     dash->add_gear_indicator(std::move(mp_gear_indicator));
+    //     dash->add_steering_wheel(std::move(mp_steering_wheel));
+    //     mp_car->set_dashboard(std::move(dash));
+    // }
+    // else if (match("/car/dashboard/extras"))
+    //     mp_car->show_dashboard_extras(true);
+    if (match("engine"))
     {
         mp_engine = std::make_shared<Engine>(m_doubles[0], m_vectors[0], m_doubles[1], m_doubles[2],
                                              m_doubles[3], m_doubles[4], m_doubles[5], m_doubles[6],

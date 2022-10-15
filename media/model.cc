@@ -655,39 +655,7 @@ static int read_header(std::ifstream& is)
     return get_version_number(header[4]);
 }
 
-Ac3d::Ac3d(std::string const& file, double scale, Three_Vector const& translation,
-           Three_Vector const& rotation)
-    : m_file{file},
-      m_scale{scale},
-      m_translation{translation},
-      m_rotation{rotation}
-{
-    std::ifstream is{m_file.c_str()};
-    if (!is)
-        throw Ac3d_Exception(m_file);
-
-    m_version = read_header(is);
-    std::string label;
-    while (is >> label)
-    {
-        if (label == "MATERIAL")
-            m_materials.push_back(read_material(is));
-        else if (label == "OBJECT")
-            m_objects.push_back(read_object(is, scale, translation, rotation));
-        else if (label[0] == '#')
-            continue;
-        else
-            throw Ac3d_Exception("Not part of an object definition");
-    }
-    is.close();
-}
-
-Ac3d::~Ac3d()
-{
-    // Trivial destructor instead of = default because of managed pointers.
-}
-
-Three_Matrix read_matrix(std::ifstream& is)
+static Three_Matrix read_matrix(std::ifstream& is)
 {
     Three_Matrix mat{0.0};
     for (size_t i{0}; i < 3; ++i)
@@ -696,11 +664,58 @@ Three_Matrix read_matrix(std::ifstream& is)
     return mat;
 }
 
-Three_Vector read_vector(std::ifstream& is)
+static Three_Vector read_vector(std::ifstream& is)
 {
     Three_Vector vec;
     is >> vec.x >> vec.y >> vec.z;
     return vec;
+}
+
+Ac3d::Ac3d(std::string const& file, double scale, Three_Vector const& translation,
+           Three_Vector const& rotation)
+    : m_file{file},
+      m_scale{scale},
+      m_translation{translation},
+      m_rotation{rotation}
+{
+}
+
+Ac3d::~Ac3d()
+{
+    // Trivial destructor instead of = default because of managed pointers.
+}
+
+GLuint Ac3d::build()
+{
+    read();
+    auto id{glGenLists(1)};
+    glNewList(id, GL_COMPILE);
+    for (auto& obj : m_objects)
+        obj->build();
+    glEndList();
+    return id;
+}
+
+void Ac3d::read()
+{
+    std::ifstream is{m_file.c_str()};
+    if (!is)
+        throw Ac3d_Exception("Couldn't open file \"" + m_file + '"');
+
+    m_version = read_header(is);
+    std::string label;
+    while (is >> label)
+    {
+        if (label == "MATERIAL")
+            m_materials.push_back(read_material(is));
+        else if (label == "OBJECT")
+            m_objects.push_back(read_object(is, m_scale, m_translation, m_rotation));
+        else if (label[0] == '#')
+            continue;
+        else
+            throw Ac3d_Exception("Not part of an object definition");
+    }
+    is.close();
 }
 
 Ac3d::Object_Ptr Ac3d::read_object(std::ifstream& is, double scale,
@@ -871,14 +886,4 @@ Ac3d::Material_Ptr Ac3d::read_material(std::ifstream& is)
     auto transparency{read1("trans")};
     return std::make_unique<Ac3d_Material>(name, color, ambient, emission, specular,
                                            shininess, transparency);
-}
-
-GLuint Ac3d::build()
-{
-    auto id{glGenLists(1)};
-    glNewList(id, GL_COMPILE);
-    for (auto& obj : m_objects)
-        obj->build();
-    glEndList();
-    return id;
 }

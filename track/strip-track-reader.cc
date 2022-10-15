@@ -16,6 +16,7 @@
 #include "strip-track.h"
 
 #include "../geometry/two-vector.h"
+#include "../media/xml-parser.h"
 
 #include <pugixml.hpp>
 
@@ -30,15 +31,6 @@ using namespace Vamos_Media;
 using namespace Vamos_Track;
 
 using VV2 = std::vector<Two_Vector>;
-
-auto get_value = [](auto node, auto const& tag, auto fallback) {
-    auto child{node.child(tag)};
-    if (!child)
-        return fallback;
-    std::istringstream is{child.text().as_string()};
-    is >> fallback;
-    return fallback;
-};
 
 auto get_side = [](auto node, auto const& tag, Side fallback) {
     auto child{node.child(tag)};
@@ -161,6 +153,7 @@ static void read_road(std::string const& data_dir,
     Two_Vector marker_offset;
     auto curve_factor{1.0};
     Camera camera;
+
     for (auto road_seg : top.children("road"))
     {
         auto name{road_seg.attribute("segment").value()};
@@ -200,7 +193,7 @@ static void read_road(std::string const& data_dir,
                                  get_value(marker, "distance", 0.0),
                                  marker_side,
                                  marker_offset.x, marker_offset.y,
-                                 marker_size.x, marker_size.y);
+                                 marker_size);
         }
         auto segment{std::make_unique<Gl_Road_Segment>(
                 resolution, length, radius, skew, left_width, right_width,
@@ -247,11 +240,7 @@ static void read_road(std::string const& data_dir,
             track->add_camera(camera);
         }
         for (auto model : road_seg.children("model"))
-            segment->add_model_info({
-                    data_dir + "tracks/" + get_value(model, "file", std::string()),
-                    get_value(model, "scale", 1.0),
-                    get_value(model, "translate", Three_Vector::ZERO),
-                    get_value(model, "rotate", Three_Vector::ZERO)});
+            segment->add_model(get_model(model, data_dir + "tracks/"));
 
         adder(std::move(segment));
     }
@@ -314,8 +303,7 @@ void read_track_file(std::string const& data_dir,
                 data_dir + tex.child_value("file"),
                 tex.child("smooth"),
                 tex.child("mipmap"),
-                get_value(tex, "width", 0.0),
-                get_value(tex, "length", 0.0))};
+                Point{get_value(tex, "width", 0.0), get_value(tex, "length", 0.0)})};
         materials.emplace(name, Material{composition,
                                          get_value(mat, "friction", 1.0),
                                          get_value(mat, "restitution", 1.0),

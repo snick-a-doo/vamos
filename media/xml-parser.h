@@ -16,13 +16,30 @@
 #ifndef VAMOS_MEDIA_XML_PARSER_H_INCLUDED
 #define VAMOS_MEDIA_XML_PARSER_H_INCLUDED
 
+#include "model.h"
+
+#include <pugixml.hpp>
+
 #include <fstream>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 
 namespace Vamos_Media
 {
+template <typename T> T get_value(pugi::xml_node node, std::string const& tag, T fallback)
+{
+    auto child{node.child(tag.c_str())};
+    if (!child)
+        return fallback;
+    std::istringstream is{child.text().as_string()};
+    is >> fallback;
+    return fallback;
+}
+
+Vamos_Media::Ac3d get_model(pugi::xml_node node, std::string const& dir);
+
 class XML_Tag
 {
 public:

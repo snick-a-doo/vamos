@@ -14,13 +14,28 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 #include "xml-parser.h"
+#include "../geometry/conversions.h"
+#include "../geometry/three-vector.h"
 
 #include <algorithm>
 #include <cassert>
 #include <sstream>
 #include <stdexcept>
 
+using namespace Vamos_Geometry;
 using namespace Vamos_Media;
+
+namespace Vamos_Media
+{
+Ac3d get_model(pugi::xml_node node, std::string const& dir)
+{
+    return Ac3d{dir + get_value(node, "file", std::string()),
+                get_value(node, "scale", 1.0),
+                get_value(node, "translate", Three_Vector::ZERO),
+                get_value(node, "rotate", Three_Vector::ZERO) * deg_to_rad(1.0)};
+}
+}
+
 
 class XML_Exception : std::runtime_error
 {

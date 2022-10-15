@@ -82,7 +82,7 @@
 	</fuel-gauge>
 
 	<gear-indicator>
-	  <position>[ 0.02, 0.06, 0.0 ]</position>
+	  <position>[ -0.02, 0.06, 0.0 ]</position>
 	  <size>[ 0.04, 0.06 ]</size>
 	  <image>gears.png</image>
 	  <numbers>8</numbers>

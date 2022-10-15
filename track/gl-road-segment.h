@@ -19,7 +19,9 @@
 #include "road-segment.h"
 
 #include "../geometry/rectangle.h"
+#include "../geometry/two-vector.h"
 #include "../media/material.h"
+#include "../media/model.h"
 
 #include <GL/glu.h>
 
@@ -48,7 +50,8 @@ public:
     /// @param width Width of sign.
     /// @param height Height of sign.
     Braking_Marker(std::string const& image_file, double distance, Side side,
-                   double from_edge, double off_ground, double width, double height);
+                   double from_edge, double off_ground,
+                   Vamos_Geometry::Point<double> size);
 
     double distance() const { return m_distance; }
     Side side() const { return m_side; }
@@ -106,7 +109,7 @@ public:
     void build();
     void draw() const;
 
-    void add_model_info(const Model_Info& info);
+    void add_model(Vamos_Media::Ac3d&& model);
 
     std::vector<double> texture_offsets() const { return m_texture_offsets; }
 
@@ -117,8 +120,6 @@ public:
     Vamos_Media::Material const& material_at(double along, double from_center) const;
 
 private:
-    std::vector<Model_Info> m_models;
-
     enum Strip
     {
         LEFT_BARRIER,

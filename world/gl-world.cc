@@ -1016,6 +1016,7 @@ std::map<std::string, int> key_map{
     {"end", SDLK_END},
     {"page up", SDLK_PAGEUP},
     {"page down", SDLK_PAGEDOWN},
+    {"tab", SDLK_TAB},
     {"f1", SDLK_F1},
     {"f2", SDLK_F2},
     {"f3", SDLK_F3},

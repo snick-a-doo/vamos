@@ -17,6 +17,7 @@
 #define VAMOS_MEDIA_TEXTURE_IMAGE_H_INCLUDED
 
 #include "../geometry/three-vector.h"
+#include "../geometry/two-vector.h"
 
 #include <GL/gl.h>
 
@@ -30,7 +31,7 @@ namespace Vamos_Media
 class Missing_Texture_File : std::runtime_error
 {
 public:
-    Missing_Texture_File(std::string const & file)
+    Missing_Texture_File(std::string const& file)
         : std::runtime_error{"Can't find the texture file \"" + file + "\""}
     {}
 };
@@ -48,7 +49,8 @@ public:
     /// @param height Coordinate height of the texture.
     /// @param texture_wrap What to do at the edge of the image.
     Texture_Image(std::string const& file_name, bool smooth = false, bool mip_map = false,
-                  double width = 1.0, double height = 1.0, int texture_wrap = GL_REPEAT);
+                  Vamos_Geometry::Point<double> size = {1.0, 1.0},
+                  int texture_wrap = GL_REPEAT);
     ~Texture_Image();
 
     /// @return The width of the source image in pixels.
@@ -56,16 +58,14 @@ public:
     /// @return The height of the source image in pixels.
     int height_pixels() const { return m_height_pixels; }
     /// @return The aspect ratio of the source image.
-    double aspect_ratio() const { return double(m_width_pixels) / m_height_pixels; }
+    double image_aspect_ratio() const;
 
-    /// Set the coordinate width of the texture.
-    void set_width(double width) { m_width = width; }
-    /// Set the coordinate height of the texture.
-    void set_height(double height) { m_height = height; }
+    /// Set the coordinate width and height of the texture.
+    void set_size(double width, double height);
     /// @return The coordinate width of the texture.
-    double width() const { return m_width; }
+    double width() const { return m_size.x; }
     /// @return The coordinate height of the texture.
-    double height() const { return m_height; }
+    double height() const { return m_size.y; }
 
     /// Make this texture the one currently rendered.
     void activate() const;
@@ -75,8 +75,7 @@ private:
     int m_channels{3};       ///< 3 for RGB, 4 for RGBA
     int m_width_pixels{0};   ///< Source image width
     int m_height_pixels{0};  ///< Source image height
-    double m_width{1.0};     ///< Texture width
-    double m_height{1.0};    ///< Texture height
+    Vamos_Geometry::Point<double> m_size{1.0, 1.0}; ///< Texture width and height
     GLuint m_texture_id{0};  ///< Resource handle
 
     Data_Ptr read_png_file(std::string const& file_name); ///< Image data.
@@ -88,18 +87,22 @@ class Facade : public Texture_Image
 {
 public:
     /// @param draw_back If true, draw a solid-color rectangle for the back of the image.
-    Facade(std::string const& image_name, bool draw_back = false);
+    Facade(std::string const& image_name,
+           Vamos_Geometry::Three_Vector const& position,
+           Vamos_Geometry::Point<double> size,
+           bool draw_back);
+    Facade(std::string const& image_name,
+           Vamos_Geometry::Three_Vector const& center,
+           double radius, bool draw_back);
 
-    /// Set the width, height, and offset to bound a circle of a given radius.
-    void set_radius(double radius);
-    /// Set a vector added to the current transformation before rendering.
-    void set_offset(Vamos_Geometry::Three_Vector const& off) { m_offset = off; }
+    /// @return The coordinates of the center of the image.
+    Vamos_Geometry::Three_Vector get_center() const;
     /// Render the facade.
     void draw() const;
 
 private:
+    Vamos_Geometry::Three_Vector m_position; ///< Lower-left corner.
     bool m_draw_back{false}; ///< True if the reverse side should be filled in.
-    Vamos_Geometry::Three_Vector m_offset; ///< Added to the current transformation.
 };
 } // namespace Vamos_Media
 

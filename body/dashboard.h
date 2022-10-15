@@ -29,139 +29,105 @@
 
 namespace Vamos_Body
 {
-/// A rotating steering wheel image.
-class Steering_Wheel : public Vamos_Media::Facade
-{
-public:
-    Steering_Wheel(double center_x, double center_y,
-                   double above, double radius,
-                   double min_road, double min_wheel, double max_road, double max_wheel,
-                   std::string const& image);
-    /// Set the angle of the road wheels. The steering wheel angle is calculated.
-    void set(double value);
-    /// Render the steering wheel;
-    void draw() const;
-
-private:
-    Vamos_Geometry::Two_Vector m_center; ///< The position of the center of the wheel.
-    double m_above; ///< Distance between the wheel and the dashboard.
-    double m_angle; ///< The steering wheel angle.
-    /// A function that converts road wheel angle to steering wheel angel.
-    std::function<double(double)> m_angle_fn;
-};
-
-//----------------------------------------------------------------------------------------
 /// Abstract class for analog and digital gauges
-class Gauge
+template <typename T> class Gauge
 {
 public:
+    Gauge(bool on_wheel) : m_on_steering_wheel{on_wheel} {}
     virtual ~Gauge() = default;
-    virtual void set(double value) = 0;
-    virtual void draw() const = 0;
+    void set(T value) { m_value = value; }
+    virtual void draw(bool reset = true) const = 0;
     bool on_steering_wheel() const { return m_on_steering_wheel; }
 
 protected:
+    T m_value{0};
+
+private:
     bool m_on_steering_wheel{false};
 };
 
 //----------------------------------------------------------------------------------------
 /// A round gauge with a needle.
-class Dial : public Gauge
+class Dial : public Gauge<double>
 {
 public:
-    Dial(double center_x, double center_y, double above, double radius, double min,
-         double min_angle, double max, double max_angle,
+    Dial(Vamos_Geometry::Three_Vector const& position, double radius,
+         Vamos_Geometry::Point<double> min, Vamos_Geometry::Point<double> max,
          std::string const& face_image, std::string const& needle_image);
+    virtual ~Dial() = default;
 
-    void set(double value);
-    void draw() const;
-
-protected:
-    Vamos_Geometry::Two_Vector m_center;
-    double m_angle{0.0};
+    virtual void draw(bool reset) const override;
 
 private:
-    double m_above;
     std::function<double(double)> m_angle_fn;
-
     std::unique_ptr<Vamos_Media::Facade> mp_face;
     std::unique_ptr<Vamos_Media::Facade> mp_needle;
 };
 
 //----------------------------------------------------------------------------------------
 /// A row of lights.
-class LED_Gauge : public Gauge
+class LED_Gauge : public Gauge<double>
 {
 public:
-    LED_Gauge(double x, double y, double above, double width, int elements, double min,
-              double redline, std::string const& image, bool on_wheel);
+    LED_Gauge(Vamos_Geometry::Three_Vector const& position, double width, int elements,
+              Vamos_Geometry::Point<double> range, std::string const& image, bool on_wheel);
+    virtual ~LED_Gauge() = default;
 
-    void set(double value);
-    void draw() const;
+    virtual void draw(bool reset = true) const override;
 
 private:
-    double m_x;
-    double m_y;
     double m_above;
     double m_width;
     double m_height;
     int m_elements;
     double m_min;
     double m_range;
-    int m_leds_on{0};
     std::unique_ptr<Vamos_Media::Texture_Image> mp_leds;
+    bool m_on_steering_wheel;
     GLuint m_list_index;
 };
 
 //----------------------------------------------------------------------------------------
 /// A gauge that shows images of digits.
-class Digital_Gauge : public Gauge
+class Digital_Gauge : public Gauge<double>
 {
 public:
-    Digital_Gauge(double x, double y, double above, double width, double heightn,
-                  size_t places, std::string const& digits, bool on_wheel);
+    Digital_Gauge(Vamos_Geometry::Three_Vector const& position,
+                  Vamos_Geometry::Point<double> size,
+                  int places, std::string const& digits, bool on_wheel);
+    virtual ~Digital_Gauge() = default;
 
-    void set(double value);
-    void draw() const;
+    virtual void draw(bool reset = true) const override;
 
 private:
-    double m_x;
-    double m_y;
-    double m_above;
-    double m_width;
-    double m_height;
-    size_t m_places;
-    std::vector<int> m_digits;
+    Vamos_Geometry::Three_Vector m_position;
+    Vamos_Geometry::Point<double> m_size;
+    int m_places;
     std::unique_ptr<Vamos_Media::Texture_Image> mp_digits;
 };
 
 //----------------------------------------------------------------------------------------
 /// A digital gear indicator
-class Gear_Indicator
+class Gear_Indicator : public Gauge<int>
 {
 public:
-    Gear_Indicator(Vamos_Geometry::Rectangle<double> const& size, double z, int numbers,
-                   std::string const& image, bool on_wheel);
+    Gear_Indicator(Vamos_Geometry::Three_Vector const& position,
+                   Vamos_Geometry::Point<double> size,
+                   int numbers, std::string const& image, bool on_wheel);
     virtual ~Gear_Indicator() = default;
 
-    virtual void set(int gear) { m_gear = gear; }
-    virtual void draw() const;
-    bool on_steering_wheel() const { return m_on_steering_wheel; }
-
-protected:
-    Vamos_Geometry::Rectangle<double> m_size;
-    double m_above;
-    int m_gear;
+    virtual void draw(bool reset = true) const override;
 
 private:
-    bool m_on_steering_wheel;
+    Vamos_Geometry::Three_Vector m_position;
+    Vamos_Geometry::Point<double> m_size;
     double m_number_width;
     std::unique_ptr<Vamos_Media::Texture_Image> mp_numbers;
 };
 
 //----------------------------------------------------------------------------------------
 /// A shift lever rendered in the gate.
-class Gear_Shift : public Gear_Indicator
+class Gear_Shift
 {
 public:
     Gear_Shift(Vamos_Geometry::Rectangle<double> const& size, double z,
@@ -169,7 +135,6 @@ public:
                std::vector<Vamos_Geometry::Two_Vector> const& positions,
                std::string const& gate_image, std::string const& stick_image);
 
-    void set(int gear);
     void draw() const;
 
 private:
@@ -188,13 +153,13 @@ private:
 class Dashboard
 {
 public:
-    Dashboard(double x, double y, double z, double tilt);
+    Dashboard(Vamos_Geometry::Three_Vector const& position, double tilt);
 
-    void add_tachometer(std::unique_ptr<Gauge> tachometer);
-    void add_speedometer(std::unique_ptr<Gauge> speedometer);
-    void add_fuel_gauge(std::unique_ptr<Gauge> fuel_gauge);
+    void add_tachometer(std::unique_ptr<Gauge<double>> tachometer);
+    void add_speedometer(std::unique_ptr<Gauge<double>> speedometer);
+    void add_fuel_gauge(std::unique_ptr<Gauge<double>> fuel_gauge);
     void add_gear_indicator(std::unique_ptr<Gear_Indicator> gear_indicator);
-    void add_steering_wheel(std::unique_ptr<Steering_Wheel> steering_wheel);
+    void add_steering_wheel(std::unique_ptr<Dial> steering_wheel);
     void add_facade(std::unique_ptr<Vamos_Media::Facade> facade);
 
     void set_tachometer(double rpm);
@@ -206,16 +171,14 @@ public:
     void draw() const;
 
 private:
-    double m_x;
-    double m_y;
-    double m_z;
+    Vamos_Geometry::Three_Vector m_position;
     double m_tilt;
 
-    std::unique_ptr<Gauge> mp_tachometer;
-    std::unique_ptr<Gauge> mp_speedometer;
-    std::unique_ptr<Gauge> mp_fuel_gauge;
+    std::unique_ptr<Gauge<double>> mp_tachometer;
+    std::unique_ptr<Gauge<double>> mp_speedometer;
+    std::unique_ptr<Gauge<double>> mp_fuel_gauge;
     std::unique_ptr<Gear_Indicator> mp_gear_indicator;
-    std::unique_ptr<Steering_Wheel> mp_steering_wheel;
+    std::unique_ptr<Dial> mp_steering_wheel;
     std::vector<std::unique_ptr<Vamos_Media::Facade>> m_facades;
 };
 } // namespace Vamos_Body

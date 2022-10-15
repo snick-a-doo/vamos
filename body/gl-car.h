@@ -45,17 +45,14 @@ public:
     virtual void set_engine_sound(std::string const& file, double volume,
                                   double throttle_volume_factor,
                                   double engine_speed_volume_factor, double pitch) override;
-    virtual void set_exterior_model(std::string const& file, double scale,
-                                    Vamos_Geometry::Three_Vector const& translation,
-                                    Vamos_Geometry::Three_Vector const& rotation) override;
-    virtual void set_interior_model(std::string const& file, double scale,
-                                    Vamos_Geometry::Three_Vector const& translation,
-                                    Vamos_Geometry::Three_Vector const& rotation) override;
+    virtual void set_exterior_model(Vamos_Media::Ac3d&& model) override;
+    virtual void set_interior_model(Vamos_Media::Ac3d&& model) override;
     virtual void set_perspective(double aspect) override;
     virtual void set_view(Vamos_Geometry::Three_Vector const& position, double field_of_view,
                           double near_plane, double far_plane, double pan_angle) override;
-    virtual void add_rear_view(Vamos_Geometry::Three_Vector const& position, double width,
-                               double height, double direction, double field, double near_plane,
+    virtual void add_rear_view(Vamos_Geometry::Three_Vector const& position,
+                               Vamos_Geometry::Point<double> const&,
+                               double direction, double field, double near_plane,
                                double far_plane, std::string const& mask_file) override;
     virtual void set_dashboard(std::unique_ptr<Dashboard> dash) override;
     virtual void draw() override;

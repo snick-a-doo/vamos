@@ -36,7 +36,8 @@ Camera const default_camera{0, {100.0, -20.0, 10.0}, 0.0, 10.0, false, {0.0, 0.0
 
 auto make_sky_tex(std::string const& image, bool smooth)
 {
-    return std::make_unique<Texture_Image>(image, smooth, false, 1.0, 1.0, GL_CLAMP_TO_EDGE);
+    return std::make_unique<Texture_Image>(image, smooth, false, Point{1.0, 1.0},
+                                           GL_CLAMP_TO_EDGE);
 }
 
 Sky_Box::Sky_Box(double side_length, std::string const& sides_image,

@@ -246,22 +246,18 @@ void Gl_Car::set_dashboard(std::unique_ptr<Dashboard> dash)
     mp_dashboard = std::move(dash);
 }
 
-void Gl_Car::set_exterior_model(std::string const& file, double scale,
-                                Three_Vector const& translation,
-                                Three_Vector const& rotation)
+void Gl_Car::set_exterior_model(Ac3d&& model)
 {
     if (m_body_list_id)
         glDeleteLists(m_body_list_id, 1);
-    m_body_list_id = Ac3d(file, scale, translation, rotation).build();
+    m_body_list_id = model.build();
 }
 
-void Gl_Car::set_interior_model(std::string const& file, double scale,
-                                Three_Vector const& translation,
-                                Three_Vector const& rotation)
+void Gl_Car::set_interior_model(Ac3d&& model)
 {
     if (m_interior_list_id)
         glDeleteLists(m_interior_list_id, 1);
-    m_interior_list_id = Ac3d(file, scale, translation, rotation).build();
+    m_interior_list_id = model.build();
 }
 
 void Gl_Car::set_perspective(double aspect)
@@ -279,13 +275,14 @@ void Gl_Car::set_view(Vamos_Geometry::Three_Vector const& position, double field
     m_pan_angle = pan_angle;
 }
 
-void Gl_Car::add_rear_view(Vamos_Geometry::Three_Vector const& position,
-                           double width, double height, double direction, double field,
+void Gl_Car::add_rear_view(Three_Vector const& position,
+                           Point<double> const& size,
+                           double direction, double field,
                            double near_plane, double far_plane,
                            std::string const& mask_file)
 {
     m_mirrors.push_back(
-        std::make_unique<Rear_View_Mirror>(position, width, height, direction,
+        std::make_unique<Rear_View_Mirror>(position, size.x, size.y, direction,
                                            field, near_plane, far_plane, mask_file));
 }
 
@@ -332,10 +329,10 @@ Three_Vector Gl_Car::draw_rear_view(double, int index)
 
 void Gl_Car::draw()
 {
+    transform_body(m_chassis);
     if (!m_body_list_id)
         return;
 
-    transform_body(m_chassis);
     // Draw the body.
     glCallList(m_body_list_id);
     // Draw the wheels.

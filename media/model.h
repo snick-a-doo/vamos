@@ -32,7 +32,7 @@ class Ac3d_Exception : public std::runtime_error
 public:
     Ac3d_Exception(std::string const& message)
         : std::runtime_error(message)
-    {};
+    {}
 };
 
 class Ac3d_Material;
@@ -43,8 +43,8 @@ class Ac3d
 {
 public:
     Ac3d(std::string const& file, double scale,
-         Vamos_Geometry::Three_Vector const& rotation,
-         Vamos_Geometry::Three_Vector const& translation);
+         Vamos_Geometry::Three_Vector const& translation,
+         Vamos_Geometry::Three_Vector const& rotation);
     ~Ac3d();
 
     GLuint build();
@@ -54,6 +54,7 @@ private:
     using Object_Ptr = std::unique_ptr<Ac3d_Object const>;
     using Surface_Ptr = Ac3d_Surface*; //std::unique_ptr<Ac3d_Surface>;
 
+    void read();
     Material_Ptr read_material(std::ifstream& is);
     Object_Ptr read_object(std::ifstream& is, double scale,
                            Vamos_Geometry::Three_Vector const& translation,
@@ -61,12 +62,12 @@ private:
     Surface_Ptr read_surface(std::ifstream& is, Ac3d_Object& obj);
 
     std::string m_file;
-    int m_version;
+    int m_version{0};
 
     std::vector<Material_Ptr> m_materials;
     std::vector<Object_Ptr> m_objects;
 
-    double m_scale;
+    double m_scale{1.0};
     Vamos_Geometry::Three_Vector m_translation;
     Vamos_Geometry::Three_Vector m_rotation; // angle-axis representation
 };

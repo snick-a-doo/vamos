@@ -37,16 +37,14 @@ auto constexpr s_strip_type{GL_QUAD_STRIP};
 static const Material s_no_material(Material::air, 0.0, 0.0);
 
 Braking_Marker::Braking_Marker(std::string const& image_file, double distance, Side side,
-                               double from_edge, double off_ground, double width,
-                               double height)
-    : mp_image{std::make_unique<Facade>(image_file, true)},
+                               double from_edge, double off_ground,
+                               Point<double> size)
+    : mp_image{std::make_unique<Facade>(image_file, Three_Vector(), size, true)},
       m_distance{distance},
       m_side{side},
       m_from_edge{from_edge},
       m_off_ground{off_ground}
 {
-    mp_image->set_width(width);
-    mp_image->set_height(height);
 }
 
 double Braking_Marker::width() const
@@ -474,13 +472,6 @@ Material const& Gl_Road_Segment::material_at(double along, double from_center) c
 
 void Gl_Road_Segment::build()
 {
-    for (auto id : m_scenery_lists)
-        glDeleteLists(id, 1);
-    m_scenery_lists.clear();
-
-    for (auto const& model : m_models)
-        m_scenery_lists.push_back(Ac3d(model.file, model.scale, model.translation,
-                                       deg_to_rad(1.0) * model.rotation).build());
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     if (m_gl_list_id != 0)
@@ -617,14 +608,14 @@ void Gl_Road_Segment::draw() const
     glCallList(m_gl_list_id);
 }
 
-void Gl_Road_Segment::add_model_info(const Model_Info& info)
+void Gl_Road_Segment::add_model(Ac3d&& model)
 {
-    m_models.push_back(info);
+    m_scenery_lists.push_back(model.build());
 }
 
 void Gl_Road_Segment::set_start(Three_Vector const& start_coords, double start_distance,
                                 double start_angle, double start_bank,
-                                const std::vector<double>& texture_offsets)
+                                std::vector<double> const& texture_offsets)
 {
     Road_Segment::set_start(start_coords, start_distance, start_angle, start_bank, texture_offsets);
     m_texture_offsets = texture_offsets;
