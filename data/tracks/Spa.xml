@@ -185,8 +185,7 @@
     <length>44.0</length>
     <radius>-16.0</radius>
 	<left-road-width>[ 40.0, 12.0 ]</left-road-width>
-	<elevation>[ 20.0, 1.5 ]</elevation>
-	<elevation>[ 40.0, 0.8 ]</elevation>
+	<elevation>[ 20.0, 1.5 ][ 40.0, 0.8 ]</elevation>
     <camera>
       <position>[ 20, -10, 5 ]</position>
       <range>500</range>
@@ -224,8 +223,7 @@
   <road segment="paved right">
     <resolution>10.0</resolution>
     <length>350.0</length>
-	<left-width>[ 100.0, 14.0 ]</left-width>
-	<left-width>[ 150.0, 30.0 ]</left-width -->
+	<left-width>[ 100.0, 14.0 ][ 150.0, 30.0 ]</left-width>
 	<elevation>[ 200.0, -13.0 ]</elevation>
   </road>
 
@@ -415,8 +413,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>295.0</length>
-	<elevation>[ 100.0, 10.0 ]</elevation>
-	<elevation>[ 280.0, 5.0 ]</elevation>
+	<elevation>[ 100.0, 10.0 ][ 280.0, 5.0 ]</elevation>
 	<left-kerb>
 	  <start><transition/></start>
 	  <end>
@@ -431,8 +428,7 @@
     <resolution>2.0</resolution>
     <length>85.0</length>
     <radius>-75.0</radius>
-	<left-width>[ 50.0, 40.0 ]</left-width>
-	<left-width>[ 75.0, 30.0 ]</left-width>
+	<left-width>[ 50.0, 40.0 ][ 75.0, 30.0 ]</left-width>
 	<elevation>[ 75.0, 3.0 ]</elevation>
 	<right-kerb>
 	  <start>
@@ -556,8 +552,7 @@
     <resolution>2.0</resolution>
     <length>122.0</length>
     <radius>-85.0</radius>
-	<left-width>[ 50.0, 40.0 ]</left-width>
-	<left-width>[ 110.0, 20.0 ]</left-width>
+	<left-width>[ 50.0, 40.0 ][ 110.0, 20.0 ]</left-width>
 	<right-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>
@@ -573,8 +568,7 @@
     <resolution>2.0</resolution>
     <length>150.0</length>
     <radius>120.0</radius>
-	<right-width>[ 40.0, 40.0 ]</right-width>
-	<right-width>[ 80.0, 20.0 ]</right-width>
+	<right-width>[ 40.0, 40.0 ][ 80.0, 20.0 ]</right-width>
 	<left-kerb>
 	  <start><transition/></start>
 	  <end><transition/></end>

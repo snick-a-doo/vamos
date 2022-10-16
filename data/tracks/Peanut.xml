@@ -163,8 +163,7 @@
 	<right-road-width>[ 0.0, 7.0 ]</right-road-width>
 	<left-wall-height>1.0</left-wall-height>
 	<right-wall-height>1.0</right-wall-height>
-	<elevation>[ 20.0, 0.0 ]</elevation>
-	<elevation>[ 200.0, 5.0 ]</elevation>
+	<elevation>[ 20.0, 0.0 ][ 200.0, 5.0 ]</elevation>
     <camera>
       <position>[ 200.0, -20.0, 10.0 ]</position>
       <range>400.0</range>
@@ -329,8 +328,7 @@
 		<transition/>
 	  </end>
 	</right-kerb>
-	<elevation>[ 50.0, 0.0 ]</elevation>
-	<elevation>[ 200.0, -20.0 ]</elevation>
+	<elevation>[ 50.0, 0.0 ][ 200.0, -20.0 ]</elevation>
 	<braking-marker>
 	  <file>textures/50.png</file>
 	  <distance>50.0</distance>

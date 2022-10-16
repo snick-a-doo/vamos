@@ -12,15 +12,15 @@ struct Track_Fixture
 {
     void add(double length, double radius)
     {
-        static std::vector<Two_Vector> left;
+        static std::vector<Point<double>> left;
         left.push_back({0.0, 5.0});
-        static std::vector<Two_Vector> right;
+        static std::vector<Point<double>> right;
         right.push_back({0.0, 5.0});
-        static std::vector<Two_Vector> left_road;
+        static std::vector<Point<double>> left_road;
         left_road.push_back({0.0, 10.0});
-        static std::vector<Two_Vector> right_road;
+        static std::vector<Point<double>> right_road;
         right_road.push_back({0.0, 10.0});
-        static std::vector<Two_Vector> elevation;
+        static std::vector<Point<double>> elevation;
         static std::vector<Material> material(7);
         static std::vector<Braking_Marker> marker;
         track.add_segment(std::make_unique<Gl_Road_Segment>(

@@ -368,7 +368,7 @@ private:
     std::vector<double> m_doubles;
     std::vector<std::string> m_strings;
     std::vector<Vamos_Geometry::Three_Vector> m_vectors;
-    std::vector<Vamos_Geometry::Two_Vector> m_points;
+    std::vector<Vamos_Geometry::Point<double>> m_points;
     std::vector<std::pair<int, double>> m_gears;
     std::vector<bool> m_bools;
 

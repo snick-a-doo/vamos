@@ -152,9 +152,7 @@
 	<right-road-width>[ 0.0, 8.0 ]</right-road-width>
 	<left-wall-height>1.0</left-wall-height>
 	<right-wall-height>1.0</right-wall-height>
-	<elevation>[ 100.0, 0.0 ]</elevation>
-	<elevation>[ 300.0, -1.0 ]</elevation>
-	<elevation>[ 400.0, -2.0 ]</elevation>
+	<elevation>[ 100.0, 0.0 ][ 300.0, -1.0 ][ 400.0, -2.0 ]</elevation>
     <camera>
       <position>[ 20.0, -20.0, 0.0 ]</position>
       <range>500.0</range>
@@ -211,8 +209,7 @@
 	  </end>
 	  <profile>[ 0.7, 0.05 ][ 1.0, 0.05 ][ 1.1, 0.0 ]</profile>
 	</right-kerb>
-	<elevation>[ 20.0, -4.0 ]</elevation>
-	<elevation>[ 50.0, -5.0 ]</elevation>
+	<elevation>[ 20.0, -4.0 ][ 50.0, -5.0 ]</elevation>
     <racing-line-adjustment>-1.0</racing-line-adjustment>
   </road>
 
@@ -563,9 +560,7 @@
 	    <transition/>
 	  </end>
 	</left-kerb>
-	<elevation>[ 100.0, -20.0 ]</elevation>
-	<elevation>[ 350.0, -2.0 ]</elevation>
-	<elevation>[ 400.0, -1.0 ]</elevation>
+	<elevation>[ 100.0, -20.0 ][ 350.0, -2.0 ][ 400.0, -1.0 ]</elevation>
 	<braking-marker>
 	  <file>textures/50.png</file>
 	  <distance>50.0</distance>

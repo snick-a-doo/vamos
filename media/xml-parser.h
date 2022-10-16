@@ -18,6 +18,8 @@
 
 #include "model.h"
 
+#include "../geometry/two-vector.h"
+
 #include <pugixml.hpp>
 
 #include <fstream>
@@ -28,6 +30,8 @@
 
 namespace Vamos_Media
 {
+/// @return The value in the given tag under the given node. If no such tag, @p fallback
+/// is returned.
 template <typename T> T get_value(pugi::xml_node node, std::string const& tag, T fallback)
 {
     auto child{node.child(tag.c_str())};
@@ -38,6 +42,16 @@ template <typename T> T get_value(pugi::xml_node node, std::string const& tag, T
     return fallback;
 }
 
+/// Get a vector of points from a single XML tag.
+/// @param ordered If true, new points with x <= previous overwrite the previous point.
+std::vector<Vamos_Geometry::Point<double>> get_points(
+    pugi::xml_node node,
+    char const* tag,
+    bool ordered,
+    std::vector<Vamos_Geometry::Point<double>> points = {});
+
+/// @return A model defined in the given node.
+/// @param dir The directory of the model file.
 Vamos_Media::Ac3d get_model(pugi::xml_node node, std::string const& dir);
 
 class XML_Tag

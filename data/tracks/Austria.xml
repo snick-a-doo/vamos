@@ -177,8 +177,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 100.0, 0.0 ]</elevation>
-	<elevation>[ 150.0, 0.0 ]</elevation>
+	<elevation>[ 100.0, 0.0 ][ 150.0, 0.0 ]</elevation>
   </road>
 
   <!-- 1 -->

@@ -189,8 +189,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 251.8, 1.56 ]</elevation>
-	<elevation>[ 504.3, 3.30 ]</elevation>
+	<elevation>[ 251.8, 1.56 ][ 504.3, 3.30 ]</elevation>
     <pit-in>
       <side>right</side>
       <merge>0.0</merge>
@@ -319,8 +318,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 0.0, 6.2 ]</elevation>
-	<elevation>[ 226.0, 8.3 ]</elevation>
+	<elevation>[ 0.0, 6.2 ][ 226.0, 8.3 ]</elevation>
   </road>
 
   <!-- Variante Della Roggia -->
@@ -490,9 +488,7 @@
         <transition/>
 	  </start>
 	</left-kerb>
-	<elevation>[ 0.0, 4.4 ]</elevation>
-	<elevation>[ 214.1, -0.3 ]</elevation>
-	<elevation>[ 377.6, 0.9 ]</elevation>
+	<elevation>[ 0.0, 4.4 ][ 214.1, -0.3 ][ 377.6, 0.9 ]</elevation>
   </road>
 
   <!-- Variante Ascari -->
@@ -574,8 +570,7 @@
 	    <distance>100.0</distance>
 	  </end>
 	</left-kerb>
-	<elevation>[ 0.0, 1.7 ]</elevation>
-	<elevation>[ 103.3, 1.2 ]</elevation>
+	<elevation>[ 0.0, 1.7 ][ 103.3, 1.2 ]</elevation>
   </road>
 
   <!-- Curva Parabolica -->
@@ -603,8 +598,7 @@
     <resolution>2.0</resolution>
     <length>290.4</length>
     <radius>-290.4</radius>
-    <left-width>[ 0.0, 25.0 ]</left-width>
-    <left-width>[ 230.0, 13.0 ]</left-width>
+    <left-width>[ 0.0, 25.0 ][ 230.0, 13.0 ]</left-width>
   </road>
 
   <road segment="straight">

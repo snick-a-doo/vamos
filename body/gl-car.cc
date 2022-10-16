@@ -354,7 +354,7 @@ void Gl_Car::draw_dashboard()
     mp_dashboard->set_tachometer(rad_s_to_rpm(dt.engine().rotational_speed()));
     mp_dashboard->set_speedometer(m_s_to_km_h(wheel(2).speed()));
     mp_dashboard->set_fuel_gauge(fuel_tank()->fuel());
-    mp_dashboard->set_gear_indicator(dt.transmission().gear());
+    mp_dashboard->set_gear(dt.transmission().gear());
     mp_dashboard->set_steering_wheel(m_steer_key_control.value());
     mp_dashboard->draw();
     if (m_show_dashboard_extras)

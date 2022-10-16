@@ -38,35 +38,18 @@ class Facade;
 namespace Vamos_Track
 {
 /// A sign giving distance to the start of the next corner.
-class Braking_Marker
+struct Braking_Marker
 {
-public:
-    /// @param image_file The image on the sign.
-    /// @param distance Distance from the marker to end of segment where the corner is
-    /// assumed to start.
-    /// @param side The side of the road the sign is on.
-    /// @param from_edge Distance from edge of road to edge of sign.
-    /// @param off_ground Distance from ground to bottom of sign.
-    /// @param width Width of sign.
-    /// @param height Height of sign.
     Braking_Marker(std::string const& image_file, double distance, Side side,
-                   double from_edge, double off_ground,
+                   Vamos_Geometry::Point<double> offset,
                    Vamos_Geometry::Point<double> size);
 
-    double distance() const { return m_distance; }
-    Side side() const { return m_side; }
-    double from_edge() const { return m_from_edge; }
-    double off_ground() const { return m_off_ground; }
-    double width() const;
-    double height() const;
-    void draw() const;
-
-private:
-    std::shared_ptr<Vamos_Media::Facade> mp_image;
-    double m_distance;
-    Side m_side;
-    double m_from_edge;
-    double m_off_ground;
+    std::shared_ptr<Vamos_Media::Facade> image; ///< The image on the sign.
+    double distance; ///< Distance from the sign to the end of the segment.
+    Side side; ///< The side of the road the sign is on.
+    /// Distance from edge of road to edge of sign, and distance from edge of road to edge
+    /// of sign, and distance from ground to bottom of sign.
+    Vamos_Geometry::Point<double> offset;
 };
 
 class Segment_Iterator;
@@ -85,13 +68,13 @@ public:
     };
 
     Gl_Road_Segment(double resolution, double length, double radius, double skew,
-                    std::vector<Vamos_Geometry::Two_Vector> const& left_width,
-                    std::vector<Vamos_Geometry::Two_Vector> const& right_width,
-                    std::vector<Vamos_Geometry::Two_Vector> const& left_road_width,
-                    std::vector<Vamos_Geometry::Two_Vector> const& right_road_width,
+                    std::vector<Vamos_Geometry::Point<double>> const& left_width,
+                    std::vector<Vamos_Geometry::Point<double>> const& right_width,
+                    std::vector<Vamos_Geometry::Point<double>> const& left_road_width,
+                    std::vector<Vamos_Geometry::Point<double>> const& right_road_width,
                     std::unique_ptr<Kerb> left_kerb, std::unique_ptr<Kerb> right_kerb,
                     double left_wall_height, double right_wall_height,
-                    std::vector<Vamos_Geometry::Two_Vector> const& elevation_points,
+                    std::vector<Vamos_Geometry::Point<double>> const& elevation_points,
                     double end_bank, double bank_pivot,
                     std::vector<Vamos_Media::Material> const& materials,
                     std::vector<Braking_Marker> const& braking_markers);

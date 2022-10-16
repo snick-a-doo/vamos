@@ -162,8 +162,7 @@
 	<right-road-width>[ 0.0, 10.0 ]</right-road-width>
 	<left-wall-height>1.0</left-wall-height>
 	<right-wall-height>1.0</right-wall-height>
-	<elevation>[ 100.0, 0.0 ]</elevation>
-	<elevation>[ 150.0, 0.0 ]</elevation>
+	<elevation>[ 100.0, 0.0 ][ 150.0, 0.0 ]</elevation>
 	<braking-marker>
 	  <file>textures/50.png</file>
 	  <distance>50.0</distance>
@@ -366,8 +365,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>150.0</length>
-	<left-road-width>[ 100.0, 10.0 ]</left-road-width>
-	<left-road-width>[ 150.0, 6.0 ]</left-road-width>
+	<left-road-width>[ 100.0, 10.0 ][ 150.0, 6.0 ]</left-road-width>
 	<elevation>[ 100.0, 4.0 ]</elevation>
   </road>
 
@@ -485,9 +483,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>284.0</length>
-	<elevation>[ 100.0, 2.0 ]</elevation>
-	<elevation>[ 200.0, 2.0 ]</elevation>
-	<elevation>[ 260.0, 2.0 ]</elevation>
+	<elevation>[ 100.0, 2.0 ][ 200.0, 2.0 ][ 260.0, 2.0 ]</elevation>
 	<braking-marker>
 	  <file>textures/50.png</file>
 	  <distance>50.0</distance>
@@ -667,8 +663,7 @@
   </road>
 
   <road segment="paved">
-	<right-road-width>[ 20.0, 6.0 ]</right-road-width>
-	<right-road-width>[ 50.0, 10.0 ]</right-road-width>
+	<right-road-width>[ 20.0, 6.0 ][ 50.0, 10.0 ]</right-road-width>
     <resolution>10.0</resolution>
     <length>220.0</length>
 	<left-kerb>

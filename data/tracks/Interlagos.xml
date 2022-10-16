@@ -157,8 +157,7 @@
     <right-road-width>[ 0.0, 6.5 ]</right-road-width>
     <left-wall-height>1.0</left-wall-height>
     <right-wall-height>1.0</right-wall-height>
-	<elevation>[ 150.0, 0.5 ]</elevation>
-	<elevation>[ 290.0, 0.5 ]</elevation>
+	<elevation>[ 150.0, 0.5 ][ 290.0, 0.5 ]</elevation>
 	<braking-marker>
 	  <file>textures/50.png</file>
 	  <distance>50.0</distance>
@@ -269,12 +268,8 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>550.0</length>
-	<elevation>[ 200.0, -6.0 ]</elevation>
-	<elevation>[ 400.0, -3.0 ]</elevation>
-	<elevation>[ 550.0, 0.0 ]</elevation>
-	<right-width>[ 50.0, 25.0 ]</right-width>
-	<right-width>[ 150.0, 15.0 ]</right-width>
-	<right-width>[ 500.0, 25.0 ]</right-width>
+	<elevation>[ 200.0, -6.0 ][ 400.0, -3.0 ][ 550.0, 0.0 ]</elevation>
+	<right-width>[ 50.0, 25.0 ][ 150.0, 15.0 ][ 500.0, 25.0 ]</right-width>
     <model>
 	  <file>bridge.ac</file>
 	  <scale>1.5</scale>

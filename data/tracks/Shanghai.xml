@@ -167,9 +167,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 100.0, 0.0 ]</elevation>
-	<elevation>[ 250.0, 0.0 ]</elevation>
-	<elevation>[ 300.0, 0.0 ]</elevation>
+	<elevation>[ 100.0, 0.0 ][ 250.0, 0.0 ][ 300.0, 0.0 ]</elevation>
   </road>
 
   <!-- Curly-Q -->
@@ -544,13 +542,7 @@
 	    <transition/>
 	  </end>
 	</right-kerb>
-	<elevation>[ 0.0, 7.0 ]</elevation>
-	<elevation>[ 40.0, 7.0 ]</elevation>
-	<elevation>[ 70.0, 7.0 ]</elevation>
-	<elevation>[ 100.0, 7.0 ]</elevation>
-	<elevation>[ 250.0, 0.0 ]</elevation>
-	<elevation>[ 270.0, 0.0 ]</elevation>
-	<elevation>[ 300.0, 0.0 ]</elevation>
+	<elevation>[ 0.0, 7.0 ][ 40.0, 7.0 ][ 70.0, 7.0 ][ 100.0, 7.0 ][ 250.0, 0.0 ][ 270.0, 0.0 ][ 300.0, 0.0 ]</elevation>
   </road>
 
   <!-- Force the track to close -->

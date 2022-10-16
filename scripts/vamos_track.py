@@ -253,8 +253,11 @@ class road_segment:
     <radius>%.1f</radius>''' % (self.name, self.length, self.radius))
         if first:
             print (first_segment_extras)
-        for e in self.elevation:
-            print ('    <elevation>[ %.1f, %.1f ]</elevation>' % (e[0], e[1]))
+        if len(self.elevation) > 0:
+            print ('    <elevation>')
+            for e in self.elevation:
+                print ('        [ %.1f, %.1f ]' % (e[0], e[1]))
+            print ('    </elevation>')
         if self.braking_marker_side != None:
             for distance in [ 50, 100, 150 ]:
                 if distance > self.length:

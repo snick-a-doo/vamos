@@ -190,8 +190,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 200.0, 0.0 ]</elevation>
-	<elevation>[ 400.0, 0.0 ]</elevation>
+	<elevation>[ 200.0, 0.0 ][ 400.0, 0.0 ]</elevation>
   </road>
 
   <road segment="right turn">

@@ -61,8 +61,7 @@ Dial::Dial(Three_Vector const& position, double radius, Point<double> min, Point
     : Gauge{false},
       m_angle_fn{make_scaler(min, max)},
       mp_face{std::make_unique<Facade>(face_image, position, radius, false)},
-      mp_needle{std::make_unique<Facade>(needle_image, position + 0.01 * Three_Vector::Z,
-                                         radius, false)}
+      mp_needle{std::make_unique<Facade>(needle_image, position + 0.01 * z_hat, radius, false)}
 {
 }
 
@@ -228,77 +227,83 @@ void Gear_Indicator::draw(bool reset) const
 }
 
 //----------------------------------------------------------------------------------------
-Gear_Shift::Gear_Shift(Vamos_Geometry::Rectangle<double> const& size, double z,
+Gear_Shift::Gear_Shift(Three_Vector const& position,
+                       Point<double> const& size,
                        Three_Vector const& rotation,
-                       std::vector<Two_Vector> const& positions,
-                       std::string const& plate_image, std::string const& stick_image)
-    : m_rotation{rotation},
+                       std::vector<Point<double>> const& positions,
+                       std::string const& gate_image,
+                       std::string const& stick_image)
+    : Gauge{false},
+      m_rotation{rotation},
       m_positions{positions},
-      m_top_gear{m_positions.size() - 2},
-      mp_gate{std::make_unique<Texture_Image>(plate_image, true, true)},
+      m_top_gear{static_cast<int>(m_positions.size()) - 2},
+      mp_gate{std::make_unique<Texture_Image>(gate_image, true, true)},
       mp_stick{std::make_unique<Texture_Image>(stick_image, true, true)},
       m_list_index{glGenLists(2)}
 {
-    // m_stick_width = size.x * mp_stick->width_pixels() / mp_gate->width_pixels();
-    // m_stick_height = size.y * mp_stick->height_pixels() / mp_gate->height_pixels();
+    assert((m_top_gear > 0) && "Need at least one forward gear");
+    m_stick_width = size.x * mp_stick->width_pixels() / mp_gate->width_pixels();
+    m_stick_height = size.y * mp_stick->height_pixels() / mp_gate->height_pixels();
 
-    // glNewList(m_list_index, GL_COMPILE);
+    glNewList(m_list_index, GL_COMPILE);
 
-    // mp_gate->activate();
+    mp_gate->activate();
 
-    // glRotated(rotation.x, 0.0, -1.0, 0.0);
-    // glRotated(rotation.y, 0.0, 0.0, 1.0);
-    // glRotated(rotation.z, 1.0, 0.0, 0.0);
-    // glTranslated(-m_above, -size.left(), size.bottom());
+    glTranslated(position.x, position.y, position.z);
+    glRotated(rotation.x, 1.0, 0.0, 0.0);
+    glRotated(rotation.y, 0.0, 1.0, 0.0);
+    glRotated(rotation.z, 0.0, 0.0, 1.0);
+    glTranslated(-size.x / 2.0, -size.y / 2.0, 0.0);
 
-    // glColor3d(1.0, 1.0, 1.0);
-    // glBegin(GL_QUADS);
-    // glTexCoord2d(0.0, 0.0);
-    // glNormal3f(0.0, 0.0, 1.0);
-    // glVertex3d(0.0, 0.0, 0.0);
-    // glTexCoord2d(1.0, 0.0);
-    // glVertex3d(size.x, 0.0, 0.0);
-    // glTexCoord2d(1.0, 1.0);
-    // glVertex3d(size.x, size.y, 0.0);
-    // glTexCoord2d(0.0, 1.0);
-    // glVertex3d(0.0, size.y, 0.0);
-    // glEnd();
+    glColor3d(1.0, 1.0, 1.0);
+    glBegin(GL_QUADS);
+    glTexCoord2d(0.0, 0.0);
+    glNormal3f(0.0, 0.0, 1.0);
+    glVertex3d(0.0, 0.0, 0.0);
+    glTexCoord2d(1.0, 0.0);
+    glVertex3d(size.x, 0.0, 0.0);
+    glTexCoord2d(1.0, 1.0);
+    glVertex3d(size.x, size.y, 0.0);
+    glTexCoord2d(0.0, 1.0);
+    glVertex3d(0.0, size.y, 0.0);
+    glEnd();
 
-    // glTranslated(0.0, (-size.x + m_stick_width) / 2.0, size.y / 2.0);
-    // glEndList();
+    glTranslated((size.x - m_stick_width) / 2.0, size.y / 2.0, 0.0);
+    glEndList();
 
-    // glNewList(m_list_index + 1, GL_COMPILE);
+    glNewList(m_list_index + 1, GL_COMPILE);
 
-    // mp_stick->activate();
+    mp_stick->activate();
 
-    // glRotated(-rotation.x, 0.0, -1.0, 0.0);
-    // glRotated(-rotation.y, 0.0, 0.0, 1.0);
-    // glRotated(-rotation.z, 1.0, 0.0, 0.0);
+    glRotated(-rotation.x, 1.0, 0.0, 0.0);
+    glRotated(-rotation.y, 0.0, 1.0, 0.0);
+    glRotated(-rotation.z, 0.0, 0.0, 1.0);
 
-    // glColor3d(1.0, 1.0, 1.0);
-    // glBegin(GL_QUADS);
-    // glTexCoord2d(0.0, 1.0);
-    // glNormal3f(-1.0, 0.0, 0.0);
-    // glVertex3d(0.0, 0.0, 0.0);
-    // glTexCoord2d(1.0, 1.0);
-    // glVertex3d(0.0, -m_stick_width, 0.0);
-    // glTexCoord2d(1.0, 0.0);
-    // glVertex3d(0.0, -m_stick_width, m_stick_height);
-    // glTexCoord2d(0.0, 0.0);
-    // glVertex3d(0.0, 0.0, m_stick_height);
-    // glEnd();
+    glColor3d(1.0, 1.0, 1.0);
+    glBegin(GL_QUADS);
+    glTexCoord2d(0.0, 1.0);
+    glNormal3f(0.0, 0.0, 1.0);
+    glVertex3d(0.0, 0.0, 0.0);
+    glTexCoord2d(1.0, 1.0);
+    glVertex3d(m_stick_width, 0.0, 0.0);
+    glTexCoord2d(1.0, 0.0);
+    glVertex3d(m_stick_width, m_stick_height, 0.0);
+    glTexCoord2d(0.0, 0.0);
+    glVertex3d(0.0, m_stick_height, 0.0);
+    glEnd();
 
-    // glEndList();
+    glEndList();
 }
 
-void Gear_Shift::draw() const
+void Gear_Shift::draw(bool reset) const
 {
-    // auto gear{std::min(m_top_gear, m_value)};
+    auto gear{std::min(m_top_gear, m_value)};
+    assert(gear < static_cast<int>(m_positions.size()) - 1);
 
-    // Reset_Transform resetter{reset};
-    // glCallList(m_list_index);
-    // glTranslated(0.0, -m_positions[gear + 1].x, m_positions[gear + 1].y);
-    // glCallList(m_list_index + 1);
+    Reset_Transform resetter{reset};
+    glCallList(m_list_index);
+    glTranslated(m_positions[gear + 1].x, m_positions[gear + 1].y, 0.0);
+    glCallList(m_list_index + 1);
 }
 
 //----------------------------------------------------------------------------------------
@@ -326,6 +331,11 @@ void Dashboard::add_fuel_gauge(std::unique_ptr<Gauge<double>> fuel_gauge)
 void Dashboard::add_gear_indicator(std::unique_ptr<Gear_Indicator> gear_indicator)
 {
     mp_gear_indicator = std::move(gear_indicator);
+}
+
+void Dashboard::add_gear_shift(std::unique_ptr<Gear_Shift> gear_shift)
+{
+    mp_gear_shift = std::move(gear_shift);
 }
 
 void Dashboard::add_steering_wheel(std::unique_ptr<Dial> steering_wheel)
@@ -356,10 +366,12 @@ void Dashboard::set_fuel_gauge(double fuel)
         mp_fuel_gauge->set(fuel);
 }
 
-void Dashboard::set_gear_indicator(int gear)
+void Dashboard::set_gear(int gear)
 {
     if (mp_gear_indicator)
         mp_gear_indicator->set(gear);
+    if (mp_gear_shift)
+        mp_gear_shift->set(gear);
 }
 
 void Dashboard::set_steering_wheel(double angle)
@@ -378,6 +390,9 @@ void Dashboard::draw() const
     glRotatef(90.0, 1.0, 0.0, 0.0);
     for (auto const& facade : m_facades)
         facade->draw();
+
+    if (mp_gear_shift)
+        mp_gear_shift->draw();
 
     glRotated(-m_tilt, 1.0, 0.0, 0.0);
     if (mp_tachometer && !mp_tachometer->on_steering_wheel())

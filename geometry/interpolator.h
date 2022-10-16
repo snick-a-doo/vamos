@@ -29,16 +29,16 @@ public:
     /// Construct an empty curve.
     Interpolator();
     /// Construct a cuvre from an array of points.
-    Interpolator(std::vector<Two_Vector> const& points);
+    Interpolator(std::vector<Point<double>> const& points);
     virtual ~Interpolator();
 
     /// Add a point to the curve.
-    virtual void load(Two_Vector const& point);
+    virtual void load(Point<double> const& point);
     virtual void load(double x, double y) { load({x, y}); }
     /// Add multiple points to the curve.
-    virtual void load(std::vector<Two_Vector> const& points);
+    virtual void load(std::vector<Point<double>> const& points);
     /// Replace all points on the curve.
-    virtual void replace(std::vector<Two_Vector> const& points);
+    virtual void replace(std::vector<Point<double>> const& points);
     /// Remove all points from the curve.
     virtual void clear();
     /// Scale the x values.
@@ -55,14 +55,14 @@ public:
     /// @{
     size_t size() const { return m_points.size(); }
     bool empty() const { return m_points.empty(); }
-    Two_Vector& operator [] (size_t i) { return m_points[i]; }
-    Two_Vector const& operator [] (size_t i) const { return m_points[i]; }
+    Point<double>& operator [] (size_t i) { return m_points[i]; }
+    Point<double> const& operator [] (size_t i) const { return m_points[i]; }
     /// @}
 
 protected:
     /// @return The
     size_t low_index(double x) const;
-    std::vector<Two_Vector> m_points; ///< The array of points to interpolate between.
+    std::vector<Point<double>> m_points; ///< The array of points to interpolate between.
     /// True if the control points have changed since the last interpolation.
     /// The index of the nearest control point whose x-value is <= the last interpolate()
     /// argument.

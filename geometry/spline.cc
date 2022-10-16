@@ -27,7 +27,7 @@ Spline::Spline(std::optional<double> first_slope, std::optional<double> last_slo
 {
 }
 
-Spline::Spline(std::vector<Two_Vector> const& points,
+Spline::Spline(std::vector<Point<double>> const& points,
                std::optional<double> first_slope,
                std::optional<double> last_slope)
     : Interpolator{points},

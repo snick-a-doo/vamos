@@ -166,8 +166,7 @@
 	  <file>textures/150.png</file>
 	  <distance>50.0</distance>
 	</braking-marker>
-	<elevation>[ 100.0, 0.0 ]</elevation>
-	<elevation>[ 150.0, 0.0 ]</elevation>
+	<elevation>[ 100.0, 0.0 ][ 150.0, 0.0 ]</elevation>
   </road>
 
   <road segment="right paved">
@@ -301,8 +300,7 @@
 	  </end>
 	</right-kerb>
 	<elevation>[ 900.0, -4.0 ]</elevation>
-	<left-road-width>[ 750.0, 12.0 ]</left-road-width>
-	<left-road-width>[ 950.0, 12.0 ]</left-road-width>
+	<left-road-width>[ 750.0, 12.0 ][ 950.0, 12.0 ]</left-road-width>
   </road>
   <road segment="straight">
     <resolution>10.0</resolution>
@@ -332,8 +330,7 @@
 	  <end><transition/></end>
 	</right-kerb>
 	<elevation>[ 0.0, 0.0 ]</elevation>
-	<left-road-width>[ 40.0, 12.0 ]</left-road-width>
-	<left-road-width>[ 58.0, 7.0 ]</left-road-width>
+	<left-road-width>[ 40.0, 12.0 ][ 58.0, 7.0 ]</left-road-width>
   </road>
   <road segment="straight">
     <resolution>10.0</resolution>

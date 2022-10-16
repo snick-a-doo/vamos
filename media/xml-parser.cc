@@ -27,14 +27,36 @@ using namespace Vamos_Media;
 
 namespace Vamos_Media
 {
+std::vector<Point<double>> get_points(pugi::xml_node node,
+                                      char const* tag,
+                                      bool ordered,
+                                      std::vector<Point<double>> points)
+{
+    std::istringstream is{node.child_value(tag)};
+    while (is)
+    {
+        Point<double> p;
+        is >> p;
+        if (!is)
+            break;
+        // Overwrite a point at the same or greater x value.
+        if (ordered && !points.empty() && p.x <= points.back().x)
+            points.back() = p;
+        else
+            points.push_back(p);
+    }
+    return points;
+}
+
 Ac3d get_model(pugi::xml_node node, std::string const& dir)
 {
     return Ac3d{dir + get_value(node, "file", std::string()),
                 get_value(node, "scale", 1.0),
-                get_value(node, "translate", Three_Vector::ZERO),
-                get_value(node, "rotate", Three_Vector::ZERO) * deg_to_rad(1.0)};
+                get_value(node, "translate", null_v),
+                get_value(node, "rotate", null_v) * deg_to_rad(1.0)};
 }
 }
+
 
 
 class XML_Exception : std::runtime_error

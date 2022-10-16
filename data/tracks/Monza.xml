@@ -143,9 +143,7 @@
     <left-width>[ 0.0, 25.0 ]</left-width>
     <right-width>[ 0.0, 25.0 ]</right-width>
     <left-road-width>[ 0.0, 7.0 ]</left-road-width>
-    <right-road-width>[ 0.0, 16.0 ]</right-road-width>
-    <right-road-width>[ 331.9, 16.0 ]</right-road-width>
-    <right-road-width>[ 414.9, 7.0 ]</right-road-width>
+    <right-road-width>[ 0.0, 16.0 ][ 331.9, 16.0 ][ 414.9, 7.0 ]</right-road-width>
     <left-wall-height>1.0</left-wall-height>
     <right-wall-height>1.0</right-wall-height>
 	<braking-marker>
@@ -163,8 +161,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 251.8, 1.56 ]</elevation>
-	<elevation>[ 504.3, 3.30 ]</elevation>
+	<elevation>[ 251.8, 1.56 ][ 504.3, 3.30 ]</elevation>
   </road>
 
   <!-- Variante Del Rettifilo -->
@@ -283,8 +280,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 0.0, 6.2 ]</elevation>
-	<elevation>[ 226.0, 8.3 ]</elevation>
+	<elevation>[ 0.0, 6.2 ][ 226.0, 8.3 ]</elevation>
   </road>
 
   <!-- Variante Della Roggia -->
@@ -458,9 +454,7 @@
         <transition/>
 	  </start>
 	</left-kerb>
-	<elevation>[ 0.0, 4.4 ]</elevation>
-	<elevation>[ 214.1, -0.3 ]</elevation>
-	<elevation>[ 377.6, 0.9 ]</elevation>
+	<elevation>[ 0.0, 4.4 ][ 214.1, -0.3 ][ 377.6, 0.9 ]</elevation>
   </road>
 
   <!-- Variante Ascari -->
@@ -552,8 +546,7 @@
 	    <distance>100.0</distance>
 	  </end>
 	</left-kerb>
-	<elevation>[ 0.0, 1.7 ]</elevation>
-	<elevation>[ 103.3, 1.2 ]</elevation>
+	<elevation>[ 0.0, 1.7 ][ 103.3, 1.2 ]</elevation>
     <racing-line-adjustment>-0.5</racing-line-adjustment>
   </road>
 

@@ -67,9 +67,9 @@
 	</fuel-gauge>
 
 	<gear-shift>
-	  <position>[ 0.14, -0.18, -0.10 ]</position>
+	  <position>[ 0.15, -0.05, 0.12 ]</position>
 	  <size>[ 0.05, 0.05 ]</size>
-	  <rotation>[ -90.0, -30.0, 0.0 ]</rotation>
+	  <rotation>[ -90.0, 0.0, 0.0 ]</rotation>
 	  <stick-positions>
 	    [  0.015, -0.015 ]
 	    [  0.00,  0.00 ]

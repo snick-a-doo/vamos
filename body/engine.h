@@ -49,7 +49,7 @@ public:
 
     /// Provide an optional set of (rpm, torque) points for interpolating engine
     /// torque. If a curve is not set, torque is calculated from a polynomial.
-    void set_torque_curve(std::vector<Vamos_Geometry::Two_Vector> const& torque_points);
+    void set_torque_curve(std::vector<Vamos_Geometry::Point<double>> const& torque_points);
     /// Override the default friction parameter.
     void set_friction(double friction);
 

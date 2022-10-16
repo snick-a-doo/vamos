@@ -168,10 +168,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 350.0, 0.0 ]</elevation>
-	<elevation>[ 400.0, 0.0 ]</elevation>
-	<elevation>[ 450.0, 1.0 ]</elevation>
-	<elevation>[ 500.0, 3.0 ]</elevation>
+	<elevation>[ 350.0, 0.0 ][ 400.0, 0.0 ][ 450.0, 1.0 ][ 500.0, 3.0 ]</elevation>
   </road>
 
   <!-- Turn 1 -->
@@ -399,8 +396,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 0.0, 0.0 ]</elevation>
-	<elevation>[ 250.0, 0.0 ]</elevation>
+	<elevation>[ 0.0, 0.0 ][ 250.0, 0.0 ]</elevation>
   </road>
 
   <!-- Turn 9 -->
@@ -553,8 +549,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 0.0, 0.0 ]</elevation>
-	<elevation>[ 400.0, 0.0 ]</elevation>
+	<elevation>[ 0.0, 0.0 ][ 400.0, 0.0 ]</elevation>
   </road>
 
   <!-- Turn 15 -->

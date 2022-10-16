@@ -25,7 +25,7 @@
 
 namespace Vamos_Track
 {
-using TPoints = std::vector<Vamos_Geometry::Two_Vector>;
+using TPoints = std::vector<Vamos_Geometry::Point<double>>;
 
 enum class Side{left, right };
 
@@ -39,7 +39,7 @@ public:
     /// kerb. A zero-length transition zone leaves the kerb open on the end. This is
     /// useful for connecting kerbs across segment boundaries. The roughness of the kerb
     /// is defined by the material assigned to it in the track object.
-    /// @param profile The shape of the kerb defined by a vector of Two_Vectors
+    /// @param profile The shape of the kerb defined by a vector of points
     /// where x is the distance from the edge of the track and y is the height.
     /// @param start The distance from the start of the road segment to the
     /// start of the kerb.
@@ -82,7 +82,7 @@ public:
     /// @return Angle of the normal vector relative to the ground.
     double angle(double along, double from_inside);
     /// @return A profile point.
-    Vamos_Geometry::Two_Vector const& point(size_t substrip) const;
+    Vamos_Geometry::Point<double> const& point(size_t substrip) const;
     /// @return The number of flat surfaces on the kerb.
     size_t substrips() const { return m_points.size() - 1; }
 

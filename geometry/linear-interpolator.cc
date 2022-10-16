@@ -25,7 +25,7 @@ Linear_Interpolator::Linear_Interpolator()
 {
 }
 
-Linear_Interpolator::Linear_Interpolator(std::vector<Two_Vector> const& points)
+Linear_Interpolator::Linear_Interpolator(std::vector<Point<double>> const& points)
     : Interpolator(points)
 {
 }

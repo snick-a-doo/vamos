@@ -80,19 +80,19 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
     pugi::xml_document doc;
     auto result{doc.load_file(file_name.c_str())};
     auto top{doc.child("car")};
-    if (auto robot = top.child("robot"))
+    if (auto robot{top.child("robot")})
         car->set_robot_parameters(get_value(robot, "slip-ratio", 0.0),
                                   get_value(robot, "deceleration", 0.0),
                                   get_value(robot, "lateral-acceleration", 0.0));
-    if (auto model = top.child("exterior-model"))
+    if (auto model{top.child("exterior-model")})
         car->set_exterior_model(get_model(model, data_dir + "cars/"));
-    if (auto model = top.child("interior-model"))
+    if (auto model{top.child("interior-model")})
         car->set_interior_model(get_model(model, data_dir + "cars/"));
-    if (auto init = top.child("initial-conditions"))
-        car->chassis().set_initial_conditions(get_value(init, "position", Three_Vector()),
-                                              get_value(init, "orientation", Three_Vector()),
-                                              get_value(init, "velocity", Three_Vector()),
-                                              get_value(init, "angular-velocity", Three_Vector()));
+    if (auto init{top.child("initial-conditions")})
+        car->chassis().set_initial_conditions(get_value(init, "position", null_v),
+                                              get_value(init, "orientation", null_v),
+                                              get_value(init, "velocity", null_v),
+                                              get_value(init, "angular-velocity", null_v));
     {
         Point<double> size{1.0, 1.0};
         auto field_width{60.0};
@@ -100,7 +100,7 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
         auto far_plane{700.0};
         auto direction{180.0};
         std::string mask;
-        if (auto view = top.child("view"))
+        if (auto view{top.child("view")})
             car->set_view(get_value(view, "position", Three_Vector{}),
                           field_width = get_value(view, "field-width", field_width),
                           near_plane = get_value(view, "near-plane", near_plane),
@@ -115,16 +115,16 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
                                far_plane = get_value(mirror, "far-plane", far_plane),
                                data_dir + "textures/" + (mask = get_value(mirror, "mask", mask)));
     }
-    if (auto dash = top.child("dashboard"))
+    if (auto dash{top.child("dashboard")})
     {
         auto dir{m_data_dir + "textures/"};
         auto dashboard{std::make_unique<Dashboard>(
-                get_value(dash, "position", Three_Vector()),
+                get_value(dash, "position", null_v),
                 get_value(dash, "tilt", 0.0))};
         for (auto frame : dash.children("mirror-frame"))
             dashboard->add_facade(std::make_unique<Facade>(
                     dir + get_value(frame, "image", std::string()),
-                    get_value(frame, "position", Three_Vector()),
+                    get_value(frame, "position", null_v),
                     get_value(frame, "size", Point{1.0, 1.0}), false));
         if (auto tach = dash.child("tachometer"))
             dashboard->add_tachometer(get_gauge(tach, dir));
@@ -135,15 +135,22 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
         if (auto gear = dash.child("gear-indicator"))
             dashboard->add_gear_indicator(
                 std::make_unique<Gear_Indicator>(
-                    get_value(gear, "position", Three_Vector()),
+                    get_value(gear, "position", null_v),
                     get_value(gear, "size", Point<double>{1.0, 1.0}),
                     get_value(gear, "numbers", 7),
                     dir + get_value(gear, "image", std::string()),
                     static_cast<bool>(gear.child("on-steering-wheel"))));
-        //!! Need to handle gear shift lever
-        if (auto steer = dash.child("steering-wheel"))
+        if (auto shift{dash.child("gear-shift")})
+            dashboard->add_gear_shift(
+                std::make_unique<Gear_Shift>(get_value(shift, "position", null_v),
+                                             get_value(shift, "size", Point<double>{1.0, 1.0}),
+                                             get_value(shift, "rotation", null_v),
+                                             get_points(shift, "stick-positions", false),
+                                             dir + get_value(shift, "gate", std::string()),
+                                             dir + get_value(shift, "stick", std::string())));
+        if (auto steer{dash.child("steering-wheel")})
             dashboard->add_steering_wheel(
-                std::make_unique<Dial>(get_value(steer, "position", Three_Vector()),
+                std::make_unique<Dial>(get_value(steer, "position", null_v),
                                        get_value(steer, "radius", 1.0),
                                        get_value(steer, "min", Point<double>{0.0, 0.0}),
                                        get_value(steer, "max", Point<double>{1.0, 360.0}),
@@ -151,7 +158,7 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
         car->set_dashboard(std::move(dashboard));
         car->show_dashboard_extras(static_cast<bool>(dash.child("extras")));
     }
-    if (auto steer = top.child("steering"))
+    if (auto steer{top.child("steering")})
     {
         car->max_steer_angle(get_value(steer, "max-angle", 20.0));
         car->steer_exponent(get_value(steer, "exponent", 2.0));
@@ -617,7 +624,7 @@ void Car_Reader::on_data(std::string const& data)
         is >> m_vectors[0];
     else if (match("/car/dashboard/gear-shift/stick-positions"))
     {
-        Two_Vector point;
+        Point<double> point;
         while (is >> point)
             m_points.push_back(point);
     }
@@ -839,7 +846,7 @@ void Car_Reader::on_data(std::string const& data)
         is >> m_doubles[8];
     else if (match("/car/drivetrain/engine/torque-curve"))
     {
-        Two_Vector point;
+        Point<double> point;
         while (is >> point)
             m_points.push_back(point);
     }

@@ -388,8 +388,7 @@
   </road>
   <road segment="straight">
     <length>425.0</length>
-	<left-road-width>[ 300.0, 8.0 ]</left-road-width>
-	<left-road-width>[ 400.0, 6.0 ]</left-road-width>
+	<left-road-width>[ 300.0, 8.0 ][ 400.0, 6.0 ]</left-road-width>
 	<braking-marker>
 	  <file>textures/50-vertical.png</file>
 	  <distance>50.0</distance>

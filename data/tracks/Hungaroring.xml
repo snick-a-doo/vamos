@@ -286,8 +286,7 @@
 	    <transition/>
 	  </end>
 	</left-kerb>
-	<elevation>[ 0.0, -15.0 ]</elevation>
-	<elevation>[ 200.0, -20.0 ]</elevation>
+	<elevation>[ 0.0, -15.0 ][ 200.0, -20.0 ]</elevation>
   </road>
   <road segment="straight">
     <resolution>2.0</resolution>

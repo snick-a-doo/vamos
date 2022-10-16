@@ -744,7 +744,7 @@ double Braking_Operation::maximum_speed(double speed, double distance, double st
     // Start one interval beyond the end; end one interval before the beginning to ensure
     // that the interpolations are good slightly beyond the endpoints.
     too_fast = false;
-    std::vector<Two_Vector> points;
+    std::vector<Point<double>> points;
     speed = min_speed_vs_distance.y;
     for (auto d{min_speed_vs_distance.x}; d > -delta_x; d -= delta_x)
     {

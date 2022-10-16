@@ -274,9 +274,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>240.0</length>
-	<elevation>[ 100.0, -5.0 ]</elevation>
-	<elevation>[ 180.0, -5.0 ]</elevation>
-	<elevation>[ 200.0, -5.0 ]</elevation>
+	<elevation>[ 100.0, -5.0 ][ 180.0, -5.0 ][ 200.0, -5.0 ]</elevation>
   </road>
 
   <!-- The Esses -->
@@ -342,8 +340,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>500.0</length>
-	<elevation>[ 0.0, 0.0 ]</elevation>
-	<elevation>[ 200.0, -5.0 ]</elevation>
+	<elevation>[ 0.0, 0.0 ][ 200.0, -5.0 ]</elevation>
   </road>
 
   <!-- The Kink -->

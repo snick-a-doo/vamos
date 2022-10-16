@@ -36,30 +36,14 @@ auto constexpr s_strip_type{GL_QUAD_STRIP};
 
 static const Material s_no_material(Material::air, 0.0, 0.0);
 
+//----------------------------------------------------------------------------------------
 Braking_Marker::Braking_Marker(std::string const& image_file, double distance, Side side,
-                               double from_edge, double off_ground,
-                               Point<double> size)
-    : mp_image{std::make_unique<Facade>(image_file, Three_Vector(), size, true)},
-      m_distance{distance},
-      m_side{side},
-      m_from_edge{from_edge},
-      m_off_ground{off_ground}
+                               Point<double> offset, Point<double> size)
+    : image{std::make_unique<Facade>(image_file, Three_Vector(), size, true)},
+      distance{distance},
+      side{side},
+      offset{offset}
 {
-}
-
-double Braking_Marker::width() const
-{
-    return mp_image->width();
-}
-
-double Braking_Marker::height() const
-{
-    return mp_image->height();
-}
-
-void Braking_Marker::draw() const
-{
-    mp_image->draw();
 }
 
 //----------------------------------------------------------------------------------------
@@ -522,23 +506,23 @@ void Gl_Road_Segment::build()
     // Draw braking markers.
     for (auto const& marker : m_braking_markers)
     {
-        auto along{length() - marker.distance()};
-        auto from_center{marker.side() == Side::right
-                         ? -marker.from_edge() - right_road_width(along)
-                         : marker.from_edge() + left_road_width(along) + marker.width()};
+        auto along{length() - marker.distance};
+        auto from_center{marker.side == Side::right
+                         ? -marker.offset.x - right_road_width(along)
+                         : marker.offset.x + left_road_width(along) + marker.image->width()};
         using std::sin, std::cos;
         auto angle{start_angle() + arc() * along / length()};
         auto x{center_of_curve().x - from_center * sin(angle)};
         auto y{center_of_curve().y + from_center * cos(angle)};
         x += (is_straight() ? along : radius()) * cos(angle);
         y += (is_straight() ? along : radius()) * sin(angle);
-        auto z{elevation(along, from_center) + marker.off_ground()};
+        auto z{elevation(along, from_center) + marker.offset.y};
 
         glPushMatrix();
         glTranslatef(x, y, z);
         glRotatef(rad_to_deg(angle) - 90.0, 0.0, 0.0, 1.0);
         glRotatef(90.0, 1.0, 0.0, 0.0);
-        marker.draw();
+        marker.image->draw();
         glPopMatrix();
     }
 

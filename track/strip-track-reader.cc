@@ -30,36 +30,13 @@ using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 using namespace Vamos_Track;
 
-using VV2 = std::vector<Two_Vector>;
+using VV2 = std::vector<Point<double>>;
 
 auto get_side = [](auto node, auto const& tag, Side fallback) {
     auto child{node.child(tag)};
     return child
         ? std::string(child.text().as_string()) == "left" ? Side::left : Side::right
         : fallback;
-};
-
-auto get_if_present = [](auto node, auto const& tag, auto& value) {
-    auto child{node.child(tag)};
-    if (!child)
-        return;
-    std::istringstream is{child.text().as_string()};
-    is >> value;
-};
-
-auto get_points = [](auto node, auto const& tag, VV2 points = {}) {
-    for (auto child : node.children(tag))
-    {
-        std::istringstream is{child.text().as_string()};
-        Point<double> p;
-        is >> p;
-        // Overwrite a point at the same x value.
-        if (!points.empty() && p.x == points.back().x)
-            points.back() = p;
-        else
-            points.push_back(p);
-    }
-    return points;
 };
 
 struct Kerb_Params
@@ -74,45 +51,34 @@ struct Kerb_Params
 static std::unique_ptr<Kerb> read_kerb(pugi::xml_node const& node, char const* child,
                                        Kerb_Params& param, double length)
 {
-    if (!node.child(child))
+    auto kerb{node.child(child)};
+    if (!kerb)
         return nullptr;
 
-    auto kerb{node.child(child)};
+    // Automatically add a point at edge of track, ground level.
     if (kerb.child("profile"))
-    {
-        param.profile.clear();
-        std::istringstream is{kerb.child_value("profile")};
-        Two_Vector point;
-        while (is)
-        {
-            param.profile.push_back(point);
-            is >> point;
-        }
-    }
+        param.profile = get_points(kerb, "profile", true, {{0.0, 0.0}});
+
     auto has_start{false};
     auto start_dist{0.0};
-    if (kerb.child("start"))
+    if (auto start{kerb.child("start")})
     {
         has_start = true;
-        auto start{kerb.child("start")};
         start_dist = get_value(start, "distance", 0.0);
-        if (start.child("transition"))
+        if (auto transition{start.child("transition")})
         {
-            auto transition{start.child("transition")};
             param.start_trn_length = get_value(transition, "length", param.start_trn_length);
             param.start_trn_width = get_value(transition, "width", param.start_trn_width);
         }
     }
     auto has_end{false};
     auto end_dist{length};
-    if (kerb.child("end"))
+    if (auto end{kerb.child("end")})
     {
         has_end = true;
-        auto end{kerb.child("end")};
         end_dist = get_value(end, "distance", length);
-        if (end.child("transition"))
+        if (auto transition{end.child("transition")})
         {
-            auto transition{end.child("transition")};
             param.end_trn_length = get_value(transition, "length", param.end_trn_length);
             param.end_trn_width = get_value(transition, "width", param.end_trn_width);
         }
@@ -161,15 +127,15 @@ static void read_road(std::string const& data_dir,
         length = get_value(road_seg, "length", 0.0);
         radius = get_value(road_seg, "radius", 0.0);
         auto skew{get_value(road_seg, "skew", 0.0)}; // not persistent
-        left_width = get_points(road_seg, "left-width", {{0.0, left_width.back().y}});
-        right_width = get_points(road_seg, "right-width", {{0.0, right_width.back().y}});
+        left_width = get_points(road_seg, "left-width", true, {{0.0, left_width.back().y}});
+        right_width = get_points(road_seg, "right-width", true, {{0.0, right_width.back().y}});
         left_road_width
-            = get_points(road_seg, "left-road-width", {{0.0, left_road_width.back().y}});
+            = get_points(road_seg, "left-road-width", true, {{0.0, left_road_width.back().y}});
         right_road_width
-            = get_points(road_seg, "right-road-width", {{0.0, right_road_width.back().y}});
+            = get_points(road_seg, "right-road-width", true, {{0.0, right_road_width.back().y}});
         left_wall_height = get_value(road_seg, "left-wall-height", left_wall_height);
         right_wall_height = get_value(road_seg, "right-wall-height", right_wall_height);
-        VV2 elevation{get_points(road_seg, "elevation")};
+        VV2 elevation{get_points(road_seg, "elevation", true)};
 
         bank = get_value(road_seg, "bank", bank);
         bank_pivot = get_value(road_seg, "bank-pivot", bank_pivot);
@@ -185,16 +151,12 @@ static void read_road(std::string const& data_dir,
 
         std::vector<Braking_Marker> markers;
         for (auto marker : road_seg.children("braking-marker"))
-        {
-            marker_side = get_side(marker, "side", marker_side);
-            marker_size = get_value(marker, "size", marker_size);
-            marker_offset = get_value(marker, "offset", marker_offset);
             markers.emplace_back(data_dir + get_value(marker, "file", std::string()),
                                  get_value(marker, "distance", 0.0),
-                                 marker_side,
-                                 marker_offset.x, marker_offset.y,
-                                 marker_size);
-        }
+                                 marker_side = get_side(marker, "side", marker_side),
+                                 marker_offset = get_value(marker, "offset", marker_offset),
+                                 marker_size = get_value(marker, "size", marker_size));
+
         auto segment{std::make_unique<Gl_Road_Segment>(
                 resolution, length, radius, skew, left_width, right_width,
                 left_road_width, right_road_width,
@@ -203,25 +165,23 @@ static void read_road(std::string const& data_dir,
                 bank, bank_pivot, mats, markers)};
         auto n_segments{track->get_road(0).segments().size()};
 
-        if (road_seg.child("pit-in"))
+        if (auto pit{road_seg.child("pit-in")})
         {
-            auto pit{road_seg.child("pit-in")};
-            auto side{get_side(pit, "side", Side::left)};
-            auto split{get_value(pit, "split", 0.0)};
-            auto merge{get_value(pit, "merge", 0.0)};
             auto angle{get_value(pit, "angle", 0.0)};
             track->set_pit_in(n_segments, angle);
-            segment->set_pit_lane(Pit_Lane_Transition::End::in, side, split, merge, angle);
+            segment->set_pit_lane(Pit_Lane_Transition::End::in,
+                                  get_side(pit, "side", Side::left),
+                                  get_value(pit, "split", 0.0),
+                                  get_value(pit, "merge", 0.0), angle);
         }
-        if (road_seg.child("pit-out"))
+        if (auto pit{road_seg.child("pit-out")})
         {
-            auto pit{road_seg.child("pit-out")};
-            auto side{get_side(pit, "side", Side::left)};
-            auto join{get_value(pit, "join", 0.0)};
-            auto merge{get_value(pit, "merge", 0.0)};
             auto angle{get_value(pit, "angle", 0.0)};
             track->set_pit_out(n_segments, angle);
-            segment->set_pit_lane(Pit_Lane_Transition::End::out, side, join, merge, angle);
+            segment->set_pit_lane(Pit_Lane_Transition::End::out,
+                                  get_side(pit, "side", Side::left),
+                                  get_value(pit, "split", 0.0),
+                                  get_value(pit, "merge", 0.0), angle);
         }
         segment->set_racing_line_adjustment(
             get_value(road_seg, "racing-line-adjustment", 0.0), -1.0);
@@ -264,30 +224,23 @@ void read_track_file(std::string const& data_dir,
     pugi::xml_document doc;
     auto result{doc.load_file(file_name.c_str())};
     auto top{doc.child("track")};
-    if (top.child("racing-line"))
+    if (auto line{top.child("racing-line")})
     {
-        auto line{top.child("racing-line")};
-        get_if_present(line, "iterations", track->mp_track->m_racing_line.m_iterations);
-        get_if_present(line, "stiffness", track->mp_track->m_racing_line.m_stiffness);
-        get_if_present(line, "damping", track->mp_track->m_racing_line.m_damping);
-        get_if_present(line, "margin", track->mp_track->m_racing_line.m_margin);
+        auto& line_obj{track->mp_track->m_racing_line};
+        line_obj.m_iterations = get_value(line, "iterations", line_obj.m_iterations);
+        line_obj.m_damping = get_value(line, "damping", line_obj.m_damping);
+        line_obj.m_margin = get_value(line, "margin", line_obj.m_margin);
     }
-    if (top.child("sky"))
-    {
-        auto sky{top.child("sky")};
+    if (auto sky{top.child("sky")})
         track->set_sky_box(data_dir + sky.child_value("sides"),
                           data_dir + sky.child_value("top"),
                           data_dir + sky.child_value("bottom"),
                           sky.child("smooth"));
-    }
-    if (top.child("map-background"))
-    {
-        auto background{top.child("map-background")};
+    if (auto background{top.child("map-background")})
         track->set_map_background(
             background.child_value("image"),
             Rectangle<int>{get_value(background, "offset", Point{0, 0}),
                            get_value(background, "size", Point{2000, 2000})});
-    }
     std::map<std::string, Material> materials;
     for (auto mat : top.children("material"))
     {
@@ -297,7 +250,6 @@ void read_track_file(std::string const& data_dir,
         if (composition == Material::unknown)
             std::cerr << "Strip_Track_Reader: Warning: Unknown material \"" << type
                       << '\"' << std::endl;
-
         auto tex{mat.child("texture")};
         auto texture{std::make_shared<Texture_Image>(
                 data_dir + tex.child_value("file"),
@@ -334,10 +286,9 @@ void read_track_file(std::string const& data_dir,
 
     auto close{false};
     auto adjusted_segs{3};
-    if (top.child("circuit"))
+    if (auto circuit{top.child("circuit")})
     {
         close = true;
-        auto circuit{top.child("circuit")};
         if (circuit.attribute("segments"))
             adjusted_segs = atoi(circuit.attribute("segments").value());
         if (adjusted_segs > static_cast<int>(track->get_road(0).segments().size()))
@@ -356,15 +307,13 @@ void read_track_file(std::string const& data_dir,
 
     auto join_pit{false};
     auto adjusted_pit{3};
-    if (top.child("pit"))
+    if (auto pit{top.child("pit")})
     {
-        auto pit{top.child("pit")};
         read_road(data_dir, track, pit, materials, seg_mats,
                   std::bind_front(&Strip_Track::add_pit_segment, track));
-        if (pit.child("join"))
+        if (auto join{pit.child("join")})
         {
             join_pit = true;
-            auto join{pit.child("join")};
             if (join.attribute("segments"))
                 adjusted_pit = atoi(join.attribute("segments").value());
         }

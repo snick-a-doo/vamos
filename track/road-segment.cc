@@ -26,7 +26,7 @@ using namespace Vamos_Geometry;
 using namespace Vamos_Track;
 
 //----------------------------------------------------------------------------------------
-Kerb::Kerb(std::vector<Two_Vector> const& profile,
+Kerb::Kerb(std::vector<Point<double>> const& profile,
            double start, double start_transition_length, double start_transition_width,
            double end, double end_transition_length, double end_transition_width,
            bool full_length)
@@ -78,7 +78,7 @@ double Kerb::angle(double along, double from_inside)
     return std::atan2(norm.y, norm.x) - pi / 2.0;
 }
 
-Two_Vector const& Kerb::point(size_t substrip) const
+Point<double> const& Kerb::point(size_t substrip) const
 {
     assert(substrip < m_points.size());
     return m_points[substrip];

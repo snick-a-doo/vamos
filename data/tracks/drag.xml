@@ -142,11 +142,7 @@
 	<left-wall-height>1.0</left-wall-height>
 	<right-wall-height>1.0</right-wall-height>
     <camera>
-      <position>[ 20.0, 20.0, 0.0 ]</position>
-      <range>100.0</range>
-    </camera>
-    <camera>
-      <position>[ 120.0, 20.0, 0.0 ]</position>
+      <position>[ 0.0, 2.0, 3.0 ]</position>
       <range>100.0</range>
     </camera>
     <camera>

@@ -29,7 +29,7 @@ public:
     /// Construct an empty curve.
     Linear_Interpolator();
     /// Construct a cuvre from an array of points.
-    Linear_Interpolator(std::vector<Two_Vector> const& points);
+    Linear_Interpolator(std::vector<Point<double>> const& points);
 
     virtual double interpolate(double x) const override;
     /// Normals are discontinuous at the control points. If x is at a control point, use

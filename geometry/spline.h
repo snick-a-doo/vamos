@@ -37,7 +37,7 @@ public:
     /// specified or left free.
     /// @param first_slope The slope at the beginning of the curve.
     /// @param last_slope The slope at the end of the curve.
-    Spline(std::vector<Two_Vector> const& points,
+    Spline(std::vector<Point<double>> const& points,
            std::optional<double> first_slope = std::nullopt,
            std::optional<double> last_slope = std::nullopt);
 

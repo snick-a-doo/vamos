@@ -45,7 +45,7 @@ Engine::Engine(double mass,
 {
 }
 
-void Engine::set_torque_curve(std::vector<Two_Vector> const& torque_points)
+void Engine::set_torque_curve(std::vector<Point<double>> const& torque_points)
 {
     m_torque_curve.clear();
     m_torque_curve.load(torque_points);

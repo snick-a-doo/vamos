@@ -181,9 +181,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 0.0, 0.0 ]</elevation>
-	<elevation>[ 50.0, 0.0 ]</elevation>
-	<elevation>[ 100.0, 0.0 ]</elevation>
+	<elevation>[ 0.0, 0.0 ][ 50.0, 0.0 ][ 100.0, 0.0 ]</elevation>
   </road>
 
   <!-- Ste Devote -->

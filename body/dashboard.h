@@ -127,21 +127,23 @@ private:
 
 //----------------------------------------------------------------------------------------
 /// A shift lever rendered in the gate.
-class Gear_Shift
+class Gear_Shift : public Gauge<int>
 {
 public:
-    Gear_Shift(Vamos_Geometry::Rectangle<double> const& size, double z,
+    Gear_Shift(Vamos_Geometry::Three_Vector const& position,
+               Vamos_Geometry::Point<double> const& size,
                Vamos_Geometry::Three_Vector const& rotation,
-               std::vector<Vamos_Geometry::Two_Vector> const& positions,
-               std::string const& gate_image, std::string const& stick_image);
+               std::vector<Vamos_Geometry::Point<double>> const& positions,
+               std::string const& gate_image,
+               std::string const& stick_image);
 
-    void draw() const;
+    virtual void draw(bool reset = true) const override;
 
 private:
     double m_stick_width;
     double m_stick_height;
     Vamos_Geometry::Three_Vector m_rotation;
-    std::vector<Vamos_Geometry::Two_Vector> m_positions;
+    std::vector<Vamos_Geometry::Point<double>> m_positions;
     int m_top_gear;
     std::unique_ptr<Vamos_Media::Texture_Image> mp_gate;
     std::unique_ptr<Vamos_Media::Texture_Image> mp_stick;
@@ -159,13 +161,14 @@ public:
     void add_speedometer(std::unique_ptr<Gauge<double>> speedometer);
     void add_fuel_gauge(std::unique_ptr<Gauge<double>> fuel_gauge);
     void add_gear_indicator(std::unique_ptr<Gear_Indicator> gear_indicator);
+    void add_gear_shift(std::unique_ptr<Gear_Shift> gear_shift);
     void add_steering_wheel(std::unique_ptr<Dial> steering_wheel);
     void add_facade(std::unique_ptr<Vamos_Media::Facade> facade);
 
     void set_tachometer(double rpm);
     void set_speedometer(double speed);
     void set_fuel_gauge(double fuel);
-    void set_gear_indicator(int gear);
+    void set_gear(int gear);
     void set_steering_wheel(double angle);
 
     void draw() const;
@@ -178,6 +181,7 @@ private:
     std::unique_ptr<Gauge<double>> mp_speedometer;
     std::unique_ptr<Gauge<double>> mp_fuel_gauge;
     std::unique_ptr<Gear_Indicator> mp_gear_indicator;
+    std::unique_ptr<Gear_Shift> mp_gear_shift;
     std::unique_ptr<Dial> mp_steering_wheel;
     std::vector<std::unique_ptr<Vamos_Media::Facade>> m_facades;
 };

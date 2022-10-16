@@ -145,8 +145,7 @@
 	<right-road-width>[ 0.0, 8.0 ]</right-road-width>
 	<left-wall-height>1.1</left-wall-height>
 	<right-wall-height>1.1</right-wall-height>
-	<elevation>[ 100.0, 0.0 ]</elevation>
-	<elevation>[ 150.0, -2.0 ]</elevation>
+	<elevation>[ 100.0, 0.0 ][ 150.0, -2.0 ]</elevation>
   </road>
 
   <!-- 1 -->
@@ -160,8 +159,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>300.0</length>
-	<elevation>[ 50.0, -18.0 ]</elevation>
-	<elevation>[ 240.0, -6.0 ]</elevation>
+	<elevation>[ 50.0, -18.0 ][ 240.0, -6.0 ]</elevation>
   </road>
 
   <!-- 2 -->
@@ -195,8 +193,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>270.0</length>
-	<elevation>[ 150.0, -14.0 ]</elevation>
-	<elevation>[ 310.0, -10.0 ]</elevation>
+	<elevation>[ 150.0, -14.0 ][ 310.0, -10.0 ]</elevation>
   </road>
 
   <!-- 4 -->
@@ -210,8 +207,7 @@
   <road segment="straight">
     <resolution>5.0</resolution>
     <length>100.0</length>
-	<elevation>[ 65.0, -22.0 ]</elevation>
-	<elevation>[ 130.0, -20.0 ]</elevation>
+	<elevation>[ 65.0, -22.0 ][ 130.0, -20.0 ]</elevation>
   </road>
 
   <!-- 5a -->
@@ -225,8 +221,7 @@
   <road segment="right turn">
     <resolution>2.0</resolution>
     <length>40.0</length>
-	<elevation>[ 20.0, -14.0 ]</elevation>
-	<elevation>[ 40.0, -14.0 ]</elevation>
+	<elevation>[ 20.0, -14.0 ][ 40.0, -14.0 ]</elevation>
   </road>
 
   <!-- Moss 5b -->
@@ -282,8 +277,7 @@
   <road segment="straight">
     <resolution>2.0</resolution>
     <length>360.0</length>
-	<elevation>[ 130.0, 4.0 ]</elevation>
-	<elevation>[ 250.0, -2.0 ]</elevation>
+	<elevation>[ 130.0, 4.0 ][ 250.0, -2.0 ]</elevation>
   </road>
 
   <!-- 8 -->

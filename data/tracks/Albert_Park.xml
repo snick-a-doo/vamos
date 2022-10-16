@@ -191,8 +191,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<elevation>[ 300.0, -2.0 ]</elevation>
-	<elevation>[ 500.0, -2.0 ]</elevation>
+	<elevation>[ 300.0, -2.0 ][ 500.0, -2.0 ]</elevation>
     <pit-out>
       <side>right</side>
       <join>250.0</join>
@@ -650,9 +649,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>347.0</length>
-	<elevation>[ 0.0, 0.0 ]</elevation>
-	<elevation>[ 40.0, -1.0 ]</elevation>
-	<elevation>[ 60.0, -1.0 ]</elevation>
+	<elevation>[ 0.0, 0.0 ][ 40.0, -1.0 ][ 60.0, -1.0 ]</elevation>
 	<left-kerb>
 	  <start><transition/></start>
 	  <end>
@@ -679,10 +676,7 @@
     <road segment="straight">
       <resolution>10.0</resolution>
 	  <length>800.0</length>
-	  <right-road-width>[ 350.0, 4.0 ]</right-road-width>
-	  <right-road-width>[ 400.0, 8.0 ]</right-road-width>
-	  <right-road-width>[ 750.0, 8.0 ]</right-road-width>
-	  <right-road-width>[ 800.0, 4.0 ]</right-road-width>
+	  <right-road-width>[ 350.0, 4.0 ][ 400.0, 8.0 ][ 750.0, 8.0 ][ 800.0, 4.0 ]</right-road-width>
       <model>
 	    <file>garage.ac</file>
 	    <scale>13.0</scale>

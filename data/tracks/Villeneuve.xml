@@ -474,8 +474,7 @@
     <resolution>2.0</resolution>
     <length>95.0</length>
     <radius>-30.0</radius>
-	<left-road-width>[ 0.0, 8.0 ]</left-road-width>
-	<left-road-width>[ 45.0, 20.0 ]</left-road-width>
+	<left-road-width>[ 0.0, 8.0 ][ 45.0, 20.0 ]</left-road-width>
 	<left-width>[ 95.0, 20.0 ]</left-width>
 	<right-kerb>
 	  <start><transition/></start>
@@ -486,8 +485,7 @@
   <road segment="straight">
     <resolution>10.0</resolution>
     <length>100.0</length>
-	<left-road-width>[ 60.0, 25.0 ]</left-road-width>
-	<left-road-width>[ 100.0, 10.0 ]</left-road-width>
+	<left-road-width>[ 60.0, 25.0 ][ 100.0, 10.0 ]</left-road-width>
 	<left-kerb>
 	  <start>
 	    <distance>60.0</distance>
@@ -515,8 +513,7 @@
 	</left-kerb>
 	<right-width>[ 100.0, 12.0 ]</right-width>
 	<left-width>[ 400.0, 12.0 ]</left-width>
-	<elevation>[ 200.0, 5.0 ]</elevation>
-	<elevation>[ 400.0, 0.0 ]</elevation>
+	<elevation>[ 200.0, 5.0 ][ 400.0, 0.0 ]</elevation>
   </road>
   <road segment="straight">
     <resolution>2.0</resolution>
@@ -539,8 +536,7 @@
 	  <file>textures/150.png</file>
 	  <distance>150.0</distance>
 	</braking-marker>
-	<right-width>[ 350.0, 12.0 ]</right-width>
-	<right-width>[ 400.0, 20.0 ]</right-width>
+	<right-width>[ 350.0, 12.0 ][ 400.0, 20.0 ]</right-width>
   </road>
 
   <!-- Chicaine -->

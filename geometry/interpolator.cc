@@ -27,7 +27,7 @@ Interpolator::Interpolator()
 {
 }
 
-Interpolator::Interpolator(std::vector<Two_Vector> const& points)
+Interpolator::Interpolator(std::vector<Point<double>> const& points)
     : m_points{points}
 {
 }
@@ -45,13 +45,13 @@ Interpolator::~Interpolator()
     }
 }
 
-void Interpolator::load(Two_Vector const& point)
+void Interpolator::load(Point<double> const& point)
 {
     m_points.push_back(point);
     m_changed = true;
 }
 
-void Interpolator::load(std::vector<Two_Vector> const& points)
+void Interpolator::load(std::vector<Point<double>> const& points)
 {
     m_points.insert(m_points.end(), points.begin(), points.end());
     m_changed = true;
@@ -63,7 +63,7 @@ void Interpolator::clear()
     m_cache.index = 0;
 }
 
-void Interpolator::replace(std::vector<Two_Vector> const& points)
+void Interpolator::replace(std::vector<Point<double>> const& points)
 {
     clear();
     load(points);
