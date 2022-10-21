@@ -27,56 +27,44 @@
 #include "transmission.h"
 #include "wheel.h"
 
-#include "../geometry/conversions.h"
-#include "../geometry/numeric.h"
-#include "../geometry/rectangle.h"
 #include "../geometry/three-vector.h"
-#include "../media/texture-image.h"
+#include "../geometry/two-vector.h"
+#include "../media/xml.h"
 
 #include <pugixml.hpp>
-
-#include <cassert>
-#include <iostream>
-#include <iterator>
-#include <sstream>
 
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
 using namespace Vamos_Media;
 
 /// Factory for gauges of various types.
-std::unique_ptr<Gauge<double>> get_gauge(auto tag, std::string const& dir)
+static std::unique_ptr<Gauge<double>> get_gauge(auto tag, std::string const& dir)
 {
     auto type{std::string(tag.attribute("type").value())};
-    auto pos{get_value(tag, "position", Three_Vector{})};
+    auto pos{get_value(tag, "position", null_v)};
     auto on_wheel{static_cast<bool>(tag.child("on-steering-wheel"))};
     if (type == "digital")
         return std::make_unique<Digital_Gauge>(
             pos, get_value(tag, "size", Point<double>{1.0, 1.0}),
             get_value(tag, "places", 1),
-            dir + get_value(tag, "image", std::string()), on_wheel);
+            dir + get_value(tag, "image", std::string{}), on_wheel);
     if (type == "LED")
         return std::make_unique<LED_Gauge>(
             pos, get_value(tag, "width", 1.0), get_value(tag, "elements", 1),
             get_value(tag, "range", Point<double>{0.0, 1.0}),
-            dir + get_value(tag, "image", std::string()), on_wheel);
+            dir + get_value(tag, "image", std::string{}), on_wheel);
     return std::make_unique<Dial>(
         pos, get_value(tag, "radius", 1.0),
         get_value(tag, "min", Point<double>{0.0, 0.0}),
         get_value(tag, "max", Point<double>{1.0, 360.0}),
-        dir + get_value(tag, "face", std::string()),
-        dir + get_value(tag, "needle", std::string()));
+        dir + get_value(tag, "face", std::string{}),
+        dir + get_value(tag, "needle", std::string{}));
 }
 
-Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name, Car* car)
-    : m_data_dir(data_dir),
-      mp_car(car),
-      m_tachometer_type("dial"),
-      m_speedometer_type("dial"),
-      m_fuel_gauge_type("dial")
+namespace Vamos_Body
 {
-    mp_car->m_chassis.m_particles.clear();
-
+void read_car(std::string const& data_dir, std::string const& file_name, Car* car)
+{
     pugi::xml_document doc;
     auto result{doc.load_file(file_name.c_str())};
     auto top{doc.child("car")};
@@ -84,15 +72,17 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
         car->set_robot_parameters(get_value(robot, "slip-ratio", 0.0),
                                   get_value(robot, "deceleration", 0.0),
                                   get_value(robot, "lateral-acceleration", 0.0));
+    auto model_dir{data_dir + "cars/"};
     if (auto model{top.child("exterior-model")})
-        car->set_exterior_model(get_model(model, data_dir + "cars/"));
+        car->set_exterior_model(get_model(model, model_dir));
     if (auto model{top.child("interior-model")})
-        car->set_interior_model(get_model(model, data_dir + "cars/"));
+        car->set_interior_model(get_model(model, model_dir));
     if (auto init{top.child("initial-conditions")})
         car->chassis().set_initial_conditions(get_value(init, "position", null_v),
                                               get_value(init, "orientation", null_v),
                                               get_value(init, "velocity", null_v),
                                               get_value(init, "angular-velocity", null_v));
+    // Views, front and rear
     {
         Point<double> size{1.0, 1.0};
         auto field_width{60.0};
@@ -101,13 +91,13 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
         auto direction{180.0};
         std::string mask;
         if (auto view{top.child("view")})
-            car->set_view(get_value(view, "position", Three_Vector{}),
+            car->set_view(get_value(view, "position", null_v),
                           field_width = get_value(view, "field-width", field_width),
                           near_plane = get_value(view, "near-plane", near_plane),
                           far_plane = get_value(view, "far-plane", far_plane),
                           get_value(view, "pan-angle", 90.0));
         for (auto mirror : top.children("mirror"))
-            car->add_rear_view(get_value(mirror, "position", Three_Vector{}),
+            car->add_rear_view(get_value(mirror, "position", null_v),
                                size = get_value(mirror, "size", size),
                                direction = get_value(mirror, "direction", direction),
                                field_width = get_value(mirror, "field-width", field_width),
@@ -115,15 +105,16 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
                                far_plane = get_value(mirror, "far-plane", far_plane),
                                data_dir + "textures/" + (mask = get_value(mirror, "mask", mask)));
     }
+    // Dashboard
     if (auto dash{top.child("dashboard")})
     {
-        auto dir{m_data_dir + "textures/"};
+        auto dir{data_dir + "textures/"};
         auto dashboard{std::make_unique<Dashboard>(
                 get_value(dash, "position", null_v),
                 get_value(dash, "tilt", 0.0))};
         for (auto frame : dash.children("mirror-frame"))
             dashboard->add_facade(std::make_unique<Facade>(
-                    dir + get_value(frame, "image", std::string()),
+                    dir + get_value(frame, "image", std::string{}),
                     get_value(frame, "position", null_v),
                     get_value(frame, "size", Point{1.0, 1.0}), false));
         if (auto tach = dash.child("tachometer"))
@@ -138,7 +129,7 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
                     get_value(gear, "position", null_v),
                     get_value(gear, "size", Point<double>{1.0, 1.0}),
                     get_value(gear, "numbers", 7),
-                    dir + get_value(gear, "image", std::string()),
+                    dir + get_value(gear, "image", std::string{}),
                     static_cast<bool>(gear.child("on-steering-wheel"))));
         if (auto shift{dash.child("gear-shift")})
             dashboard->add_gear_shift(
@@ -146,762 +137,227 @@ Car_Reader::Car_Reader(std::string const& data_dir, std::string const& file_name
                                              get_value(shift, "size", Point<double>{1.0, 1.0}),
                                              get_value(shift, "rotation", null_v),
                                              get_points(shift, "stick-positions", false),
-                                             dir + get_value(shift, "gate", std::string()),
-                                             dir + get_value(shift, "stick", std::string())));
+                                             dir + get_value(shift, "gate", std::string{}),
+                                             dir + get_value(shift, "stick", std::string{})));
         if (auto steer{dash.child("steering-wheel")})
             dashboard->add_steering_wheel(
                 std::make_unique<Dial>(get_value(steer, "position", null_v),
                                        get_value(steer, "radius", 1.0),
                                        get_value(steer, "min", Point<double>{0.0, 0.0}),
                                        get_value(steer, "max", Point<double>{1.0, 360.0}),
-                                       "", dir + get_value(steer, "image", std::string())));
+                                       "", dir + get_value(steer, "image", std::string{})));
         car->set_dashboard(std::move(dashboard));
         car->show_dashboard_extras(static_cast<bool>(dash.child("extras")));
     }
+    // Steering
     if (auto steer{top.child("steering")})
     {
         car->max_steer_angle(get_value(steer, "max-angle", 20.0));
         car->steer_exponent(get_value(steer, "exponent", 2.0));
         car->steer_speed_sensitivity(get_value(steer, "speed-sensitivity", 0.0));
     }
-
-    read(file_name);
-}
-
-void Car_Reader::on_start_tag(const Vamos_Media::XML_Tag& tag)
-{
-    auto const& attribs{tag.get_attributes()};
-
-    if (match("/car"))
-        mp_car->m_name = attribs.at("name");
-    else if (match("/car/robot"))
-        m_doubles.resize(3);
-    else if (match("/car/exterior-model") || match("/car/interior-model"))
+    // Drivetrain
+    if (auto drive{top.child("drivetrain")})
     {
-        m_strings.clear();
-        m_strings.resize(2);
-        m_doubles.resize(1);
-        m_doubles[0] = 1.0;
-        m_vectors.clear();
-        m_vectors.resize(2);
-    }
-    else if (match("initial-conditions"))
-    {
-        m_vectors.clear();
-        m_vectors.resize(4);
-    }
-    else if (match("view"))
-    {
-        m_vectors.clear();
-        m_doubles.clear();
-        m_doubles.resize(4);
-    }
-    else if (match("mirror"))
-    {
-        m_vectors.clear();
-        m_doubles.resize(6);
-        m_strings.resize(1);
-    }
-    else if (match("steering"))
-    {
-        m_doubles.clear();
-        m_doubles.resize(3);
-    }
-    else if (match("dashboard"))
-    {
-        m_ints.clear();
-        m_ints.resize(1);
-        m_doubles.clear();
-        m_doubles.resize(12);
-        m_strings.clear();
-        m_strings.resize(2);
-        m_bools.clear();
-        m_bools.resize(1);
-        m_vectors.clear();
-        m_vectors.resize(1);
-        m_points.clear();
-        m_mirrors.clear();
-    }
-    else if (match("on-steering-wheel"))
-        m_bools[0] = true;
-    else if (match("tachometer"))
-        m_tachometer_type = attribs.empty() ? "dial" : attribs.at("type");
-    else if (match("speedometer"))
-        m_speedometer_type = attribs.empty() ? "dial" : attribs.at("type");
-    else if (match("fuel-gauge"))
-        m_fuel_gauge_type = attribs.empty() ? "dial" : attribs.at("type");
-    else if (match("drivetrain"))
-    {
-        m_bools.clear();
-        m_bools.resize(1);
-    }
-    else if (match("engine"))
-    {
-        m_doubles.clear();
-        m_doubles.resize(14);
-        m_vectors.clear();
-        m_strings.clear();
-        m_strings.resize(1);
-        m_bools.clear();
-        m_bools.resize(1);
-    }
-    else if (match("torque-curve"))
-    {
-        m_points.clear();
-        m_bools[0] = true;
-        m_doubles[9] = atof(attribs.at("friction").c_str());
-    }
-    else if (match("clutch"))
-        m_doubles.clear();
-    else if (match("transmission"))
-    {
-        m_doubles.clear();
-        m_gears.clear();
-    }
-    else if (match("differential"))
-        m_doubles.clear();
-    else if (match("fuel-tank"))
-    {
-        m_doubles.clear();
-        m_vectors.clear();
-    }
-    else if (match("contact-point"))
-    {
-        m_doubles.resize(3);
-        m_strings.resize(1);
-        m_vectors.clear();
-    }
-    else if (match("particle"))
-    {
-        m_doubles.resize(1);
-        m_vectors.clear();
-    }
-    else if (match("drag"))
-    {
-        m_doubles.resize(2);
-        m_vectors.clear();
-    }
-    else if (match("wing"))
-    {
-        m_doubles.resize(6);
-        m_vectors.clear();
-    }
-    else if (match("wheel"))
-    {
-        if (m_doubles.size() != 24)
+        std::shared_ptr<Engine> engine;
+        std::unique_ptr<Clutch> clutch;
+        std::unique_ptr<Transmission> transmission;
+        std::unique_ptr<Differential> differential;
+        if (auto eng_tag{drive.child("engine")})
         {
-            m_doubles.resize(24);
-            m_doubles[8] = 0.0;
-            m_doubles[20] = 0.0;
-            m_doubles[23] = 1.0;
-            m_strings.resize(3);
-            m_vectors.resize(5);
+            engine = std::make_shared<Engine>(get_value(eng_tag, "mass", 1.0),
+                                              get_value(eng_tag, "position", null_v),
+                                              get_value(eng_tag, "max-power", 0.0),
+                                              get_value(eng_tag, "peak-rpm", 0.0),
+                                              get_value(eng_tag, "rpm-limit", 0.0),
+                                              get_value(eng_tag, "inertia", 1.0),
+                                              get_value(eng_tag, "idle", 0.0),
+                                              get_value(eng_tag, "start-rpm", 0.0),
+                                              get_value(eng_tag, "stall-rpm", 0.0),
+                                              get_value(eng_tag, "fuel-consumption", 0.0));
+            if (eng_tag.child("torque-curve"))
+            {
+                engine->set_torque_curve(get_points(eng_tag, "torque-curve", true));
+                engine->set_friction(get_value(eng_tag, "friction", 0.0));
+            }
+            if (auto sound_tag{eng_tag.child("sound")})
+                car->set_engine_sound(
+                    data_dir + "sounds/" + get_value(sound_tag, "file", std::string{}),
+                    get_value(sound_tag, "pitch", 1.0),
+                    get_value(sound_tag, "volume", 1.0),
+                    get_value(sound_tag, "throttle-volume-factor", 1.0),
+                    get_value(sound_tag, "engine-speed-volume-factor", 1.0));
         }
-        m_strings[0] = attribs.at("side");
-        m_strings[1] = attribs.at("end");
-        m_bools.clear();
-        m_bools.resize(2);
-        m_first_model_for_this_wheel = true;
-    }
-    else if (match("steered"))
-        m_bools[0] = true;
-    else if (match("driven"))
-        m_bools[1] = true;
-}
-
-void Car_Reader::on_end_tag(Vamos_Media::XML_Tag const&)
-{
-    // if (match("/car/robot"))
-    //     mp_car->set_robot_parameters(m_doubles[0], m_doubles[1], m_doubles[2]);
-    // else if (match("/car/exterior-model") && !m_strings[0].empty())
-    //     mp_car->set_exterior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0],
-    //                                m_vectors[0], m_vectors[1]);
-    // else if (match("/car/interior-model") && !m_strings[0].empty())
-    //     mp_car->set_interior_model(m_data_dir + "cars/" + m_strings[0], m_doubles[0],
-    //                                m_vectors[0], m_vectors[1]);
-    // if (match("initial-conditions"))
-    //     mp_car->chassis().set_initial_conditions(m_vectors[0], m_vectors[1], m_vectors[2],
-    //                                              m_vectors[3]);
-    // else if (match( "view"))
-    //     mp_car->set_view(m_vectors[0], m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3]);
-    // else if (match("mirror"))
-    //     mp_car->add_rear_view(m_vectors[0], m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3],
-    //                           m_doubles[4], m_doubles[5], m_data_dir + "textures/" + m_strings[0]);
-    // if (match("steering"))
-    // {
-    //     mp_car->max_steer_angle(m_doubles[0]);
-    //     mp_car->steer_exponent(m_doubles[1]);
-    //     mp_car->steer_speed_sensitivity(m_doubles[2]);
-    // }
-    // else if (match("mirror-frame"))
-    // {
-    //     auto frame{std::make_unique<Facade>(m_data_dir + "textures/" + m_strings[0], true)};
-    //     frame->set_width(m_doubles[3]);
-    //     frame->set_height(m_doubles[4]);
-    //     frame->set_offset({m_doubles[0], m_doubles[1], m_doubles[2]});
-    //     m_mirrors.push_back(std::move(frame));
-    // }
-    // else if (match("tachometer"))
-    // {
-    //     if (m_tachometer_type == "LED")
-    //     {
-    //         mp_tachometer = std::make_unique<LED_Gauge>(
-    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_ints[0],
-    //             m_doubles[4], m_doubles[5], m_data_dir + "textures/" + m_strings[0],
-    //             m_bools[0]);
-    //         m_bools[0] = false;
-    //     }
-    //     else if (m_tachometer_type == "digital")
-    //     {
-    //         mp_tachometer = std::make_unique<Digital_Gauge>(
-    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-    //             m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
-    //         m_bools[0] = false;
-    //     }
-    //     else
-    //         mp_tachometer = std::make_unique<Dial>(
-    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-    //             m_doubles[5], m_doubles[6], m_doubles[7],
-    //             m_data_dir + "textures/" + m_strings[0],
-    //             m_data_dir + "textures/" + m_strings[1]);
-    // }
-    // else if (match("speedometer"))
-    // {
-    //     if (m_speedometer_type == "digital")
-    //     {
-    //         mp_speedometer = std::make_unique<Digital_Gauge>(
-    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-    //             m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
-    //         m_bools[0] = false;
-    //     }
-    //     else
-    //         mp_speedometer = std::make_unique<Dial>(
-    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-    //             m_doubles[5], m_doubles[6], m_doubles[7],
-    //             m_data_dir + "textures/" + m_strings[0],
-    //             m_data_dir + "textures/" + m_strings[1]);
-    // }
-    // else if (match("fuel-gauge"))
-    // {
-    //     if (m_fuel_gauge_type == "digital")
-    //     {
-    //         mp_fuel_gauge = std::make_unique<Digital_Gauge>(
-    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-    //             m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
-    //         m_bools[0] = false;
-    //     }
-    //     else
-    //         mp_fuel_gauge = std::make_unique<Dial>(
-    //             m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4],
-    //             m_doubles[5], m_doubles[6], m_doubles[7],
-    //             m_data_dir + "textures/" + m_strings[0],
-    //             m_data_dir + "textures/" + m_strings[1]);
-    // }
-    // else if (match("gear-indicator"))
-    // {
-    //     mp_gear_indicator = std::make_unique<Gear_Indicator>(
-    //         Rectangle{m_doubles[0], m_doubles[1], m_doubles[3], m_doubles[4]}, m_doubles[2],
-    //         m_ints[0], m_data_dir + "textures/" + m_strings[0], m_bools[0]);
-    //     m_bools[0] = false;
-    // }
-    // else if (match("gear-shift"))
-    //     mp_gear_indicator = std::make_unique<Gear_Shift>(
-    //         Rectangle{m_doubles[0], m_doubles[1], m_doubles[3], m_doubles[4]}, m_doubles[2],
-    //         m_vectors[0], m_points, m_data_dir + "textures/" + m_strings[0],
-    //         m_data_dir + "textures/" + m_strings[1]);
-    // else if (match("steering-wheel"))
-    //     mp_steering_wheel = std::make_unique<Steering_Wheel>(
-    //         m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3], m_doubles[4], m_doubles[5],
-    //         m_doubles[6], m_doubles[7], m_data_dir + "textures/" + m_strings[0]);
-    // else if (match("dashboard"))
-    // {
-    //     auto dash{std::make_unique<Dashboard>(
-    //             m_doubles[8], m_doubles[9], m_doubles[10], m_doubles[11])};
-    //     for (auto& mirror : m_mirrors)
-    //         dash->add_facade(std::move(mirror));
-    //     dash->add_tachometer(std::move(mp_tachometer));
-    //     dash->add_speedometer(std::move(mp_speedometer));
-    //     dash->add_fuel_gauge(std::move(mp_fuel_gauge));
-    //     dash->add_gear_indicator(std::move(mp_gear_indicator));
-    //     dash->add_steering_wheel(std::move(mp_steering_wheel));
-    //     mp_car->set_dashboard(std::move(dash));
-    // }
-    // else if (match("/car/dashboard/extras"))
-    //     mp_car->show_dashboard_extras(true);
-    if (match("engine"))
-    {
-        mp_engine = std::make_shared<Engine>(m_doubles[0], m_vectors[0], m_doubles[1], m_doubles[2],
-                                             m_doubles[3], m_doubles[4], m_doubles[5], m_doubles[6],
-                                             m_doubles[7], m_doubles[8]);
-        if (m_bools[0])
+        if (auto clutch_tag{drive.child("clutch")})
+            clutch = std::make_unique<Clutch>(get_value(clutch_tag, "sliding", 0.0),
+                                              get_value(clutch_tag, "radius", 1.0),
+                                              get_value(clutch_tag, "area", 1.0),
+                                              get_value(clutch_tag, "max-pressure", 1.0));
+        if (auto trans_tag{drive.child("transmission")})
         {
-            mp_engine->set_torque_curve(m_points);
-            mp_engine->set_friction(m_doubles[9]);
+            transmission = std::make_unique<Transmission>(
+                get_value(trans_tag, "forward-gears", 1),
+                get_value(trans_tag, "first-ratio", 1.0),
+                get_value(trans_tag, "last-ratio", 1.0));
+            car->shift_delay(get_value(trans_tag, "shift-delay", 0.2));
         }
-        mp_car->set_engine_sound(m_data_dir + "sounds/" + m_strings[0], m_doubles[10],
-                                 m_doubles[11], m_doubles[12], m_doubles[13]);
+        if (auto diff_tag{drive.child("differential")})
+            differential = std::make_unique<Differential>(
+                get_value(diff_tag, "final-drive", 1.0),
+                get_value(diff_tag, "anti-slip", 1.0));
+        car->mp_drivetrain = std::make_unique<Drivetrain>(
+            engine, std::move(clutch), std::move(transmission), std::move(differential));
+        car->chassis().add_particle(engine);
     }
-    else if (match("clutch"))
+    if (auto tank{top.child("fuel-tank")})
     {
-        if (m_doubles.size() != 4)
-            error("clutch requires 4 arguments");
-        mp_clutch
-            = std::make_unique<Clutch>(m_doubles[0], m_doubles[1], m_doubles[2], m_doubles[3]);
+        car->mp_fuel_tank = std::make_shared<Fuel_Tank>(get_value(tank, "position", null_v),
+                                                        get_value(tank, "capacity", 1.0),
+                                                        get_value(tank, "volume", 1.0),
+                                                        get_value(tank, "fuel-density", 1.0));
+        car->chassis().add_particle(car->mp_fuel_tank);
     }
-    else if (match("transmission"))
+    // Masses persist if not specified.
+    auto mass{0.0};
+    std::string type{"unknown"};
+    auto friction{0.0};
+    auto restitution{0.0};
+    for (auto part : top.children("particle"))
+        car->chassis().add_particle(std::make_shared<Particle>(
+                                        mass = get_value(part, "mass", mass),
+                                        get_value(part, "position", null_v)));
+    for (auto part : top.children("contact-point"))
     {
-        if (m_doubles.size() == 4)
-        {
-            mp_transmission = std::make_unique<Transmission>(static_cast<int>(m_doubles[0]),
-                                                             m_doubles[1], m_doubles[2]);
-            mp_car->shift_delay(m_doubles[3]);
-        }
-        else
-        {
-            mp_transmission = std::make_unique<Transmission>();
-            for (auto gear : m_gears)
-                mp_transmission->set_gear_ratio(gear.first, gear.second);
-            mp_car->shift_delay(m_doubles[1]);
-        }
+        type = get_value(part, "material", type);
+        Material material{type == "rubber" ? Material::rubber
+                          : type == "metal" ? Material::metal
+                          : Material::unknown,
+                          friction = get_value(part, "friction", friction),
+                          restitution = get_value(part, "restitution", restitution)};
+        car->chassis().add_particle(std::make_shared<Particle>(
+                                        mass = get_value(part, "mass", mass),
+                                        get_value(part, "position", null_v),
+                                        material));
     }
-    else if (match("differential"))
-    {
-        if (m_doubles.size() != 2)
-            error("differential requires 2 arguments");
-        mp_differential = std::make_unique<Differential>(m_doubles[0], m_doubles[1]);
-    }
-    else if (match("drivetrain"))
-        mp_car->mp_drivetrain = std::make_unique<Drivetrain>(mp_engine, std::move(mp_clutch),
-                                                             std::move(mp_transmission),
-                                                             std::move(mp_differential));
-    else if (match("fuel-tank"))
-    {
-        if (m_doubles.size() != 3 || m_vectors.size() != 1)
-            error("fuel tank requires 1 or 3 elements");
-        mp_car->mp_fuel_tank
-            = std::make_shared<Fuel_Tank>(m_vectors[0], m_doubles[0], m_doubles[1], m_doubles[2]);
-    }
-    else if (match("car"))
-    {
-        if (mp_engine)
-            mp_car->chassis().add_particle(mp_engine);
-        if (mp_car->mp_fuel_tank)
-            mp_car->chassis().add_particle(mp_car->mp_fuel_tank);
-    }
-    else if (match("particle"))
-    {
-        mp_car->chassis().add_particle(std::make_shared<Particle>(m_doubles[0], m_vectors[0]));
-    }
-    else if (match("contact-point"))
-    {
-        auto material{m_strings[0] == "rubber" ? Material::rubber
-                      : m_strings[0] == "metal" ? Material::metal
-                      : Material::unknown};
-        mp_car->chassis().add_particle(std::make_shared<Particle>(
-            m_doubles[0], m_vectors[0], Material{material, m_doubles[1], m_doubles[2]}));
-    }
-    else if (match("drag"))
-    {
-        mp_car->chassis().add_particle(
-            std::make_shared<Drag>(m_vectors[0], m_doubles[0], m_doubles[1]));
-    }
-    else if (match("wing"))
-    {
-        mp_car->chassis().add_particle(
-            std::make_shared<Wing>(m_vectors[0], m_doubles[0], m_doubles[1],
-                                   m_doubles[2], m_doubles[3]));
-    }
-    else if (match("/car/wheel/suspension/model"))
-    {
-        if (m_first_model_for_this_wheel)
-        {
-            m_models.clear();
-            m_first_model_for_this_wheel = false;
-        }
-        m_models.emplace_back(m_strings[2], m_doubles[21], m_vectors[3], m_vectors[4]);
-    }
-    else if (match("wheel"))
-    {
-        auto side = m_strings[0] == "left" ? Side::left : Side::right;
-        auto suspension = std::make_shared<Suspension>(
-            m_vectors[1], m_vectors[2], side, m_doubles[0], m_doubles[1], m_doubles[2],
-            m_doubles[3], m_doubles[4]);
-        suspension->camber(m_doubles[5]);
-        suspension->caster(m_doubles[6]);
-        suspension->toe(m_doubles[7]);
-        if (m_doubles[8] != 0.0 && mp_last_suspension)
-        {
-            suspension->anti_roll(mp_last_suspension, m_doubles[8]);
-            m_doubles[8] = 0.0;
-        }
-        mp_last_suspension = suspension;
-        for (auto const& model : m_models)
-            suspension->set_model(m_data_dir + "cars/" + model.file, model.scale,
-                                  model.translate, model.rotate);
-        mp_car->chassis().add_particle(suspension->get_hinge());
-        mp_car->chassis().add_particle(suspension);
-        Tire_Friction friction(m_longi_parameters, m_trans_parameters, m_align_parameters);
-        Tire tire(m_doubles[9], m_doubles[10], m_doubles[11], friction, m_doubles[23],
-                  m_doubles[12]);
-        auto bias{m_doubles[17]};
-        if (m_strings[1] == "rear")
-            bias = 1.0 - bias;
-        Brake brake(m_doubles[13], m_doubles[14], m_doubles[15], m_doubles[16], bias);
-        auto wheel = std::make_shared<Wheel>(
-            m_doubles[18], m_vectors[0], m_doubles[22], m_doubles[20], m_doubles[19],
-            suspension, tire, brake, m_bools[0], m_bools[1], side);
-        mp_car->chassis().add_particle(wheel);
-        mp_car->m_wheels.push_back(wheel);
-        if (!m_slow_model.empty())
-        {
-            auto stator_path{m_stator_model.empty() ? "" : m_data_dir + "cars/" + m_stator_model};
-            wheel->set_models(m_data_dir + "cars/" + m_slow_model,
-                              m_data_dir + "cars/" + m_fast_model, m_transition, stator_path,
-                              m_stator_offset, m_scale, m_translation, m_rotation);
-        }
-    }
-}
-
-void Car_Reader::on_data(std::string const& data)
-{
-    if (data.empty())
-        return;
-    std::istringstream is(data.c_str());
-    if (match("/car/robot/slip-ratio"))
-        is >> m_doubles[0];
-    else if (match("/car/robot/deceleration"))
-        is >> m_doubles[1];
-    else if (match("/car/robot/lateral-acceleration"))
-        is >> m_doubles[2];
-    else if (match("/car/dashboard/position"))
-    {
-        char delim;
-        is >> delim >> m_doubles[8] >> delim >> m_doubles[9] >> delim >> m_doubles[10];
-    }
-    else if (match("/car/dashboard/tilt"))
-        is >> m_doubles[11];
-    else if (match("/car/dashboard/mirror-frame/position")
-             || match("/car/dashboard/tachometer/position")
-             || match("/car/dashboard/speedometer/position")
-             || match("/car/dashboard/fuel-gauge/position")
-             || match("/car/dashboard/gear-indicator/position")
-             || match("/car/dashboard/gear-shift/position")
-             || match("/car/dashboard/steering-wheel/position"))
-    {
-        char delim;
-        is >> delim >> m_doubles[0] >> delim >> m_doubles[1] >> delim >> m_doubles[2];
-    }
-    else if (match("/car/dashboard/tachometer/radius")
-             || match("/car/dashboard/tachometer/width")
-             || match("/car/dashboard/speedometer/radius")
-             || match("/car/dashboard/fuel-gauge/radius")
-             || match("/car/dashboard/steering-wheel/radius"))
-        is >> m_doubles[3];
-    else if (match("/car/dashboard/tachometer/elements"))
-        is >> m_ints[0];
-    else if (match("/car/dashboard/tachometer/range"))
-    {
-        char delim;
-        is >> delim >> m_doubles[4] >> delim >> m_doubles[5];
-    }
-    else if (match("/car/dashboard/tachometer/min")
-             || match("/car/dashboard/speedometer/min")
-             || match("/car/dashboard/fuel-gauge/min")
-             || match("/car/dashboard/steering-wheel/min"))
-    {
-        char delim;
-        is >> delim >> m_doubles[4] >> delim >> m_doubles[5];
-    }
-    else if (match("/car/dashboard/tachometer/max")
-             || match("/car/dashboard/speedometer/max")
-             || match("/car/dashboard/fuel-gauge/max")
-             || match("/car/dashboard/steering-wheel/max"))
-    {
-        char delim;
-        is >> delim >> m_doubles[6] >> delim >> m_doubles[7];
-    }
-    else if (match("/car/dashboard/gear-shift/rotation"))
-        is >> m_vectors[0];
-    else if (match("/car/dashboard/gear-shift/stick-positions"))
-    {
-        Point<double> point;
-        while (is >> point)
-            m_points.push_back(point);
-    }
-    else if (match("/car/dashboard/mirror-frame/image")
-             || match("/car/dashboard/tachometer/face")
-             || match("/car/dashboard/tachometer/image")
-             || match("/car/dashboard/speedometer/face")
-             || match("/car/dashboard/speedometer/image")
-             || match("/car/dashboard/fuel-gauge/face")
-             || match("/car/dashboard/fuel-gauge/image")
-             || match("/car/dashboard/gear-indicator/image")
-             || match("/car/dashboard/gear-shift/gate")
-             || match("/car/dashboard/steering-wheel/image"))
-    {
-        is >> m_strings[0];
-    }
-    else if (match("/car/dashboard/tachometer/needle")
-             || match("/car/dashboard/speedometer/needle")
-             || match("/car/dashboard/fuel-gauge/needle")
-             || match("/car/dashboard/gear-shift/stick"))
-        is >> m_strings[1];
-    else if (match( "/car/dashboard/mirror-frame/size")
-             || match("/car/dashboard/gear-indicator/size")
-             || match("/car/dashboard/gear-shift/size")
-             || match("/car/dashboard/tachometer/size")
-             || match("/car/dashboard/speedometer/size")
-             || match("/car/dashboard/fuel-gauge/size"))
-    {
-        char delim;
-        is >> delim >> m_doubles[3] >> delim >> m_doubles[4];
-    }
-    else if (match("/car/dashboard/gear-indicator/numbers")
-             || match("/car/dashboard/tachometer/places")
-             || match("/car/dashboard/speedometer/places")
-             || match("/car/dashboard/fuel-gauge/places"))
-        is >> m_ints[0];
-    // Particle
-    else if (match("/car/particle/mass"))
-        is >> m_doubles[0];
-    // Contact Point
-    else if (match("/car/contact-point/mass"))
-        is >> m_doubles[0];
-    else if (match("/car/contact-point/material"))
-        is >> m_strings[0];
-    else if (match("/car/contact-point/friction"))
-        is >> m_doubles[1];
-    else if (match( "/car/contact-point/restitution"))
-        is >> m_doubles[2];
-    // Drag
-    else if (match("/car/drag/frontal-area"))
-        is >> m_doubles[0];
-    else if (match("/car/drag/drag-coefficient"))
-        is >> m_doubles[1];
-    // Wing
-    else if (match("/car/wing/frontal-area"))
-        is >> m_doubles[0];
-    else if (match("/car/wing/surface-area"))
-        is >> m_doubles[1];
-    else if (match("/car/wing/lift-coefficient"))
-        is >> m_doubles[2];
-    else if (match("/car/wing/efficiency"))
-        is >> m_doubles[3];
-    // Wheel
-    else if (match("/car/wheel/position"))
-        is >> m_vectors[0];
-    else if (match("/car/wheel/mass"))
-        is >> m_doubles[18];
-    else if (match("/car/wheel/restitution"))
-        is >> m_doubles[19];
-    else if (match("/car/wheel/roll-height"))
-        is >> m_doubles[20];
+    for (auto part : top.children("drag"))
+        car->chassis().add_particle(std::make_shared<Drag>(
+                                        get_value(part, "position", null_v),
+                                        get_value(part, "frontal-area", 0.0),
+                                        get_value(part, "drag-coefficient", 0.0)));
+    for (auto part : top.children("wing"))
+        car->chassis().add_particle(std::make_shared<Wing>(
+                                        get_value(part, "position", null_v),
+                                        get_value(part, "frontal-area", 0.0),
+                                        get_value(part, "surface-area", 0.0),
+                                        get_value(part, "lift-coefficient", 0.0),
+                                        get_value(part, "efficiency", 1.0)));
+    // Wheels
+    std::shared_ptr<Suspension> last_suspension;
+    // Brake params.
+    auto b_friction{1.0};
+    auto b_radius{1.0};
+    auto b_area{1.0};
+    auto b_max_p{1.0};
+    auto b_front_bias{0.5};
     // Suspension
-    else if (match("/car/wheel/suspension/model/file"))
-        is >> m_strings[2];
-    else if (match("/car/wheel/suspension/model/scale"))
-        is >> m_doubles[21];
-    else if (match("/car/wheel/suspension/model/translate"))
-        is >> m_vectors[3];
-    else if (match("/car/wheel/suspension/model/rotate"))
-        is >> m_vectors[4];
-    else if (match("/car/wheel/suspension/position"))
-        is >> m_vectors[1];
-    else if (match("/car/wheel/suspension/hinge"))
-        is >> m_vectors[2];
-    else if (match("/car/wheel/suspension/spring-constant"))
-        is >> m_doubles[0];
-    else if (match("/car/wheel/suspension/bounce"))
-        is >> m_doubles[1];
-    else if (match("/car/wheel/suspension/rebound"))
-        is >> m_doubles[2];
-    else if (match("/car/wheel/suspension/travel"))
-        is >> m_doubles[3];
-    else if (match("/car/wheel/suspension/max-compression-velocity"))
-        is >> m_doubles[4];
-    else if (match("/car/wheel/suspension/camber"))
-        is >> m_doubles[5];
-    else if (match("/car/wheel/suspension/caster"))
-        is >> m_doubles[6];
-    else if (match("/car/wheel/suspension/toe"))
-        is >> m_doubles[7];
-    else if (match("/car/wheel/suspension/anti-roll"))
-        is >> m_doubles[8];
+    auto s_k{1.0};
+    auto s_bounce{1.0};
+    auto s_rebound{1.0};
+    auto s_travel{1.0};
+    auto s_max_v{1.0};
+    auto s_camber{0.0};
+    auto s_caster{0.0};
+    auto s_toe{0.0};
     // Tire
-    else if (match( "/car/wheel/tire/radius"))
-        is >> m_doubles[9];
-    else if (match("/car/wheel/tire/offset"))
-        is >> m_doubles[22];
-    else if (match("/car/wheel/tire/rolling-resistance"))
+    auto t_radius{1.0};
+    Point<double> t_rolling{0.0, 0.0};
+    Longi_Params t_longi{0};
+    Trans_Params t_trans{0};
+    Align_Params t_align{0};
+    auto t_hardness{1.0};
+    auto t_inertia{1.0};
+    // Wheel
+    auto w_mass{1.0};
+    auto w_offset{0.0};
+    auto w_roll_h{0.0};
+    auto w_rest{1.0};
+    std::string w_slow;
+    std::string w_fast;
+    auto w_trans_v{1.0};
+    std::string w_stator;
+    auto w_stator_off{0.0};
+    auto w_scale{1.0};
+    auto w_trans{null_v};
+    auto w_rot{null_v};
+
+    for (auto wheel_tag : top.children("wheel"))
     {
-        char delim;
-        is >> delim >> m_doubles[10] >> delim >> m_doubles[11];
+        auto side{std::string{wheel_tag.attribute("side").value()} == "left"
+                  ? Side::left : Side::right};
+        auto front{std::string{wheel_tag.attribute("end").value()} == "front"};
+        auto susp{wheel_tag.child("suspension")};
+        auto suspension{std::make_shared<Suspension>(
+                get_value(susp, "position", null_v),
+                get_value(susp, "hinge", null_v),
+                side,
+                s_k = get_value(susp, "spring-constant", s_k),
+                s_bounce = get_value(susp, "bounce", s_bounce),
+                s_rebound = get_value(susp, "rebound", s_rebound),
+                s_travel = get_value(susp, "travel", s_travel),
+                s_max_v = get_value(susp, "max-compression-velocity", s_max_v))};
+        suspension->camber(s_camber = get_value(susp, "camber", s_camber));
+        suspension->caster(s_caster = get_value(susp, "caster", s_caster));
+        suspension->toe(s_toe = get_value(susp, "toe", s_toe));
+        if (auto ar{susp.child("anti-roll")})
+            if (last_suspension)
+                suspension->anti_roll(last_suspension, get_value(susp, "anti-roll", 0.0));
+        last_suspension = suspension;
+        for (auto model : susp.children("model"))
+            suspension->set_model(model_dir + get_value(model, "file", std::string()),
+                                  get_value(model, "scale", 1.0),
+                                  get_value(model, "translate", null_v),
+                                  get_value(model, "rotate", null_v));
+        car->chassis().add_particle(suspension->get_hinge());
+        car->chassis().add_particle(suspension);
+
+        auto tire_tag{wheel_tag.child("tire")};
+        auto fric{tire_tag.child("friction")};
+        Tire_Friction friction{t_longi = get_array(fric, "longitudinal", t_longi),
+                               t_trans = get_array(fric, "transverse", t_trans),
+                               t_align = get_array(fric, "aligning", t_align)};
+        Tire tire{t_radius = get_value(tire_tag, "radius", t_radius),
+                  t_rolling = get_value(tire_tag, "rolling-resistance", t_rolling),
+                  friction,
+                  t_hardness = get_value(tire_tag, "hardness", t_hardness),
+                  t_inertia = get_value(tire_tag, "rotational-inertia", t_inertia)};
+        auto brake_tag{wheel_tag.child("brakes")};
+        b_front_bias = get_value(brake_tag, "front-bias", b_front_bias);
+        Brake brake{b_friction = get_value(brake_tag, "friction", b_friction),
+                    b_radius = get_value(brake_tag, "radius", b_radius),
+                    b_area = get_value(brake_tag, "area", b_area),
+                    b_max_p = get_value(brake_tag, "max-pressure", b_max_p),
+                    front ? b_front_bias : 1.0 - b_front_bias};
+        auto wheel{std::make_shared<Wheel>(
+                w_mass = get_value(wheel_tag, "mass", w_mass),
+                get_value(wheel_tag, "position", null_v),
+                w_offset = get_value(tire_tag, "offset", w_offset),
+                w_roll_h = get_value(wheel_tag, "roll-height", w_roll_h),
+                w_rest = get_value(wheel_tag, "restitution", w_rest),
+                suspension, tire, brake,
+                get_flag(wheel_tag, "steered"),
+                get_flag(wheel_tag, "driven"),
+                side)};
+        car->chassis().add_particle(wheel);
+        car->m_wheels.push_back(wheel);
+        auto model{wheel_tag.child("model")};
+        wheel->set_models(w_slow = model_dir + get_value(model, "slow-file", w_slow),
+                          w_fast = model_dir + get_value(model, "fast-file", w_fast),
+                          w_trans_v = get_value(model, "transition-speed", w_trans_v),
+                          w_stator = model_dir + get_value(model, "stator-file", w_stator),
+                          w_stator_off = get_value(model, "stator-offset", w_stator_off),
+                          w_scale = get_value(model, "scale", w_scale),
+                          w_trans = get_value(model, "translate", w_trans),
+                          w_rot = get_value(model, "rotate", w_rot));
     }
-    else if (match("/car/wheel/tire/rotational-inertia"))
-        is >> m_doubles[12];
-    else if (match("/car/wheel/tire/friction/longitudinal"))
-    {
-        for (auto& param : m_longi_parameters)
-        {
-            char delim;
-            is >> delim >> param;
-        }
-    }
-    else if (match("/car/wheel/tire/friction/transverse"))
-    {
-        for (auto& param : m_trans_parameters)
-        {
-            char delim;
-            is >> delim >> param;
-        }
-    }
-    else if (match("/car/wheel/tire/friction/aligning"))
-    {
-        for (auto& param : m_align_parameters)
-        {
-            char delim;
-            is >> delim >> param;
-        }
-    }
-    else if (match("/car/wheel/tire/hardness"))
-        is >> m_doubles[23];
-    // Brakes
-    else if (match("/car/wheel/brakes/friction"))
-        is >> m_doubles[13];
-    else if (match("/car/wheel/brakes/radius"))
-        is >> m_doubles[14];
-    else if (match("/car/wheel/brakes/area"))
-        is >> m_doubles[15];
-    else if (match("/car/wheel/brakes/max-pressure"))
-        is >> m_doubles[16];
-    else if (match("/car/wheel/brakes/front-bias"))
-        is >> m_doubles[17];
-    // Transmission
-    else if (match("/car/drivetrain/transmission/gear-ratio"))
-    {
-        std::pair<int, double> pair;
-        char delim;
-        is >> delim >> pair.first >> delim >> pair.second;
-        m_gears.push_back(pair);
-    }
-    // Initial Conditions
-    else if (match("/car/initial-conditions/position"))
-        is >> m_vectors[0];
-    else if (match("/car/initial-conditions/orientation"))
-        is >> m_vectors[1];
-    else if (match("/car/initial-conditions/velocity"))
-        is >> m_vectors[2];
-    else if (match("/car/initial-conditions/angular-velocity"))
-        is >> m_vectors[3];
-    // View
-    else if (match("/car/view/field-width"))
-        is >> m_doubles[0];
-    else if (match("/car/view/near-plane"))
-        is >> m_doubles[1];
-    else if (match("/car/view/far-plane"))
-        is >> m_doubles[2];
-    else if (match("/car/view/pan-angle"))
-        is >> m_doubles[3];
-    // Rear View
-    else if (match("/car/mirror/size"))
-    {
-        char delim;
-        is >> delim >> m_doubles[0] >> delim >> m_doubles[1];
-    }
-    else if (match("/car/mirror/direction"))
-        is >> m_doubles[2];
-    else if (match("/car/mirror/field-width"))
-        is >> m_doubles[3];
-    else if (match("/car/mirror/near-plane"))
-        is >> m_doubles[4];
-    else if (match("/car/mirror/far-plane"))
-        is >> m_doubles[5];
-    else if (match("/car/mirror/mask"))
-        is >> m_strings[0];
-    // Steering
-    else if (match("/car/steering/max-angle"))
-        is >> m_doubles[0];
-    else if (match("/car/steering/exponent"))
-        is >> m_doubles[1];
-    else if (match("/car/steering/speed-sensitivity"))
-        is >> m_doubles[2];
-    // Engine
-    else if (match("/car/drivetrain/engine/mass"))
-        is >> m_doubles[0];
-    else if (match("/car/drivetrain/engine/max-power"))
-        is >> m_doubles[1];
-    else if (match("/car/drivetrain/engine/peak-engine-rpm"))
-        is >> m_doubles[2];
-    else if (match("/car/drivetrain/engine/rpm-limit"))
-        is >> m_doubles[3];
-    else if (match("/car/drivetrain/engine/inertia"))
-        is >> m_doubles[4];
-    else if (match("/car/drivetrain/engine/idle"))
-        is >> m_doubles[5];
-    else if (match("/car/drivetrain/engine/start-rpm"))
-        is >> m_doubles[6];
-    else if (match("/car/drivetrain/engine/stall-rpm"))
-        is >> m_doubles[7];
-    else if (match("/car/drivetrain/engine/fuel-consumption"))
-        is >> m_doubles[8];
-    else if (match("/car/drivetrain/engine/torque-curve"))
-    {
-        Point<double> point;
-        while (is >> point)
-            m_points.push_back(point);
-    }
-    else if (match("/car/drivetrain/engine/sound/file"))
-        is >> m_strings[0];
-    else if (match("/car/drivetrain/engine/sound/volume"))
-        is >> m_doubles[10];
-    else if (match("/car/drivetrain/engine/sound/throttle-volume-factor"))
-        is >> m_doubles[11];
-    else if (match("/car/drivetrain/engine/sound/engine-speed-volume-factor"))
-        is >> m_doubles[12];
-    else if (match("/car/drivetrain/engine/sound/pitch"))
-        is >> m_doubles[13];
-    else if (match("/car/exterior-model/file") || match("/car/interior-model/file"))
-        is >> m_strings[0];
-    else if (match("/car/exterior-model/scale") || match("/car/interior-model/scale"))
-        is >> m_doubles[0];
-    else if (match("/car/exterior-model/translate")
-             || match("/car/interior-model/translate"))
-        is >> m_vectors[0];
-    else if (match("/car/exterior-model/rotate") || match("/car/interior-model/rotate"))
-    {
-        is >> m_vectors[1];
-        m_vectors[1]
-            = {deg_to_rad(m_vectors[1].x), deg_to_rad(m_vectors[1].y), deg_to_rad(m_vectors[1].z)};
-    }
-    else if (match("/car/wheel/model/slow-file"))
-        is >> m_slow_model;
-    else if (match("/car/wheel/model/fast-file"))
-        is >> m_fast_model;
-    else if (match("/car/wheel/model/stator-file"))
-        is >> m_stator_model;
-    else if (match("/car/wheel/model/transition-speed"))
-        is >> m_transition;
-    else if (match("/car/wheel/model/stator-offset"))
-        is >> m_stator_offset;
-    else if (match("/car/wheel/model/scale"))
-        is >> m_scale;
-    else if (match("/car/wheel/model/translate"))
-        is >> m_translation;
-    else if (match("/car/wheel/model/rotate"))
-    {
-        is >> m_rotation;
-        m_rotation.y = deg_to_rad(m_rotation.y);
-    }
-    else if (match("position"))
-    {
-        Three_Vector vec;
-        is >> vec;
-        m_vectors.push_back(vec);
-    }
-    else
-    {
-        double arg;
-        is >> arg;
-        m_doubles.push_back(arg);
-    }
+}
 }

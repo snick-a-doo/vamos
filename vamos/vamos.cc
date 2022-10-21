@@ -24,6 +24,7 @@
 #include "../world/sounds.h"
 
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 
 using namespace Vamos_Body;

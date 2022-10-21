@@ -24,7 +24,7 @@
 #include "../geometry/two-vector.h"
 #include "../media/material.h"
 #include "../media/texture-image.h"
-#include "../media/xml-parser.h"
+#include "../media/xml.h"
 #include "gl-road-segment.h"
 
 #include <exception>

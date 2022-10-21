@@ -510,16 +510,14 @@ void Gl_Road_Segment::build()
         auto from_center{marker.side == Side::right
                          ? -marker.offset.x - right_road_width(along)
                          : marker.offset.x + left_road_width(along) + marker.image->width()};
-        using std::sin, std::cos;
         auto angle{start_angle() + arc() * along / length()};
-        auto x{center_of_curve().x - from_center * sin(angle)};
-        auto y{center_of_curve().y + from_center * cos(angle)};
-        x += (is_straight() ? along : radius()) * cos(angle);
-        y += (is_straight() ? along : radius()) * sin(angle);
-        auto z{elevation(along, from_center) + marker.offset.y};
+        auto r{is_straight()
+               ? start_coords() + rotate(Three_Vector{along, from_center, 0.0}, angle * z_hat)
+               : center_of_curve() + Three_Vector(radius() - from_center, angle - pi / 2.0)};
+        r.z = elevation(along, from_center) + marker.offset.y;
 
         glPushMatrix();
-        glTranslatef(x, y, z);
+        glTranslatef(r.x, r.y, r.z);
         glRotatef(rad_to_deg(angle) - 90.0, 0.0, 0.0, 1.0);
         glRotatef(90.0, 1.0, 0.0, 0.0);
         marker.image->draw();

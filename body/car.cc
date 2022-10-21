@@ -134,7 +134,8 @@ void Car::read(std::string const& data_dir, std::string const& car_file)
     }
 
     m_wheels.clear();
-    Car_Reader reader(m_data_dir, m_car_file, this);
+    m_chassis = Rigid_Body{m_chassis.position(), m_chassis.orientation()};
+    read_car(m_data_dir, m_car_file, this);
 
     // Find the bounding box for the particles.
     auto pos1{m_chassis.particles().front()->position()};

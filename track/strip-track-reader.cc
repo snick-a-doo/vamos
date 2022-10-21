@@ -16,7 +16,7 @@
 #include "strip-track.h"
 
 #include "../geometry/two-vector.h"
-#include "../media/xml-parser.h"
+#include "../media/xml.h"
 
 #include <pugixml.hpp>
 

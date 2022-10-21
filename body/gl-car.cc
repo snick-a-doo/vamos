@@ -349,7 +349,8 @@ void Gl_Car::draw_interior()
 
 void Gl_Car::draw_dashboard()
 {
-    assert(mp_drivetrain);
+    if (!mp_drivetrain)
+        return;
     auto const& dt{*mp_drivetrain};
     mp_dashboard->set_tachometer(rad_s_to_rpm(dt.engine().rotational_speed()));
     mp_dashboard->set_speedometer(m_s_to_km_h(wheel(2).speed()));
@@ -377,7 +378,7 @@ void Gl_Car::draw_dashboard_extras()
     screen.text(down(p, 4), "Mass", m_chassis.mass(), "kg");
     screen.text(down(p, 4), "Gear", (gear == -1 ? "R"
                                      : gear == 0 ? "N"
-                                     : std::to_string(gear) + '0'));
+                                     : std::to_string(gear)));
 
     screen.bar({19, bottom, 2, top - bottom}, cyan, brake_fraction());
     screen.bar({22, bottom, 2, top - bottom}, magenta, throttle_fraction());

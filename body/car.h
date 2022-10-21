@@ -23,7 +23,6 @@
 #include "../geometry/three-vector.h"
 #include "../geometry/two-vector.h"
 #include "../media/material.h"
-#include "../media/xml-parser.h"
 
 #include <memory>
 #include <utility>
@@ -83,7 +82,8 @@ class Wheel;
 /// A body with wheels.
 class Car
 {
-    friend class Car_Reader;
+    friend void read_car(std::string const& data_dir, std::string const& file_name, Car* car);
+
     struct Robot_Parameters;
 
 public:
@@ -347,65 +347,9 @@ struct Model_Info
     Vamos_Geometry::Three_Vector rotate;
 };
 
-template <typename T> class Gauge;
-class Gear_Indicator;
-class Steering_Wheel;
-class Suspension;
+/// Rebuild a car from the definition file.
+void read_car(std::string const& data_dir, std::string const& file_name, Car* car);
 
-//----------------------------------------------------------------------------------------
-/// Reader for car definition files.
-class Car_Reader : public Vamos_Media::XML_Parser
-{
-public:
-    Car_Reader(std::string const& data_dir, std::string const& car_file, Car* car);
-
-private:
-    virtual void on_start_tag(Vamos_Media::XML_Tag const& tag) override;
-    virtual void on_end_tag(Vamos_Media::XML_Tag const& tag) override;
-    virtual void on_data(std::string const& data) override;
-
-    std::vector<int> m_ints;
-    std::vector<double> m_doubles;
-    std::vector<std::string> m_strings;
-    std::vector<Vamos_Geometry::Three_Vector> m_vectors;
-    std::vector<Vamos_Geometry::Point<double>> m_points;
-    std::vector<std::pair<int, double>> m_gears;
-    std::vector<bool> m_bools;
-
-    Longi_Params m_longi_parameters;
-    Trans_Params m_trans_parameters;
-    Align_Params m_align_parameters;
-
-    std::string m_slow_model;
-    std::string m_fast_model;
-    std::string m_stator_model;
-    double m_transition;
-    double m_stator_offset;
-    double m_scale;
-    Vamos_Geometry::Three_Vector m_translation;
-    Vamos_Geometry::Three_Vector m_rotation;
-    std::vector<Model_Info> m_models;
-    bool m_first_model_for_this_wheel{true};
-    std::shared_ptr<Suspension> mp_last_suspension;
-
-    std::string m_data_dir;
-    Car* mp_car;
-    std::shared_ptr<Engine> mp_engine;
-    std::unique_ptr<Clutch> mp_clutch;
-    std::unique_ptr<Transmission> mp_transmission;
-    std::unique_ptr<Differential> mp_differential;
-
-    std::vector<std::unique_ptr<Vamos_Media::Facade>> m_mirrors;
-    std::unique_ptr<Gauge<double>> mp_tachometer{nullptr};
-    std::unique_ptr<Gauge<double>> mp_speedometer{nullptr};
-    std::unique_ptr<Gauge<double>> mp_fuel_gauge{nullptr};
-    std::unique_ptr<Gear_Indicator> mp_gear_indicator{nullptr};
-    // std::unique_ptr<Steering_Wheel> mp_steering_wheel{nullptr};
-
-    std::string m_tachometer_type{"dial"};
-    std::string m_speedometer_type{"dial"};
-    std::string m_fuel_gauge_type{"dial"};
-};
 } // namespace Vamos_Body
 
 #endif // VAMOS_BODY_CAR_H_INCLUDED

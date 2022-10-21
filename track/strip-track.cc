@@ -1115,7 +1115,7 @@ Contact_Info Strip_Track::test_for_contact(Three_Vector const& pos,
     auto const track_pos{track_coordinates(pos, road_index, segment_index)};
     auto const& segment{get_road(road_index).segments()[segment_index]};
     auto const segment_distance{track_pos.x - segment->start_distance()};
-    auto material{segment->material_at(track_pos.x, track_pos.y)};
+    auto material{segment->material_at(segment_distance, track_pos.y)};
     auto contact{false};
     Three_Vector normal;
 

@@ -104,7 +104,7 @@
 	  <mass>80.0</mass>
 
       <max-power>3e5</max-power><!-- hp * 746 W/hp -->
-	  <peak-engine-rpm>9000.0</peak-engine-rpm>
+	  <peak-rpm>9000.0</peak-rpm>
 	  <rpm-limit>10000.0</rpm-limit>
 	  <inertia>0.5</inertia>
 	  <idle>0.015</idle>

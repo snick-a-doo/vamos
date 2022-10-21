@@ -52,7 +52,7 @@
 	</tachometer>
 
     <speedometer type="digital">
-	  <position>[ -0.01, 0.04, 0.3 ]</position>
+	  <position>[ -0.005, 0.037, 0.3 ]</position>
 	  <on-steering-wheel/>
 	  <size>[ 0.05, 0.025 ]</size>
 	  <places>3</places>
@@ -60,7 +60,7 @@
 	</speedometer>
 
     <fuel-gauge type="digital">
-	  <position>[ 0.0, 0.01, 0.3 ]</position>
+	  <position>[ 0.005, 0.005, 0.3 ]</position>
 	  <on-steering-wheel/>
 	  <size>[ 0.04, 0.020 ]</size>
 	  <places>3</places>
@@ -68,7 +68,7 @@
 	</fuel-gauge>
 
 	<gear-indicator>
-	  <position>[ -0.03, 0.04, 0.3 ]</position>
+	  <position>[ -0.045, 0.037, 0.3 ]</position>
 	  <on-steering-wheel/>
 	  <size>[ 0.017, 0.025 ]</size>
 	  <image>gears-lcd.png</image>
@@ -96,7 +96,7 @@
 	  <mass>100.0</mass>
 
       <max-power>7.2e5</max-power><!-- hp * 746 W/hp -->
-	  <peak-engine-rpm>16000.0</peak-engine-rpm>
+	  <peak-rpm>16000.0</peak-rpm>
 	  <rpm-limit>19000.0</rpm-limit>
 	  <inertia>0.5</inertia>
 	  <idle>0.18</idle>
@@ -303,14 +303,12 @@
 
   <wing>
     <position>[ 4.0, 0.9, 0.01 ]</position>
-    <position>[ 4.0, 0.9, 0.01 ]</position>
 	<frontal-area>0.2</frontal-area>
 	<surface-area>0.3</surface-area>
 	<lift-coefficient>-6.5</lift-coefficient>
 	<efficiency>0.5</efficiency>
   </wing>
   <wing>
-    <position>[ 0.0, 0.9, 0.5 ]</position>
     <position>[ 0.0, 0.9, 0.5 ]</position>
 	<frontal-area>0.2</frontal-area>
 	<surface-area>0.5</surface-area>

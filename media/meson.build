@@ -4,7 +4,7 @@ media_sources = [
   'sample.cc',
   'texture-image.cc',
   'two-d.cc',
-  'xml-parser.cc',
+  'xml.cc',
 ]
 
 media_lib = library('vamos-media',

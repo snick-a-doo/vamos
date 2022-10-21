@@ -18,7 +18,6 @@ test_sources = [
   'test_three-vector.cc',
   'test_timing-info.cc',
   'test_two-vector.cc',
-  'test_xml-parser.cc',
 ]
 
 vamos_test = executable('vamos-test',

@@ -81,7 +81,7 @@
 	</fuel-gauge>
 
 	<gear-indicator>
-	  <position>[ 0.02, 0.06, 0.0 ]</position>
+	  <position>[ -0.02, 0.06, 0.0 ]</position>
 	  <size>[ 0.04, 0.06 ]</size>
 	  <image>gears.png</image>
 	  <numbers>8</numbers>
@@ -109,7 +109,7 @@
 	  <position>[ 3.5, 0.88, 0.2 ]</position>
 	  <mass>200.0</mass>
       <max-power>1.5e5</max-power>
-	  <peak-engine-rpm>8000.0</peak-engine-rpm>
+	  <peak-rpm>8000.0</peak-rpm>
       <!-- torque-curve friction="0.00025">
         [ 1000.0, 150.0 ]
         [ 2000.0, 200.0 ]

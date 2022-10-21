@@ -148,10 +148,10 @@ Three_Vector Tire_Friction::friction_forces(double normal_force, double friction
 }
 
 //----------------------------------------------------------------------------------------
-Vamos_Body::Tire::Tire(double radius, double rolling_resistance_1, double rolling_resistance_2,
+Vamos_Body::Tire::Tire(double radius, Point<double> rolling_resistance,
                        Tire_Friction const& friction, double hardness, double inertia)
     : m_radius{radius},
-      m_rolling_resistance{rolling_resistance_1, rolling_resistance_2},
+      m_rolling_resistance{rolling_resistance},
       m_tire_friction{friction},
       m_inertia{inertia},
       m_hardness{hardness}

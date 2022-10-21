@@ -27,7 +27,7 @@ public:
     /// @param area Surface area of the rotor.
     /// @param max_pressure Pressure when brakes are fully applied.
     /// @param bias The fraction of braking given to this brake.
-    Brake(double slideing, double radius, double area, double max_pressure, double bias);
+    Brake(double sliding, double radius, double area, double max_pressure, double bias);
 
     /// @param factor The fraction of full braking being applied.
     /// @param rotational_velocity The rotational speed of the wheel in rad/s.

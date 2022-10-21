@@ -70,7 +70,7 @@ double Kerb::elevation(double along, double from_inside)
 
 double Kerb::angle(double along, double from_inside)
 {
-    if (!on_kerb(along) || (from_inside < 0.0) || (from_inside > width()))
+    if (!on_kerb(along) || from_inside < 0.0 || from_inside > width())
         return 0.0;
 
     //!!TODO: Account for tapering on the transition.

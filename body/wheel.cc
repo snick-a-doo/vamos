@@ -130,7 +130,8 @@ void Wheel::set_models(std::string const& slow_file, std::string const& fast_fil
                        Three_Vector const& translation, Three_Vector const& rotation)
 {
     Three_Vector offset;
-    if (!stator_file.empty())
+    auto has_stator{!stator_file.empty() && !stator_file.ends_with('/')};
+    if (has_stator)
         offset.y += (m_side == Side::right) ? stator_offset : -stator_offset;
 
     if (m_slow_wheel_list)
@@ -145,7 +146,7 @@ void Wheel::set_models(std::string const& slow_file, std::string const& fast_fil
 
     if (m_stator_list)
         glDeleteLists(m_stator_list, 1);
-    if (!stator_file.empty())
+    if (has_stator)
         m_stator_list = make_model(stator_file, scale, translation, rotation);
 }
 

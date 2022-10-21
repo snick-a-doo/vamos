@@ -29,7 +29,7 @@ namespace Vamos_Body
 {
 using Longi_Params = std::array<double, 11>;
 using Trans_Params = std::array<double, 15>;
-using Align_Params = std::array<double, 10>;
+using Align_Params = std::array<double, 18>;
 
 /// Return the longitudinal (first) and transverse (second) slip ratios.
 std::pair<double, double> get_slip(double patch_speed,
@@ -79,7 +79,7 @@ private:
 class Tire : public Particle
 {
 public:
-    Tire(double radius, double rolling_resistance_1, double rolling_resistance_2,
+    Tire(double radius, Vamos_Geometry::Point<double> rolling_resistance,
          Tire_Friction const& friction, double hardness, double inertia);
 
     // Called by the wheel to update the tire.
@@ -132,7 +132,7 @@ private:
     /// The radius of the tire.
     double m_radius;
     /// Linear and quadratic rolling resistance on a hard surface.
-    std::tuple<double, double> m_rolling_resistance;
+    Vamos_Geometry::Point<double> m_rolling_resistance;
     /// Object for calculating friction.
     Tire_Friction m_tire_friction;
     /// The rotational inertia of the tire.

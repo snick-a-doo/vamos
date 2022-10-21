@@ -22,6 +22,7 @@
 #include "../track/strip-track.h"
 
 #include <cassert>
+#include <fstream>
 #include <limits>
 
 using namespace Vamos_Body;
@@ -171,6 +172,7 @@ double World::air_density_factor(Car_Info const& car1, Car_Info const& car2)
 
 void World::interact(Car* car, size_t road_index, size_t segment_index)
 {
+    car->chassis().set_gravity(m_gravity);
     for (auto const& p : car->chassis().particles())
     {
         auto const& pos{car->chassis().contact_position(*p)};
@@ -280,14 +282,10 @@ void World::restart()
 
 void World::set_gravity(double g)
 {
-    m_gravity = Three_Vector{0.0, 0.0, -std::abs(g)};
+    m_gravity = -std::abs(g) * z_hat;
     for (auto& car : m_cars)
-    {
-        if (!car.car)
-            continue;
-        car.car->chassis().set_gravity(m_gravity);
-        car.driver->set_gravity(m_gravity);
-    }
+        if (car.driver)
+            car.driver->set_gravity(m_gravity);
 }
 
 void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
@@ -322,7 +320,7 @@ void World::add_car(std::shared_ptr<Car> car, std::unique_ptr<Driver> driver)
     driver->set_cars(&m_cars);
     if (driver->is_interactive())
         mo_controlled_car_index = m_cars.size();
-    car->chassis().set_gravity(m_gravity);
+    driver->set_gravity(m_gravity);
     place_car(car.get(), car->chassis().position(), m_track.get_road(0));
     m_cars.emplace_back(car, std::move(driver));
 }
