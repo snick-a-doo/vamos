@@ -112,13 +112,7 @@ void World::propagate_cars(double time_step)
 {
     for (auto& info : m_cars)
     {
-        info.propagate(time_step, mp_timing->elapsed_time(),
-                       m_track.track_coordinates(info.car->front_position(), info.road_index,
-                                                 info.segment_index),
-                       m_track.track_coordinates(info.car->target_position(), info.road_index,
-                                                 info.segment_index));
         interact(info.car.get(), info.road_index, info.segment_index);
-
         // Handle air resistance.
         auto slipstream{1.0};
         if (m_cars_interact)
@@ -132,6 +126,12 @@ void World::propagate_cars(double time_step)
             }
         }
         info.car->wind(m_atmosphere.velocity, m_atmosphere.density * slipstream);
+        info.propagate(time_step, mp_timing->elapsed_time(),
+                       m_track.track_coordinates(info.car->front_position(), info.road_index,
+                                                 info.segment_index),
+                       m_track.track_coordinates(info.car->target_position(), info.road_index,
+                                                 info.segment_index));
+
     }
 }
 

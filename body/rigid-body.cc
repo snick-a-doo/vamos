@@ -70,6 +70,7 @@ void Rigid_Body::add_particle(std::shared_ptr<Particle> particle)
     m_particles.push_back(particle);
     if (auto drag = std::dynamic_pointer_cast<Drag>(particle))
         m_drag_particles.push_back(drag);
+    update_center_of_mass();
 }
 
 Three_Vector Rigid_Body::cm_position() const
