@@ -995,7 +995,9 @@ void Strip_Track::draw() const
 Three_Vector Strip_Track::reset_position(Three_Vector const& pos,
                                          size_t& road_index, size_t& segment_index) const
 {
-    return {track_coordinates(pos, road_index, segment_index).x, 0.0, 0.0};
+    auto track{track_coordinates(pos, road_index, segment_index)};
+    // Return the point in the center of the road.
+    return {track.x, 0.0, track.z};
 }
 
 Three_Matrix Strip_Track::reset_orientation(Three_Vector const& pos,

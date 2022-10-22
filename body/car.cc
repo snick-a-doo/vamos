@@ -114,7 +114,7 @@ void Key_Control::end()
 }
 
 //----------------------------------------------------------------------------------------
-Car::Car(const Three_Vector& position, const Three_Matrix& orientation)
+Car::Car(Three_Vector const& position, Three_Matrix const& orientation)
     : m_chassis(position, orientation)
 {
 }
@@ -142,7 +142,7 @@ void Car::read(std::string const& data_dir, std::string const& car_file)
     m_crash_box = {pos1.x, pos1.x, pos1.y, pos1.y, pos1.z, pos1.z};
     for (auto const& p : m_chassis.particles())
     {
-        const auto& pos{p->position()};
+        auto const& pos{p->position()};
         m_crash_box.front = std::max(m_crash_box.front, pos.x);
         m_crash_box.back = std::min(m_crash_box.back, pos.x);
         m_crash_box.left = std::max(m_crash_box.left, pos.y);
@@ -351,7 +351,7 @@ void Car::reset()
     private_reset();
 }
 
-void Car::reset(const Three_Vector& position, const Three_Matrix& orientation)
+void Car::reset(Three_Vector const& position, Three_Matrix const& orientation)
 {
     m_chassis.reset(position, orientation);
     private_reset();
@@ -381,7 +381,7 @@ Contact_Info Car::collision(Three_Vector const& position,
     return {!in.is_null(), in.magnitude(), m_chassis.rotate_out(in), Material::metal};
 }
 
-void Car::wind(const Vamos_Geometry::Three_Vector& wind_vector, double density)
+void Car::wind(Vamos_Geometry::Three_Vector const& wind_vector, double density)
 {
     m_air_density = density;
     m_chassis.wind(wind_vector, density);
@@ -402,7 +402,7 @@ Three_Vector Car::front_position() const
     return m_chassis.transform_out(front());
 }
 
-void Car::set_front_position(const Three_Vector& pos)
+void Car::set_front_position(Three_Vector const& pos)
 {
     m_chassis.set_position(pos - m_chassis.rotate_out(front()));
 }
@@ -484,7 +484,7 @@ Three_Vector Car::Crash_Box::penetration(Three_Vector const& point,
     return {0.0, 0.0, 0.0};
 }
 
-bool Car::Crash_Box::within(const Three_Vector& pos, bool ignore_z) const
+bool Car::Crash_Box::within(Three_Vector const& pos, bool ignore_z) const
 {
     return is_in_range(pos.x, back, front)
         && is_in_range(pos.y, right, left)

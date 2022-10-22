@@ -85,6 +85,9 @@ void Suspension::anti_roll(std::shared_ptr<Suspension> other, double spring_cons
 
 void Suspension::displace(double distance)
 {
+    // Ignore interaction before the first timestep.
+    if (m_time_step == 0.0)
+        return;
     m_bottomed_out = distance > m_travel;
     auto last_displacement{m_displacement};
     m_displacement = std::min(distance, m_travel);

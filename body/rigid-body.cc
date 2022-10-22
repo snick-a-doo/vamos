@@ -175,7 +175,7 @@ void Rigid_Body::propagate(double time)
     // Process single-collision contact.
     if (m_contact_params.info.depth > 0.0)
     {
-        auto point{*m_contact_params.particle};
+        auto& point{*m_contact_params.particle};
         auto v{particle_velocity(point)};
         auto omega{angular_velocity()};
         point.contact(rotate_in(m_contact_params.impulse), rotate_in(v),

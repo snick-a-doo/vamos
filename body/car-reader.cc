@@ -40,7 +40,7 @@ using namespace Vamos_Media;
 /// Factory for gauges of various types.
 static std::unique_ptr<Gauge<double>> get_gauge(auto tag, std::string const& dir)
 {
-    auto type{std::string(tag.attribute("type").value())};
+    auto type{std::string{tag.attribute("type").value()}};
     auto pos{get_value(tag, "position", null_v)};
     auto on_wheel{static_cast<bool>(tag.child("on-steering-wheel"))};
     if (type == "digital")
@@ -68,6 +68,7 @@ void read_car(std::string const& data_dir, std::string const& file_name, Car* ca
     pugi::xml_document doc;
     auto result{doc.load_file(file_name.c_str())};
     auto top{doc.child("car")};
+    car->m_name = std::string{top.attribute("name").value()};
     if (auto robot{top.child("robot")})
         car->set_robot_parameters(get_value(robot, "slip-ratio", 0.0),
                                   get_value(robot, "deceleration", 0.0),
@@ -313,7 +314,7 @@ void read_car(std::string const& data_dir, std::string const& file_name, Car* ca
                 suspension->anti_roll(last_suspension, get_value(susp, "anti-roll", 0.0));
         last_suspension = suspension;
         for (auto model : susp.children("model"))
-            suspension->set_model(model_dir + get_value(model, "file", std::string()),
+            suspension->set_model(model_dir + get_value(model, "file", std::string{}),
                                   get_value(model, "scale", 1.0),
                                   get_value(model, "translate", null_v),
                                   get_value(model, "rotate", null_v));

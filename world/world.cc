@@ -303,16 +303,15 @@ void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
         orientation.rotate({0.0, atan2(up.x, up.y), 0.0});
         car->chassis().set_orientation(orientation);
     }
-    // Raise the car to the requested height above the track.
+    // Raise the car so it's just touching the track.
     auto gap{std::numeric_limits<double>::max()};
     for (auto p : car->chassis().particles())
     {
         auto pos{car->chassis().transform_out(p->contact_position())};
         gap = std::min(gap, pos.z - segment.world_elevation(pos));
     }
-    // Move the car to its initial x-y position.
-    car->set_front_position(road.position(track_pos.x, track_pos.y));
-    car->chassis().translate({0.0, 0.0, track_pos.z - gap});
+    auto world_pos{road.position(track_pos.x, track_pos.y, segment)};
+    car->set_front_position({world_pos.x, world_pos.y, car->front_position().z - gap});
 }
 
 void World::add_car(std::shared_ptr<Car> car, std::unique_ptr<Driver> driver)
