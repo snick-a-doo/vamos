@@ -48,6 +48,7 @@ void Rigid_Body::add_particle(std::shared_ptr<Particle> particle)
     m_particles.push_back(particle);
     if (auto aero = std::dynamic_pointer_cast<Drag>(particle))
         m_aero_particles.push_back(aero);
+    update_center_of_mass();
 }
 
 Three_Vector Rigid_Body::cm_position() const
