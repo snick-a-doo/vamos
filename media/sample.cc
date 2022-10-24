@@ -19,7 +19,7 @@
 
 using namespace Vamos_Media;
 
-/// Wrap an OpenAL function calls in error checks.
+/// Wrap an OpenAL function call in an error check.
 auto al_check = [](auto& al_func, auto name, auto&&... args) {
     alGetError(); // Clear existing errors.
     al_func(args...);
@@ -67,9 +67,8 @@ void Sample::position(Vamos_Geometry::Three_Vector const& v)
     al_check(alSource3f, "position()", m_source, AL_POSITION, v.x, v.y, v.z);
 }
 
-void Sample::velocity(Vamos_Geometry::Three_Vector v)
+void Sample::velocity(Vamos_Geometry::Three_Vector const& v)
 {
-    v /= alGetDouble(AL_SPEED_OF_SOUND);
     al_check(alSource3f, "velocity()", m_source, AL_VELOCITY, v.x, v.y, v.z);
 }
 

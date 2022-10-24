@@ -98,6 +98,8 @@ public:
     /// Set the body to its initial state at a particular position and orientation.
     void reset(Vamos_Geometry::Three_Vector const& position,
                Vamos_Geometry::Three_Matrix const& orientation);
+    /// @return True if set_initial_conditions() was called.
+    bool has_initial_conditions() const { return m_has_initial_conditions; }
 
 private:
     /// Calculate the center of mass, the ineritia tensor, and its inverse.
@@ -124,6 +126,7 @@ private:
     Contact m_contact_params; ///< The current deepest contact.
     ///< Particles added to exert collision forces from other objects.
     std::vector<Particle> m_temporary_contact;
+    bool m_has_initial_conditions{false}; ///< True if set_initial_conditions() is called.
 };
 } // namespace Vamos_Body
 

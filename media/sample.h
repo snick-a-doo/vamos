@@ -50,7 +50,7 @@ public:
     /// Set the location of the source.
     void position(Vamos_Geometry::Three_Vector const& v);
     /// Set the velocity of the source.
-    void velocity(Vamos_Geometry::Three_Vector v);
+    void velocity(Vamos_Geometry::Three_Vector const& v);
 
     void play();
     void pause();

@@ -125,16 +125,17 @@ protected:
     std::vector<Interaction_Info> m_interaction_info;
 
 private:
-    /// Position the car above a point on the track.
-    /// @param pos Distance along the track (x), to the left of center (y), and above the
-    /// surface (z).
+    /// Position the car on the track if initial conditions were not set.
+    /// @param pos Distance along the track (x), to the left of center (y). The
+    /// z-coordinate is ignored; height is set so the car is just touching the road.
     void place_car(Vamos_Body::Car* car, const Vamos_Geometry::Three_Vector& track_pos,
                    const Vamos_Track::Road& Road);
     /// @return The fraction of air density experienced by @p behind due to the slipstream
     /// of @p in_front.
     double air_density_factor(Car_Info const& behind, Car_Info const& in_front);
-
+    /// Detect contact with the ground or trackside objects.
     void interact(Vamos_Body::Car* car, size_t road_index, size_t segment_index);
+    /// Detect contact between cars.
     void collide(Car_Info* car1_info, Car_Info* car2_info);
 
     /// Cars can collide and create a slipstream if true. Otherwise, they pass through
@@ -142,6 +143,7 @@ private:
     bool m_cars_interact{true};
     /// The index of the car under interactive control or nullopt if no such car.
     std::optional<size_t> mo_controlled_car_index;
+    /// Acceleration due to gravity.
     Vamos_Geometry::Three_Vector m_gravity{0.0, 0.0, -9.8};
 };
 } // namespace Vamos_World

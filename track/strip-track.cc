@@ -532,7 +532,8 @@ Three_Vector Road::track_coordinates(Three_Vector const& world_pos,
                     break;
                 seg_it = m_segments.begin();
             }
-            ++seg_it;
+            else
+                ++seg_it;
         }
         else
         {

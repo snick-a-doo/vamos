@@ -36,6 +36,7 @@ void Rigid_Body::set_initial_conditions(Three_Vector const& position,
                                         Three_Vector const& velocity,
                                         Three_Vector const& angular_velocity)
 {
+    m_has_initial_conditions = true;
     m_initial_frame
         = Frame(position, Three_Matrix(1.0).rotate(orientation * deg_to_rad(1.0)));
     m_initial_frame.set_velocity(velocity);

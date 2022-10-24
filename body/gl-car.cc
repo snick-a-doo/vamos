@@ -419,19 +419,6 @@ void Gl_Car::view()
     // Called for the front view.
     auto pos{view_position(true, true)};
     view(m_pan_key_control.value(), pos);
-    auto pan{deg_to_rad(m_pan_key_control.value())};
-
-    auto z{m_chassis.rotate_out(z_hat)};
-    auto x{m_chassis.rotate_out(rotate(x_hat, pan * z_hat))};
-    float at_up[6] = {float(x.x), float(x.y), float(x.z), float(z.x), float(z.y), float(z.z)};
-    alListener3f(AL_POSITION, pos.x, pos.y, pos.z);
-    alListenerfv(AL_ORIENTATION, at_up);
-    if (mp_drivetrain)
-    {
-        auto v{m_chassis.particle_velocity(mp_drivetrain->engine())};
-        auto v_s{alGetDouble(AL_SPEED_OF_SOUND)};
-        alListener3f(AL_VELOCITY, v.x / v_s, v.y / v_s, v.z / v_s);
-    }
 }
 
 void Gl_Car::view(double pan, Three_Vector const& view_pos)
@@ -450,9 +437,16 @@ void Gl_Car::view(double pan, Three_Vector const& view_pos)
     glRotated(view_tilt_factor * a.x, 0.0, 1.0, 0.0);
     glRotated(-angle, axis.x, axis.y, axis.z);
 
-    auto z{m_chassis.rotate_out({0.0, 0.0, 1.0})};
+    auto z{m_chassis.rotate_out(z_hat)};
     glRotated(-pan, z.x, z.y, z.z);
     glTranslated(-view_pos.x, -view_pos.y, -view_pos.z);
+
+    auto x{m_chassis.rotate_out(rotate(x_hat, pan * z_hat))};
+    float at_up[6] = {float(x.x), float(x.y), float(x.z), float(z.x), float(z.y), float(z.z)};
+    alListener3f(AL_POSITION, view_pos.x, view_pos.y, view_pos.z);
+    alListenerfv(AL_ORIENTATION, at_up);
+    auto v{m_chassis.point_velocity(m_chassis.transform_in(view_pos))};
+    alListener3f(AL_VELOCITY, v.x, v.y, v.z);
 }
 
 void Gl_Car::set_engine_sound(std::string const& file, double volume,

@@ -180,7 +180,7 @@ static void read_road(std::string const& data_dir,
             track->set_pit_out(n_segments, angle);
             segment->set_pit_lane(Pit_Lane_Transition::End::out,
                                   get_side(pit, "side", Side::left),
-                                  get_value(pit, "split", 0.0),
+                                  get_value(pit, "join", 0.0),
                                   get_value(pit, "merge", 0.0), angle);
         }
         segment->set_racing_line_adjustment(

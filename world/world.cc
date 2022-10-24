@@ -290,6 +290,9 @@ void World::set_gravity(double g)
 
 void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
 {
+    // Do nothing if initial conditions were set explicitly.
+    if (car->chassis().has_initial_conditions())
+        return;
     const auto& segment{road.segment_at(track_pos.x)};
     car->chassis().reset(0.0);
     // Orient the car to be level with the track.
