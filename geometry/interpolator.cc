@@ -21,7 +21,7 @@
 using namespace Vamos_Geometry;
 
 // Set to true to print out cache information.
-bool constexpr show_statistics = false;
+bool constexpr show_statistics{false};
 
 Interpolator::Interpolator()
 {

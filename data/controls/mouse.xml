@@ -12,7 +12,7 @@
 
   <bind><function>start engine</function><key>s</key></bind>
   <bind><function>fill tank</function><key>f</key></bind>
-  <bind><function>cycle view</function><key>F9</key></bind>
+  <bind><function>cycle view</function><key>tab</key></bind>
   <bind><function>pause</function><key>p</key></bind>
   <bind><function>quit</function><key>q</key></bind>
   <bind><function>quit</function><key>Escape</key></bind>
@@ -133,7 +133,7 @@
   <bind>
     <!-- left or right with the mouse -->
     <function>steer</function>
-    <mouse-direction>0</mouse-direction>
+    <mouse-axis>0</mouse-axis>
 	<factor>1.0</factor>
     <deadband>0.1</deadband>
     <upper-deadband>0.1</upper-deadband>
@@ -163,7 +163,7 @@
   <bind>
     <!-- forward with the mouse -->
     <function>gas</function>
-    <mouse-direction>1</mouse-direction><forward/>
+    <mouse-axis>1</mouse-axis><forward/>
 	<factor>1.0</factor>
     <deadband>0.1</deadband>
     <upper-deadband>0.1</upper-deadband>
@@ -183,7 +183,7 @@
   <bind>
     <!-- backwards with the mouse -->
     <function>brake</function>
-    <mouse-direction>1</mouse-direction><backward/>
+    <mouse-axis>1</mouse-axis><backward/>
 	<factor>-1.0</factor>
     <deadband>0.1</deadband>
     <upper-deadband>0.1</upper-deadband>

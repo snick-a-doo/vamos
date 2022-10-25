@@ -908,7 +908,7 @@ size_t Strip_Track::add_segment(std::unique_ptr<Gl_Road_Segment> segment)
 
 size_t Strip_Track::add_pit_segment(std::unique_ptr<Gl_Road_Segment> segment)
 {
-    auto start{mp_pit_lane->segments().size() == 0};
+    auto start{mp_pit_lane->segments().empty()};
     auto index{start ? m_pit_in_index : m_pit_out_index};
     auto distance{start ? 0.0 : segment->length()};
     auto width{segment->left_width(distance) + segment->right_width(distance)};

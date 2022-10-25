@@ -137,7 +137,6 @@ Gl_Window::Gl_Window(int width, int height, char const* name, bool full_screen)
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
-    SDL_ShowCursor(false);
     auto video_flags{SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE};
     if (full_screen)
     {
@@ -669,7 +668,7 @@ void Gl_World::display()
         focused_car()->car->make_rear_view_mask(m_window.width(), m_window.height());
     show_full_window(m_window.width(), m_window.height());
 
-    SDL_ShowCursor(m_view == View::map);
+    SDL_ShowCursor(m_view == View::map || m_has_mouse_control);
     switch (m_view)
     {
     case View::body:
@@ -720,6 +719,7 @@ void Gl_World::display()
     m_window.refresh();
 }
 
+/// Format a time as minutes:seconds.
 static std::string time_str(double time, int precision = 3)
 {
     if (time == Timing_Info::no_time)
@@ -736,6 +736,7 @@ static std::string time_str(double time, int precision = 3)
     return os.str();
 }
 
+/// Format a signed difference in seconds.
 static std::string dtime_str(double delta_time, int precision = 3)
 {
     if (delta_time == Timing_Info::no_time)
@@ -748,11 +749,22 @@ static std::string dtime_str(double delta_time, int precision = 3)
     return os.str();
 }
 
+/// Set the limits of mouse motion for interactive drivers.
+static void set_mouse_range(Car_Info* car, int width, int height)
+{
+    if (!car)
+        return;
+    if (auto driver{dynamic_cast<Interactive_Driver*>(car->driver.get())})
+    {
+        driver->mouse().set_axis_range(X, 0, width);
+        driver->mouse().set_axis_range(Y, 0, height);
+    }
+}
+
 void Gl_World::reshape(int width, int height)
 {
     m_window.resize(width, height);
-    mouse().set_axis_range(X, 0, width);
-    mouse().set_axis_range(Y, 0, height);
+    set_mouse_range(controlled_car(), width, height);
     if (focused_car())
         focused_car()->car->make_rear_view_mask(width, height);
     m_map.set_bounds(m_track, m_window);
@@ -1004,6 +1016,7 @@ void Gl_World::read_world_file(std::string const& file_name)
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 }
 
+/// A map of key names to SDL symbols.
 std::map<std::string, int> key_map{
     {"escape", 27},
     {"delete", 127},
@@ -1029,19 +1042,30 @@ std::map<std::string, int> key_map{
     {"f10", SDLK_F10},
     {"f11", SDLK_F11},
     {"f12", SDLK_F12},
+};
+
+/// A map of mouse button names to SDL symbols.
+std::map<std::string, int> button_map{
     {"left", SDL_BUTTON_LEFT},
     {"middle", SDL_BUTTON_MIDDLE},
     {"right", SDL_BUTTON_RIGHT},
 };
 
+/// @return A string converted to all lowercase.
+static std::string downcase(std::string str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+}
+
+/// @return The SDL symbol for the given key name according to @p key_map.
 static int translate_key(std::string key_name)
 {
     // If key_name is a single character, return its integer value.
     if (key_name.size() == 1)
         return static_cast<int>(key_name[0]);
-    // Downcase the string to do case-insensitive lookup.
-    std::transform(key_name.begin(), key_name.end(), key_name.begin(), ::tolower);
-    return key_map[key_name];
+    // Do case-insensitive lookup.
+    return key_map[downcase(key_name)];
 }
 
 static Direct get_direction(pugi::xml_node const& binding)
@@ -1105,6 +1129,7 @@ void Gl_World::read_controls_file(std::string const& file_name)
         this);
 
     auto car{controlled_car()};
+    set_mouse_range(car, m_window.width(), m_window.height());
     auto driver{car ? dynamic_cast<Interactive_Driver*>(car->driver.get()) : nullptr};
     using Driver_CBs
         = std::map<std::string, std::function<bool(Interactive_Driver*, double, double)>>;
@@ -1175,12 +1200,12 @@ void Gl_World::read_controls_file(std::string const& file_name)
         }
         else if (binding.child("mouse-button"))
         {
-            auto control{translate_key(binding.child_value("mouse-button"))};
+            auto control{button_map[downcase(binding.child_value("mouse-button"))]};
             handler->mouse().bind_action(control, direction, callback, time);
         }
         else if (binding.child("mouse-axis"))
         {
-            SDL_ShowCursor(true);
+            m_has_mouse_control = true;
             auto control{binding.child("mouse-axis").text().as_int()};
             handler->mouse().bind_motion(control, callback, calib);
         }

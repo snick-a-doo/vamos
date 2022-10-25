@@ -253,6 +253,7 @@ private:
     bool m_update_graphics{true};
     bool m_done{false};
     View m_view{View::map};
+    bool m_has_mouse_control{false}; ///< True if mouse motion events are bound.
 
     std::string m_world_file;
     std::string m_controls_file;
