@@ -415,15 +415,15 @@ void Robot_Driver::avoid_collisions()
 
     // Loop through the other cars. Each time through the loop we potentially update all
     // of these variables.
-    auto min_forward_distance_gap{100};
-    auto min_left_gap{100};
-    auto min_right_gap{100};
+    auto min_forward_gap{100.0};
+    auto min_left_gap{100.0};
+    auto min_right_gap{100.0};
     auto along{info().track_position().x};
     auto follow_lengths{m_state == State::cool_down ? 3.0
                         : maybe_passable(along, info().segment_index) ? 0.5
                         : 1.5};
     auto crash_time{2.0 * crash_time_limit};
-    auto get_clear_side{Direct::none};
+    auto clear_side{Direct::none};
     auto v1{mp_car->chassis().rotate_in(mp_car->chassis().cm_velocity())};
 
     // Break out immediately if the interact flag is false. We still need the lane shift
@@ -441,33 +441,33 @@ void Robot_Driver::avoid_collisions()
         auto v2{car.car->chassis().rotate_in(car.car->chassis().cm_velocity())};
 
         auto delta_v{v2 - v1};
-        auto distance_gap{find_gap(info().m_pointer_position, car.m_pointer_position)};
+        auto gap{find_gap(info().m_pointer_position, car.m_pointer_position)};
         switch (relative_position(info().track_position(), car.track_position()))
         {
         case Direct::forward:
-            if (distance_gap.x < min_forward_distance_gap)
+            if (gap.x < min_forward_gap)
             {
-                min_forward_distance_gap = distance_gap.x;
-                crash_time = -distance_gap.x / delta_v.x;
-                if (min_forward_distance_gap < 0.0 || crash_time < 0.0)
+                min_forward_gap = gap.x;
+                crash_time = -gap.x / delta_v.x;
+                if (min_forward_gap < 0.0 || crash_time < 0.0)
                     m_passing = false;
                 else if (m_passing)
-                    follow_lengths = -distance_gap.y / mp_car->length();
-                get_clear_side = get_pass_side(along, distance_gap.x, -delta_v.x, info().segment_index);
+                    follow_lengths = -gap.y / mp_car->length();
+                clear_side = get_pass_side(along, gap.x, -delta_v.x, info().segment_index);
             }
             break;
         case Direct::left:
-            if (distance_gap.y < min_left_gap)
+            if (gap.y < min_left_gap)
             {
-                min_left_gap = distance_gap.y;
-                crash_time = -distance_gap.y / delta_v.y;
+                min_left_gap = gap.y;
+                crash_time = -gap.y / delta_v.y;
             }
             break;
         case Direct::right:
-            if (distance_gap.y < min_right_gap)
+            if (gap.y < min_right_gap)
             {
-                min_right_gap = distance_gap.y;
-                crash_time = distance_gap.y / delta_v.y;
+                min_right_gap = gap.y;
+                crash_time = gap.y / delta_v.y;
             }
             break;
         default:
@@ -481,8 +481,7 @@ void Robot_Driver::avoid_collisions()
     if (m_passing || m_lane_shift != 0.0)
         m_lane_shift_timer += m_timestep;
 
-    if (min_right_gap < 0.5 * mp_car->width()
-        && min_left_gap > min_right_gap)
+    if (min_right_gap < 0.5 * mp_car->width() && min_left_gap > min_right_gap)
     {
         // Move to the left if the car on the right is too close.
         m_lane_shift = std::min(1.0, m_lane_shift + shift_step);
@@ -510,7 +509,7 @@ void Robot_Driver::avoid_collisions()
     if (crash_time < crash_time_limit)
     {
         // Go offline to pass.
-        switch (get_clear_side)
+        switch (clear_side)
         {
         case Direct::left:
             m_passing = true;
@@ -530,7 +529,7 @@ void Robot_Driver::avoid_collisions()
     // Calculate the speed factor here while we have access to the gap.
     m_front_gap_control.set(std::min(lengths(follow_lengths), 0.5 * m_speed));
     m_speed_factor = 1.0
-        - clip(m_front_gap_control.propagate(min_forward_distance_gap, m_timestep), 0.0, 1.0);
+        - clip(m_front_gap_control.propagate(min_forward_gap, m_timestep), 0.0, 1.0);
 }
 
 Direct Robot_Driver::relative_position(Three_Vector const& r1_track,
@@ -575,7 +574,7 @@ Direct Robot_Driver::get_pass_side(double along, double delta_x, double delta_v,
     //!! Look ahead by time, not distance to compensate for closing under braking.
     //!! Account for deceleration?
     auto pass_distance{delta_x * m_speed / delta_v};
-    if (pass_distance > lengths(100))
+    if (pass_distance > lengths(100.0))
         return Direct::none;
 
     return get_clear_side(along + pass_distance / 2, pass_distance / 20, 10, segment);
@@ -585,8 +584,8 @@ Direct Robot_Driver::get_clear_side(double start, double delta, size_t n, size_t
 {
     auto blocked_side_lr = [&](double along, size_t segment) {
         auto across{m_racing_line.from_center(along, segment)};
-        return std::make_pair(across < -m_racing_line.right_width(along) + mp_car->width(),
-                              across > m_racing_line.left_width(along) - mp_car->width());
+        return std::make_pair(across > m_racing_line.left_width(along) - mp_car->width(),
+                              across < -m_racing_line.right_width(along) + mp_car->width());
     };
     //!! calls to from_center sometimes increment the segment excessively.
 
