@@ -43,6 +43,7 @@ void Car_Info::reset()
 {
     road_index = 0;
     segment_index = 0;
+    car->chassis().reset();
     car->reset();
 }
 
@@ -262,15 +263,15 @@ void World::collide(Car_Info* car1_info, Car_Info* car2_info)
 
 void World::reset()
 {
-    auto* ccar{controlled_car()};
-    if (!ccar)
+    auto* info{controlled_car()};
+    if (!info)
         return;
 
-    auto car{ccar->car};
+    auto car{info->car};
     car->reset();
-    place_car(car.get(), m_track.reset_position(car->chassis().position(),
-                                                ccar->road_index, ccar->segment_index),
-              m_track.get_road(ccar->road_index));
+    place_car(car.get(), m_track.reset_position(car->front_position(),
+                                                info->road_index, info->segment_index),
+              m_track.get_road(info->road_index));
 }
 
 void World::restart()
@@ -290,11 +291,12 @@ void World::set_gravity(double g)
 
 void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
 {
+    std::cout << track_pos << std::endl;
     // Do nothing if initial conditions were set explicitly.
     if (car->chassis().has_initial_conditions())
         return;
     const auto& segment{road.segment_at(track_pos.x)};
-    car->chassis().reset(0.0);
+    car->chassis().reset();
     // Orient the car to be level with the track.
     {
         Three_Matrix orientation{1.0};
@@ -313,6 +315,7 @@ void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
         auto pos{car->chassis().transform_out(p->contact_position())};
         gap = std::min(gap, pos.z - segment.world_elevation(pos));
     }
+    std::cout << car->front_position() << ' ' << car->chassis().cm_position() << std::endl;
     auto world_pos{road.position(track_pos.x, track_pos.y, segment)};
     car->set_front_position({world_pos.x, world_pos.y, car->front_position().z - gap});
 }
@@ -323,7 +326,7 @@ void World::add_car(std::shared_ptr<Car> car, std::unique_ptr<Driver> driver)
     if (driver->is_interactive())
         mo_controlled_car_index = m_cars.size();
     driver->set_gravity(m_gravity);
-    place_car(car.get(), car->chassis().position(), m_track.get_road(0));
+    place_car(car.get(), car->front_position(), m_track.get_road(0));
     m_cars.emplace_back(car, std::move(driver));
 }
 

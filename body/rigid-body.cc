@@ -41,7 +41,7 @@ void Rigid_Body::set_initial_conditions(Three_Vector const& position,
         = Frame(position, Three_Matrix(1.0).rotate(orientation * deg_to_rad(1.0)));
     m_initial_frame.set_velocity(velocity);
     m_initial_frame.set_angular_velocity(angular_velocity * deg_to_rad(1.0));
-    reset(0.0);
+    reset();
 }
 
 void Rigid_Body::add_particle(std::shared_ptr<Particle> particle)
@@ -241,10 +241,9 @@ void Rigid_Body::propagate(double time)
     m_temporary_contact.clear();
 }
 
-void Rigid_Body::reset(double direction)
+void Rigid_Body::reset()
 {
-    auto orient{m_initial_frame.orientation()};
-    reset(m_initial_frame.position(), orient.rotate(direction * z_hat));
+    reset(m_initial_frame.position(), m_initial_frame.orientation());
 }
 
 void Rigid_Body::reset(Three_Vector const& position, Three_Matrix const& orientation)

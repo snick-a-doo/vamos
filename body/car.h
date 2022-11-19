@@ -92,8 +92,11 @@ public:
         Vamos_Geometry::Three_Matrix const& orientation);
     virtual ~Car();
 
-    /// Read the car definition file.
+    /// Read the car definition file and rebuild the car.
     virtual void read(std::string const& data_dir = "", std::string const& car_file = "");
+
+    /// Empty virtual methods. Overridden for graphics and sound.
+    /// @{
     /// Define a sound for the engine.
     virtual void set_engine_sound(std::string const&, // file
                                   double,             // volume,
@@ -126,7 +129,9 @@ public:
     // Render the car according to its current position and orientation.
     virtual void draw() {};
     virtual void draw_interior() {};
-    virtual Vamos_Geometry::Three_Vector draw_rear_view(double /* aspect */, int /* index */);
+    virtual Vamos_Geometry::Three_Vector draw_rear_view(double, // aspect
+                                                        int)    // index
+    { return Vamos_Geometry::null_v; }
     virtual void make_rear_view_mask(int /* window_width */, int /* window_height */) {}
     virtual int get_n_mirrors() const { return 0; }
     // Perform the transformations for the driver's view.
@@ -134,15 +139,18 @@ public:
                       Vamos_Geometry::Three_Vector const&) // view_position
     {}
     virtual void view() {}
+    virtual void set_paused(bool) {};
+    /// @}
+
+    /// Advance the simulation.
     virtual void propagate(double time);
-    virtual void set_paused(bool){};
 
     /// @return The contained rigid body.
     Rigid_Body& chassis() { return m_chassis; }
     /// @return The contained rigid body.
-    const Rigid_Body& chassis() const { return m_chassis; }
+    Rigid_Body const& chassis() const { return m_chassis; }
     /// @return The performance parameters for computer control.
-    const Robot_Parameters& get_robot_parameters() const { return m_robot_parameters; }
+    Robot_Parameters const& get_robot_parameters() const { return m_robot_parameters; }
     /// Set the performance parameters for computer control.
     void set_robot_parameters(double slip_ratio, double deceleration, double lateral_acceleration);
     /// Change the performance parameters by the given fraction of the current
@@ -211,9 +219,6 @@ public:
     int last_gear() const { return m_last_gear; }
     /// Restore the initial conditions.
     void reset();
-    /// Restore the initial conditions and then set position and orientation.
-    void reset(Vamos_Geometry::Three_Vector const& position,
-               Vamos_Geometry::Three_Matrix const& orientation);
     /// @return the total distance traveled since the start of the simulation.
     double distance_traveled() const { return m_distance_traveled; }
     /// Take ownership of the pointer to the drivetrain.
@@ -229,11 +234,11 @@ public:
     /// @return true if extra info should be shown on screen.
     void show_dashboard_extras(bool show) { m_show_dashboard_extras = show; }
     // Return the contact information for the given position and velocity.  If 'ignore_z'
-    // is true, only consider the x- and y-values of 'position'.
+    /// is true, only consider the x- and y-values of 'position'.
     Vamos_Media::Contact_Info collision(Vamos_Geometry::Three_Vector const& position,
                                         Vamos_Geometry::Three_Vector const& velocity,
                                         bool ignore_z = false) const;
-
+    /// Bounds for detecting collisions.
     struct Crash_Box
     {
         double front;
@@ -242,49 +247,36 @@ public:
         double right;
         double top;
         double bottom;
-
+        /// @return True if @p position is within the crash_box
         bool within(Vamos_Geometry::Three_Vector const& position, bool ignore_z) const;
+        /// @return A vector giving the perpendicular distance from a face of the crash
+        /// box ti @p point.
         Vamos_Geometry::Three_Vector penetration(Vamos_Geometry::Three_Vector const& point,
                                                  Vamos_Geometry::Three_Vector const& velocity,
                                                  bool ignore_z) const;
     };
 
-    // The vector from the car's origin to the center of the crash box.
-    Vamos_Geometry::Three_Vector center() const
-    {
-        return {(m_crash_box.front + m_crash_box.back) / 2.0,
-                (m_crash_box.left + m_crash_box.right) / 2.0,
-                (m_crash_box.top + m_crash_box.bottom) / 2.0};
-    }
-
-    Vamos_Geometry::Three_Vector front() const
-    {
-        return {m_crash_box.front,
-                (m_crash_box.left + m_crash_box.right) / 2.0,
-                (m_crash_box.top + m_crash_box.bottom) / 2.0};
-    }
-
-    // The center of the crash box in world coordinates.
-    Vamos_Geometry::Three_Vector center_position() const
-    {
-        return m_chassis.transform_out(center());
-    }
-    double width() const { return m_crash_box.left - m_crash_box.right; }
-    double length() const { return m_crash_box.front - m_crash_box.back; }
-    void wind(const Vamos_Geometry::Three_Vector& wind_vector, double densty);
+    /// @return The vector from the car's origin to the center of the crash box.
+    Vamos_Geometry::Three_Vector center_position() const;
+    /// @return The width of the crash box.
+    double width() const;
+    /// @return The length of the crash box.
+    double length() const;
+    /// Set the wind velocity and air density.
+    void wind(Vamos_Geometry::Three_Vector const& wind_vector, double densty);
     /// The position of the chase-view camera.
     Vamos_Geometry::Three_Vector chase_position() const;
     /// The position of the font centerline in world coordinates.
     Vamos_Geometry::Three_Vector front_position() const;
-    void set_front_position(const Vamos_Geometry::Three_Vector& pos);
+    void set_front_position(Vamos_Geometry::Three_Vector const& pos);
     /// The position of a point ahead of the car.  Used for steering.
     Vamos_Geometry::Three_Vector target_position() const;
     /// How far the target is ahead of the center of the car.
     double target_distance() const;
     /// @return The name of the car definition file.
-    const std::string& car_file() const { return m_car_file; }
+    std::string const& car_file() const { return m_car_file; }
     /// @return The car name
-    const std::string& name() const { return m_name; }
+    std::string const& name() const { return m_name; }
     /// @return Average tire grip.
     double grip() const;
     /// @return The current acceleration vector.
@@ -320,12 +312,11 @@ protected:
     double m_air_density{0.0}; ///< Current air density.
 
 private:
-    /// Perform operations common to both reset() methods.
-    void private_reset();
-
-    std::string m_data_dir;
-    std::string m_car_file;
-    std::string m_name;
+    /// Brakes are on to keep the car from rolling away when true.
+    bool m_is_parked{true};
+    std::string m_data_dir; ///< The directory with definition files.
+    std::string m_car_file; ///< The name of the car definition file.
+    std::string m_name; ///< The name of the car for timing purposes.
     Crash_Box m_crash_box; ///< Car bounds for collisions.
 
     /// Computer controlled performance parameters.
@@ -336,6 +327,7 @@ private:
         double lateral_acceleration;
     };
     Robot_Parameters m_robot_parameters;
+    /// A filtered acceleration vector. Useful for adjusting driver and chase views.
     Vamos_Geometry::Three_Vector m_smoothed_acceleration;
 };
 

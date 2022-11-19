@@ -79,7 +79,7 @@ struct Car_Info
     Vamos_Geometry::Circular_Buffer<Record, 5000> m_record;
 };
 
-// Information about a collision.
+/// Information about a collision.
 struct Interaction_Info
 {
     using Mat_Type = Vamos_Media::Material::Composition;
@@ -126,10 +126,11 @@ protected:
 
 private:
     /// Position the car on the track if initial conditions were not set.
-    /// @param pos Distance along the track (x), to the left of center (y). The
-    /// z-coordinate is ignored; height is set so the car is just touching the road.
-    void place_car(Vamos_Body::Car* car, const Vamos_Geometry::Three_Vector& track_pos,
-                   const Vamos_Track::Road& Road);
+    /// @param track_pos The desired position of the front of the car given by
+    /// Car::front_position(). The x coordinate is distance along the track, y is to the
+    /// left of center. Z is ignored; height is set so the car is just touching the road.
+    void place_car(Vamos_Body::Car* car, Vamos_Geometry::Three_Vector const& track_pos,
+                   Vamos_Track::Road const& Road);
     /// @return The fraction of air density experienced by @p behind due to the slipstream
     /// of @p in_front.
     double air_density_factor(Car_Info const& behind, Car_Info const& in_front);

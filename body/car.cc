@@ -178,7 +178,6 @@ void Car::propagate(double time)
 
     // Update the transmission.
     auto gas{m_gas_key_control.value()};
-    static bool going = false; //!!!!
     if (mp_drivetrain)
     {
         if (m_shift_pending)
@@ -203,7 +202,7 @@ void Car::propagate(double time)
 
         if (mp_drivetrain->transmission().gear() != 0
             && mp_drivetrain->clutch().pressure() != 0.0)
-            going = true;
+            m_is_parked = false;
     }
 
     m_slide = 0.0;
@@ -214,7 +213,7 @@ void Car::propagate(double time)
     for (auto const& wheel : m_wheels)
     {
         wheel->steer(m_steer_key_control.value());
-        wheel->brake(going ? m_brake_key_control.value() : 1.0);
+        wheel->brake(m_is_parked ? 1.0 : m_brake_key_control.value());
         if (mp_drivetrain)
         {
             // Apply the driving torque.
@@ -333,11 +332,6 @@ Three_Vector Car::view_position(bool world, bool bob) const
     return world ? m_chassis.transform_out(pos) : pos;
 }
 
-Three_Vector Car::draw_rear_view(double, int)
-{
-    return Vamos_Geometry::null_v;
-}
-
 void Car::start_engine()
 {
     if (mp_drivetrain)
@@ -347,18 +341,7 @@ void Car::start_engine()
 
 void Car::reset()
 {
-    m_chassis.reset(0.0);
-    private_reset();
-}
-
-void Car::reset(Three_Vector const& position, Three_Matrix const& orientation)
-{
-    m_chassis.reset(position, orientation);
-    private_reset();
-}
-
-void Car::private_reset()
-{
+    m_is_parked = true;
     if (mp_drivetrain)
     {
         mp_drivetrain->reset();
@@ -381,6 +364,33 @@ Contact_Info Car::collision(Three_Vector const& position,
     return {!in.is_null(), in.magnitude(), m_chassis.rotate_out(in), Material::metal};
 }
 
+Three_Vector center_point(Car::Crash_Box const& box)
+{
+    return {std::midpoint(box.front, box.back),
+            std::midpoint(box.left, box.right),
+            std::midpoint(box.top, box.bottom)};
+}
+
+Three_Vector front_point(Car::Crash_Box const& box)
+{
+    return {box.front, std::midpoint(box.left, box.right), box.bottom};
+}
+
+Three_Vector Car::center_position() const
+{
+    return m_chassis.transform_out(center_point(m_crash_box));
+}
+
+double Car::width() const
+{
+    return m_crash_box.left - m_crash_box.right;
+}
+
+double Car::length() const
+{
+    return m_crash_box.front - m_crash_box.back;
+}
+
 void Car::wind(Vamos_Geometry::Three_Vector const& wind_vector, double density)
 {
     m_air_density = density;
@@ -393,23 +403,23 @@ Three_Vector Car::chase_position() const
     auto w1{std::min(m_chassis.cm_velocity().magnitude(), 1.0)};
     auto v2{m_chassis.rotate_out(x_hat)};
     auto w2{1.0 - w1};
-    return m_chassis.transform_out(center() - 0.1 * acceleration(true))
-           - (w1 * v1 + w2 * v2) * 3.0 * length() + Three_Vector(0.0, 0.0, length());
+    return m_chassis.transform_out(center_point(m_crash_box) - 0.1 * acceleration(true))
+        + length() * (z_hat - (w1 * v1 + w2 * v2) * 3.0);
 }
 
 Three_Vector Car::front_position() const
 {
-    return m_chassis.transform_out(front());
+    return m_chassis.transform_out(front_point(m_crash_box));
 }
 
 void Car::set_front_position(Three_Vector const& pos)
 {
-    m_chassis.set_position(pos - m_chassis.rotate_out(front()));
+    m_chassis.set_position(pos - m_chassis.rotate_out(front_point(m_crash_box)));
 }
 
 Three_Vector Car::target_position() const
 {
-    return m_chassis.transform_out(center() + Three_Vector(target_distance(), 0.0, 0.0));
+    return m_chassis.transform_out(center_point(m_crash_box) + target_distance() * x_hat);
 }
 
 double Car::target_distance() const
@@ -436,7 +446,7 @@ Three_Vector Car::Crash_Box::penetration(Three_Vector const& point,
                                          bool ignore_z) const
 {
     if (!within(point, ignore_z))
-        return Three_Vector();
+        return null_v;
 
     if (velocity.x != 0.0 && is_in_range(point.x, back, front))
     {
@@ -481,7 +491,7 @@ Three_Vector Car::Crash_Box::penetration(Three_Vector const& point,
                 return {0.0, 0.0, z_limit - point.z};
         }
     }
-    return {0.0, 0.0, 0.0};
+    return null_v;
 }
 
 bool Car::Crash_Box::within(Three_Vector const& pos, bool ignore_z) const

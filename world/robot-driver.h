@@ -30,11 +30,6 @@ namespace Vamos_Body
 class Car;
 }
 
-namespace Vamos_Geometry
-{
-struct Three_Vector;
-}
-
 namespace Vamos_Track
 {
 class Strip_Track;

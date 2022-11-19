@@ -94,16 +94,16 @@ public:
     /// Advance the body in time.
     void propagate(double time);
     /// Set the body to its initial state.
-    void reset(double direction);
-    /// Set the body to its initial state at a particular position and orientation.
-    void reset(Vamos_Geometry::Three_Vector const& position,
-               Vamos_Geometry::Three_Matrix const& orientation);
+    void reset();
     /// @return True if set_initial_conditions() was called.
     bool has_initial_conditions() const { return m_has_initial_conditions; }
 
 private:
     /// Calculate the center of mass, the ineritia tensor, and its inverse.
     void update_center_of_mass();
+    /// Set the body to its initial state at a particular position and orientation.
+    void reset(Vamos_Geometry::Three_Vector const& position,
+               Vamos_Geometry::Three_Matrix const& orientation);
 
     Vamos_Geometry::Three_Vector m_gravity; ///< The acceleration due to gravity vector.
     double m_mass{0.0}; ///< The total mass of the body.
