@@ -246,14 +246,14 @@ void Gl_Car::set_dashboard(std::unique_ptr<Dashboard> dash)
     mp_dashboard = std::move(dash);
 }
 
-void Gl_Car::set_exterior_model(Ac3d&& model)
+void Gl_Car::set_exterior_model(Model&& model)
 {
     if (m_body_list_id)
         glDeleteLists(m_body_list_id, 1);
     m_body_list_id = model.build();
 }
 
-void Gl_Car::set_interior_model(Ac3d&& model)
+void Gl_Car::set_interior_model(Model&& model)
 {
     if (m_interior_list_id)
         glDeleteLists(m_interior_list_id, 1);
@@ -449,9 +449,9 @@ void Gl_Car::view(double pan, Three_Vector const& view_pos)
     alListener3f(AL_VELOCITY, v.x, v.y, v.z);
 }
 
-void Gl_Car::set_engine_sound(std::string const& file, double volume,
+void Gl_Car::set_engine_sound(std::string const& file, double pitch, double volume,
                               double throttle_volume_factor,
-                              double engine_speed_volume_factor, double pitch)
+                              double engine_speed_volume_factor)
 {
     if (file.empty())
     {

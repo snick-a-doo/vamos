@@ -16,13 +16,13 @@
 #include "options.h"
 
 #include "../body/gl-car.h"
-#include "../media/model.h"
 #include "../track/strip-track.h"
 #include "../world/gl-world.h"
 #include "../world/interactive-driver.h"
 #include "../world/robot-driver.h"
 #include "../world/sounds.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>

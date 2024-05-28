@@ -50,11 +50,11 @@ std::vector<Point<double>> get_points(pugi::xml_node node,
     return points;
 }
 
-Ac3d get_model(pugi::xml_node node, std::string const& dir)
+Model get_model(pugi::xml_node node, std::string const& dir)
 {
-    return Ac3d{dir + get_value(node, "file", std::string()),
-                get_value(node, "scale", 1.0),
-                get_value(node, "translate", null_v),
-                get_value(node, "rotate", null_v) * deg_to_rad(1.0)};
+    return Model{dir + get_value(node, "file", std::string()),
+                 get_value(node, "scale", 1.0),
+                 get_value(node, "translate", null_v),
+                 get_value(node, "rotate", null_v) * deg_to_rad(1.0)};
 }
 }

@@ -590,7 +590,7 @@ void Gl_Road_Segment::draw() const
     glCallList(m_gl_list_id);
 }
 
-void Gl_Road_Segment::add_model(Ac3d&& model)
+void Gl_Road_Segment::add_model(Model&& model)
 {
     m_scenery_lists.push_back(model.build());
 }

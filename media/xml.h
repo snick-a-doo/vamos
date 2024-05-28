@@ -25,6 +25,7 @@
 #include <array>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace Vamos_Media
 {
@@ -69,7 +70,7 @@ std::vector<Vamos_Geometry::Point<double>> get_points(
     std::vector<Vamos_Geometry::Point<double>> points = {});
 
 /// Read the model tags and return an Ac3d object.
-Ac3d get_model(pugi::xml_node node, std::string const& dir);
+Model get_model(pugi::xml_node node, std::string const& dir);
 } // namespace Vamos_Media
 
 #endif // VAMOS_MEDIA_XML_H_INCLUDED

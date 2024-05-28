@@ -1,4 +1,4 @@
-//  Copyright (C) 2003-2022 Sam Varner
+//  Copyright (C) 2003-2024 Sam Varner
 //
 //  This file is part of Vamos Automotive Simulator.
 //
@@ -20,56 +20,23 @@
 
 #include <GL/gl.h>
 
-#include <memory>
-#include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace Vamos_Media
 {
-class Ac3d_Exception : public std::runtime_error
+/// A 3D model read by the Assimp library.
+class Model
 {
 public:
-    Ac3d_Exception(std::string const& message)
-        : std::runtime_error(message)
-    {}
-};
-
-class Ac3d_Material;
-class Ac3d_Surface;
-class Ac3d_Object;
-
-class Ac3d
-{
-public:
-    Ac3d(std::string const& file, double scale,
+    Model(std::string const& file, double scale,
          Vamos_Geometry::Three_Vector const& translation,
          Vamos_Geometry::Three_Vector const& rotation);
-    ~Ac3d();
-
-    GLuint build();
+    ~Model() = default;
+    /// Get the GL list ID of the model.
+    GLuint build() const;
 
 private:
-    using Material_Ptr = std::unique_ptr<Ac3d_Material const>;
-    using Object_Ptr = std::unique_ptr<Ac3d_Object const>;
-    using Surface_Ptr = Ac3d_Surface*; //std::unique_ptr<Ac3d_Surface>;
-
-    void read();
-    Material_Ptr read_material(std::ifstream& is);
-    Object_Ptr read_object(std::ifstream& is, double scale,
-                           Vamos_Geometry::Three_Vector const& translation,
-                           Vamos_Geometry::Three_Vector const& rotation);
-    Surface_Ptr read_surface(std::ifstream& is, Ac3d_Object& obj);
-
-    std::string m_file;
-    int m_version{0};
-
-    std::vector<Material_Ptr> m_materials;
-    std::vector<Object_Ptr> m_objects;
-
-    double m_scale{1.0};
-    Vamos_Geometry::Three_Vector m_translation;
-    Vamos_Geometry::Three_Vector m_rotation; // angle-axis representation
+    GLuint m_id{0}; ///< The GL list ID of the model.
 };
 } // namespace Vamos_Media
 

@@ -92,7 +92,7 @@ public:
     void build();
     void draw() const;
 
-    void add_model(Vamos_Media::Ac3d&& model);
+    void add_model(Vamos_Media::Model&& model);
 
     std::vector<double> texture_offsets() const { return m_texture_offsets; }
 

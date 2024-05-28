@@ -31,7 +31,7 @@
 class slSample;
 namespace Vamos_Media
 {
-class Ac3d;
+class Model;
 class Facade;
 class Sample;
 } // namespace Vamos_Media
@@ -99,15 +99,15 @@ public:
     /// @{
     /// Define a sound for the engine.
     virtual void set_engine_sound(std::string const&, // file
-                                  double,             // volume,
-                                  double,             // throttle_volume_factor,
-                                  double,             // engine_speed_volume_factor,
-                                  double)             // pitch
+                                  double,             // pitch
+                                  double,             // volume
+                                  double,             // throttle_volume_factor
+                                  double)             // engine_speed_volume_factor
     {};
     /// Specify the exterior 3D model.
-    virtual void set_exterior_model(Vamos_Media::Ac3d&&) {};
+    virtual void set_exterior_model(Vamos_Media::Model&&) {};
     /// Specify the interior 3D model.
-    virtual void set_interior_model(Vamos_Media::Ac3d&&) {};
+    virtual void set_interior_model(Vamos_Media::Model&&) {};
     virtual void set_perspective(double /* aspect */){};
     virtual void set_view(Vamos_Geometry::Three_Vector const&, // position
                           double,                              // field_of_view

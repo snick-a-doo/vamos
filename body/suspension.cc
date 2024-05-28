@@ -200,7 +200,7 @@ void Suspension::set_model(std::string file_name, double scale, const Three_Vect
         orientation.x *= -1.0;
         orientation.y *= -1.0;
     }
-    Vamos_Media::Ac3d model(file_name, scale, Three_Vector(), orientation);
+    Vamos_Media::Model model(file_name, scale, Three_Vector(), orientation);
     m_models.emplace_back(std::make_unique<Suspension_Model>(model.build(), position));
 }
 

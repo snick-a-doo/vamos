@@ -42,11 +42,11 @@ public:
     /// @{
     virtual void read(std::string const& data_dir = "",
                       std::string const& car_file = "") override;
-    virtual void set_engine_sound(std::string const& file, double volume,
+    virtual void set_engine_sound(std::string const& file, double pitch, double volume,
                                   double throttle_volume_factor,
-                                  double engine_speed_volume_factor, double pitch) override;
-    virtual void set_exterior_model(Vamos_Media::Ac3d&& model) override;
-    virtual void set_interior_model(Vamos_Media::Ac3d&& model) override;
+                                  double engine_speed_volume_factor) override;
+    virtual void set_exterior_model(Vamos_Media::Model&& model) override;
+    virtual void set_interior_model(Vamos_Media::Model&& model) override;
     virtual void set_perspective(double aspect) override;
     virtual void set_view(Vamos_Geometry::Three_Vector const& position, double field_of_view,
                           double near_plane, double far_plane, double pan_angle) override;

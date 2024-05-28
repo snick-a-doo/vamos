@@ -121,7 +121,7 @@ GLuint Wheel::make_model(std::string const& file, double scale,
                          Three_Vector const& translation,
                          Three_Vector const& rotation)
 {
-    return Vamos_Media::Ac3d(file, scale, translation, rotation).build();
+    return Vamos_Media::Model(file, scale, translation, rotation).build();
 }
 
 void Wheel::set_models(std::string const& slow_file, std::string const& fast_file,
