@@ -5,7 +5,7 @@
   <tire-squeal>
     <file>tire_squeal.wav</file>
 	<pitch>1.0</pitch>
-	<volume>1.0</volume>
+	<volume>0.5</volume>
   </tire-squeal>
 
   <!-- Tires on kerbs -->

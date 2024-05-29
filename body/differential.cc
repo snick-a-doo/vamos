@@ -14,7 +14,6 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 #include "differential.h"
-#include "../geometry/numeric.h"
 
 #include <numeric>
 

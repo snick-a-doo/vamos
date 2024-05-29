@@ -1,22 +1,22 @@
 <?xml version="1.0"?>
 
-<car name="GT">
+<car name="GTI">
   <robot>
-    <slip-ratio>8.0</slip-ratio>
-    <deceleration>[ 7.0, 0.0 ]</deceleration>
-    <lateral-acceleration>[ 11, 0.002 ]</lateral-acceleration>
+    <slip-ratio>9.0</slip-ratio>
+    <deceleration>1.4</deceleration>
+    <lateral-acceleration>1.5</lateral-acceleration>
   </robot>
 
   <exterior-model>
-    <file>GT.ac</file>
+    <file>GTI-texture.obj</file>
 	<scale>1.0</scale>
 	<translate>[ 0.0, 0.0, 0.0 ]</translate>
 	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
   </exterior-model>
   <interior-model>
     <file>GT-interior.ac</file>
-	<scale>1.0</scale>
-	<translate>[ 0.0, 0.0, 0.0 ]</translate>
+	<scale>0.90</scale>
+	<translate>[ 0.3, 0.05, 0.0 ]</translate>
 	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
   </interior-model>
 
@@ -106,29 +106,23 @@
   <drivetrain>
     <!-- auto-neutral/ -->
     <engine>
-	  <position>[ 3.5, 0.88, 0.2 ]</position>
+	  <position>[ 2.5, 0.77, 0.2 ]</position>
 	  <mass>200.0</mass>
-      <max-power>2.5e5</max-power>
-	  <peak-rpm>8000.0</peak-rpm>
-      <!-- torque-curve friction="0.00025">
-        [ 1000.0, 150.0 ]
-        [ 2000.0, 200.0 ]
-        [ 6000.0, 300.0 ]
-        [ 8000.0 250.0 ]
-      </torque-curve -->
-	  <rpm-limit>10000.0</rpm-limit>
-	  <inertia>0.18</inertia>
-	  <idle>0.05</idle>
-	  <start-rpm>1000</start-rpm>
-	  <stall-rpm>800</stall-rpm>
+      <max-power>1.7e5</max-power>
+	  <peak-rpm>6000.0</peak-rpm>
+	  <rpm-limit>8000.0</rpm-limit>
+	  <inertia>0.2</inertia>
+	  <idle>0.01</idle>
+	  <start-rpm>700</start-rpm>
+	  <stall-rpm>0</stall-rpm>
 	  <fuel-consumption>0.0001</fuel-consumption>
 
       <sound>
         <file>engine.wav</file>
-		<pitch>0.001</pitch>
+		<pitch>0.002</pitch>
 		<volume>0.1</volume>
 		<throttle-volume-factor>1.0</throttle-volume-factor>
-		<engine-speed-volume-factor>0.001</engine-speed-volume-factor>
+		<engine-speed-volume-factor>2</engine-speed-volume-factor>
 	  </sound>
     </engine>
 
@@ -140,28 +134,27 @@
     </clutch>
 
     <transmission>
-	  <forward-gears>5</forward-gears>
-	  <first-ratio>3.00</first-ratio>
-	  <last-ratio>1.20</last-ratio>
+	  <forward-gears>6</forward-gears>
+	  <first-ratio>3.77</first-ratio>
+	  <last-ratio>0.74</last-ratio>
 	  <shift-delay>0.2</shift-delay>
     </transmission>
 
     <differential>
-      <final-drive>3.44</final-drive>
-	  <anti-slip>300.0</anti-slip>
+      <final-drive>3.24</final-drive>
+	  <anti-slip>40.0</anti-slip>
     </differential>
   </drivetrain>
 
   <fuel-tank>
     <position>[ 2.00, 0.88, 0.1 ]</position>
-	<capacity>100.0</capacity>
-	<volume>100.0</volume>
+	<capacity>50.0</capacity>
+	<volume>50.0</volume>
 	<fuel-density>0.8</fuel-density>
   </fuel-tank>
 
   <!-- Wheels -->
   <wheel side="right" end="front">
-    <driven/>
     <model>
 	  <slow-file>wheel.ac</slow-file>
 	  <fast-file>wheel.ac</fast-file>
@@ -172,17 +165,18 @@
     </model>
 
     <steered/>
-    <position>[ 3.7, 0.12, 0.1 ]</position>
+    <driven/>
+    <position>[ 3.4, 0.12, 0.1 ]</position>
 	<roll-height>0.16</roll-height>
 	<mass>30.0</mass>
 	<restitution>0.1</restitution>
 
     <suspension>
-	  <position>[ 3.7, 0.35, 0.2 ]</position>
-	  <hinge>[ 2.8, 0.35, 0.0 ]</hinge>
-	  <spring-constant>18000.0</spring-constant>
-	  <bounce>4000.0</bounce>
-	  <rebound>4000.0</rebound>
+	  <position>[ 3.4, 0.35, 0.1 ]</position>
+	  <hinge>[ 2.2, 0.35, 0.2 ]</hinge>
+	  <spring-constant>28000.0</spring-constant>
+	  <bounce>2000.0</bounce>
+	  <rebound>200X0.0</rebound>
 	  <travel>0.4</travel>
 	  <max-compression-velocity>10.0</max-compression-velocity>
 	  <camber>-0.5</camber>
@@ -193,7 +187,7 @@
 	<tire>
       <friction>
         <longitudinal>
-          [ 1.65, 0.0, 1690.0, 0.0, 229.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
+          [ 1.65, 0.0, 1590.0, 0.0, 229.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
         </longitudinal>
 	    <transverse>
 	      [ 1.80, 0.0, 1690.0, 1200.0, 6.03, 0.0, -0.359, 1.0, -0.05, 0.0, 0.0, -8.0, -0.2, 0.0, 0.0 ]
@@ -202,43 +196,44 @@
 	      [ 2.07, -6.49, -21.9, 0.416, -21.3, 2.94e-2, 0.0, -1.20, 5.23, -14.8, 0.0, 0.0, -3.74e-3, 3.89e-2, 0.0, 0.0, 0.0, 0.0 ]
 	    </aligning>
 	  </friction>
+      <hardness>1.2</hardness>
 	  <radius>0.328</radius>
-      <rolling-resistance>[ 1.3e-2, 6.5e-6 ]</rolling-resistance>
+      <rolling-resistance>[ 0, 0 ]</rolling-resistance>
 	  <rotational-inertia>10.0</rotational-inertia>
     </tire>
  
     <brakes>
 	  <friction>0.8</friction>
 	  <max-pressure>2.5e6</max-pressure>
-      <front-bias>0.57</front-bias>
+      <front-bias>0.60</front-bias>
 	  <radius>0.2</radius>
 	  <area>0.01</area>
     </brakes>
   </wheel>
 
   <wheel side="left" end="front">
-    <driven/>
     <steered/>
-    <position>[ 3.7, 1.66, 0.1 ]</position>
+    <driven/>
+    <position>[ 3.4, 1.54, 0.1 ]</position>
 	<suspension>
-	  <position>[ 3.7, 1.46, 0.2 ]</position>
-	  <hinge>[ 2.8, 1.46, 0.0 ]</hinge>
-	  <anti-roll>19000.0</anti-roll>
+	  <position>[ 3.4, 1.34, 0.1 ]</position>
+	  <hinge>[ 2.2, 1.34, 0.2 ]</hinge>
+	  <anti-roll>25000.0</anti-roll>
 	</suspension>
   </wheel>
 
   <wheel side="right" end="rear">
-    <position>[ 1.0, 0.12, 0.08 ]</position>
+    <position>[ 0.7, 0.12, 0.08 ]</position>
 	<roll-height>0.1</roll-height>
     <tire>
 	  <radius>0.328</radius>
 	</tire>
     <suspension>
-	  <position>[ 1.0, 0.32, 0.1 ]</position>
+	  <position>[ 0.7, 0.32, 0.1 ]</position>
 	  <hinge>[ 1.8, 0.32, 0.2 ]</hinge>
-	  <spring-constant>16000.0</spring-constant>
-	  <bounce>4000.0</bounce>
-	  <rebound>4000.0</rebound>
+	  <spring-constant>23000.0</spring-constant>
+	  <bounce>2000.0</bounce>
+	  <rebound>2000.0</rebound>
 	  <toe>0.0</toe>
 	  <camber>-0.0</camber>
 	  <caster>0.0</caster>
@@ -246,19 +241,19 @@
   </wheel>
 
   <wheel side="left" end="rear">
-    <position>[ 1.0, 1.66, 0.08 ]</position>
+    <position>[ 0.7, 1.54, 0.08 ]</position>
 	<suspension>
-	  <position>[ 1.0, 1.46, 0.1 ]</position>
-	  <hinge>[ 1.8, 1.46, 0.2 ]</hinge>
+	  <position>[ 0.7, 1.34, 0.1 ]</position>
+	  <hinge>[ 1.8, 1.34, 0.2 ]</hinge>
 	  <anti-roll>14000.0</anti-roll>
 	</suspension>
   </wheel>
 
   <contact-point>
-    <mass>60.0</mass>
+    <mass>30.0</mass>
     <position>[ 0.0, 0.0, 0.5 ]</position>
 	<material>metal</material>
-	<friction>0.5</friction>
+	<friction>0.0</friction>
 	<restitution>0.1</restitution>
   </contact-point>
 
@@ -299,21 +294,6 @@
   <drag>
     <position>[ 2.0, 0.88, 0.25 ]</position>
 	<frontal-area>2.0</frontal-area>
-	<drag-coefficient>0.6</drag-coefficient>
+	<drag-coefficient>0.3</drag-coefficient>
   </drag>
-
-  <wing>
-    <position>[ 4.49, 0.88, 0.01 ]</position>
-	<frontal-area>0.2</frontal-area>
-	<surface-area>0.3</surface-area>
-	<lift-coefficient>-0.5</lift-coefficient>
-	<efficiency>0.95</efficiency>
-  </wing>
-  <wing>
-    <position>[ 0.0, 0.88, 0.5 ]</position>
-	<frontal-area>0.2</frontal-area>
-	<surface-area>0.5</surface-area>
-	<lift-coefficient>-0.5</lift-coefficient>
-	<efficiency>0.95</efficiency>
-  </wing>
 </car>

@@ -13,6 +13,8 @@ out
 __pycache__
 vamos_track.pyc
 .Rhistory
+.gdb_history
+.cache
 doc/html/
 doc/latex/
 NN
