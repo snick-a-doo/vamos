@@ -14,6 +14,7 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 #include "model.h"
+#include "texture-image.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -44,6 +45,8 @@ Model::Model(std::string const& file, double scale,
     // Assimp quaternions are defined by pitch, yaw, and roll, in that order. In Vamos
     // coordinates, z is up and x is forward. y is left to make it right handed. The 90°
     // rotation about x is needed to orient existing models properly.
+    if (!scene)
+        throw Model_Exception("Could not read model file " + file);
     aiMatrix4x4t<double> xform{aiVector3t<double>{scale},
                                aiQuaterniont<double>{-rotation.y,
                                                      rotation.z,
@@ -51,15 +54,25 @@ Model::Model(std::string const& file, double scale,
                                aiVector3t<double>{translation.x, translation.y, translation.z}};
 
     glNewList(m_id, GL_COMPILE);
+
     for (size_t i{0}; i < scene->mNumMeshes; ++i)
     {
         auto const* mesh{scene->mMeshes[i]};
-        auto const* mat = scene->mMaterials[mesh->mMaterialIndex];
+        auto const* mat{scene->mMaterials[mesh->mMaterialIndex]};
         aiColor3D color(0.0, 0.0, 0.0);
         mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 
         glPushAttrib(GL_ENABLE_BIT);
         glEnable(GL_CULL_FACE);
+
+        aiString path;
+        auto const* tex{mesh->mTextureCoords[0]};
+        if (tex && mat->GetTexture(aiTextureType_DIFFUSE, 0, &path) == aiReturn_SUCCESS)
+        {
+            Texture_Image{std::string(path.C_Str())}.activate();
+            glEnable(GL_TEXTURE_2D);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        }
         glBegin(GL_TRIANGLES);
         glColor4f(color[0], color[1], color[2], 1.0);
         for (size_t j{0}; j < mesh->mNumFaces; ++j)
@@ -72,9 +85,13 @@ Model::Model(std::string const& file, double scale,
                 auto index{face.mIndices[vert]};
                 auto normal{mesh->mNormals[index]};
                 normal *= xform;
-                glNormal3f(normal[0], normal[1], normal[2]);
                 auto vertex{mesh->mVertices[index]};
                 vertex *= xform;
+                // I don't know why textures are inverted. This is also seen in the
+                // Facade::draw().
+                if (tex)
+                    glTexCoord2f(tex[index][0], 1.0 - tex[index][1]);
+                glNormal3f(normal[0], normal[1], normal[2]);
                 glVertex3f(vertex[0], vertex[1], vertex[2]);
             }
         }

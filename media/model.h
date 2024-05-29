@@ -20,10 +20,19 @@
 
 #include <GL/gl.h>
 
+#include <stdexcept>
 #include <string>
 
 namespace Vamos_Media
 {
+class Model_Exception : public std::runtime_error
+{
+public:
+    Model_Exception(std::string const& message)
+        : std::runtime_error(message)
+    {}
+};
+
 /// A 3D model read by the Assimp library.
 class Model
 {

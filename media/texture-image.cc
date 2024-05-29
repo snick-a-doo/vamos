@@ -167,12 +167,12 @@ Facade::Facade(std::string const& image_name,
       m_draw_back(draw_back)
 {
     set_size(2.0 * radius * image_aspect_ratio(), 2.0 * radius);
-    m_position = center + Three_Vector{-width() / 2.0, -height() / 2.0, 0.0};
+    m_position = center - Three_Vector{width() / 2.0, height() / 2.0, 0.0};
 }
 
 Three_Vector Facade::get_center() const
 {
-    return m_position - Three_Vector{-width() / 2.0, -height() / 2.0, 0.0};
+    return m_position + Three_Vector{width() / 2.0, height() / 2.0, 0.0};
 }
 
 void Facade::draw() const
