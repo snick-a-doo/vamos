@@ -8,7 +8,7 @@
   </robot>
 
   <exterior-model>
-    <file>GTI-texture.obj</file>
+    <file>GTI.obj</file>
 	<scale>1.0</scale>
 	<translate>[ 0.0, 0.0, 0.0 ]</translate>
 	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
@@ -251,9 +251,9 @@
 
   <contact-point>
     <mass>30.0</mass>
-    <position>[ 0.0, 0.0, 0.5 ]</position>
+    <position>[ 0.0, 0.0, 0.0 ]</position>
 	<material>metal</material>
-	<friction>0.0</friction>
+	<friction>1.0</friction>
 	<restitution>0.1</restitution>
   </contact-point>
 

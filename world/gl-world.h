@@ -189,8 +189,16 @@ public:
     virtual void add_car(std::shared_ptr<Vamos_Body::Car> car,
                          std::unique_ptr<Driver> driver) override;
     virtual void start(bool qualifying, size_t laps_or_minutes) override;
-    // Read the world definition file.
+    /// Read the world definition file.
     void read(std::string world_file = "", std::string controls_file = "");
+    /// The possible points of view for rendering:
+    ///   body - view from inside the current active car
+    ///   map - stationary view from over the track
+    ///   world - view from the current active trackside camera
+    ///   chase - view from behind the current active car
+    enum class View{body, map, world, chase};
+    /// Set a particular view.
+    void set_view(View v) { m_view = v; }
 
 private:
     /// Methods registered with the controls system.
@@ -240,8 +248,6 @@ private:
     void draw_track(bool draw_sky, Vamos_Geometry::Three_Vector const& view_position);
     void draw_cars(bool draw_interior, bool draw_focused_car = true);
     void draw_mirror_views();
-
-    enum class View{body, map, world, chase};
 
     Gl_Window m_window;
     Timer m_timer;

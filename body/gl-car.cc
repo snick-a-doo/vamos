@@ -353,7 +353,8 @@ void Gl_Car::draw_dashboard()
         return;
     auto const& dt{*mp_drivetrain};
     mp_dashboard->set_tachometer(rad_s_to_rpm(dt.engine().rotational_speed()));
-    mp_dashboard->set_speedometer(m_s_to_km_h(wheel(2).speed()));
+    if (num_wheels() > 0)
+        mp_dashboard->set_speedometer(m_s_to_km_h(wheel(num_wheels() - 1).speed()));
     mp_dashboard->set_fuel_gauge(fuel_tank()->fuel());
     mp_dashboard->set_gear(dt.transmission().gear());
     mp_dashboard->set_steering_wheel(m_steer_key_control.value());
@@ -374,7 +375,8 @@ void Gl_Car::draw_dashboard_extras()
     Two_Vector p{4, 22};
     screen.text(down(p, 4), "RPM", rad_s_to_rpm(dt.engine().rotational_speed()));
     screen.text(down(p, 4), "Torque", dt.engine().drive_torque(), "Nm");
-    screen.text(down(p, 4), "Speed", m_s_to_km_h(wheel(2).speed()), "km/h");
+    if (num_wheels() > 0)
+        screen.text(down(p, 4), "Speed", m_s_to_km_h(wheel(num_wheels() - 1).speed()), "km/h");
     screen.text(down(p, 4), "Mass", m_chassis.mass(), "kg");
     screen.text(down(p, 4), "Gear", (gear == -1 ? "R"
                                      : gear == 0 ? "N"

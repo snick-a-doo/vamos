@@ -89,6 +89,9 @@ Three_Vector Tire_Friction::friction_forces(double normal_force, double friction
                                             Three_Vector const& hub_velocity,
                                             double patch_speed, double current_camber)
 {
+    if (friction_factor == 0.0)
+        return Three_Vector{};
+
     auto Fz{1.0e-3 * normal_force};
     auto Fz2{Fz * Fz};
 
@@ -96,6 +99,7 @@ Three_Vector Tire_Friction::friction_forces(double normal_force, double friction
     const auto& b{m_longitudital_parameters};
     auto Cx{b[0]};
     auto Dx{friction_factor * (b[1] * Fz2 + b[2] * Fz)};
+    assert(Cx != 0.0 || Dx != 0.0);
     auto Bx{(b[3] * Fz2 + b[4] * Fz) * exp(-b[5] * Fz) / (Cx * Dx)};
     auto Ex{b[6] * Fz2 + b[7] * Fz + b[8]};
     auto Shx{b[9] * Fz + b[10]};
@@ -105,6 +109,8 @@ Three_Vector Tire_Friction::friction_forces(double normal_force, double friction
     auto gamma{rad_to_deg(current_camber)};
     auto Cy{a[0]};
     auto Dy{friction_factor * (a[1] * Fz2 + a[2] * Fz)};
+    assert(a[4] != 0.0);
+    assert(Cy != 0.0 || Dy != 0.0);
     auto By{a[3] * sin(2.0 * atan(Fz / a[4])) * (1.0 - a[5] * std::abs(gamma)) / (Cy * Dy)};
     auto Ey{a[6] * Fz + a[7]};
     auto Shy{a[8] * gamma + a[9] * Fz + a[10]};
@@ -114,6 +120,7 @@ Three_Vector Tire_Friction::friction_forces(double normal_force, double friction
     const auto& c{m_aligning_parameters};
     auto Cz{c[0]};
     auto Dz{friction_factor * (c[1] * Fz2 + c[2] * Fz)};
+    assert(Cz != 0.0 || Dz != 0.0);
     auto Bz{(c[3] * Fz2 + c[4] * Fz) * (1.0 - c[6] * std::abs(gamma)) * exp(-c[5] * Fz)
             / (Cz * Dz)};
     auto Ez{(c[7] * Fz2 + c[8] * Fz + c[9]) * (1.0 - c[10] * std::abs(gamma))};

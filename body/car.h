@@ -204,7 +204,9 @@ public:
     void clutch_time(double from_neutral, double others);
     /// @return The average of the degree of sliding of the tires.
     double slide() const { return m_slide; }
-    /// @return A wheel according to index.
+    /// @return The total number of wheels.
+    size_t num_wheels() const { return m_wheels.size(); }
+    /// @return A wheel according to index. Index must be < num_wheels().
     Wheel& wheel(size_t wheel_index) const;
     /// @return A pointer to the drivetrain which can be used to access the engine,
     /// clutch, and transmission. Nullptr if a drivetrain is not present.

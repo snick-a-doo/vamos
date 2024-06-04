@@ -39,6 +39,7 @@ static void show_usage()
               << "[[-z|--performance=] FACTOR] "
               << "[[-s|--volume=] VOLUME_PERCENT] "
               << "[-f|--full-screen] "
+              << "[-b|--view=] body|map|world|chase"
               << "[-n|--no-interaction] "
               << "[-d|--demo] "
               << "[-q|--qualifying] "
@@ -57,6 +58,7 @@ Options::Options(int argc, char* argv[])
                              {"volume", required_argument, 0, 's'},
                              {"show-line", optional_argument, 0, 'l'},
                              {"map", no_argument, 0, 'm'},
+                             {"view", required_argument, 0, 'b'},
                              {"demo", no_argument, 0, 'd'},
                              {"qualifying", no_argument, 0, 'q'},
                              {"full-screen", no_argument, 0, 'f'},
@@ -104,6 +106,9 @@ Options::Options(int argc, char* argv[])
             break;
         case 'm':
             map_mode = true;
+            break;
+        case 'b':
+            view = optarg;
             break;
         case 'd':
             demo = true;
@@ -165,6 +170,7 @@ std::ostream& operator<<(std::ostream& os, Options const& opt)
        << "volume\t" << opt.volume << '\n'
        << "map_mode\t" << opt.map_mode << '\n'
        << "full_screen\t" << opt.full_screen << '\n'
+       << "view\t" << opt.view << '\n'
        << "interact\t" << opt.interact << '\n'
        << "demo\t" << opt.demo << '\n'
        << "qualifying\t" << opt.qualifying << '\n'

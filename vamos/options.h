@@ -45,6 +45,7 @@ public:
     bool show_line{false};
     std::string input_file;
     std::vector<double> parameter;
+    std::string view;
 
 private:
     int m_exit_status{EXIT_SUCCESS};

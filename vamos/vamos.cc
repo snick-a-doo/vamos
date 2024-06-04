@@ -162,6 +162,16 @@ int main(int argc, char* argv[])
     if (!opt.map_mode)
         sounds.read(opt.data_dir + "sounds/", "default-sounds.xml");
 
+    if (opt.view == "body")
+        world.set_view(Gl_World::View::body);
+    else if (opt.view == "map")
+        world.set_view(Gl_World::View::map);
+    else if (opt.view == "world")
+        world.set_view(Gl_World::View::world);
+    else if (opt.view == "chase")
+        world.set_view(Gl_World::View::chase);
+    // If the view isn't one of these, you get the default view, which depends on other options.
+
     world.start(opt.qualifying, opt.laps);
     std::ostringstream name;
     name << (opt.qualifying ? "qualifying" : "race") << "-results";
