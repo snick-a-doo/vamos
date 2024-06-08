@@ -68,7 +68,8 @@ public:
                            Vamos_Geometry::Three_Vector const& normal,
                            Vamos_Geometry::Three_Vector const& ang_vel,
                            Vamos_Media::Material const& material);
-
+    /// Call to indicate that the particle is not (or no longer) in contact.
+    virtual void no_contact();
     // True for solid, rigid contact. Soft or deformable objects should return false.
     virtual bool single_contact() const { return true; }
     // Propagate the Particle forward in time by TIME.

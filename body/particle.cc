@@ -54,6 +54,11 @@ double Particle::contact(Three_Vector const& impulse,
     return 0.0;
 }
 
+void Particle::no_contact()
+{
+    m_contact = false;
+}
+
 void Particle::propagate(double)
 {
     if (!m_contact)

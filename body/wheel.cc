@@ -58,17 +58,13 @@ void Wheel::propagate(double time)
     m_rotation += speed() * time / m_tire.radius();
 }
 
-double Wheel::contact(const Three_Vector& impulse, const Three_Vector& velocity, double distance,
+double Wheel::contact(const Three_Vector&, const Three_Vector& velocity, double distance,
                       const Three_Vector& normal, const Three_Vector& angular_velocity,
                       const Material& surface_material)
 {
-    Particle::contact(impulse, rotate_in(velocity), distance, rotate_in(normal),
+    // Token base contact() call to register that contact has happened.
+    Particle::contact(Three_Vector{},  rotate_in(velocity), distance, rotate_in(normal),
                       rotate_in(angular_velocity), surface_material);
-
-    // The collision is soft unless the suspension has bottomed out.
-    if (!mp_suspension->is_bottomed_out())
-        set_impulse(null_v);
-
     m_normal = rotate_in(normal);
     auto v_perp{rotate_in(velocity).project(m_normal)};
     m_ground_velocity = rotate_in(velocity) - v_perp;

@@ -179,21 +179,23 @@ void World::interact(Car* car, size_t road_index, size_t segment_index)
         auto const& pos{car->chassis().contact_position(*p)};
         auto bump_parameter{car->distance_traveled() + p->position().x};
         auto info{m_track.test_for_contact(pos, bump_parameter, road_index, segment_index)};
-        auto const& velocity{car->chassis().particle_velocity(*p)};
-        if (info.contact)
+        if (!info.contact)
         {
-            auto j{impulse(
-                    car->chassis().moment(pos), velocity, car->chassis().mass(),
-                    car->chassis().inertia(),
-                    p->material().restitution_factor() * info.material.restitution_factor(),
-                    p->material().friction_factor() * info.material.friction_factor(), info.normal)};
-            car->chassis().contact(*p, j, velocity, info.depth, info.normal, info.material);
-            auto v_perp{velocity.project(info.normal)};
-            auto v_par{velocity - v_perp};
-            m_interaction_info.emplace_back(car, p->material().composition(),
-                                            info.material.composition(),
-                                            v_par.magnitude(), v_perp.magnitude());
+            p->no_contact();
+            continue;
         }
+        auto const& velocity{car->chassis().particle_velocity(*p)};
+        auto j{impulse(
+                car->chassis().moment(pos), velocity, car->chassis().mass(),
+                car->chassis().inertia(),
+                p->material().restitution_factor() * info.material.restitution_factor(),
+                p->material().friction_factor() * info.material.friction_factor(), info.normal)};
+        car->chassis().contact(*p, j, velocity, info.depth, info.normal, info.material);
+        auto v_perp{velocity.project(info.normal)};
+        auto v_par{velocity - v_perp};
+        m_interaction_info.emplace_back(car, p->material().composition(),
+                                        info.material.composition(),
+                                        v_par.magnitude(), v_perp.magnitude());
     }
 
     // Check for contact with track objects.
