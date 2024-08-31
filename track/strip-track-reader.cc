@@ -227,6 +227,7 @@ void read_track_file(std::string const& data_dir,
     if (auto line{top.child("racing-line")})
     {
         auto& line_obj{track->mp_track->m_racing_line};
+        line_obj.m_resolution = get_value(line, "resolution", line_obj.m_resolution);
         line_obj.m_iterations = get_value(line, "iterations", line_obj.m_iterations);
         line_obj.m_damping = get_value(line, "damping", line_obj.m_damping);
         line_obj.m_margin = get_value(line, "margin", line_obj.m_margin);
