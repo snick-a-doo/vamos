@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
-<!-- A modern Formula One car -->
-<!-- increased grip, deceleration, lateral-acceleration -->
-<car name="SLV">
+
+<!-- A 2025 Formula One car -->
+<car name="WHT">
   <robot>
-    <slip-ratio>7.0</slip-ratio>
-    <deceleration>1.8</deceleration>
-    <lateral-acceleration>1.8</lateral-acceleration>
+    <slip-ratio>8.0</slip-ratio>
+    <deceleration>2.0</deceleration>
+    <lateral-acceleration>2.0</lateral-acceleration>
   </robot>
 
   <exterior-model>
-    <file>F1-silver.ac</file>
+    <file>F1-white.ac</file>
 	<scale>1.0</scale>
 	<translate>[ -0.5, 0.2, -0.1 ]</translate>
 	<rotate>[ 0.0, 0.0, 0.0 ]</rotate>
@@ -46,7 +46,7 @@
 	  <on-steering-wheel/>
 	  <width>0.06</width>
 	  <elements>7</elements>
-	  <range>[ 8000, 17000.0 ]</range>
+	  <range>[ 8000, 14000.0 ]</range>
 	  <image>tachometer-leds.png</image>
 	</tachometer>
 
@@ -94,19 +94,19 @@
 	  <position>[ 1.0, 0.9, 0.1 ]</position>
 	  <mass>100.0</mass>
 
-      <max-power>6.8e5</max-power><!-- hp * 746 W/hp -->
-	  <peak-rpm>16000.0</peak-rpm>
-	  <rpm-limit>19000.0</rpm-limit>
+      <max-power>6.5e5</max-power><!-- hp * 746 W/hp -->
+	  <peak-rpm>12000.0</peak-rpm>
+	  <rpm-limit>15000.0</rpm-limit>
 	  <inertia>0.5</inertia>
 	  <idle>0.18</idle>
-	  <start-rpm>8000</start-rpm>
+	  <start-rpm>4000</start-rpm>
 	  <stall-rpm>0</stall-rpm>
 	  <fuel-consumption>0.0001</fuel-consumption>
 
       <sound>
         <file>f1-v8.wav</file>
 		<pitch>0.0009</pitch>
-		<volume>0.02</volume>
+		<volume>0.03</volume>
 		<throttle-volume-factor>1.0</throttle-volume-factor>
 		<engine-speed-volume-factor>0.001</engine-speed-volume-factor>
 	  </sound>
@@ -120,9 +120,9 @@
     </clutch>
 
     <transmission>
-	  <forward-gears>7</forward-gears>
+	  <forward-gears>8</forward-gears>
 	  <first-ratio>2.0</first-ratio>
-	  <last-ratio>1.05</last-ratio> 
+	  <last-ratio>0.90</last-ratio> 
 	  <shift-delay>0.0</shift-delay>
     </transmission>
 
@@ -190,10 +190,10 @@
 	  <offset>0.3</offset>
       <friction>
         <longitudinal>
-          [ 1.6, 0.0, 2800.0, 0.0, 400.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
+          [ 1.6, 0.0, 2300.0, 0.0, 400.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0 ]
         </longitudinal>
 	    <transverse>
-	      [ 1.6, 0.0, 2800.0, 2600.0, 6.03, 0.0, -0.359, 1.0, -0.05, 0.0, 0.0, -8.0, -0.2, 0.0, 0.0 ]
+	      [ 1.6, 0.0, 2300.0, 2600.0, 6.03, 0.0, -0.359, 1.0, -0.05, 0.0, 0.0, -8.0, -0.2, 0.0, 0.0 ]
 	    </transverse>
 	    <aligning>
 	      [ 0.07, -6.49, -21.9, 0.416, -21.3, 2.94e-2, 0.0, -1.20, 5.23, -14.8, 0.0, 0.0, -3.74e-3, 3.89e-2, 0.0, 0.0, 0.0, 0.0 ]
@@ -208,7 +208,7 @@
     <brakes>
 	  <friction>0.8</friction>
 	  <max-pressure>6.0e6</max-pressure>
-      <front-bias>0.55</front-bias>
+      <front-bias>0.60</front-bias>
 	  <radius>0.2</radius>
 	  <area>0.01</area>
     </brakes>
@@ -295,23 +295,30 @@
   </particle>
 
   <drag>
-    <position>[ 2.0, 0.9, 0.25 ]</position>
+    <position>[ 1.0, 0.9, 0.25 ]</position>
 	<frontal-area>1.0</frontal-area>
-	<drag-coefficient>0.1</drag-coefficient>
+	<drag-coefficient>0.5</drag-coefficient>
   </drag>
 
   <wing>
     <position>[ 4.0, 0.9, 0.01 ]</position>
 	<frontal-area>0.2</frontal-area>
 	<surface-area>0.3</surface-area>
-	<lift-coefficient>-6.5</lift-coefficient>
+	<lift-coefficient>-1.5</lift-coefficient>
 	<efficiency>0.5</efficiency>
   </wing>
   <wing>
     <position>[ 0.0, 0.9, 0.5 ]</position>
 	<frontal-area>0.2</frontal-area>
 	<surface-area>0.5</surface-area>
-	<lift-coefficient>-6.5</lift-coefficient>
+	<lift-coefficient>-2.0</lift-coefficient>
+	<efficiency>0.5</efficiency>
+  </wing>
+  <wing>
+    <position>[ 1.2, 0.9, 0.5 ]</position>
+	<frontal-area>0.0</frontal-area>
+	<surface-area>1.0</surface-area>
+	<lift-coefficient>-2.0</lift-coefficient>
 	<efficiency>0.5</efficiency>
   </wing>
 </car>

@@ -142,7 +142,7 @@
 
     <differential>
       <final-drive>3.24</final-drive>
-	  <anti-slip>40.0</anti-slip>
+	  <anti-slip>10.0</anti-slip>
     </differential>
   </drivetrain>
 

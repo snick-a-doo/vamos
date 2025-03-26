@@ -293,7 +293,6 @@ void World::set_gravity(double g)
 
 void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
 {
-    std::cout << track_pos << std::endl;
     // Do nothing if initial conditions were set explicitly.
     if (car->chassis().has_initial_conditions())
         return;
@@ -317,7 +316,6 @@ void World::place_car(Car* car, Three_Vector const& track_pos, Road const& road)
         auto pos{car->chassis().transform_out(p->contact_position())};
         gap = std::min(gap, pos.z - segment.world_elevation(pos));
     }
-    std::cout << car->front_position() << ' ' << car->chassis().cm_position() << std::endl;
     auto world_pos{road.position(track_pos.x, track_pos.y, segment)};
     car->set_front_position({world_pos.x, world_pos.y, car->front_position().z - gap});
 }

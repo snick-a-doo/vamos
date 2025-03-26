@@ -111,7 +111,7 @@
 	<restitution>0.1</restitution>
 	<rolling>1.0</rolling>
 	<drag>0.0</drag>
-	<bump-amplitude>0.06</bump-amplitude>
+	<bump-amplitude>0.04</bump-amplitude>
 	<bump-wavelength>2.0</bump-wavelength>
 	<texture>
 	  <file>textures/red-kerb.png</file>
@@ -258,6 +258,11 @@
 	  <start><transition/></start>
 	  <end><transition/></end>
 	</right-kerb>
+	<braking-marker>
+	  <file>textures/50.png</file>
+	  <distance>50.0</distance>
+	  <side>left</side>
+	</braking-marker>
 	<elevation>[ 40.0, 8.0 ]</elevation>
   </road>
 

@@ -117,7 +117,7 @@
 	<restitution>0.1</restitution>
 	<rolling>1.0</rolling>
 	<drag>0.0</drag>
-	<bump-amplitude>0.04</bump-amplitude>
+	<bump-amplitude>0.03</bump-amplitude>
 	<bump-wavelength>2.0</bump-wavelength>
 	<texture>
 	  <file>textures/red-kerb.png</file>
@@ -202,7 +202,7 @@
 		  <width>1.0</width>
 		</transition>
 	  </end>
-	  <profile>[ 1.0, 0.06 ][ 1.1, 0.0 ]</profile>
+	  <profile>[ 1.0, 0.03 ][ 1.1, 0.0 ]</profile>
 	</right-kerb>
   </road>
 
@@ -222,7 +222,7 @@
 		  <width>1.0</width>
 	    </transition>
 	  </end>
-	  <profile>[ 1.0, 0.06 ][ 1.1, 0.0 ]</profile>
+	  <profile>[ 1.0, 0.03 ][ 1.1, 0.0 ]</profile>
 	</left-kerb>
   </road>
 

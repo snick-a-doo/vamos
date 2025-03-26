@@ -89,8 +89,6 @@ public:
 
     virtual void propagate(double time) override;
 
-    void rewind();
-
     // Return the radius of the tire
     double radius() const { return m_radius; }
 

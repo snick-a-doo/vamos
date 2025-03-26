@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <track name="Monza">
+  <racing-line>
+    <resolution>20.0</resolution>
+  </racing-line>
+
   <sky>
     <sides>textures/sky_sides.png</sides>
 	<top>textures/sky_top.png</top>
@@ -233,7 +237,6 @@
 	    <transition/>
 	  </end>
 	</right-kerb>
-    <racing-line-adjustment>-0.5</racing-line-adjustment>
   </road>
 
   <road segment="straight">
@@ -312,7 +315,6 @@
 	<right-kerb>
 	  <end><transition/></end>
 	</right-kerb>
-    <racing-line-adjustment>-0.5</racing-line-adjustment>
   </road>
 
   <road segment="right turn">
@@ -352,7 +354,6 @@
 	  </start>
 	</left-kerb>
 	<elevation>[ 0.0, 6.5 ]</elevation>
-    <racing-line-adjustment>0.2</racing-line-adjustment>
   </road>
 
   <road segment="straight">
@@ -386,7 +387,6 @@
     <skew>0.5</skew>
 	<right-kerb/>
 	<elevation>[ 0.0, 4.8 ]</elevation>
-    <racing-line-adjustment>-0.5</racing-line-adjustment>
   </road>
 
   <road segment="straight">
@@ -410,7 +410,6 @@
         <transition/>
 	  </end>
 	</left-kerb>
-    <racing-line-adjustment>1.0</racing-line-adjustment>
   </road>
 
   <!-- Curva Del Serraglio -->
@@ -473,7 +472,6 @@
 	  </start>
 	</right-kerb>
 	<elevation>[ 0.0, 2.4 ]</elevation>
-    <racing-line-adjustment>0.5</racing-line-adjustment>
   </road>
 
   <road segment="left turn">
@@ -507,7 +505,6 @@
 	<left-kerb>
 	  <start><transition/></start>
 	</left-kerb>
-    <racing-line-adjustment>-0.5</racing-line-adjustment>
   </road>
 
   <road segment="left turn">
@@ -516,7 +513,6 @@
     <radius>17.0</radius>
     <skew>-0.45</skew>
 	<left-kerb/>
-    <racing-line-adjustment>-0.5</racing-line-adjustment>
   </road>
 
   <road segment="straight">
@@ -547,7 +543,6 @@
 	  </end>
 	</left-kerb>
 	<elevation>[ 0.0, 1.7 ][ 103.3, 1.2 ]</elevation>
-    <racing-line-adjustment>-0.5</racing-line-adjustment>
   </road>
 
   <!-- Curva Parabolica -->
@@ -559,7 +554,6 @@
 	  <start><transition/></start>
 	</right-kerb>
 	<elevation>[ 0.0, -3.5 ]</elevation>
-    <racing-line-adjustment>0.3</racing-line-adjustment>
   </road>
 
   <road segment="right turn">
@@ -570,7 +564,6 @@
 	<right-kerb>
 	  <end><transition/></end>
 	</right-kerb>
-    <racing-line-adjustment>0.3</racing-line-adjustment>
   </road>
 
   <road segment="right turn">
