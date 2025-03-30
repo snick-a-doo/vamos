@@ -46,6 +46,8 @@ public:
     virtual void set_cars(std::vector<Car_Info> const* /* cars */) {}
     /// Start driving.
     virtual void start(double /* to_go */) {}
+    /// End the event.
+    virtual void finish() {}
     /// True if the driver is driving.
     virtual bool is_driving() const { return true; }
     /// Advance in time.

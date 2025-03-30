@@ -39,12 +39,12 @@ void PID::reset()
 
 double PID::propagate(double signal, double dt)
 {
-    const auto error{m_setpoint - signal};
-    m_proportional = m_kp * error;
-    m_integral += m_ki * error * dt - m_integral * dt * m_integral_decay;
-    m_integral = std::max(m_integral, 0.0);
+    auto const error{signal - m_setpoint};
+    m_proportional = -m_kp * error;
+    m_integral -= m_ki * error * dt;// - m_integral * dt * m_integral_decay;
     m_derivative = m_cumulative_time == 0.0 || dt == 0.0
-        ? 0.0 : m_kd * (error - m_previous_error) / dt;
+        ? 0.0
+        : -m_kd * (error - m_previous_error) / dt;
 
     m_previous_error = error;
     m_cumulative_time += dt;

@@ -22,11 +22,16 @@
 
 using namespace Vamos_World;
 
-auto constexpr n_countdown_start{6};
+auto constexpr n_countdown_start{5};
 
+// See
+// https://www.fia.com/sites/default/files/regulation/file/03__Recommended_light_signals.pdf
+// FIA lights come on in sequence at 5 seconds (before nominal start time, I guess) 4 s, 3
+// s, 2 s, and 1 s. They go off after a delay of 0.2 to 3 seconds, potentially before the
+// nominal start time.
 Timing_Info::Timing_Info(size_t n_cars, size_t n_sectors, bool do_start_sequence)
     : m_sectors{n_sectors},
-      m_start_delay{Vamos_Geometry::random_in_range(0.0, 4.0)},
+      m_start_delay{Vamos_Geometry::random_in_range(0.2, 3.0)},
       m_state{do_start_sequence ? State::starting : State::running}
 {
     assert(n_sectors > 0);
@@ -64,7 +69,7 @@ void Timing_Info::update(double current_time, size_t index, double distance, siz
     {
         auto to_go{n_countdown_start - (current_time - m_start_time)};
         m_countdown = std::max(static_cast<int>(to_go + 1.0), 1);
-        if (to_go < -m_start_delay)
+        if (to_go < 1.0 - m_start_delay)
         {
             m_countdown = 0;
             m_start_time = current_time;
@@ -88,11 +93,12 @@ void Timing_Info::update(double current_time, size_t index, double distance, siz
             m_lap_limit > 0 && m_car_timing[index]->current_lap() > m_lap_limit};
         const auto time_done{m_time_limit > 0.0 && m_elapsed_time > m_time_limit};
 
-        // A car's race is done when
-        // 1. it completes all the laps
-        // 2. it completes any lap after any car has completed all laps
-        // 3. it completes any lap after time has expired
-        if (laps_done || (new_lap && (time_done || m_state == State::finished)))
+        // A car's race is done when any of the following are true
+        // 1. it has completed all laps
+        // 2. it has completed a lap after another car has completed all laps
+        // 3. it has completed a lap after time has expired
+        if ((laps_done || (new_lap && (time_done || m_state == State::finished)))
+            && !p_car->is_finished())
             p_car->set_finished();
 
         if (new_sector)

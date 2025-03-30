@@ -60,7 +60,8 @@ Robot_Driver::Robot_Driver(std::shared_ptr<Car> car, Strip_Track const& track)
       m_road(track.get_road(0)),
       m_racing_line{m_road, car->get_robot_parameters().lateral_acceleration},
       m_braking{m_road, car->get_robot_parameters().deceleration, m_racing_line},
-      m_speed_control(4.0, 0.0, 0.0),
+      m_rev_control(0.01, 0.0, 0.0),
+      m_speed_control(1.0, 0.0, 0.0),
       m_traction_control(0.5, 0.0, 0.0),
       m_brake_control(0.1, 0.0, 0.0),
       m_steer_control(0.5, 0.0, 0.0),
@@ -87,22 +88,28 @@ void Robot_Driver::qualify()
     m_mode = Mode::qualify;
 }
 
+void Robot_Driver::set_event(Event::Type type, double delay)
+{
+    // Ignore successive events of the same type to avoid resetting the time.
+    if (type != m_event.type)
+        m_event = {type, delay, 0.0};
+};
+
 void Robot_Driver::start(double to_go)
 {
-    auto set_event = [&](Event::Type type, double delay) {
-        // Ignore successive events of the same type to avoid resetting the time.
-        if (type != m_event.type)
-            m_event = {type, delay, 0.0};
-    };
-
     if (m_state == State::parked)
-        set_event(Event::start_engine, 0.0);
+        set_event(Event::start_engine);
     else if (m_mode == Mode::qualify)
         set_event(Event::drive, Vamos_Geometry::random_in_range(10, 60));
     else if (to_go <= 0.0)
         set_event(Event::drive, reaction_time());
     else if (to_go <= 1.0)
-        set_event(Event::rev, 0.0);
+        set_event(Event::rev);
+}
+
+void Robot_Driver::finish()
+{
+    set_event(Event::done);
 }
 
 void Robot_Driver::propagate(double timestep)
@@ -260,7 +267,8 @@ Three_Vector Robot_Driver::target_vector()
 {
     // Return a vector that points in the direction of the position of the point on the
     // track that the driver aims for.
-    auto target{m_racing_line.target(info().track_position().x, mp_car->target_distance())};
+    auto target_dist{4.0 * mp_car->length()};
+    auto target{m_racing_line.target(info().track_position().x, target_dist)};
     auto center{mp_car->center_position()};
     return {target.x - center.x, target.y - center.y, 0.0};
 }
@@ -287,8 +295,7 @@ void Robot_Driver::choose_gear()
 
     // The selected gear. Use Car::gear() rather than Transmission() because the shift to
     // the selected gear may be delayed.
-    const auto gear{mp_car->gear()};
-    const auto throttle{dt.engine().throttle()};
+    auto const gear{mp_car->gear()};
 
     // Find current the engine power and the power at maximum throttle in 1) the
     // current gear 2) the next gear up 3) 2 gears down. Two gears to prevent
@@ -299,7 +306,6 @@ void Robot_Driver::choose_gear()
     auto down2_omega{omega * dt.transmission().gear_ratio(gear - 2)
                      / dt.transmission().gear_ratio(gear)};
 
-    auto current_power{dt.engine().power(throttle, omega)};
     auto power{dt.engine().power(1.0, omega)};
     auto up_power{dt.engine().power(1.0, up_omega)};
     auto down2_power{dt.engine().power(1.0, down2_omega)};
@@ -307,12 +313,6 @@ void Robot_Driver::choose_gear()
     // Shift up if there's more power at the current revs in the next higher gear.
     if (up_power > power)
         mp_car->shift_up();
-    // Shift up if there's enough power in the next higher gear even if there's
-    // potentially more power in the current gear. This saves fuel by lowering revs.
-    else if (up_power > current_power && up_power > 0.95 * power
-             && is_in_range(throttle, 0.1, 0.9))
-        mp_car->shift_up();
-    // Shift down if there's more power 2 gears down.
     else if (down2_power > power && gear > (m_state == State::cool_down ? 3 : 2))
         mp_car->shift_down();
 
@@ -344,28 +344,27 @@ void Robot_Driver::accelerate()
 void Robot_Driver::set_speed(double target_speed)
 {
     // Set the gas and brake pedal positions. Three PID controllers are involved in
-    // setting the pedal position: 'm_speed_control' ant 'm_brake_control' attempt to
+    // setting the pedal position: 'm_speed_control' and 'm_brake_control' attempt to
     // reach the target speed, 'm_traction_control' attempts to limit wheel spin. Nothing
     // prevents the gas and brake from being applied simultaneously, but with only P terms
     // of the PID controllers being used it does not happen in practice.  Speed may be
     // modulated to avoid running into the back of the car in front.
     target_speed *= mp_car->grip() * m_speed_factor;
-    m_speed_control.set(target_speed);
-    auto d1{m_speed_control.propagate(m_speed, m_timestep)};
-    auto d2{m_traction_control.propagate(total_slip(), m_timestep)};
-    auto gas{std::min(d1, d2)};
 
     auto const& dt{*mp_car->drivetrain()};
+
+    m_speed_control.set(target_speed);
+    auto gas{m_speed_control.propagate(m_speed, m_timestep)};
+    gas = std::min(gas, m_traction_control.propagate(total_slip(), m_timestep));
+
     if (!dt.clutch().is_engaged())
     {
         // Keep the revs in check if the clutch is not fully engaged.
-        m_speed_control.set(0.0);
-        auto error{dt.engine().rotational_speed() - dt.engine().peak_engine_speed()};
-        gas = std::min(gas, m_speed_control.propagate(0.01 * error, m_timestep));
+        m_rev_control.set(dt.engine().peak_engine_speed());
+        gas = std:: min(gas,
+                        m_rev_control.propagate(dt.engine().rotational_speed(), m_timestep));
     }
 
-    if (gas >= 1.0)
-        gas *= m_speed_factor;
     if (m_state == State::cool_down)
         gas = std::min(gas, 0.5);
     set_gas(gas * m_speed_factor);
@@ -394,7 +393,7 @@ void Robot_Driver::set_gas(double gas)
         m_speed_control.reset();
         m_traction_control.reset();
     }
-    mp_car->gas(clip(gas, 0.0, 1.0));
+    mp_car->gas(clip(gas, 0.0, 1.0), 0.5);
 }
 
 void Robot_Driver::set_brake(double brake)
@@ -405,7 +404,7 @@ void Robot_Driver::set_brake(double brake)
         m_brake_control.reset();
         m_traction_control.reset();
     }
-    mp_car->brake(clip(brake, 0.0, 1.0));
+    mp_car->brake(clip(brake, 0.0, 1.0), 0.2);
 }
 
 void Robot_Driver::avoid_collisions()

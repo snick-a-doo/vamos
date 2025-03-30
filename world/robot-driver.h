@@ -159,6 +159,7 @@ public:
     virtual void set_gravity(Vamos_Geometry::Three_Vector const& g) override;
     virtual void set_cars(const std::vector<Car_Info>* cars) override;
     virtual void start(double to_go) override;
+    virtual void finish() override;
     virtual bool is_driving() const override;
     virtual void propagate(double timestep) override;
     virtual void draw() override;
@@ -191,6 +192,8 @@ private:
 
     /// @return The world's car info for the controlled car.
     const Car_Info& info() const { return (*mp_cars)[m_info_index]; }
+    /// Change the current event state.
+    void set_event(Event::Type type, double delay = 0.0);
     /// Advance the state machine depending on the new event.
     void handle_event(Event::Type type);
     /// True if there's room to go on-track for qualifying.
@@ -245,6 +248,7 @@ private:
 
     /// PID controllers
     /// @{
+    PID m_rev_control;
     PID m_speed_control;
     PID m_traction_control;
     PID m_brake_control;

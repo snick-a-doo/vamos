@@ -48,8 +48,8 @@ void Car_Info::reset()
 }
 
 void Car_Info::propagate(double time_step, double total_time,
-                                Three_Vector const& track_position,
-                                Three_Vector const& pointer_position)
+                         Three_Vector const& track_position,
+                         Three_Vector const& pointer_position)
 {
     m_record.emplace_back(total_time, track_position,
                           car->chassis().position(), car->chassis().orientation());

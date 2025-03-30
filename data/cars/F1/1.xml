@@ -4,8 +4,8 @@
 <car name="WHT">
   <robot>
     <slip-ratio>8.0</slip-ratio>
-    <deceleration>2.0</deceleration>
-    <lateral-acceleration>2.0</lateral-acceleration>
+    <deceleration>1.8</deceleration>
+    <lateral-acceleration>1.8</lateral-acceleration>
   </robot>
 
   <exterior-model>
@@ -122,7 +122,7 @@
     <transmission>
 	  <forward-gears>8</forward-gears>
 	  <first-ratio>2.0</first-ratio>
-	  <last-ratio>0.90</last-ratio> 
+	  <last-ratio>0.88</last-ratio>
 	  <shift-delay>0.0</shift-delay>
     </transmission>
 
@@ -304,21 +304,21 @@
     <position>[ 4.0, 0.9, 0.01 ]</position>
 	<frontal-area>0.2</frontal-area>
 	<surface-area>0.3</surface-area>
-	<lift-coefficient>-1.5</lift-coefficient>
+	<lift-coefficient>-5.0</lift-coefficient>
 	<efficiency>0.5</efficiency>
   </wing>
   <wing>
     <position>[ 0.0, 0.9, 0.5 ]</position>
 	<frontal-area>0.2</frontal-area>
 	<surface-area>0.5</surface-area>
-	<lift-coefficient>-2.0</lift-coefficient>
+	<lift-coefficient>-5.0</lift-coefficient>
 	<efficiency>0.5</efficiency>
   </wing>
   <wing>
     <position>[ 1.2, 0.9, 0.5 ]</position>
 	<frontal-area>0.0</frontal-area>
 	<surface-area>1.0</surface-area>
-	<lift-coefficient>-2.0</lift-coefficient>
+	<lift-coefficient>-5.0</lift-coefficient>
 	<efficiency>0.5</efficiency>
   </wing>
 </car>
