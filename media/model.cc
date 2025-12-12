@@ -60,10 +60,22 @@ Model::Model(std::string const& file, double scale,
         auto const* mesh{scene->mMeshes[i]};
         auto const* mat{scene->mMaterials[mesh->mMaterialIndex]};
         aiColor3D color(0.0, 0.0, 0.0);
+        // Assimp's overloaded Get() methods take 4 arguments. The AI_MATKEY macros expand
+        // to the first 3 arguments. The last is a reference to the value.
         mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 
+        auto alpha{1.0};
+        mat->Get(AI_MATKEY_OPACITY, alpha);
+        auto two_sided{0};
+        mat->Get(AI_MATKEY_TWOSIDED, two_sided);
+        auto shading{0};
+        mat->Get(AI_MATKEY_SHADING_MODEL, shading);
+        auto shine{0.0};
+        mat->Get(AI_MATKEY_SHININESS_STRENGTH, shine);
+
         glPushAttrib(GL_ENABLE_BIT);
-        glEnable(GL_CULL_FACE);
+        if (!two_sided)
+            glEnable(GL_CULL_FACE);
 
         aiString path;
         auto const* tex{mesh->mTextureCoords[0]};
@@ -73,8 +85,10 @@ Model::Model(std::string const& file, double scale,
             glEnable(GL_TEXTURE_2D);
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
         }
+        else
+            glDisable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLES);
-        glColor4f(color[0], color[1], color[2], 1.0);
+        glColor4f(color[0], color[1], color[2], alpha);
         for (size_t j{0}; j < mesh->mNumFaces; ++j)
         {
             auto face{mesh->mFaces[j]};

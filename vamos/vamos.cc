@@ -134,11 +134,13 @@ int main(int argc, char* argv[])
 
     if (!opt.map_mode)
     {
-        for (auto place{0}; auto const& entry : entries)
+        for (auto place{1}; auto const& entry : entries)
         {
             auto car{std::make_shared<Gl_Car>(
-                track.grid_position(++place, opt.number_of_cars, opt.qualifying),
+                track.grid_position(place, opt.number_of_cars, opt.qualifying),
                 Three_Matrix{1.0})};
+            if (opt.interact)
+                ++place;
             car->read(opt.data_dir, entry.file);
             car->start_engine();
             if (entry.interactive)

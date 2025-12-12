@@ -102,7 +102,7 @@ void Robot_Driver::start(double to_go)
     else if (m_mode == Mode::qualify)
         set_event(Event::drive, Vamos_Geometry::random_in_range(10, 60));
     else if (to_go <= 0.0)
-        set_event(Event::drive, reaction_time());
+        set_event(Event::drive, m_interact ? reaction_time() : 0.0);
     else if (to_go <= 1.0)
         set_event(Event::rev);
 }
@@ -267,7 +267,7 @@ Three_Vector Robot_Driver::target_vector()
 {
     // Return a vector that points in the direction of the position of the point on the
     // track that the driver aims for.
-    auto target_dist{4.0 * mp_car->length()};
+    auto target_dist{3.5 * mp_car->length()};
     auto target{m_racing_line.target(info().track_position().x, target_dist)};
     auto center{mp_car->center_position()};
     return {target.x - center.x, target.y - center.y, 0.0};
@@ -425,10 +425,14 @@ void Robot_Driver::avoid_collisions()
     auto clear_side{Direct::none};
     auto v1{mp_car->chassis().rotate_in(mp_car->chassis().cm_velocity())};
 
-    // Break out immediately if the interact flag is false. We still need the lane shift
-    // code after the loop so the cars will get to the racing line after the start.
     for (auto const& car : *mp_cars)
     {
+        // Break out immediately if the interact flag is false. We still need the lane
+        // shift code after the loop so the cars will get to the racing line after the
+        // start.
+        if (!m_interact)
+            break;
+
         // Don't check for collisions with yourself.
         if (car.car.get() == mp_car.get())
             continue;
