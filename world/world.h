@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+class Log;
+
 namespace Vamos_Body
 {
 class Car;
@@ -95,7 +97,7 @@ class World
 {
 public:
     World(Vamos_Track::Strip_Track& track, Atmosphere const& atmosphere);
-    virtual ~World() = default;
+    virtual ~World();
 
     /// Put a car and its driver in the world.
     virtual void add_car(std::shared_ptr<Vamos_Body::Car> car, std::unique_ptr<Driver> driver);
@@ -116,6 +118,7 @@ protected:
     void restart();
     void propagate_cars(double time_step);
     Car_Info* controlled_car();
+    void update_car_timing(double elapsed);
 
     Vamos_Track::Strip_Track& m_track;
     Atmosphere m_atmosphere;
@@ -146,6 +149,7 @@ private:
     std::optional<size_t> mo_controlled_car_index;
     /// Acceleration due to gravity.
     Vamos_Geometry::Three_Vector m_gravity{0.0, 0.0, -9.8};
+    std::unique_ptr<Log> mp_log;
 };
 } // namespace Vamos_World
 

@@ -333,11 +333,11 @@ void Robot_Driver::accelerate()
     auto normal{mp_segment->normal(along_segment, info().track_position().y, false)};
     auto lift{mp_car->chassis().lift()};
     auto along{info().track_position().x};
-    auto cornering_speed{
-        m_racing_line.maximum_speed(along, m_lane_shift, lift, normal, mp_car->chassis().mass())};
+    auto cornering_speed{m_racing_line.maximum_speed(
+        along, m_lane_shift, lift, normal, mp_car->chassis().mass())};
     auto braking_speed{m_braking.maximum_speed(
-            m_speed, along, m_speed_factor < 1.0 ? lengths(2.0) : 0.0, m_lane_shift,
-            mp_car->chassis().drag(), lift, mp_car->chassis().mass())};
+        m_speed, along, lengths(2.0), m_lane_shift,
+        mp_car->chassis().drag(), lift, mp_car->chassis().mass())};
     set_speed(std::min(cornering_speed, braking_speed));
 }
 
@@ -653,12 +653,19 @@ double Braking_Operation::delta_braking_speed(double speed, double cornering_spe
 {
     auto decel = [&](Three_Vector const& K, double v2, Three_Vector const& p_hat) {
         auto mu{fraction * m_friction};
+        // Add up the force/mass terms that slow the car:
+        // 1. The component of gravity tangent to the track
+        // 2. Aerodynamic drag
+        // 3. Friction × normal force (gravity + downforce + centrifugal force due
+        //    to hill or valley
         return -m_gravity.dot(p_hat) - v2 * drag / mass
             - mu * (m_gravity.dot(n_hat) + v2 * (lift / mass + K.dot(n_hat)));
     };
 
     auto a{decel(m_line.curvature(along, lane_shift), speed * speed, m_line.tangent(along))};
+    // Scale the accelleration to account for traction spent on cornering.
     auto a_par{a * (1.0 - speed / cornering_speed)};
+    // Return acceleration times time.
     return a_par * delta_x / speed;
 }
 

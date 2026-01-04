@@ -323,7 +323,7 @@ Three_Vector Gl_Car::draw_rear_view(double, int index)
     auto& mirror{*m_mirrors[index]};
     mirror.set_view();
     auto pos{m_chassis.position() + m_chassis.rotate_out(mirror.get_center())};
-    view(mirror.get_direction(), pos);
+    view(mirror.get_direction(), pos, true);
     return pos;
 }
 
@@ -420,10 +420,10 @@ void Gl_Car::view()
 {
     // Called for the front view.
     auto pos{view_position(true, true)};
-    view(m_pan_key_control.value(), pos);
+    view(m_pan_key_control.value(), pos, false);
 }
 
-void Gl_Car::view(double pan, Three_Vector const& view_pos)
+void Gl_Car::view(double pan, Three_Vector const& view_pos, bool mirror)
 {
     // Find the angle-axis representation of the car's orientation.
     // Called for the front view and rear views.
@@ -443,8 +443,12 @@ void Gl_Car::view(double pan, Three_Vector const& view_pos)
     glRotated(-pan, z.x, z.y, z.z);
     glTranslated(-view_pos.x, -view_pos.y, -view_pos.z);
 
-    auto x{m_chassis.rotate_out(rotate(x_hat, pan * z_hat))};
-    float at_up[6] = {float(x.x), float(x.y), float(x.z), float(z.x), float(z.y), float(z.z)};
+    if (mirror)
+        return;
+
+    auto x{m_chassis.rotate_out(rotate(x_hat, -pan * z_hat))};
+    float at_up[6] = {float(x.x), float(x.y), float(x.z),
+                      float(z.x), float(z.y), float(z.z)};
     alListener3f(AL_POSITION, view_pos.x, view_pos.y, view_pos.z);
     alListenerfv(AL_ORIENTATION, at_up);
     auto v{m_chassis.point_velocity(m_chassis.transform_in(view_pos))};

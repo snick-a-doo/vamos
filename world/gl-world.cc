@@ -512,24 +512,9 @@ void Gl_World::animate()
         for (auto i{0}; i < steps_per_frame; ++i)
             propagate_cars(m_timer.get_time_step());
         play_sounds();
-        update_car_timing();
+        update_car_timing(m_timer.get_current_time());
     }
     m_timer.add_frame();
-}
-
-void Gl_World::update_car_timing()
-{
-    for (size_t i{0}; i < m_cars.size(); ++i)
-    {
-        auto& car{m_cars[i]};
-        auto distance{car.track_position().x};
-        auto sector{m_track.sector(distance)};
-        mp_timing->update(m_timer.get_current_time(), i, distance, sector);
-        if (mp_timing->timing_at_index(i).is_finished())
-            car.driver->finish();
-        else if (!car.driver->is_driving())
-            car.driver->start(mp_timing->countdown());
-    }
 }
 
 void Gl_World::play_sounds()

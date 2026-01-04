@@ -60,7 +60,9 @@ public:
     virtual Vamos_Geometry::Three_Vector draw_rear_view(double aspect, int index) override;
     virtual void make_rear_view_mask(int window_width, int window_height) override;
     virtual int get_n_mirrors() const override { return m_mirrors.size(); }
-    virtual void view(double pan, Vamos_Geometry::Three_Vector const& view_pos) override;
+    virtual void view(double pan,
+                      Vamos_Geometry::Three_Vector const& view_pos,
+                      bool mirror) override;
     virtual void view() override;
     virtual void propagate(double time) override;
     virtual void set_paused(bool is_paused) override;

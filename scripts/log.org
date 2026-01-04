@@ -1,0 +1,72 @@
+#+options: toc:nil
+#+latex_header_extra: \usepackage[dvipsnames]{xcolor}
+#+latex_header_extra: \usepackage{fullpage}
+#+latex: \setlength{\parskip}{6pt}
+#+latex: \setlength\parindent{0pt}
+#+property: header-args :session *R:log:* :exports results
+
+#+begin_src R :results none
+  library(tidyverse)
+  library(glue)
+  library(planeview)
+  library(patchwork)
+  library(purrr)
+  library(units)
+#+end_src
+
+#+begin_src R
+  read_log <- function(filename) {
+      read_tsv(filename, col_types = 'd', comment = '#') |>
+          mutate(across(contains('time'), \(t) set_units(t, s)),
+                 across(contains('steer'), \(s) set_units(s, arc_degree)),
+                 across(contains('dist'), \(d) set_units(d, m)),
+                 across(contains('revs'), \(r) set_units(r, rpm)),
+                 across(contains('speed'), \(s) set_units(s, km/h)))
+  }
+
+  # Plot a variable
+  plog <- function(logs, var, num = 1, last_s = NULL) {
+      plot <- ggplot()
+      plot1 <- function(log) {
+          qvar <- enquo(var)
+          plot <<- plot +
+              geom_line(aes(dist, !!qvar, color = quo_text(qvar)), data = log)
+          ## Overlay brake on gas
+          if (deparse(substitute(qvar)) == '~gas')
+              plot <<- plot + geom_line(aes(dist, brake, color = 'brake'), data = log)
+          ## Overlay the maximum safe speed on speed.
+          if (deparse(substitute(qvar)) == '~speed')
+              plot <<- plot + geom_line(aes(dist, max_speed, color = 'max_speed'), data = log) +
+                  coord_cartesian(ylim = c(NA, max(log$speed)))
+       }
+      map(logs, \(l) plot1(l))
+      plot
+  }
+
+  tail_log <- function(log, last_s) {
+      end <- last(log$time)
+      log |> filter(end - time < set_units(last_s, s))
+  }
+
+  pick_log <- function(log, car_num) {
+      map(car_num, \(n) {
+          log |> select(time, matches(glue('[a-z]{n}$'))) |>
+              rename_with(~ gsub('[0-9]', '', .x))})
+  }
+  
+  plot_log <- function(logs, ...) {
+      qvars <- quos(...)
+      # Make a list of plots, one for each variable, then stack them.
+      map(qvars, \(v) plog(logs, !!v)) |> reduce(`/`)
+  }
+  
+  log <- read_log('/home/samv/programs/Vamos/vamos-git/build/vamos/vamos-log')
+  log |> tail_log(Inf) |> pick_log(1) |> plot_log(gas, steer, speed)
+  log |> tail_log(Inf) |> pick_log(1:2) |> plot_log(gas, steer, speed)
+  
+  pgas <- log |> ggplot() + geom_line(aes(time, gas, color = 'gas')) +
+      geom_line(aes(time, brake, color = 'brake'))
+  pgear <- log |> ggplot() + geom_line(aes(time, gear, color = 'gear'))
+  psteer <- log |> ggplot() + geom_line(aes(time, steer, color = 'steer'))
+  pgas / pgear / psteer
+#+end_src

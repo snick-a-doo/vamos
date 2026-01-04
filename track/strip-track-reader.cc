@@ -238,10 +238,12 @@ void read_track_file(std::string const& data_dir,
                           data_dir + sky.child_value("bottom"),
                           sky.child("smooth"));
     if (auto background{top.child("map-background")})
-        track->set_map_background(
-            background.child_value("image"),
-            Rectangle<int>{get_value(background, "offset", Point{0, 0}),
-                           get_value(background, "size", Point{2000, 2000})});
+    {
+        auto image{background.child_value("image")};
+        auto offset{get_value(background, "offset", Point{0, 0})};
+        auto size{get_value(background, "size", Point{2000, 2000})};
+        track->set_map_background(image, Rectangle<int>{offset.x, offset.y, size.x, size.y});
+    }
     std::map<std::string, Material> materials;
     for (auto mat : top.children("material"))
     {

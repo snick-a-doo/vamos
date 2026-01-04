@@ -14,14 +14,17 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 #include "world.h"
-#include "driver.h"
+#include "robot-driver.h"
 #include "timing-info.h"
 
 #include "../body/car.h"
+#include "../body/engine.h"
+#include "../body/wheel.h"
 #include "../geometry/three-vector.h"
 #include "../track/strip-track.h"
 
 #include <cassert>
+#include <chrono>
 #include <fstream>
 #include <limits>
 
@@ -31,6 +34,110 @@ using namespace Vamos_World;
 using namespace Vamos_Track;
 
 double constexpr slipstream_time_constant{0.7};
+
+//-----------------------------------------------------------------------------
+// Helper function for impulse calculation.
+Three_Vector rotation_term(Three_Matrix const& I, Three_Vector const& r, Three_Vector const& n)
+{
+    return (invert(I) * r.cross(n)).cross(r);
+}
+
+// Impulse calculation for collisions.
+Three_Vector impulse(Three_Vector const& r1, double m1, Three_Matrix const& I1,
+                     Three_Vector const& r2, double m2, Three_Matrix const& I2,
+                     Three_Vector const& v, double restitution, double friction,
+                     Three_Vector const& normal)
+{
+    return -normal * (1.0 + restitution) * v.dot(normal)
+               / (normal.dot(normal) * (1.0 / m1 + 1.0 / m2)
+                  + (rotation_term(I1, r1, normal) + rotation_term(I2, r2, normal)).dot(normal))
+           + friction * (v.project(normal) - v);
+}
+
+// Impulse calculation for collisions.
+Three_Vector impulse(Three_Vector const& r, Three_Vector const& v, double m,
+                     Three_Matrix const& I, double restitution, double friction,
+                     Three_Vector const& normal)
+{
+    return -normal * (1.0 + restitution) * v.dot(normal)
+               / (normal.dot(normal) / m + rotation_term(I, r, normal).dot(normal))
+           + friction * (v.project(normal) - v);
+}
+
+//-----------------------------------------------------------------------------
+/// @brief Telemetry data logger.
+class Log
+{
+public:
+    Log(std::vector<Car_Info> const& cars);
+    virtual ~Log() = default;
+    void get_car_log(Car_Timing const& timing, Car_Info const& info,
+                     Strip_Track const& track, Three_Vector const& gravity);
+    void write_entry(double elapsed);
+private:
+    std::ofstream m_stream;
+    std::vector<double> m_buffer;
+};
+
+Log::Log(std::vector<Car_Info> const& cars)
+    : m_stream("/tmp/vamos-log")
+{
+    using namespace std::chrono;
+    auto const start{system_clock::now()};
+    auto column_names = {"lap", "lap_time", "gas", "brake", "gear",
+                         "steer", "dist", "revs", "speed", "max_speed"};
+    m_stream << "# started: " << current_zone()->to_local(start) << std::endl << "time";
+    for (auto i{1UL}; i <= cars.size(); ++i)
+        for (auto const& name : column_names)
+            m_stream << '\t' << name << i;
+    m_stream << std::endl;
+}
+
+void Log::get_car_log(Car_Timing const& timing, Car_Info const& info,
+                      Strip_Track const& track, Three_Vector const& gravity)
+{
+    auto car{info.car};
+    // Timing
+    m_buffer.insert(m_buffer.end(), {
+        static_cast<double>(timing.current_lap()),
+        timing.current_lap_time(),
+    });
+
+    // Driver inputs
+    m_buffer.insert(m_buffer.end(), {
+        car->throttle_fraction(),
+        car->brake_fraction(),
+        static_cast<double>(car->gear()),
+        car->steer_angle(),
+    });
+
+    auto const pos{info.track_position()};
+    auto const& road{track.get_road(0)};
+    auto const segment{road.segments()[info.segment_index].get()};
+    auto along_segment{pos.x - segment->start_distance()};
+    auto normal{segment->normal(along_segment, pos.y, false)};
+    Robot_Racing_Line racing_line{road, car->get_robot_parameters().lateral_acceleration};
+    racing_line.set_gravity(gravity);
+    auto cornering_speed{racing_line.maximum_speed(pos.x, 0.0,
+                                                   car->chassis().lift(), normal,
+                                                   car->chassis().mass())};
+
+    m_buffer.insert(m_buffer.end(), {
+        car->distance_traveled(),
+        rad_s_to_rpm(car->drivetrain()->engine().rotational_speed()),
+        m_s_to_km_h(car->wheel(car->num_wheels() - 1).speed()),
+        m_s_to_km_h(clip(cornering_speed, -1000.0, 1000.0)),
+    });
+}
+
+void Log::write_entry(double elapsed)
+{
+    m_stream << std::fixed << std::setprecision(3) << elapsed;
+    for (auto val : m_buffer)
+        m_stream << '\t' << val;
+    m_stream << std::endl;
+    m_buffer.clear();
+}
 
 //-----------------------------------------------------------------------------
 Car_Info::Car_Info(std::shared_ptr<Car> car, std::unique_ptr<Driver> driver)
@@ -72,6 +179,8 @@ World::World(Vamos_Track::Strip_Track& track, Atmosphere const& atmosphere)
 {
 }
 
+World::~World() {}
+
 void World::start(bool qualify, size_t laps_or_minutes)
 {
     mp_timing = std::make_unique<Timing_Info>(m_cars.size(), m_track.timing_lines(),
@@ -83,31 +192,8 @@ void World::start(bool qualify, size_t laps_or_minutes)
     }
     else
         mp_timing->set_lap_limit(laps_or_minutes);
-}
 
-Three_Vector rotation_term(Three_Matrix const& I, Three_Vector const& r, Three_Vector const& n)
-{
-    return (invert(I) * r.cross(n)).cross(r);
-}
-
-Three_Vector impulse(Three_Vector const& r1, double m1, Three_Matrix const& I1,
-                     Three_Vector const& r2, double m2, Three_Matrix const& I2,
-                     Three_Vector const& v, double restitution, double friction,
-                     Three_Vector const& normal)
-{
-    return -normal * (1.0 + restitution) * v.dot(normal)
-               / (normal.dot(normal) * (1.0 / m1 + 1.0 / m2)
-                  + (rotation_term(I1, r1, normal) + rotation_term(I2, r2, normal)).dot(normal))
-           + friction * (v.project(normal) - v);
-}
-
-Three_Vector impulse(Three_Vector const& r, Three_Vector const& v, double m,
-                     Three_Matrix const& I, double restitution, double friction,
-                     Three_Vector const& normal)
-{
-    return -normal * (1.0 + restitution) * v.dot(normal)
-               / (normal.dot(normal) / m + rotation_term(I, r, normal).dot(normal))
-           + friction * (v.project(normal) - v);
+    mp_log = std::make_unique<Log>(m_cars);
 }
 
 void World::propagate_cars(double time_step)
@@ -135,6 +221,23 @@ void World::propagate_cars(double time_step)
                                                  info.segment_index));
 
     }
+}
+
+void World::update_car_timing(double elapsed)
+{
+    for (size_t i{0}; i < m_cars.size(); ++i)
+    {
+        auto& car{m_cars[i]};
+        auto distance{car.track_position().x};
+        auto sector{m_track.sector(distance)};
+        mp_timing->update(elapsed, i, distance, sector);
+        if (mp_timing->timing_at_index(i).is_finished())
+            car.driver->finish();
+        else if (!car.driver->is_driving())
+            car.driver->start(mp_timing->countdown());
+        mp_log->get_car_log(mp_timing->timing_at_index(i), car, m_track, m_gravity);
+    }
+    mp_log->write_entry(elapsed);
 }
 
 double World::air_density_factor(Car_Info const& car1, Car_Info const& car2)

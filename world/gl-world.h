@@ -228,7 +228,6 @@ private:
     void display();
 
     void check_for_events();
-    void update_car_timing();
     void play_sounds();
     void set_paused(bool is_paused);
 

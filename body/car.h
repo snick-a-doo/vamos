@@ -134,9 +134,11 @@ public:
     { return Vamos_Geometry::null_v; }
     virtual void make_rear_view_mask(int /* window_width */, int /* window_height */) {}
     virtual int get_n_mirrors() const { return 0; }
-    // Perform the transformations for the driver's view.
+    // Perform the transformations for the driver's view and hearing. Pass true for
+    // 'mirror' if rendering a mirror view to avoid changing the listener position.
     virtual void view(double,                              // pan
-                      Vamos_Geometry::Three_Vector const&) // view_position
+                      Vamos_Geometry::Three_Vector const&, // view_position
+                      bool)                                // mirror
     {}
     virtual void view() {}
     virtual void set_paused(bool) {};
