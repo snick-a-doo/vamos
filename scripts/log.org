@@ -11,6 +11,7 @@
   library(planeview)
   library(patchwork)
   library(purrr)
+  library(rlang)
   library(units)
 #+end_src
 
@@ -30,7 +31,8 @@
       plot1 <- function(log) {
           qvar <- enquo(var)
           plot <<- plot +
-              geom_line(aes(dist, !!qvar, color = quo_text(qvar)), data = log)
+              geom_line(aes(dist, !!qvar, color = quo_text(qvar)), data = log) +
+              labs(x = 'Distance', color = '')
           ## Overlay brake on gas
           if (deparse(substitute(qvar)) == '~gas')
               plot <<- plot + geom_line(aes(dist, brake, color = 'brake'), data = log)
@@ -60,13 +62,13 @@
       map(qvars, \(v) plog(logs, !!v)) |> reduce(`/`)
   }
   
-  log <- read_log('/home/samv/programs/Vamos/vamos-git/build/vamos/vamos-log')
-  log |> tail_log(Inf) |> pick_log(1) |> plot_log(gas, steer, speed)
+  log <- read_log('/tmp/vamos-log')
+  log |> tail_log(1.5e2) |> pick_log(1) |> plot_log(gas, steer, speed)
   log |> tail_log(Inf) |> pick_log(1:2) |> plot_log(gas, steer, speed)
   
-  pgas <- log |> ggplot() + geom_line(aes(time, gas, color = 'gas')) +
-      geom_line(aes(time, brake, color = 'brake'))
-  pgear <- log |> ggplot() + geom_line(aes(time, gear, color = 'gear'))
-  psteer <- log |> ggplot() + geom_line(aes(time, steer, color = 'steer'))
+  pgas <- log |> ggplot() + geom_line(aes(time, gas1, color = 'gas')) +
+      geom_line(aes(time, brake1, color = 'brake'))
+  pgear <- log |> ggplot() + geom_line(aes(time, gear1, color = 'gear'))
+  psteer <- log |> ggplot() + geom_line(aes(time, steer1, color = 'steer'))
   pgas / pgear / psteer
 #+end_src

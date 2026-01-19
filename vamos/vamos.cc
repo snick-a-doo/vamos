@@ -26,6 +26,8 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <set>
+#include <vector>
 
 using namespace Vamos_Body;
 using namespace Vamos_Geometry;
@@ -49,8 +51,8 @@ static bool quicker(Entry const& e1, Entry const& e2)
 
 using Entry_List = std::vector<Entry>;
 
-fs::path get_path(std::string const& data_dir, std::string const& section, std::string const& file,
-                  bool extend)
+fs::path get_path(std::string const& data_dir, std::string const& section,
+                  std::string const& file, bool extend)
 {
     fs::path path{data_dir};
     path /= section;
@@ -89,25 +91,22 @@ Entry_List get_entries(Options& opt)
 
     opt.track_file = get_path(opt.data_dir, "tracks", opt.track_file, true);
 
-    std::vector<std::string> car_files;
-
+    // Get an ordered file list by putting all the XML files in a set.
+    std::set<fs::path> car_files;
     auto car_path{get_path(opt.data_dir, "cars", opt.car_file, false)};
     if (fs::is_directory(car_path))
     {
-        for (auto it = fs::directory_iterator(car_path);
-             it != fs::directory_iterator() && car_files.size() < opt.number_of_cars;
-             ++it)
-            if (it->path().extension() == ".xml")
-                car_files.push_back(it->path().native());
-        std::sort(car_files.begin(), car_files.end());
+        for (auto& entry : fs::directory_iterator(car_path))
+            if (entry.path().extension() == ".xml")
+                car_files.insert(entry.path());
     }
     else
-        car_files.push_back(get_path(opt.data_dir, "cars", opt.car_file, true));
+        car_files.insert(get_path(opt.data_dir, "cars", opt.car_file, true));
 
-    std::sort(car_files.begin(), car_files.end());
     for (auto it{car_files.begin()}; entries.size() < opt.number_of_cars; )
     {
         entries.emplace_back(*it, false, 0);
+        // Recycle car files until the requested number of cars are placed.
         if (++it == car_files.end())
             it = car_files.begin();
     }
