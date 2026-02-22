@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<controls name="Keyboard and Joystick">
+<controls name="Keyboard and Joystick with Continuous Clutch">
   <!-- Put the car at the start -->
   <bind><function>restart car</function><key>a</key></bind>
   <!-- Put the car on the road -->
@@ -25,56 +25,62 @@
   <!-- Pan -->
   <bind>
     <function>pan left</function>
-	<key>,</key><down/>
+	<hat>left</hat>
+	<time>0.25</time>
+  </bind>
+  <bind>
+    <function>pan center</function>
+	<hat>center</hat>
+	<time>0.25</time>
+  </bind>
+  <bind>
+    <function>pan right</function>
+	<hat>right</hat>
+	<time>0.25</time>
+  </bind>
+
+  <bind>
+    <function>pan left</function>
+	<key>,</key><press/>
 	<time>0.25</time>
   </bind>
   <bind>
     <function>pan left</function>
-	<key>,</key><up/>
+	<key>,</key><release/>
 	<time>0.25</time>
   </bind>
   <bind>
     <function>pan right</function>
-	<key>.</key><down/>
+	<key>.</key><press/>
 	<time>0.25</time>
   </bind>
   <bind>
     <function>pan right</function>
-	<key>.</key><up/>
+	<key>.</key><release/>
 	<time>0.25</time>
   </bind>
 
   <!-- Shift Up -->
   <bind>
     <function>initial shift up</function>
-	<button>1</button><down/>
+	<button>0</button><press/>
 	<time>0.2</time>
   </bind>
   <bind>
-    <function>shift up disengage</function>
-	<button>1</button><down/>
-	<time>0.2</time>
-  </bind>
-  <bind>
-    <function>engage clutch</function>
-	<button>1</button><up/>
+    <function>shift up</function>
+	<button>0</button><press/>
 	<time>0.2</time>
   </bind>
 
   <!-- Shift Down -->
   <bind>
     <function>initial shift down</function>
-	<button>2</button><down/>
+	<button>1</button><press/>
 	<time>0.2</time>
   </bind>
   <bind>
-    <function>shift down disengage</function>
-	<button>2</button><down/>
-	<time>0.2</time>
-  </bind>
-  <bind>
-    <function>engage clutch</function>
-	<button>2</button><up/>
+    <function>shift down</function>
+	<button>1</button><press/>
 	<time>0.2</time>
   </bind>
 
@@ -112,6 +118,13 @@
   <!-- Clutch -->
   <bind>
     <function>initial clutch</function>
+	<axis>3</axis>
+	<factor>0.5</factor>
+	<offset>0.5</offset>
+	<minimum>0.0</minimum>
+  </bind>
+  <bind>
+    <function>clutch</function>
 	<axis>3</axis>
 	<factor>0.5</factor>
 	<offset>0.5</offset>

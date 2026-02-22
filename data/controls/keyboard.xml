@@ -25,108 +25,108 @@
   <!-- Pan -->
   <bind>
     <function>pan left</function>
-	<key>,</key><down/>
+	<key>,</key><press/>
 	<time>0.25</time>
   </bind>
   <bind>
     <function>pan left</function>
-	<key>,</key><up/>
+	<key>,</key><release/>
 	<time>0.25</time>
   </bind>
   <bind>
     <function>pan right</function>
-	<key>.</key><down/>
+	<key>.</key><press/>
 	<time>0.25</time>
   </bind>
   <bind>
     <function>pan right</function>
-	<key>.</key><up/>
+	<key>.</key><release/>
 	<time>0.25</time>
   </bind>
 
   <!-- Shift Up -->
   <bind>
     <function>initial shift up disengage</function>
-	<button>1</button><down/>
+	<button>1</button><press/>
 	<time>0.2</time>
   </bind>
   <bind>
     <function>initial engage clutch</function>
-	<button>1</button><up/>
+	<button>1</button><release/>
 	<time>1.5</time>
   </bind>
   <bind>
     <function>shift up disengage</function>
-	<button>1</button><down/>
+	<button>1</button><press/>
 	<time>0.2</time>
   </bind>
   <bind>
     <function>engage clutch</function>
-	<button>1</button><up/>
+	<button>1</button><release/>
 	<time>0.2</time>
   </bind>
 
   <bind>
     <function>initial shift up disengage</function>
-	<key>Insert</key><down/>
+	<key>Insert</key><press/>
 	<time>0.2</time>
   </bind>
   <bind>
     <function>initial engage clutch</function>
-	<key>Insert</key><up/>
+	<key>Insert</key><release/>
 	<time>1.5</time>
   </bind>
   <bind>
     <function>shift up disengage</function>
-	<key>Insert</key><down/>
+	<key>Insert</key><press/>
 	<time>0.2</time>
   </bind>
   <bind>
     <function>engage clutch</function>
-	<key>Insert</key><up/>
+	<key>Insert</key><release/>
 	<time>0.2</time>
   </bind>
 
   <!-- Shift Down -->
   <bind>
     <function>initial shift down disengage</function>
-	<button>2</button><down/>
+	<button>2</button><press/>
 	<time>0.2</time>
   </bind>
   <bind>
     <function>initial engage clutch</function>
-	<button>2</button><up/>
+	<button>2</button><release/>
 	<time>1.5</time>
   </bind>
   <bind>
     <function>shift down disengage</function>
-	<button>2</button><down/>
+	<button>2</button><press/>
 	<time>0.2</time>
   </bind>
   <bind>
     <function>engage clutch</function>
-	<button>2</button><up/>
+	<button>2</button><release/>
 	<time>0.2</time>
   </bind>
 
   <bind>
     <function>initial shift down disengage</function>
-	<key>Delete</key><down/>
+	<key>Delete</key><press/>
 	<time>0.2</time>
   </bind>
   <bind>
     <function>initial engage clutch</function>
-	<key>Delete</key><up/>
+	<key>Delete</key><release/>
 	<time>1.5</time>
   </bind>
   <bind>
     <function>shift down disengage</function>
-	<key>Delete</key><down/>
+	<key>Delete</key><press/>
 	<time>0.2</time>
   </bind>
   <bind>
     <function>engage clutch</function>
-	<key>Delete</key><up/>
+	<key>Delete</key><release/>
 	<time>0.2</time>
   </bind>
 
@@ -134,64 +134,64 @@
   <!-- Steer -->
   <bind>
     <function>steer left</function>
-	<key>Left</key><down/>
+	<key>Left</key><press/>
 	<time>0.1</time>
   </bind>
   <bind>
     <function>steer left</function>
-	<key>Left</key><up/>
+	<key>Left</key><release/>
 	<time>0.05</time>
   </bind>
   <bind>
     <function>steer right</function>
-	<key>Right</key><down/>
+	<key>Right</key><press/>
 	<time>0.1</time>
   </bind>
   <bind>
     <function>steer right</function>
-	<key>Right</key><up/>
+	<key>Right</key><release/>
 	<time>0.05</time>
   </bind>
 
   <!-- Gas -->
   <bind>
     <function>gas</function>
-	<key>Up</key><down/>
+	<key>Up</key><press/>
 	<time>0.5</time>
   </bind>
   <bind>
     <function>gas</function>
-	<key>Up</key><up/>
+	<key>Up</key><release/>
 	<time>0.5</time>
   </bind>
 
   <!-- Brake -->
   <bind>
     <function>brake</function>
-	<key>Down</key><down/>
+	<key>Down</key><press/>
 	<time>0.5</time>
   </bind>
   <bind>
     <function>brake</function>
-	<key>Down</key><up/>
+	<key>Down</key><release/>
 	<time>0.5</time>
   </bind>
 
   <!-- Clutch -->
   <bind>
     <function>disengage clutch</function>
-	<button>3</button><down/>
+	<button>3</button><press/>
   </bind>
   <bind>
     <function>engage clutch</function>
-	<button>3</button><up/>
+	<button>3</button><release/>
   </bind>
   <bind>
     <function>disengage clutch</function>
-	<key>Home</key><down/>
+	<key>Home</key><press/>
   </bind>
   <bind>
     <function>engage clutch</function>
-	<key>Home</key><up/>
+	<key>Home</key><release/>
   </bind>
 </controls>

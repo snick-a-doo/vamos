@@ -60,15 +60,22 @@ void Callback_List::call(int index, double value)
 }
 
 //-----------------------------------------------------------------------------
-void Control::bind_action(int index, Direct direction, Callback_Fn function, double time)
+void Control::bind_action(int index, Button_Action state, Callback_Fn function, double time)
 {
-    auto& cbs{direction == Direct::up ? m_release_callbacks : m_press_callbacks};
+    auto& cbs{state == Button_Action::release ? m_release_callbacks : m_press_callbacks};
     cbs.add(index, function, {}, time);
 }
 
-void Control::bind_motion(int axis, Callback_Fn function, Calibration const& calib)
+void Control::bind_hat(int index, Callback_Fn function, double time)
 {
-    m_motion_callbacks.add(axis, function, calib, 0.0);
+    auto& cbs{m_hat_callbacks};
+    cbs.add(index, function, {}, time);
+}
+
+void Control::bind_motion(int axis, Callback_Fn function, Calibration const& calib,
+                          double time)
+{
+    m_motion_callbacks.add(axis, function, calib, time);
     if (m_ranges.find(axis) == m_ranges.end())
         set_axis_range(axis, -RAW_MOTION_RANGE, RAW_MOTION_RANGE);
 }
@@ -86,6 +93,11 @@ void Control::press(int index)
 void Control::release(int index)
 {
     m_release_callbacks.call(index, 0.0);
+}
+
+void Control::hat(int index)
+{
+    m_hat_callbacks.call(index, 1.0);
 }
 
 void Control::move(int axis, int position)

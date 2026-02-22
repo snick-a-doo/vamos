@@ -65,15 +65,17 @@ namespace Vamos_Body
 {
 void read_car(std::string const& data_dir, std::string const& file_name, Car* car)
 {
-    pugi::xml_document doc;
-    auto result{doc.load_file(file_name.c_str())};
-    auto top{doc.child("car")};
+    // Optional default parameters. If present, the document object must stay in scope.
+    // auto top{read_with_defaults(file_name, "car")};
+    XML_Reader reader(file_name);
+    auto top{reader.get_root()};
+
     car->m_name = std::string{top.attribute("name").value()};
     if (auto robot{top.child("robot")})
         car->set_robot_parameters(get_value(robot, "slip-ratio", 0.0),
                                   get_value(robot, "deceleration", 0.0),
                                   get_value(robot, "lateral-acceleration", 0.0));
-    auto model_dir{data_dir + "cars/"};
+    auto const model_dir{data_dir + "cars/"};
     if (auto model{top.child("exterior-model")})
         car->set_exterior_model(get_model(model, model_dir));
     if (auto model{top.child("interior-model")})
@@ -269,6 +271,10 @@ void read_car(std::string const& data_dir, std::string const& file_name, Car* ca
     auto s_camber{0.0};
     auto s_caster{0.0};
     auto s_toe{0.0};
+    std::vector<std::string> s_model;
+    std::vector<double> s_scale;
+    std::vector<Three_Vector> s_trans;
+    std::vector<Three_Vector> s_rot;
     // Tire
     auto t_radius{1.0};
     Point<double> t_rolling{0.0, 0.0};
@@ -313,11 +319,23 @@ void read_car(std::string const& data_dir, std::string const& file_name, Car* ca
             if (last_suspension)
                 suspension->anti_roll(last_suspension, get_value(susp, "anti-roll", 0.0));
         last_suspension = suspension;
-        for (auto model : susp.children("model"))
-            suspension->set_model(model_dir + get_value(model, "file", std::string{}),
-                                  get_value(model, "scale", 1.0),
-                                  get_value(model, "translate", null_v),
-                                  get_value(model, "rotate", null_v));
+        auto s_models{susp.children("model")};
+        if (!s_models.empty())
+        {
+            s_model.clear();
+            s_scale.clear();
+            s_trans.clear();
+            s_rot.clear();
+            for (auto model : s_models)
+            {
+                s_model.push_back(model_dir + get_value(model, "file", std::string{}));
+                s_scale.push_back(get_value(model, "scale", 1.0));
+                s_trans.push_back(get_value(model, "translate", null_v));
+                s_rot.push_back(get_value(model, "rotate", null_v));
+            }
+        }
+        for (size_t i{0}; i < s_model.size(); ++i)
+            suspension->set_model(s_model[i], s_scale[i], s_trans[i], s_rot[i]);
         car->chassis().add_particle(suspension->get_hinge());
         car->chassis().add_particle(suspension);
 
@@ -351,10 +369,10 @@ void read_car(std::string const& data_dir, std::string const& file_name, Car* ca
         car->chassis().add_particle(wheel);
         car->m_wheels.push_back(wheel);
         auto model{wheel_tag.child("model")};
-        wheel->set_models(w_slow = model_dir + get_value(model, "slow-file", w_slow),
-                          w_fast = model_dir + get_value(model, "fast-file", w_fast),
+        wheel->set_models(model_dir + (w_slow = get_value(model, "slow-file", w_slow)),
+                          model_dir + (w_fast = get_value(model, "fast-file", w_fast)),
                           w_trans_v = get_value(model, "transition-speed", w_trans_v),
-                          w_stator = model_dir + get_value(model, "stator-file", w_stator),
+                          model_dir + (w_stator = get_value(model, "stator-file", w_stator)),
                           w_stator_off = get_value(model, "stator-offset", w_stator_off),
                           w_scale = get_value(model, "scale", w_scale),
                           w_trans = get_value(model, "translate", w_trans),

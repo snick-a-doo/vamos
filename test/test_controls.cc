@@ -62,13 +62,13 @@ Keyboard_Fixture::Keyboard_Fixture()
       up_arg(0.0)
 {
     using namespace std::placeholders;
-    c.bind_action(12, Direct::down, std::bind_front(&Keyboard_Fixture::on_down_1, this),
+    c.bind_action(12, Button_Action::press, std::bind_front(&Keyboard_Fixture::on_down_1, this),
                   1.0);
-    c.bind_action(12, Direct::none, std::bind_front(&Keyboard_Fixture::on_down_2, this),
+    c.bind_action(12, Button_Action::none, std::bind_front(&Keyboard_Fixture::on_down_2, this),
                   2.0);
-    c.bind_action(12, Direct::down, std::bind_front(&Keyboard_Fixture::on_down_3, this),
+    c.bind_action(12, Button_Action::press, std::bind_front(&Keyboard_Fixture::on_down_3, this),
                   3.0);
-    c.bind_action(13, Direct::up, std::bind_front(&Keyboard_Fixture::on_up, this), 4.0);
+    c.bind_action(13, Button_Action::release, std::bind_front(&Keyboard_Fixture::on_up, this), 4.0);
 }
 
 TEST_CASE("press_12")
@@ -130,11 +130,11 @@ Motion_Fixture::Motion_Fixture()
 {
     using namespace std::placeholders;
     c.bind_motion(4, std::bind_front(&Motion_Fixture::on_move_1_forward, this),
-                  {false, true, 1.0, 0.0, 0.0, 0.0});
+        {false, true, 1.0, 0.0, 0.0, 0.0}, 0.0);
     c.bind_motion(4, std::bind_front(&Motion_Fixture::on_move_1_backward, this),
-                  {true, false, -1.0, 0.0, 0.0, 0.0});
+        {true, false, -1.0, 0.0, 0.0, 0.0}, 0.5);
     c.bind_motion(7, std::bind_front(&Motion_Fixture::on_move_2, this),
-                  {true, true, 0.5, 0.5, 0.0, 0.0});
+        {true, true, 0.5, 0.5, 0.0, 0.0}, 1.0);
 }
 
 TEST_CASE("half range")
@@ -176,7 +176,7 @@ Deadband_Fixture::Deadband_Fixture()
 {
     using namespace std::placeholders;
     c.bind_motion(5, std::bind_front(&Deadband_Fixture::on_move, this),
-                  {true, true, 2.0, 1.0, 0.1, 0.2});
+        {true, true, 2.0, 1.0, 0.1, 0.2}, 0.0);
 }
 
 TEST_CASE("deadband")

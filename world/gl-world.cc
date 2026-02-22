@@ -14,14 +14,15 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 
 #include "gl-world.h"
+#include "SDL_hints.h"
+#include "SDL_joystick.h"
+#include "controls.h"
 #include "interactive-driver.h"
 #include "robot-driver.h"
 #include "sounds.h"
 #include "timing-info.h"
 
 #include "../body/gl-car.h"
-#include "../body/wheel.h"
-#include "../geometry/conversions.h"
 #include "../media/two-d.h"
 #include "../track/strip-track.h"
 
@@ -185,30 +186,30 @@ void Gl_Window::refresh() const
 //-----------------------------------------------------------------------------
 Map::Map()
 {
-    keyboard().bind_action(SDLK_RIGHT, Direct::down, std::bind_front(&Map::pan, this),
+    keyboard().bind_action(SDLK_RIGHT, Button_Action::press, std::bind_front(&Map::pan, this),
                            to_integral(Direct::right));
-    keyboard().bind_action(SDLK_LEFT, Direct::down, std::bind_front(&Map::pan, this),
+    keyboard().bind_action(SDLK_LEFT, Button_Action::press, std::bind_front(&Map::pan, this),
                            to_integral(Direct::left));
-    keyboard().bind_action(SDLK_UP, Direct::down, std::bind_front(&Map::pan, this),
+    keyboard().bind_action(SDLK_UP, Button_Action::press, std::bind_front(&Map::pan, this),
                            to_integral(Direct::up));
-    keyboard().bind_action(SDLK_DOWN, Direct::down, std::bind_front(&Map::pan, this),
+    keyboard().bind_action(SDLK_DOWN, Button_Action::press, std::bind_front(&Map::pan, this),
                            to_integral(Direct::down));
 
-    keyboard().bind_action('=', Direct::down, std::bind_front(&Map::zoom_center, this), 1);
-    keyboard().bind_action('+', Direct::down, std::bind_front(&Map::zoom_center, this), 1);
-    keyboard().bind_action('-', Direct::down, std::bind_front(&Map::zoom_center, this), -1);
-    keyboard().bind_action('_', Direct::down, std::bind_front(&Map::zoom_center, this), -1);
+    keyboard().bind_action('=', Button_Action::press, std::bind_front(&Map::zoom_center, this), 1);
+    keyboard().bind_action('+', Button_Action::press, std::bind_front(&Map::zoom_center, this), 1);
+    keyboard().bind_action('-', Button_Action::press, std::bind_front(&Map::zoom_center, this), -1);
+    keyboard().bind_action('_', Button_Action::press, std::bind_front(&Map::zoom_center, this), -1);
 
     for (char c = '1'; c <= '9'; c++)
-        keyboard().bind_action(c, Direct::down, std::bind_front(&Map::set_zoom, this),
+        keyboard().bind_action(c, Button_Action::press, std::bind_front(&Map::set_zoom, this),
                                c - '1' + 1);
 
-    mouse().bind_action(SDL_BUTTON_LEFT, Direct::down,
+    mouse().bind_action(SDL_BUTTON_LEFT, Button_Action::press,
                         std::bind_front(&Map::mouse_button, this), 0.0);
-    mouse().bind_action(SDL_BUTTON_LEFT, Direct::up,
+    mouse().bind_action(SDL_BUTTON_LEFT, Button_Action::release,
                         std::bind_front(&Map::mouse_button, this), 0.0);
-    mouse().bind_motion(X, std::bind_front(&Map::point_x, this), {});
-    mouse().bind_motion(Y, std::bind_front(&Map::point_y, this), {});
+    mouse().bind_motion(X, std::bind_front(&Map::point_x, this), {}, 0.0);
+    mouse().bind_motion(Y, std::bind_front(&Map::point_y, this), {}, 0.0);
     mouse().bind_incremental(0, std::bind_front(&Map::zoom_point, this));
 }
 
@@ -893,13 +894,17 @@ void Gl_World::check_for_events()
             if (driver)
                 driver->joystick().move(event.jaxis.axis, event.jaxis.value);
             break;
+        case SDL_JOYHATMOTION:
+            if (driver)
+                driver->joystick().hat(event.jhat.value);
+            break;
         case SDL_JOYBUTTONDOWN:
             if (driver)
-                driver->joystick().press(event.jbutton.button + 1);
+                driver->joystick().press(event.jbutton.button);
             break;
         case SDL_JOYBUTTONUP:
             if (driver)
-                driver->joystick().release(event.jbutton.button + 1);
+                driver->joystick().release(event.jbutton.button);
             break;
         case SDL_KEYDOWN:
             keyboard().press(event.key.keysym.sym);
@@ -980,7 +985,7 @@ Car_Info* Gl_World::focused_car()
 void Gl_World::read_world_file(std::string const& file_name)
 {
     pugi::xml_document doc;
-    auto result{doc.load_file(file_name.c_str())};
+    doc.load_file(file_name.c_str());
     auto world_node{doc.child("world")};
     set_gravity(world_node.child("gravity").text().as_double());
 
@@ -1038,6 +1043,18 @@ std::map<std::string, int> button_map{
     {"right", SDL_BUTTON_RIGHT},
 };
 
+std::map<std::string, int> hat_map {
+    {"center", SDL_HAT_CENTERED},
+    {"left", SDL_HAT_LEFT},
+    {"right", SDL_HAT_RIGHT},
+    {"up", SDL_HAT_UP},
+    {"down", SDL_HAT_DOWN},
+    {"up-left", SDL_HAT_LEFTUP},
+    {"up-right", SDL_HAT_RIGHTUP},
+    {"down-left", SDL_HAT_LEFTDOWN},
+    {"down-right", SDL_HAT_RIGHTDOWN},
+};
+
 /// @return A string converted to all lowercase.
 static std::string downcase(std::string str)
 {
@@ -1068,6 +1085,15 @@ static Direct get_direction(pugi::xml_node const& binding)
     if (binding.child("backward"))
         return Direct::backward;
     return Direct::none;
+}
+
+static Button_Action get_button_action(pugi::xml_node const& binding)
+{
+    if (binding.child("press"))
+        return Button_Action::press;
+    if (binding.child("release"))
+        return Button_Action::release;
+    return Button_Action::none;
 }
 
 static Calibration get_calibration(pugi::xml_node const& binding, Direct direction)
@@ -1143,18 +1169,22 @@ void Gl_World::read_controls_file(std::string const& file_name)
             {"steer left", &Interactive_Driver::steer_left},
             {"gas", &Interactive_Driver::gas},
             {"brake", &Interactive_Driver::brake},
+            {"pan", &Interactive_Driver::pan},
             {"pan left", &Interactive_Driver::pan_left},
-            {"pan right", &Interactive_Driver::pan_right}},
+            {"pan right", &Interactive_Driver::pan_right},
+            {"pan center", &Interactive_Driver::pan_center},
+        },
         driver);
 
     pugi::xml_document doc;
-    auto result{doc.load_file(file_name.c_str())};
+    doc.load_file(file_name.c_str());
     auto top{doc.child("controls")};
     for (auto binding : top.children("bind"))
     {
         Control_Handler* handler{this};
         auto function{binding.child_value("function")};
         auto direction{get_direction(binding)};
+        auto action{get_button_action(binding)};
         auto calib{get_calibration(binding, direction)};
         auto time{binding.child("time") ? binding.child("time").text().as_double() : 0.0};
 
@@ -1173,28 +1203,34 @@ void Gl_World::read_controls_file(std::string const& file_name)
         if (binding.child("key"))
         {
             auto control{translate_key(binding.child_value("key"))};
-            handler->keyboard().bind_action(control, direction, callback, time);
+            handler->keyboard().bind_action(control, action, callback, time);
         }
         else if (binding.child("button"))
         {
             auto control{binding.child("button").text().as_int()};
-            handler->joystick().bind_action(control, direction, callback, time);
+            handler->joystick().bind_action(control, action, callback, time);
         }
         else if (binding.child("axis"))
         {
             auto control{binding.child("axis").text().as_int()};
-            handler->joystick().bind_motion(control, callback, calib);
+            handler->joystick().bind_motion(control, callback, calib, time);
+        }
+        else if (binding.child("hat"))
+        {
+            auto control{hat_map[downcase(binding.child_value("hat"))]};
+            handler->joystick().bind_hat(control, callback, time);
         }
         else if (binding.child("mouse-button"))
         {
-            auto control{button_map[downcase(binding.child_value("mouse-button"))]};
-            handler->mouse().bind_action(control, direction, callback, time);
+          auto control{
+              button_map[downcase(binding.child_value("mouse-button"))]};
+            handler->mouse().bind_action(control, action, callback, time);
         }
         else if (binding.child("mouse-axis"))
         {
             m_has_mouse_control = true;
             auto control{binding.child("mouse-axis").text().as_int()};
-            handler->mouse().bind_motion(control, callback, calib);
+            handler->mouse().bind_motion(control, callback, calib, time);
         }
     }
 }

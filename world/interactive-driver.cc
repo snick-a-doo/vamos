@@ -199,6 +199,12 @@ bool Interactive_Driver::disengage_clutch(double, double time)
     return true;
 }
 
+bool Interactive_Driver::pan(double value, double time)
+{
+    mp_car->pan(value, time);
+    return true;
+}
+
 bool Interactive_Driver::pan_left(double value, double time)
 {
     mp_car->pan(value, time);
@@ -208,5 +214,11 @@ bool Interactive_Driver::pan_left(double value, double time)
 bool Interactive_Driver::pan_right(double value, double time)
 {
     mp_car->pan(-value, time);
+    return true;
+}
+
+bool Interactive_Driver::pan_center(double, double time)
+{
+    mp_car->pan(0.0, time);
     return true;
 }

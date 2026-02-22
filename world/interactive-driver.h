@@ -52,8 +52,10 @@ public:
     bool engage_clutch(double, double);
     bool disengage_clutch(double, double);
 
+    bool pan(double, double);
     bool pan_left(double, double);
     bool pan_right(double, double);
+    bool pan_center(double, double);
     /// @}
 };
 } // namespace Vamos_World

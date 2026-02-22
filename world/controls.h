@@ -22,7 +22,13 @@
 
 namespace Vamos_World
 {
-enum class Direct{none, up, down, left, right, forward, backward, in, out};
+enum class Direct {
+  none,
+  up, down, left, right,
+  forward, backward,
+  in, out,
+  up_left, up_right, down_left, down_right};
+enum class Button_Action{none, press, release};
 
 /// Convert a scoped enum to its integral type. See https://stackoverflow.com/a/14589519.
 template <typename E> constexpr auto to_integral(E e) -> typename std::underlying_type<E>::type
@@ -72,20 +78,24 @@ class Control
 {
 public:
     /// Bind a discrete control to a callback.
-    void bind_action(int index, Direct direction, Callback_Fn function, double time);
+    void bind_action(int index, Button_Action state, Callback_Fn function, double time);
+    /// Bind a hat control to a callback.
+    void bind_hat(int index, Callback_Fn function, double time);
     /// Bind a continuous control to a callback.
-    void bind_motion(int axis, Callback_Fn func, Calibration const& calib);
+    void bind_motion(int axis, Callback_Fn func, Calibration const& calib, double time);
     /// Bind an incremental control (e.g. mouse wheel) to a callback.
     void bind_incremental(int index, Callback_Fn func);
     /// Change the raw range of a continuous control.
     void set_axis_range(int axis, int low_raw_value, int high_raw_value);
 
-    /// Call callbacks registered for axis movement.
-    void move(int axis, int position);
     /// Call callbacks registered for key or button press.
     void press(int index);
     /// Call callbacks registered for key or button release.
     void release(int index);
+    /// Call callbacks registered for axis movement.
+    void hat(int index);
+    /// Call callbacks registerid for hat movement.
+    void move(int axis, int position);
     /// Call callbacks registered for incremental events.
     void increment(int index, int delta);
 
@@ -95,6 +105,7 @@ private:
 
     Callback_List m_press_callbacks;
     Callback_List m_release_callbacks;
+    Callback_List m_hat_callbacks;
     Callback_List m_motion_callbacks;
     Callback_List m_incremental_callbacks;
     std::map<int, std::pair<int, int>> m_ranges;
